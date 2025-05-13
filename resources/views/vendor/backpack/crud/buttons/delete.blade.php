@@ -65,10 +65,10 @@
 			              // Hide the modal, if any
 			              $('.modal').modal('hide');
 			          } else {
-			              // if the result is an array, it means 
+			              // if the result is an array, it means
 			              // we have notification bubbles to show
 			          	  if (result instanceof Object) {
-			          	  	// trigger one or more bubble notifications 
+			          	  	// trigger one or more bubble notifications
 			          	  	Object.entries(result).forEach(function(entry, index) {
 			          	  	  var type = entry[0];
 			          	  	  entry[1].forEach(function(message, i) {
@@ -86,7 +86,7 @@
 				              	timer: 4000,
 				              	buttons: false,
 				              });
-			          	  }			          	  
+			          	  }
 			          }
 			      },
 			      error: function(result) {

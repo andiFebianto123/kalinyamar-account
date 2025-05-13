@@ -1,20 +1,20 @@
 <div id="saveActions" class="form-group my-3">
     @if(isset($saveAction['active']) && !is_null($saveAction['active']['value']))
-    
+
         <input type="hidden" name="_save_action" value="{{ $saveAction['active']['value'] }}">
 
         @if(empty($saveAction['options']))
-            <button type="submit" class="btn btn-success text-white">
+            <button type="submit" class="btn btn-primary text-white">
                 <span class="la la-save" role="presentation" aria-hidden="true"></span> &nbsp;
                 <span data-value="{{ $saveAction['active']['value'] }}">{{ $saveAction['active']['label'] }}</span>
             </button>
         @else
             <div class="btn-group" role="group">
-                <button type="submit" class="btn btn-success text-white">
+                <button type="submit" class="btn btn-primary text-white">
                     <span class="la la-save" role="presentation" aria-hidden="true"></span> &nbsp;
                     <span data-value="{{ $saveAction['active']['value'] }}">{{ $saveAction['active']['label'] }}</span>
                 </button>
-                <button id="bpSaveButtonsGroup" type="button" class="btn btn-success text-white dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <button id="bpSaveButtonsGroup" type="button" class="btn btn-primary text-white dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="d-none visually-hidden">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="bpSaveButtonsGroup">

@@ -2,7 +2,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 @if (backpack_theme_config('meta_robots_content'))
-<meta name="robots" content="{{ backpack_theme_config('meta_robots_content', 'noindex, nofollow') }}"> 
+<meta name="robots" content="{{ backpack_theme_config('meta_robots_content', 'noindex, nofollow') }}">
 @endif
 
 @includeWhen(view()->exists('vendor.backpack.ui.inc.header_metas'), 'vendor.backpack.ui.inc.header_metas')
@@ -18,6 +18,8 @@
 
 @yield('after_styles')
 @stack('after_styles')
+
+@basset(base_path('public\custom-theme.css'))
 
 {{-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries --}}
 {{-- WARNING: Respond.js doesn't work if you view the page via file:// --}}

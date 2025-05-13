@@ -1,0 +1,189 @@
+/* COLOR THEME CUSTOM */
+.btn-primary {
+  background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%), #145388 !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background: linear-gradient(141.55deg, #0e3b61 3.46%, #0e3b61 99.86%) !important; /* versi gelapnya */
+  color: #fff !important;
+  box-shadow: none;
+}
+
+.btn-outline-primary {
+  background: transparent !important;
+  border: 1px solid #145388 !important;
+  color: #145388 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none;
+}
+
+
+.text-primary {
+  color: #145388 !important;
+}
+
+.border-primary {
+  border-color: #145388 !important;
+}
+
+.bg-primary {
+  background-color: #145388 !important;
+  color: #fff !important;
+}
+
+.btn-link, a {
+  color: #145388;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-link, a:hover,
+.btn-link, a:focus {
+  color: #0e3b61; /* warna versi lebih gelap untuk efek hover */
+  /* text-decoration: underline; atau none jika tidak mau garis bawah */
+}
+
+.dataTables_paginate .active .page-link{
+    z-index: 3;
+    color: #fff !important;
+    background-color: #145388 !important;
+    border-color: #145388 !important;
+}
+
+
+.form-select:focus {
+  border-color: #145388 !important;
+  box-shadow: 0 0 0 0.2rem rgba(20, 83, 136, 0.25) !important;
+  outline: none !important;
+}
+
+.form-control:focus {
+  border-color: #145388 !important;
+  box-shadow: 0 0 0 0.2rem rgba(20, 83, 136, 0.25) !important;
+  outline: none !important;
+}
+
+
+
+/* HEADER */
+.header .custom-flex{
+    display: flex !important;
+}
+.custom-flex .nav-item .dropdown-toggle::after {
+    margin-top: 15px !important;
+}
+
+
+/* SIDEBAR */
+
+.sidebar,
+.sidebar .nav {
+  background-color: #ffffff !important; /* putih */
+  color: #212529; /* warna teks gelap */
+}
+
+/* Warna teks menu */
+.sidebar .nav-link {
+  color: #212529 !important;
+  border-radius: 12px;
+}
+
+.simplebar-content .show > .nav-link,
+.nav-root:hover > .nav-link{
+    background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%), #145388;
+    color: #fff !important;
+}
+
+.simplebar-content .show > .nav-link i{
+    color: #fff !important;
+}
+
+.sidebar .nav-link:hover i {
+    color: #fff !important; /* putih saat aktif */
+}
+
+.nav-dropdown-items .nav-item:hover a,
+.nav-dropdown-items .nav-item:hover i,
+.nav-dropdown-items .nav-item:hover .nav-link .nav-icon{
+    color: #145388 !important;
+    font-weight: bold !important;
+}
+
+.nav-dropdown-items .nav-icon {
+    font-size: 0.80rem !important;
+    margin-top: 0.75rem !important;
+    margin-left: calc(4rem * -0.80) !important;
+}
+
+.nav-dropdown-items .nav-item .active {
+    color: #145388 !important;
+    font-weight: bold !important;
+}
+
+.nav-dropdown-items .nav-link {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+
+/* Ikon menu (jika pakai ikon) */
+.sidebar .nav-link i {
+  color: #6c757d !important; /* abu-abu gelap */
+}
+
+/* Judul menu atau header dalam sidebar */
+.sidebar .nav-title {
+  color: #6c757d !important; /* abu-abu gelap */
+}
+
+/* Bagian sidebar-brand (logo atau brand name di sidebar) */
+.sidebar-brand {
+  background-color: #ffffff !important; /* putih */
+  color: #212529 !important;            /* teks gelap agar terbaca */
+  padding: 1rem;                        /* beri jarak */
+  border-bottom: 1px solid transparent !important;     /* garis bawah opsional untuk pemisah */
+  text-align: center;                   /* posisikan ke tengah (opsional) */
+  font-weight: bold;                    /* agar terlihat jelas */
+}
+
+.sidebar-brand img {
+  max-width: 100%;
+  height: auto;
+  filter: none; /* pastikan tidak tergelap jika sebelumnya pakai filter invert */
+}
+
+
+.sidebar-nav .nav-group-toggle::after {
+    display: block;
+    flex: 0 12px;
+    height: 12px;
+    -webkit-margin-start: auto;
+    margin-inline-start: auto;
+    content: "";
+    background-color: #6c757d !important;
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708'/%3e%3c/svg%3e") !important;
+    mask-image: var("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708'/%3e%3c/svg%3e") !important;
+    transition: transform 0.15s;
+}
+
+.sidebar-nav .nav-group.show {
+    background: transparent !important;
+}
+
+.header {
+    margin: 12px 12px 12px 12px !important;
+}
+
+.simplebar-content {
+    padding: 12px !important;
+}
