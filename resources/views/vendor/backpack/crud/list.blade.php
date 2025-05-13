@@ -12,10 +12,48 @@
 @endphp
 
 @section('header')
-    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-baseline d-print-none" bp-section="page-header">
+    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-baseline d-print-none mt-3" bp-section="page-header">
         <h1 class="text-capitalize mb-0" bp-section="page-heading">{!! $crud->getHeading() ?? $crud->entity_name_plural !!}</h1>
         <p class="ms-2 ml-2 mb-0" id="datatable_info_stack" bp-section="page-subheading">{!! $crud->getSubheading() ?? '' !!}</p>
     </section>
+    @if (backpack_theme_config('breadcrumbs') && isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs))
+        <nav aria-label="breadcrumb" class="d-none d-lg-block">
+            <div class="d-flex justify-content-between">
+                <ol class="breadcrumb bg-transparent p-0 mx-3">
+                    @foreach ($breadcrumbs as $label => $link)
+                        @if ($link)
+                            <li class="breadcrumb-item text-capitalize"><a href="{{ $link }}">{{ $label }}</a></li>
+                        @else
+                            <li class="breadcrumb-item text-capitalize active" aria-current="page">{{ $label }}</li>
+                        @endif
+                    @endforeach
+                </ol>
+                <div class="d-print-none mb-2 pe-3 {{ $crud->hasAccess('create')?'with-border':'' }}">
+                    @include('crud::inc.button_stack', ['stack' => 'top'])
+                </div>
+            </div>
+            <div class="row">
+                {{-- <div class="col-md-6">
+                    <ol class="breadcrumb bg-transparent p-0 mx-3">
+                        @foreach ($breadcrumbs as $label => $link)
+                            @if ($link)
+                                <li class="breadcrumb-item text-capitalize"><a href="{{ $link }}">{{ $label }}</a></li>
+                            @else
+                                <li class="breadcrumb-item text-capitalize active" aria-current="page">{{ $label }}</li>
+                            @endif
+                        @endforeach
+                    </ol>
+                </div> --}}
+                {{-- <div class="col-md-6 p-0">
+                    @if ( $crud->buttons()->where('stack', 'top')->count() ||  $crud->exportButtons())
+                        <div class="float-end d-print-none pe-4 mb-2 {{ $crud->hasAccess('create')?'with-border':'' }}">
+                            @include('crud::inc.button_stack', ['stack' => 'top'])
+                        </div>
+                    @endif
+                </div> --}}
+            </div>
+        </nav>
+    @endif
 @endsection
 
 @section('content')
@@ -27,13 +65,13 @@
 
         <div class="row mb-2 align-items-center">
           <div class="col-sm-9">
-            @if ( $crud->buttons()->where('stack', 'top')->count() ||  $crud->exportButtons())
+            {{-- @if ( $crud->buttons()->where('stack', 'top')->count() ||  $crud->exportButtons())
               <div class="d-print-none {{ $crud->hasAccess('create')?'with-border':'' }}">
 
                 @include('crud::inc.button_stack', ['stack' => 'top'])
 
               </div>
-            @endif
+            @endif --}}
           </div>
           @if($crud->getOperationSetting('searchableTable'))
           <div class="col-sm-3">

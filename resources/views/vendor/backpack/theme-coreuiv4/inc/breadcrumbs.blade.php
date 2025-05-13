@@ -1,4 +1,4 @@
-@if (backpack_theme_config('breadcrumbs') && isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs))
+{{-- @if (backpack_theme_config('breadcrumbs') && isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs))
 	<nav aria-label="breadcrumb" class="d-none d-lg-block">
 	  <ol class="breadcrumb bg-transparent p-0 mx-3 {{ backpack_theme_config('html_direction') == 'rtl' ? 'justify-content-start' : 'justify-content-end' }}">
 	  	@foreach ($breadcrumbs as $label => $link)
@@ -10,4 +10,4 @@
 	  	@endforeach
 	  </ol>
 	</nav>
-@endif
+@endif --}}
