@@ -32,26 +32,6 @@
                     @include('crud::inc.button_stack', ['stack' => 'top'])
                 </div>
             </div>
-            <div class="row">
-                {{-- <div class="col-md-6">
-                    <ol class="breadcrumb bg-transparent p-0 mx-3">
-                        @foreach ($breadcrumbs as $label => $link)
-                            @if ($link)
-                                <li class="breadcrumb-item text-capitalize"><a href="{{ $link }}">{{ $label }}</a></li>
-                            @else
-                                <li class="breadcrumb-item text-capitalize active" aria-current="page">{{ $label }}</li>
-                            @endif
-                        @endforeach
-                    </ol>
-                </div> --}}
-                {{-- <div class="col-md-6 p-0">
-                    @if ( $crud->buttons()->where('stack', 'top')->count() ||  $crud->exportButtons())
-                        <div class="float-end d-print-none pe-4 mb-2 {{ $crud->hasAccess('create')?'with-border':'' }}">
-                            @include('crud::inc.button_stack', ['stack' => 'top'])
-                        </div>
-                    @endif
-                </div> --}}
-            </div>
         </nav>
     @endif
 @endsection

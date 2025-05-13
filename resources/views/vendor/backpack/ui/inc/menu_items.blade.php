@@ -1,5 +1,6 @@
 {{-- This file is used for menu items by any Backpack v6 theme --}}
-<li class="nav-item nav-root"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{ trans('backpack::base.dashboard') }}</a></li>
+{{-- <li class="nav-item nav-root active"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{ trans('backpack::base.dashboard') }}</a></li> --}}
+<x-backpack::menu-item title="Dashboard" icon="la la-home" :link="backpack_url('dashboard')" />
 
 <x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">
     <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />
@@ -7,7 +8,7 @@
     <x-backpack::menu-dropdown-item title="Permissions" icon="la la-circle-notch" :link="backpack_url('auth/permission')" />
 
     {{-- <x-backpack::menu-dropdown title="Authentication Sub" icon="la la-group">
-        <x-backpack::menu-dropdown-item title="Users" icon="la la-user" :link="backpack_url('usera')" />
+        <x-backpack::menu-dropdown-item title="Users" icon="la la-user" :link="backpack_url('auth/user')" />
         <x-backpack::menu-dropdown-item title="Roles" icon="la la-group" :link="backpack_url('role')" />
     </x-backpack::menu-dropdown> --}}
 </x-backpack::menu-dropdown>

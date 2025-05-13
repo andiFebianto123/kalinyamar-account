@@ -105,6 +105,14 @@
     color: #fff !important;
 }
 
+.nav-root > .nav-link.active {
+    background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%), #145388;
+    color: #fff !important;
+}
+.nav-root > .nav-link.active i {
+    color: #fff !important;
+}
+
 .simplebar-content .show > .nav-link i{
     color: #fff !important;
 }
