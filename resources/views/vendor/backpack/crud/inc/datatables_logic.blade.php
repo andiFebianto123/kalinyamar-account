@@ -24,7 +24,7 @@
         ? JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}')) : [];
     var $dtDefaultPageLength = {{ $crud->getDefaultPageLength() }};
     let $pageLength = @json($crud->getPageLengthMenu());
-    
+
     let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}_pageLength'));
 
     if(!$dtStoredPageLength && $dtCachedInfo.length !== 0 && $dtCachedInfo.length !== $dtDefaultPageLength) {
@@ -104,6 +104,7 @@
     @endif
 
     window.crud = {
+        ...window.crud,
       exportButtons: JSON.parse('{!! json_encode($crud->get('list.export_buttons')) !!}'),
       functionsToRunOnDataTablesDrawEvent: [],
       addFunctionToDataTablesDrawEventQueue: function (functionName) {
@@ -181,12 +182,12 @@
                         if (col.title) {
                             let tempDiv = document.createElement('div');
                             tempDiv.innerHTML = col.title;
-                            
+
                             let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
                             if (checkboxSpan) {
                                 checkboxSpan.remove();
                             }
-                            
+
                             colTitle = tempDiv.textContent.trim();
                         } else {
                             colTitle = '';
@@ -396,7 +397,7 @@
         }
 
          if (crud.table.responsive.hasHidden()) {
-            $('.dtr-control').removeClass('d-none'); 
+            $('.dtr-control').removeClass('d-none');
             $('.dtr-control').addClass('d-inline');
             $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
          }
@@ -424,11 +425,11 @@
                     $this.prependTo($firstVisibleColumn);
                 });
 
-                $('.dtr-control').removeClass('d-none'); 
+                $('.dtr-control').removeClass('d-none');
                 $('.dtr-control').addClass('d-inline');
                 $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
             } else {
-                $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');  
+                $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');
                 $("#crudTable").removeClass('has-hidden-columns');
             }
         });
@@ -452,7 +453,7 @@
       @endif
 
     });
- 
+
     function formatActionColumnAsDropdown() {
         // Get action column
         const actionColumnIndex = $('#crudTable').find('th[data-action-column=true]').index();
@@ -481,7 +482,7 @@
                 actionCell.wrapInner('<div class="dropdown-menu dropdown-menu-left"></div>');
 
                 actionCell.prepend('<a class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" href="#" data-toggle="dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">{{ trans('backpack::crud.actions') }}</a>');
-                
+
                 // Move the remaining buttons outside the dropdown
                 const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
                 actionCell.prepend(remainingButtons);

@@ -32,6 +32,9 @@ Route::group([
         Route::crud('role', 'RoleCrudController');
         Route::crud('user', 'UserCrudController');
     });
+    Route::prefix('vendor')->group(function(){
+        Route::crud('subkon', 'SubkonCrudController');
+    });
 }); // this should be the absolute last line of this file
 
 /**

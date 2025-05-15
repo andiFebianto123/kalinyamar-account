@@ -1,29 +1,4 @@
-@extends(backpack_view('blank'))
-
-@php
-  $defaultBreadcrumbs = [
-    trans('backpack::crud.admin') => backpack_url('dashboard'),
-    $crud->entity_name_plural => url($crud->route),
-    trans('backpack::crud.edit') => false,
-  ];
-
-  // if breadcrumbs aren't defined in the CrudController, use the default breadcrumbs
-  $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
-@endphp
-
-@section('header')
-    <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-baseline d-print-none" bp-section="page-header">
-        <h1 class="text-capitalize mb-0" bp-section="page-heading">{!! $crud->getHeading() ?? $crud->entity_name_plural !!}</h1>
-        <p class="ms-2 ml-2 mb-0" bp-section="page-subheading">{!! $crud->getSubheading() ?? trans('backpack::crud.edit').' '.$crud->entity_name !!}.</p>
-        @if ($crud->hasAccess('list'))
-            <p class="mb-0 ms-2 ml-2" bp-section="page-subheading-back-button">
-                <small><a href="{{ url($crud->route) }}" class="d-print-none font-sm"><i class="la la-angle-double-{{ config('backpack.base.html_direction') == 'rtl' ? 'right' : 'left' }}"></i> {{ trans('backpack::crud.back_to_all') }} <span>{{ $crud->entity_name_plural }}</span></a></small>
-            </p>
-        @endif
-    </section>
-@endsection
-
-@section('content')
+@push('after_scripts') @if (request()->ajax()) @endpush @endif
 <div class="row" bp-section="crud-operation-update">
 	<div class="{{ $crud->getEditContentClass() }}">
 		{{-- Default box --}}
@@ -31,6 +6,7 @@
 		@include('crud::inc.grouped_errors')
 
 		  <form method="post"
+                id="form-edit"
 		  		action="{{ url($crud->route.'/'.$entry->getKey()) }}"
 				@if ($crud->hasUploadFields('update', $entry->getKey()))
 				enctype="multipart/form-data"
@@ -49,9 +25,56 @@
 			@endif
 			{{-- This makes sure that all field assets are loaded. --}}
 			<div class="d-none" id="parentLoadedAssets">{{ json_encode(Basset::loaded()) }}</div>
-			@include('crud::inc.form_save_buttons')
+			{{-- @include('crud::inc.form_save_buttons') --}}
 		  </form>
 	</div>
 </div>
-@endsection
+<script>
+    $('#btn-submit-edit').unbind('click').on('click', function (e) {
+        e.preventDefault();
+        var url = $('#form-edit').attr('action');
+        var formData = new FormData($('#modalEdit form')[0]);
+        normalizeShowMessage('form-edit');
+        btnLoader('btn-submit-edit', false);
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            typeData: 'json',
+            success: function (data) {
+                btnLoader('btn-submit-edit');
+                if(data.success){
+                    swal({
+                        title: "Success",
+                        text: "{!! trans('backpack::crud.update_success') !!}",
+                        icon: "success",
+                        timer: 4000,
+                        buttons: false,
+                    });
+                    $('#modalEdit').modal('hide');
+                    hideModal('modalEdit');
+                    window.crud.table.ajax.reload();
+                }else{
+                    swal({
+                        title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
+                        text: data.error,
+                        icon: "error",
+                        timer: 4000,
+                        buttons: false,
+                    });
+                }
+                // $('#modalCreate .modal-body').html(data.html);
+            },
+            error: function (xhr, status, error) {
+                // console.error(xhr);
+                btnLoader('btn-submit-edit');
+                errorShowMessage('form-edit', xhr.responseJSON.errors);
+            }
+        });
+    });
+</script>
+@if (!request()->ajax()) @endpush @endif
+
 

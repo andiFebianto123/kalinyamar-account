@@ -2,6 +2,11 @@
 {{-- <li class="nav-item nav-root active"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{ trans('backpack::base.dashboard') }}</a></li> --}}
 <x-backpack::menu-item title="Dashboard" icon="la la-home" :link="backpack_url('dashboard')" />
 
+<x-backpack::menu-dropdown title="Vendor(Subkon)" icon="la la-group" :link="backpack_url('vendor')">
+    <x-backpack::menu-dropdown-item title="Daftar Subkon" icon="la la-circle-notch" :link="backpack_url('vendor/subkon')" />
+</x-backpack::menu-dropdown>
+
+
 <x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">
     <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />
     <x-backpack::menu-dropdown-item title="Roles" icon="la la-circle-notch" :link="backpack_url('auth/role')" />

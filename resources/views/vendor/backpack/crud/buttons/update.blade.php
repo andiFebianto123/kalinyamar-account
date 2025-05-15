@@ -2,7 +2,11 @@
 	@if (!$crud->model->translationEnabled())
 
 	{{-- Single edit button --}}
-	<a href="{{ url($crud->route.'/'.$entry->getKey().'/edit') }}" bp-button="update" class="btn btn-sm btn-link">
+	<a href="javascript:void(0)"
+    onclick="editEntry({{ $entry->getKey() }})"
+    data-bs-toggle="modal"
+    data-bs-target="#modalEdit"
+    bp-button="update" class="btn btn-sm btn-link">
 		<i class="la la-edit"></i> <span>{{ trans('backpack::crud.edit') }}</span>
 	</a>
 
@@ -26,3 +30,26 @@
 
 	@endif
 @endif
+
+@push('after_scripts') @if (request()->ajax()) @endpush @endif
+<script>
+	if (typeof editEntry != 'function') {
+        function editEntry(id){
+            var url = "{{ url($crud->route) }}"+"/"+id+"/edit";
+            $('#modalEdit .modal-body').html('loading...');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                typeData: 'json',
+                success: function (data) {
+                    $('#modalEdit .modal-body').html(data.html);
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+                    alert('An error occurred while loading the create form.');
+                }
+            });
+        }
+    }
+</script>
+@if (!request()->ajax()) @endpush @endif
