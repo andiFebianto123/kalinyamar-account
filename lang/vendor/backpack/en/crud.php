@@ -215,6 +215,21 @@ return [
             'bank_account' => 'Bank Account',
          ]
     ],
+    'po' => [
+        'title_header' => 'PO',
+        'title_modal_create' => 'Data PO Vendor (Subkon)',
+        'title_modal_edit' => 'Data PO Vendor (Subkon)',
+        'column' => [
+            'subkon_id ' => 'Name Company',
+            'po_number' => 'No. PO',
+            'job_name' => 'Job Name',
+            'job_description' => 'Description/Details',
+            'job_value' => 'Job Value',
+            'tax_ppn' => 'Tax PPN',
+            'total_value_with_tax' => 'Job Value Includes PPn',
+            'document_path' => 'Document File'
+         ]
+    ],
     'save_submit' => 'Save',
     'cancel_submit' => 'Cancel',
     'save_changes_submit' => 'Save Changes',

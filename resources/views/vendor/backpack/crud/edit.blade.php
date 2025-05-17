@@ -8,9 +8,7 @@
 		  <form method="post"
                 id="form-edit"
 		  		action="{{ url($crud->route.'/'.$entry->getKey()) }}"
-				@if ($crud->hasUploadFields('update', $entry->getKey()))
 				enctype="multipart/form-data"
-				@endif
 		  		>
 		  {!! csrf_field() !!}
 		  {!! method_field('PUT') !!}

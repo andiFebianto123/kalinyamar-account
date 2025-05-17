@@ -173,6 +173,7 @@
   @basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
 
   {{-- CRUD LIST CONTENT - crud_list_styles stack --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   @stack('crud_list_styles')
 @endsection
 
@@ -182,6 +183,7 @@
   {{-- CRUD LIST CONTENT - crud_list_scripts stack --}}
   @stack('crud_list_scripts')
 @endsection
+
 
 @push('after_scripts')
     <!-- Modal -->
@@ -347,4 +349,5 @@
             }
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @endpush

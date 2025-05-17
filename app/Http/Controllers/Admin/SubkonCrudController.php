@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\SubkonRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -204,7 +205,6 @@ class SubkonCrudController extends CrudController
         CRUD::setValidation(SubkonRequest::class);
         // CRUD::setFromDb(); // set fields from db columns.
 
-
         CRUD::addField([
             'name' => 'name',
             'label' => trans('backpack::crud.subkon.column.name'),
@@ -235,13 +235,23 @@ class SubkonCrudController extends CrudController
             ],
         ]);
 
-        CRUD::addField([
-            'name' => 'bank_name',
-            'label' => trans('backpack::crud.subkon.column.bank_name'),
-            'type' => 'text',
-            'wrapper'   => [
+        // CRUD::addField([
+        //     'name' => 'bank_name',
+        //     'label' => trans('backpack::crud.subkon.column.bank_name'),
+        //     'type' => 'text',
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        // ]);
+
+        CRUD::field([  // Select2
+            'label'     => trans('backpack::crud.subkon.column.bank_name'),
+            'type'      => 'select2_array',
+            'name'      => 'bank_name',
+            'options'   => CustomHelper::getBanks(), // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+            'wrapper' => [
                 'class' => 'form-group col-md-6'
-            ],
+            ]
         ]);
 
         CRUD::addField([
@@ -252,6 +262,7 @@ class SubkonCrudController extends CrudController
                 'class' => 'form-group col-md-6'
             ],
         ]);
+
     }
 
     /**
