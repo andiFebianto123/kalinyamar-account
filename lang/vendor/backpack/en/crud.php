@@ -227,7 +227,7 @@ return [
             'job_value' => 'Job Value',
             'tax_ppn' => 'Tax PPN',
             'total_value_with_tax' => 'Job Value Includes PPn',
-            'document_path' => 'Document File'
+            'document_path' => 'Document PO',
          ]
     ],
     'save_submit' => 'Save',

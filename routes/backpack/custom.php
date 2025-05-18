@@ -35,8 +35,8 @@ Route::group([
     Route::prefix('vendor')->group(function(){
         Route::crud('subkon', 'SubkonCrudController');
         Route::post('select2-subkon-id', 'PurchaseOrderCrudController@select2SubkonId')->name('select2-subkon-id');
+        Route::crud('purchase-order', 'PurchaseOrderCrudController');
     });
-    Route::crud('purchase-order', 'PurchaseOrderCrudController');
 }); // this should be the absolute last line of this file
 
 /**

@@ -28,7 +28,7 @@ class PurchaseOrderCrudController extends CrudController
     public function setup()
     {
         CRUD::setModel(\App\Models\PurchaseOrder::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/purchase-order');
+        CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/purchase-order');
         CRUD::setEntityNameStrings('purchase order', 'purchase orders');
     }
 
@@ -239,6 +239,13 @@ class PurchaseOrderCrudController extends CrudController
             ],
         );
 
+        CRUD::column([
+            'name'   => 'document_path',
+            'type'   => 'upload',
+            'label'  => trans('backpack::crud.po.column.document_path'),
+            'disk'   => 'public',
+        ]);
+
         /**
          * Columns can be defined using the fluent syntax:
          * - CRUD::column('price')->type('number');
@@ -348,6 +355,11 @@ class PurchaseOrderCrudController extends CrudController
             'type' => 'upload',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
+            ],
+             'withFiles' => [
+                'disk' => 'public',
+                'path' => 'document_po',
+                'deleteWhenEntryIsDeleted' => true,
             ],
         ]);
 

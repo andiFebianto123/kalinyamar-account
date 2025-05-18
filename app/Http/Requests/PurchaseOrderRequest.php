@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Backpack\CRUD\app\Library\Validation\Rules\ValidUpload;
 
 class PurchaseOrderRequest extends FormRequest
 {
@@ -28,7 +29,8 @@ class PurchaseOrderRequest extends FormRequest
             'subkon_id' => 'required|exists:subkons,id',
             'po_number' => 'required|string|max:255',
             'job_name' => 'required|string|max:255',
-            'total_value_with_tax' => 'required|numeric|min:1000'
+            'total_value_with_tax' => 'required|numeric|min:1000',
+            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
         ];
     }
 

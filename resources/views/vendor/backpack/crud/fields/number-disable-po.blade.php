@@ -45,7 +45,6 @@
             }else{
                 $('#form-edit input[name="job_value"], #form-edit input[name="tax_ppn"]').off('keyup').on('keyup', function(){
                     calculationPPN('#form-edit');
-                    console.log('edit');
                 });
             }
         });

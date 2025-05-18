@@ -4,6 +4,7 @@
 
 <x-backpack::menu-dropdown title="Vendor(Subkon)" icon="la la-group" :link="backpack_url('vendor')">
     <x-backpack::menu-dropdown-item title="Daftar Subkon" icon="la la-circle-notch" :link="backpack_url('vendor/subkon')" />
+    <x-backpack::menu-dropdown-item title="PO" icon="la la-circle-notch" :link="backpack_url('vendor/purchase-order')" />
 </x-backpack::menu-dropdown>
 
 
@@ -64,5 +65,3 @@
 
 <x-backpack::menu-item title="Tags" icon="la la-question" :link="backpack_url('tag')" />
 <x-backpack::menu-item title="Roles" icon="la la-question" :link="backpack_url('role')" /> --}}
-
-<x-backpack::menu-item title="Purchase orders" icon="la la-question" :link="backpack_url('purchase-order')" />
