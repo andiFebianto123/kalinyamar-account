@@ -19,7 +19,7 @@
 @yield('after_styles')
 @stack('after_styles')
 
-@basset(base_path('public\custom-theme.css'))
+{{-- @basset(base_path('public\custom-theme.css')) --}}
 
 {{-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries --}}
 {{-- WARNING: Respond.js doesn't work if you view the page via file:// --}}

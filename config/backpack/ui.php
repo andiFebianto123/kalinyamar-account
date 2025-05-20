@@ -96,6 +96,7 @@ return [
     'styles' => [
         // 'styles/example.css',
         // 'https://some-cdn.com/example.css',
+        'public\custom-theme.css'
     ],
 
     // CSS files that are loaded in all pages, using Laravel's mix() helper
