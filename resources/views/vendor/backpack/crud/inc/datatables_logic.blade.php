@@ -339,13 +339,10 @@
       @else
     //   $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex').addClass('animated fadeIn');
     //   $('#crudTable_info').appendTo($("#crudTable_wrapper .table-footer > div"));
+        setTimeout(function(){
+            $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer div").first());
+        }, 100);
       @endif
-
-    //   $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer > div"));
-    //   $('.dataTables_wrapper .table-footer > div').html($('#crudTable_info'));
-      setTimeout(function(){
-        $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer div").first());
-      }, 100);
 
       @if($crud->getOperationSetting('resetButton') ?? true)
         // create the reset button
