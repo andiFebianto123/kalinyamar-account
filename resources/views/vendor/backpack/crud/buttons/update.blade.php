@@ -6,8 +6,8 @@
     onclick="editEntry({{ $entry->getKey() }})"
     data-bs-toggle="modal"
     data-bs-target="#modalEdit"
-    bp-button="update" class="btn btn-sm btn-link">
-		<i class="la la-edit"></i> <span>{{ trans('backpack::crud.edit') }}</span>
+    bp-button="update" class="btn btn-sm btn-primary">
+		<i class="la la-pen"></i>
 	</a>
 
 	@else

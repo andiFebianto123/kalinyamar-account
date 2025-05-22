@@ -154,6 +154,8 @@ body {
 
 .nav-dropdown-items .nav-item:hover a,
 .nav-dropdown-items .nav-item:hover i,
+.nav-group-toggle:hover,
+.nav-group-toggle:hover i,
 .nav-dropdown-items .nav-item:hover .nav-link .nav-icon{
     color: #145388 !important;
     font-weight: bold !important;
@@ -327,6 +329,10 @@ body {
     padding-left: 0 !important;
 }
 
+.header-toggler {
+    display: none !important;
+}
+
 @media (max-width: 767.98px) {
     .wrapper {
         padding-left: 0 !important;
@@ -334,10 +340,33 @@ body {
     .sidebar {
         margin-left: -400px !important;
     }
+    .header-toggler {
+        display: inline !important;
+    }
 }
 
 .sidebar.show {
     margin-left: 0 !important;
+}
+
+.card {
+    border-radius: 10px !important;
+    box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
+}
+
+.btn-secondary i,
+.btn-danger i {
+    color: #fff !important;
+}
+
+.datatable-widget-stack div.dataTables_length select {
+    width: auto;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+div.dataTables_wrapper div.dataTables_info {
+    padding-top: 0 !important;
 }
 
 

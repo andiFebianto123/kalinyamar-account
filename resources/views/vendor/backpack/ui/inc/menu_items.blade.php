@@ -13,12 +13,15 @@
     <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />
     <x-backpack::menu-dropdown-item title="Roles" icon="la la-circle-notch" :link="backpack_url('auth/role')" />
     <x-backpack::menu-dropdown-item title="Permissions" icon="la la-circle-notch" :link="backpack_url('auth/permission')" />
-
-    {{-- <x-backpack::menu-dropdown title="Authentication Sub" icon="la la-group">
-        <x-backpack::menu-dropdown-item title="Users" icon="la la-user" :link="backpack_url('auth/user')" />
-        <x-backpack::menu-dropdown-item title="Roles" icon="la la-group" :link="backpack_url('role')" />
-    </x-backpack::menu-dropdown> --}}
+    {{-- <li class="nav-group" aria-expanded="false"><a class="nav-link nav-group-toggle" href="#">
+        <i class="nav-icon la la-puzzle-piece"></i> Icons</a>
+        <ul class="nav-group-items compact" style="height: 0px;">
+            <li class="nav-item"><a class="nav-link" href="icons/coreui-icons-free.html"><i class="nav-icon la la-circle-notch"></i> CoreUI Free</a></li>
+            <li class="nav-item"><a class="nav-link" href="icons/coreui-icons-brand.html"><i class="nav-icon la la-circle-notch"></i> CoreUI Brand</a></li>
+        </ul>
+    </li> --}}
 </x-backpack::menu-dropdown>
+
 
 {{-- <li class="nav-group" aria-expanded="false"><a class="nav-link nav-group-toggle" href="#">
     <i class="la la-home nav-icon"></i> Hallo andi </a>

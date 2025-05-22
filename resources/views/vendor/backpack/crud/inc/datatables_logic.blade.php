@@ -316,6 +316,11 @@
 
       window.crud.updateUrl(location.href);
 
+      // move datatable length
+    //   dataTables_length
+    //   datatable-widget-stack
+      $('.dataTables_length').appendTo($('.datatable-widget-stack'));
+
       // move search bar
       $("#datatable_search_stack input").remove();
       $("#crudTable_filter input").appendTo($('#datatable_search_stack .input-icon'));
@@ -332,8 +337,15 @@
       @if($crud->getSubheading())
       $('#crudTable_info').hide();
       @else
-      $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex').addClass('animated fadeIn');
+    //   $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex').addClass('animated fadeIn');
+    //   $('#crudTable_info').appendTo($("#crudTable_wrapper .table-footer > div"));
       @endif
+
+    //   $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer > div"));
+    //   $('.dataTables_wrapper .table-footer > div').html($('#crudTable_info'));
+      setTimeout(function(){
+        $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer div").first());
+      }, 100);
 
       @if($crud->getOperationSetting('resetButton') ?? true)
         // create the reset button

@@ -83,10 +83,18 @@ class SubkonCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('list');
 
+
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "Data Vendor (Subkon)";
         $this->data['title_modal_edit'] = "Data Vendor (Subkon)";
+
+        $breadcrumbs = [
+            'Vendor (Subkon)' => backpack_url('vendor'),
+            trans($this->data['title']) => backpack_url($this->crud->route)
+        ];
+
+        $this->data['breadcrumbs'] = $breadcrumbs;
 
         $list = "crud::list-custom" ?? $this->crud->getListView();
         return view($list, $this->data);

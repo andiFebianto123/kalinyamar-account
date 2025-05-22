@@ -6,7 +6,7 @@
 
 @if ($crud->hasAccess('create'))
     <a href="javascript:void(0)" id="btn-open-create" data-bs-toggle="modal" data-bs-target="#modalCreate" class="btn btn-primary" bp-button="create" data-style="zoom-in">
-        <i class="la la-plus"></i> <span>{{ trans('backpack::crud.add') }} {{ $crud->entity_name }}</span>
+        <i class="la la-plus"></i>
     </a>
 @endif
 
