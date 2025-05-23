@@ -42,6 +42,16 @@ class SubkonCrudController extends CrudController
     protected function setupListOperation()
     {
         // CRUD::setFromDb(); // set columns from db columns.
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'row_number',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
         CRUD::addColumn([
             'name'  => 'name',
             'label' => trans('backpack::crud.subkon.column.name'),

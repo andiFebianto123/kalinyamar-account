@@ -49,9 +49,6 @@ class PurchaseOrderCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('create');
 
-
-        // dd(strrpos(request()->route()->getName(), 'tipi'));
-
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
@@ -169,6 +166,16 @@ class PurchaseOrderCrudController extends CrudController
 
         CRUD::disableResponsiveTable();
 
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'row_number',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
         CRUD::column([
             // 1-n relationship
             'label' => trans('backpack::crud.subkon.column.name'),
@@ -274,15 +281,6 @@ class PurchaseOrderCrudController extends CrudController
                 'class' => 'form-group col-md-6'
             ],
         ]);
-
-        // CRUD::addField([
-        //     'name' => 'subkon_id',
-        //     'label' => trans('backpack::crud.subkon.column.name'),
-        //     'type' => 'text',
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6'
-        //     ],
-        // ]);
 
         CRUD::addField([
             'name' => 'po_number',
@@ -399,4 +397,63 @@ class PurchaseOrderCrudController extends CrudController
     {
         $this->setupCreateOperation();
     }
+
+     protected function setupShowOperation()
+    {
+        $this->setupCreateOperation();
+        $this->setupListOperation();
+        CRUD::column('row_number')->remove();
+        CRUD::column('document_path')->remove();
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.document_path'),
+                'name' => 'document_path',
+                'type'  => 'text',
+                 'wrapper'   => [
+                    'element' => 'a', // the element will default to "a" so you can skip it here
+                    'href' => function ($crud, $column, $entry, $related_key) {
+                        if($entry->document_path != ''){
+                            return url('storage/document_po/'.$entry->document_path);
+                        }
+                        return "javascript:void(0)";
+                    },
+                    'target' => '_blank',
+                    // 'class' => 'some-class',
+                ],
+            ],
+        );
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function show($id)
+    {
+        $this->crud->hasAccessOrFail('show');
+
+        // get entry ID from Request (makes sure its the last ID for nested resources)
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        // get the info for that entry (include softDeleted items if the trait is used)
+        if ($this->crud->get('show.softDeletes') && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this->crud->model))) {
+            $this->data['entry'] = $this->crud->getModel()->withTrashed()->findOrFail($id);
+        } else {
+            $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+        }
+
+        $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
+        $this->data['crud'] = $this->crud;
+
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+
+        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
+        // return view($this->crud->getShowView(), $this->data);
+        return response()->json([
+            'html' => view($this->crud->getShowView(), $this->data)->render()
+        ]);
+    }
+
 }

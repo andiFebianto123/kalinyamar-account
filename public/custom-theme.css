@@ -359,6 +359,7 @@ body {
     color: #fff !important;
 }
 
+/* DATATABLE */
 .datatable-widget-stack div.dataTables_length select {
     width: auto;
     display: inline-block;
@@ -369,11 +370,10 @@ div.dataTables_wrapper div.dataTables_info {
     padding-top: 0 !important;
 }
 
-
-/* .sidebar.sidebar-fixed:not(.sidebar-end) {
-    left: 20px !important;
+table.dataTable>tbody > tr{
+    border-color: transparent !important;
 }
 
-html:not([dir=rtl]) .wrapper {
-    padding-left: 17rem;
-} */
+table.dataTable {
+    border-color: transparent !important;
+}

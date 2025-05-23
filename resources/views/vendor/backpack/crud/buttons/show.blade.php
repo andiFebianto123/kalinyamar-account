@@ -5,7 +5,12 @@
 	{{-- <a href="{{ url($crud->route.'/'.$entry->getKey().'/show') }}" bp-button="show" class="btn btn-sm btn-link">
 		<i class="la la-eye"></i> <span>{{ trans('backpack::crud.preview') }}</span>
 	</a> --}}
-    <a href="{{ url($crud->route.'/'.$entry->getKey().'/show') }}" bp-button="show" class="btn btn-sm btn-dark">
+    <a href="javascript:void(0)"
+        onclick="showEntry({{ $entry->getKey() }})"
+        bp-button="show"
+        data-bs-toggle="modal"
+        data-bs-target="#modalShow"
+        class="btn btn-sm btn-dark">
 		<i class="la la-eye"></i>
 	</a>
 
@@ -29,3 +34,26 @@
 
 	@endif
 @endif
+
+@push('after_scripts') @if (request()->ajax()) @endpush @endif
+<script>
+	if (typeof showEntry != 'function') {
+        function showEntry(id){
+            var url = "{{ url($crud->route) }}"+"/"+id+"/show";
+            $('#modalShow .modal-body').html('loading...');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                typeData: 'json',
+                success: function (data) {
+                    $('#modalShow .modal-body').html(data.html);
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr);
+                    alert('An error occurred while loading the create form.');
+                }
+            });
+        }
+    }
+</script>
+@if (!request()->ajax()) @endpush @endif

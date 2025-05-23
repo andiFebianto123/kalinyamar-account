@@ -81,7 +81,7 @@
                     <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
                         <table
                         id="crudTable"
-                        class="{{ backpack_theme_config('classes.table') ?? 'table table-striped table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }}"
+                        class="{{ backpack_theme_config('classes.table') ?? 'table table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }}"
                         data-responsive-table="{{ (int) $crud->getOperationSetting('responsiveTable') }}"
                         data-has-details-row="{{ (int) $crud->getOperationSetting('detailsRow') }}"
                         data-has-bulk-actions="{{ (int) $crud->getOperationSetting('bulkActions') }}"
@@ -232,6 +232,23 @@
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         {{ trans('backpack::crud.save_submit') }}
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalShow" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                {{-- <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">{!! $crud->getSubheading() ?? trans('backpack::crud.preview').' '.$title_modal_edit !!}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div> --}}
+                <div class="modal-header justify-content-center">
+                    <h5 class="modal-title text-center w-100" id="modalTitleCentered">{!! $crud->getSubheading() ?? trans('backpack::crud.preview').' '.$title_modal_edit !!}</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Loading...
                 </div>
             </div>
         </div>
