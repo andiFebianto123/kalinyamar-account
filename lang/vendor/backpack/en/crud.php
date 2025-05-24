@@ -231,6 +231,53 @@ return [
             'document_path' => 'Document PO',
          ]
     ],
+    'spk' => [
+        'title_header' => 'SPK',
+        'title_modal_create' => 'Data SPK Vendor (Subkon)',
+        'title_modal_edit' => 'Data SPK Vendor (Subkon)',
+        'column' => [
+            'subkon_id ' => 'Name Company',
+            'no_spk' => 'No. SPK',
+            'date_spk' => 'Date SPK',
+            'job_name' => 'Job Name',
+            'job_description' => 'Description/Details',
+            'job_value' => 'Job Value',
+            'tax_ppn' => 'PPn',
+            'total_value_with_tax' => 'Job Value Includes PPn',
+            'document_path' => 'Document SPK',
+        ],
+        'field' => [
+            'subkon_id' => [
+                'placeholder' => 'NAME COMPANY',
+            ],
+            'no_spk' => [
+                'placeholder' => 'Enter the company SPK number',
+            ],
+            'date_spk' => [
+                'placeholder' => 'Select Date',
+            ],
+            'job_name' => [
+                'placeholder' => 'Enter a job name',
+            ],
+            'job_description' => [
+                'label' => 'Job Description',
+                'placeholder' => 'Write a job description',
+            ],
+            'job_value' => [
+                'placeholder' => '000.000',
+            ],
+            'tax_ppn' => [
+                'placeholder' => '0',
+            ],
+            'total_value_with_tax' => [
+                'placeholder' => '000.000',
+            ],
+            'document_path' => [
+                'label' => 'Upload SPK Document',
+                'placeholder' => '000.000',
+            ],
+        ]
+    ],
     'save_submit' => 'Save',
     'cancel_submit' => 'Cancel',
     'save_changes_submit' => 'Save Changes',

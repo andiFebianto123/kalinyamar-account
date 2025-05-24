@@ -9,9 +9,19 @@
                 @foreach ($crud->fields() as $key => $field)
                     @php
                         $index = array_search($key, array_keys(($crud->fields())));
+                        $set_attributes = "";
+                        if(array_key_exists('wrapper', $field)){
+                            foreach ($field['wrapper'] as $attribute => $value){
+                                if (is_string($attribute)){
+                                    $set_attributes .= $attribute."='".$value."'";
+                                }
+                            }
+                        }else{
+                            $set_attributes = "class='form-group col-md-12'";
+                        }
                     @endphp
 
-                    <div class="form-group col-md-6" element="div" bp-field-wrapper="true" bp-field-name="subkon_id" bp-field-type="select2_ajax_custom" bp-section="crud-field">
+                    <div {!! $set_attributes !!} >
                         <label>{{ $field['label'] }}</label>
                         <div>{!! $entry_value[$index] !!}</div>
                     </div>

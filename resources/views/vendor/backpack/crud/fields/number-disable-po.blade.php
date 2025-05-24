@@ -29,6 +29,10 @@
                 var ppn_value_total = (job_value * (ppn / 100)) + job_value;
 
                 if(isNaN(ppn_value_total)){
+                    ppn_value_total = job_value;
+                }
+
+                if(isNaN(ppn_value_total)){
                     $(form_type+' input[name="'+name+'"]').val(0);
                 }else{
                     $(form_type+' input[name="'+name+'"]').val(ppn_value_total);

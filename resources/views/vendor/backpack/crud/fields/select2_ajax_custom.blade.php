@@ -42,6 +42,7 @@
             data-value-id = "{{ $field['value'] ?? ''}}"
             data-value-name = "{{ $value_name }}"
             id="select2_{{ $field_id }}"
+            @include('crud::fields.inc.attributes')
             @if(count($dependencies))
                 data-dependencies="{{ implode(',', $dependencies) }}"
             @endif

@@ -36,6 +36,7 @@ Route::group([
         Route::crud('subkon', 'SubkonCrudController');
         Route::post('select2-subkon-id', 'PurchaseOrderCrudController@select2SubkonId')->name('select2-subkon-id');
         Route::crud('purchase-order', 'PurchaseOrderCrudController');
+        Route::crud('spk', 'SpkCrudController');
     });
 }); // this should be the absolute last line of this file
 
