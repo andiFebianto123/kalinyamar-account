@@ -40,6 +40,7 @@ class PurchaseOrderCrudController extends CrudController
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "PO vendor (Subkon)";
         $this->data['title_modal_edit'] = "PO Vendor (Subkon)";
+        $this->data['title_modal_delete'] = "PO Vendor (Subkon)";
 
         $list = "crud::list-custom" ?? $this->crud->getListView();
         return view($list, $this->data);

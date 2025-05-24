@@ -51,6 +51,7 @@ return [
 
     // Confirmation messages and bubbles
     'delete_confirm' => 'Are you sure you want to delete this item?',
+    'delete_confirm_2' => 'Are you sure you want to delete data',
     'delete_confirmation_title' => 'Item Deleted',
     'delete_confirmation_message' => 'The item has been deleted successfully.',
     'delete_confirmation_not_title' => 'NOT deleted',

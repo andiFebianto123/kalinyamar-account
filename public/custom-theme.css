@@ -355,6 +355,7 @@ body {
 }
 
 .btn-secondary i,
+.btn-danger,
 .btn-danger i {
     color: #fff !important;
 }

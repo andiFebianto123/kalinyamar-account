@@ -98,6 +98,7 @@ class SubkonCrudController extends CrudController
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "Data Vendor (Subkon)";
         $this->data['title_modal_edit'] = "Data Vendor (Subkon)";
+        $this->data['title_modal_delete'] = "Vendor (Subkon)";
 
         $breadcrumbs = [
             'Vendor (Subkon)' => backpack_url('vendor'),

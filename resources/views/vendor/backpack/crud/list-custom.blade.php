@@ -199,9 +199,9 @@
     <div class="modal fade" id="modalCreate" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">{!! $crud->getSubheading() ?? trans('backpack::crud.add').' '.$title_modal_create !!}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header justify-content-center">
+                    <h5 class="modal-title text-center w-100" id="modalTitleCentered">{!! $crud->getSubheading() ?? trans('backpack::crud.add').' '.$title_modal_create !!}</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Loading...
@@ -219,9 +219,9 @@
     <div class="modal fade" id="modalEdit" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">{!! $crud->getSubheading() ?? trans('backpack::crud.edit').' '.$title_modal_edit !!}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header justify-content-center">
+                    <h5 class="modal-title text-center w-100" id="modalTitleCentered">{!! $crud->getSubheading() ?? trans('backpack::crud.edit').' '.$title_modal_edit !!}</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Loading...
@@ -239,10 +239,6 @@
     <div class="modal fade" id="modalShow" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                {{-- <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">{!! $crud->getSubheading() ?? trans('backpack::crud.preview').' '.$title_modal_edit !!}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div> --}}
                 <div class="modal-header justify-content-center">
                     <h5 class="modal-title text-center w-100" id="modalTitleCentered">{!! $crud->getSubheading() ?? trans('backpack::crud.preview').' '.$title_modal_edit !!}</h5>
                     <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -250,6 +246,32 @@
                 <div class="modal-body">
                     Loading...
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="modalDelete" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDeleteLabel">{{ trans('backpack::crud.delete') }} {{$title_modal_delete}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                    {{ trans('backpack::crud.delete_confirm_2') }} {{$title_modal_delete}} ?
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="btn-delete" class="btn btn-danger">
+                        <span class="btn-spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="btn-text">{{ trans('backpack::crud.delete') }}</span>
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>

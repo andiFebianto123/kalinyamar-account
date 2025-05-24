@@ -107,6 +107,7 @@ class RoleCrudController extends CrudController
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = $this->data['title'];
         $this->data['title_modal_edit'] = $this->data['title'];
+        $this->data['title_modal_delete'] = $this->data['title'];
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         $list = "crud::list-custom" ?? $this->crud->getListView();
