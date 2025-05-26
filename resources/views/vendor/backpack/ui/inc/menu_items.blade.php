@@ -6,7 +6,7 @@
 <x-backpack::menu-dropdown title="Vendor(Subkon)" icon="la la-group" :link="backpack_url('vendor')" >
     <x-backpack::menu-dropdown-item title="Daftar Subkon" icon="la la-circle-notch" :link="backpack_url('vendor/subkon')" />
     <x-backpack::menu-dropdown-item title="PO" icon="la la-circle-notch" :link="backpack_url('vendor/purchase-order')" />
-    <x-backpack::menu-dropdown-item title="SPK" icon="la la-circle-notch" :link="backpack_url('vendor/spk')" />
+    <x-backpack::menu-dropdown-item title="SPK" icon="la la-circle-notch" :link="backpack_url('vendor/spk-trans')" />
 </x-backpack::menu-dropdown>
 
 

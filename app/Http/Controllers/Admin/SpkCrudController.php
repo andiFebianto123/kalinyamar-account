@@ -28,7 +28,7 @@ class SpkCrudController extends CrudController
     public function setup()
     {
         CRUD::setModel(\App\Models\Spk::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/spk');
+        CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/spk-trans');
         CRUD::setEntityNameStrings('SPK', 'SPK');
     }
 
