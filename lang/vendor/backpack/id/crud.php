@@ -156,4 +156,85 @@ return [
     // InlineCreateOperation
     'related_entry_created_success' => 'Masukan terkait telah dibuat dan dipilih.',
     'related_entry_created_error' => 'Tidak dapat membuat masukan terkait.',
+
+    // custom
+    'subkon' => [
+        'title_header' => 'Daftar Subkon',
+        'title_modal_create' => 'Data Vendor (Subkon)',
+        'title_modal_edit' => 'Data Vendor (Subkon)',
+        'column' => [
+            'name' => 'Nama Perusahaan',
+            'address' => 'Alamat',
+            'npwp' => 'NPWP',
+            'phone' => 'Telepon',
+            'bank_name' => 'Nama Bank',
+            'bank_account' => 'Rekening Bank',
+        ]
+    ],
+    'po' => [
+        'title_header' => 'PO',
+        'title_modal_create' => 'Data PO Vendor (Subkon)',
+        'title_modal_edit' => 'Data PO Vendor (Subkon)',
+        'column' => [
+            'subkon_id ' => 'Nama Perusahaan',
+            'po_number' => 'No. PO',
+            'job_name' => 'Nama Pekerjaan',
+            'job_description' => 'Deskripsi/Detail',
+            'job_value' => 'Nilai Pekerjaan',
+            'tax_ppn' => 'PPN',
+            'total_value_with_tax' => 'Nilai Pekerjaan Termasuk PPN',
+            'document_path' => 'Dokumen PO',
+        ]
+    ],
+    'spk' => [
+        'title_header' => 'SPK',
+        'title_modal_create' => 'Data SPK Vendor (Subkon)',
+        'title_modal_edit' => 'Data SPK Vendor (Subkon)',
+        'column' => [
+            'subkon_id ' => 'Nama Perusahaan',
+            'no_spk' => 'No. SPK',
+            'date_spk' => 'Tanggal SPK',
+            'job_name' => 'Nama Pekerjaan',
+            'job_description' => 'Deskripsi/Detail',
+            'job_value' => 'Nilai Pekerjaan',
+            'tax_ppn' => 'PPN',
+            'total_value_with_tax' => 'Nilai Pekerjaan Termasuk PPN',
+            'document_path' => 'Dokumen SPK',
+        ],
+        'field' => [
+            'subkon_id' => [
+                'placeholder' => 'NAMA PERUSAHAAN',
+            ],
+            'no_spk' => [
+                'placeholder' => 'Masukkan nomor SPK perusahaan',
+            ],
+            'date_spk' => [
+                'placeholder' => 'Pilih Tanggal',
+            ],
+            'job_name' => [
+                'placeholder' => 'Masukkan nama pekerjaan',
+            ],
+            'job_description' => [
+                'label' => 'Deskripsi Pekerjaan',
+                'placeholder' => 'Tulis deskripsi pekerjaan',
+            ],
+            'job_value' => [
+                'placeholder' => '000.000',
+            ],
+            'tax_ppn' => [
+                'placeholder' => '0',
+            ],
+            'total_value_with_tax' => [
+                'placeholder' => '000.000',
+            ],
+            'document_path' => [
+                'label' => 'Unggah Dokumen SPK',
+                'placeholder' => '000.000',
+            ],
+        ]
+    ],
+    'save_submit' => 'Simpan',
+    'cancel_submit' => 'Batal',
+    'save_changes_submit' => 'Simpan Perubahan',
+
 ];

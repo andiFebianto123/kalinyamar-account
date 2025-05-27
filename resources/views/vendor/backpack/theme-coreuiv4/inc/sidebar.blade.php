@@ -3,7 +3,8 @@
     <div class="sidebar-brand d-none d-md-flex">
         <a class="navbar-brand fs-6 text-decoration-none text-uppercase" href="{{ url(backpack_theme_config('home_link')) }}" title="{{ backpack_theme_config('project_name') }}">
             {{-- {!! backpack_theme_config('project_logo') !!} --}}
-            Accounting App
+            <img src="{{ asset('kp-logo.png') }}" width="200" class="sidebar-brand-full" />
+            {{-- Accounting App --}}
         </a>
     </div>
     <ul class="sidebar-nav" data-coreui="navigation" data-simplebar="init">

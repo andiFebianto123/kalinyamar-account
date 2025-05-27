@@ -18,6 +18,7 @@ return [
     'user' => 'USER',
     'logout' => 'Logout',
     'login' => 'Login',
+    'login_message' => 'Welcome',
     'register' => 'Register',
     'name' => 'Name',
     'email_address' => 'E-mail address',

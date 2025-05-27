@@ -18,6 +18,7 @@ return [
     'user' => 'Pengguna',
     'logout' => 'Keluar',
     'login' => 'Masuk',
+    'login_message' => 'Selamat Datang',
     'register' => 'Daftar',
     'name' => 'Nama',
     'email_address' => 'Alamat Email',

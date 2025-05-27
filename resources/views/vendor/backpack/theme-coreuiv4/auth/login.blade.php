@@ -1,11 +1,19 @@
 @extends(backpack_view('layouts.plain'))
 
 @section('content')
+    <style>
+        .footer-str {
+            font-weight: 600;
+        }
+    </style>
     <div class="row justify-content-center align-items-center min-vh-100">
         <div class="col-12 col-md-6 col-lg-4">
-            <h3 class="text-center mb-4">{{ trans('backpack::base.login') }}</h3>
             <div class="card p-2">
                 <div class="card-body">
+                    {{-- <div class="text-center mb-4">
+                        <img src="{{ asset('kp-logo.png') }}" alt="Logo" class="img-fluid" style="max-width: 150px;">
+                    </div> --}}
+                    <h3 class="text-center mb-4">{{ trans('backpack::base.login_message') }}</h3>
                     <form class="col-md-12 p-t-10" role="form" method="POST" action="{{ route('backpack.auth.login') }}">
                         {!! csrf_field() !!}
 
@@ -39,10 +47,13 @@
 
                         <div class="form-group">
                             <div>
-                                <div class="checkbox">
+                                {{-- <div class="checkbox">
                                     <label>
                                         <input type="checkbox" name="remember"> {{ trans('backpack::base.remember_me') }}
                                     </label>
+                                </div> --}}
+                                <div>
+                                    <a href="{{ route('backpack.auth.password.reset') }}">{{ trans('backpack::base.forgot_your_password') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -59,8 +70,8 @@
             </div>
             {{-- @if (backpack_users_have_email() && backpack_email_column() == 'email' && config('backpack.base.setup_password_recovery_routes', true))
                 <div class="text-center"><a href="{{ route('backpack.auth.password.reset') }}">{{ trans('backpack::base.forgot_your_password') }}</a></div>
-            @endif
-            @if (config('backpack.base.registration_open'))
+            @endif --}}
+            {{-- @if (config('backpack.base.registration_open'))
                 <div class="text-center"><a href="{{ route('backpack.auth.register') }}">{{ trans('backpack::base.register') }}</a></div>
             @endif --}}
         </div>

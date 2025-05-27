@@ -270,8 +270,8 @@
               "paginate": {
                   "first":      "{{ trans('backpack::crud.paginate.first') }}",
                   "last":       "{{ trans('backpack::crud.paginate.last') }}",
-                  "next":       '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
-                  "previous":   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
+                //   "next":       '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
+                //   "previous":   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
               },
               "aria": {
                   "sortAscending":  "{{ trans('backpack::crud.aria.sortAscending') }}",
@@ -300,10 +300,14 @@
                 "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
             },
           },
+        //   dom:
+        //     "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
+        //     "<'table-content row'<'col-sm-12'tr>>" +
+        //     "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
           dom:
-            "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
+            "<'row hidden'<'col-sm-6'l><'col-sm-6 d-print-none'f>>" +
             "<'table-content row'<'col-sm-12'tr>>" +
-            "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
+            "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'p><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'i>>",
       }
   }
   </script>
@@ -340,7 +344,9 @@
     //   $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex').addClass('animated fadeIn');
     //   $('#crudTable_info').appendTo($("#crudTable_wrapper .table-footer > div"));
         setTimeout(function(){
-            $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer div").first());
+            // $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer div").first());
+            // $('#crudTable_paginate').appendTo($(".dataTables_wrapper .table-footer div").first());
+            // $('#crudTable_info').appendTo($(".dataTables_wrapper .table-footer div").last());
         }, 100);
       @endif
 
