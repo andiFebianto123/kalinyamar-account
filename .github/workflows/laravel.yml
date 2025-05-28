@@ -29,11 +29,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /
           dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.github*
-            **/node_modules/**
-            **/vendor/**
-            **/tests/**
-            **/.env
-            **/README.md
+          # exclude: |
+          #   **/.git*
+          #   **/.github*
+          #   **/node_modules/**
+          #   **/vendor/**
+          #   **/tests/**
+          #   **/.env
+          #   **/README.md
