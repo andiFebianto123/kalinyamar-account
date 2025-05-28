@@ -11,6 +11,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      # - name: Install Dependencies
+      #   run: |
+      #     composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      # - name: Clear Config and Cache
+      #   run: |
+      #     php artisan route:clear
+      #     php artisan view:clear
+      - name: Set Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
 
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
