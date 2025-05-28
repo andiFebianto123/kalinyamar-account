@@ -217,6 +217,14 @@ class PurchaseOrderCrudController extends CrudController
 
         CRUD::column(
             [
+                'label'  => trans('backpack::crud.po.column.date_po'),
+                'name' => 'date_po',
+                'type'  => 'date'
+            ],
+        );
+
+        CRUD::column(
+            [
                 'label'  => trans('backpack::crud.po.column.job_name'),
                 'name' => 'job_name',
                 'type'  => 'text'
@@ -301,10 +309,35 @@ class PurchaseOrderCrudController extends CrudController
             ],
         ]);
 
+        CRUD::addField([   // Hidden
+            'name'  => 'space',
+            'type'  => 'hidden',
+            'value' => 'active',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                'disabled'  => 'disabled',
+                // 'placeholder' => trans('backpack::crud.spk.field.')
+            ]
+        ]);
+
         CRUD::addField([
             'name' => 'po_number',
             'label' => trans('backpack::crud.po.column.po_number'),
             'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'date_po',
+            'label' => trans('backpack::crud.po.column.date_po'),
+            'type' => 'date',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.po.field.date_po.placeholder'),
+            ],
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -420,8 +453,31 @@ class PurchaseOrderCrudController extends CrudController
      protected function setupShowOperation()
     {
         $this->setupCreateOperation();
+
+        // update field hidden
+        CRUD::field('space')->remove();
+
+        // update subkon id
+        CRUD::field('subkon_id')->remove();
+        CRUD::field([   // 1-n relationship
+            'label'       => trans('backpack::crud.subkon.column.name'), // Table column heading
+            'type'        => "select2_ajax_custom",
+            'name'        => 'subkon_id', // the column that contains the ID of that connected entity
+            'entity'      => 'subkon', // the method that defines the relationship in your Model
+            'attribute'   => "name", // foreign key attribute that is shown to user
+            'data_source' => backpack_url('vendor/select2-subkon-id'), // url to controller search function (with /{id} should return a single entry)
+            'wrapper'   => [
+                'class' => 'form-group col-md-12'
+            ],
+        ])->before('po_number');
+
+        // load entry data
         $this->setupListOperation();
+
+        // remove row number
         CRUD::column('row_number')->remove();
+
+        // update document path
         CRUD::column('document_path')->remove();
         CRUD::column(
             [
@@ -441,6 +497,21 @@ class PurchaseOrderCrudController extends CrudController
                 ],
             ],
         );
+
+        // update date_po
+        CRUD::column('date_po')->remove();
+        CRUD::column([
+            'name' => 'date_po',
+            'label' => trans('backpack::crud.po.column.date_po'),
+            'type' => 'date',
+            'format' => 'DD/MM/Y',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.po.field.date_po.placeholder'),
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ])->after('po_number');
     }
 
     /**

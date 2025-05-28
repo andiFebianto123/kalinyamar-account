@@ -408,8 +408,31 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li.next a{
     border-bottom-right-radius: 4px !important;
 }
 
-
 .pagination li a {
     border-radius: 0px !important;
 }
 
+/* BUTTON FOR FILTER */
+.filter-btn {}
+
+.filter-btn::after {
+    display: none !important;
+}
+
+.dropdown-item:hover{
+    color: #14203b;
+    text-decoration: none;
+    background-color: #e3ebf3;
+}
+
+.dropdown-item:focus {
+    color: #fff;
+    background-color: #145388;
+}
+
+.dropdown-item.active {
+    background-color: #145388 !important;
+}
+.dropdown-item.active:hover {
+    color: #fff !important;
+}

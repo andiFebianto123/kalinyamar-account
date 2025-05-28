@@ -334,7 +334,7 @@ class SpkCrudController extends CrudController
             ],
         ]);
 
-         CRUD::addField([
+        CRUD::addField([
             'name' => 'date_spk',
             'label' => trans('backpack::crud.spk.column.date_spk'),
             'type' => 'date',
@@ -514,6 +514,20 @@ class SpkCrudController extends CrudController
                 ],
             ],
         );
+
+        CRUD::column('date_spk')->remove();
+        CRUD::column([
+            'name' => 'date_spk',
+            'label' => trans('backpack::crud.spk.column.date_spk'),
+            'type' => 'date',
+            'format' => 'DD/MM/Y',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.spk.field.date_spk.placeholder'),
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ])->after('no_spk');
     }
 
     public function show($id)

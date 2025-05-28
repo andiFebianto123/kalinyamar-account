@@ -1,12 +1,12 @@
 {{-- This file is used for menu items by any Backpack v6 theme --}}
 {{-- <li class="nav-item nav-root active"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{ trans('backpack::base.dashboard') }}</a></li> --}}
 
-<x-backpack::menu-item title="Dashboard" icon="la la-home" :link="backpack_url('dashboard')" />
+<x-backpack::menu-item title="{{trans('backpack::crud.menu.dashboard')}}" icon="la la-home" :link="backpack_url('dashboard')" />
 
-<x-backpack::menu-dropdown title="Vendor(Subkon)" icon="la la-group" :link="backpack_url('vendor')" >
-    <x-backpack::menu-dropdown-item title="Daftar Subkon" icon="la la-circle-notch" :link="backpack_url('vendor/subkon')" />
-    <x-backpack::menu-dropdown-item title="PO" icon="la la-circle-notch" :link="backpack_url('vendor/purchase-order')" />
-    <x-backpack::menu-dropdown-item title="SPK" icon="la la-circle-notch" :link="backpack_url('vendor/spk-trans')" />
+<x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.vendor_subkon')}}" icon="la la-group" :link="backpack_url('vendor')" >
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_subkon')}}" icon="la la-circle-notch" :link="backpack_url('vendor/subkon')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('backpack::crud.menu.po') }}" icon="la la-circle-notch" :link="backpack_url('vendor/purchase-order')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('backpack::crud.menu.spk') }}" icon="la la-circle-notch" :link="backpack_url('vendor/spk-trans')" />
 </x-backpack::menu-dropdown>
 
 

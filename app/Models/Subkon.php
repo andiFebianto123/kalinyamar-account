@@ -36,6 +36,14 @@ class Subkon extends Model
     |--------------------------------------------------------------------------
     */
 
+    function purchase_orders(){
+        return $this->hasMany(PurchaseOrder::class, 'subkon_id');
+    }
+
+    function spks(){
+        return $this->hasMany(Spk::class, 'subkon_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES

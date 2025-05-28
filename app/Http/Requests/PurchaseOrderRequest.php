@@ -28,9 +28,10 @@ class PurchaseOrderRequest extends FormRequest
         return [
             'subkon_id' => 'required|exists:subkons,id',
             'po_number' => 'required|string|max:255',
+            'date_po' => 'required|string',
             'job_name' => 'required|string|max:255',
             'total_value_with_tax' => 'required|numeric|min:1000',
-            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
+            'document_path' => ValidUpload::field('required')->file('mimes:pdf|max:5000'),
         ];
     }
 

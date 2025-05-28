@@ -27,7 +27,7 @@ return [
     'add_a_new' => 'Tambahkan yang baru ',
 
     // Edit form
-    'edit' => 'Ubah',
+    'edit' => 'Edit',
     'save' => 'Simpan',
 
     // Translatable models
@@ -40,7 +40,7 @@ return [
     'list' => 'Daftar',
     'reset' => 'Set ulang',
     'actions' => 'Aksi',
-    'preview' => 'Lihat',
+    'preview' => 'Detail',
     'delete' => 'Hapus',
     'admin' => 'Admin',
     'details_row' => 'Ini adalah baris rincian. Ubah sesuka Anda.',
@@ -51,6 +51,7 @@ return [
 
     // Confirmation messages and bubbles
     'delete_confirm' => 'Anda yakin ingin menghapus item ini?',
+    'delete_confirm_2' => 'Apakah anda yakin ingin menghapus data',
     'delete_confirmation_title' => 'Item Dihapus',
     'delete_confirmation_message' => 'Item telah berhasil dihapus.',
     'delete_confirmation_not_title' => 'TIDAK dihapus',
@@ -158,6 +159,18 @@ return [
     'related_entry_created_error' => 'Tidak dapat membuat masukan terkait.',
 
     // custom
+
+    'filter' => [
+        'all_year' => 'Semua Tahun',
+    ],
+
+    'menu' => [
+        'dashboard' => 'Dashboard',
+        'vendor_subkon' => 'Vendor(Subkon)',
+        'list_subkon' => 'Daftar Subkon',
+        'po' => 'PO',
+        'spk' => 'SPK',
+    ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
         'title_modal_create' => 'Data Vendor (Subkon)',
@@ -169,6 +182,10 @@ return [
             'phone' => 'Telepon',
             'bank_name' => 'Nama Bank',
             'bank_account' => 'Rekening Bank',
+            'list_po' => 'List PO',
+            'count_po' => 'Jumlah PO',
+            'list_spk' => 'List SPK',
+            'count_spk' => 'Jumlah SPK',
         ]
     ],
     'po' => [
@@ -178,12 +195,18 @@ return [
         'column' => [
             'subkon_id ' => 'Nama Perusahaan',
             'po_number' => 'No. PO',
+            'date_po' => 'Tanggal PO',
             'job_name' => 'Nama Pekerjaan',
             'job_description' => 'Deskripsi/Detail',
             'job_value' => 'Nilai Pekerjaan',
             'tax_ppn' => 'PPN',
-            'total_value_with_tax' => 'Nilai Pekerjaan Termasuk PPN',
+            'total_value_with_tax' => 'Nilai Pekerjaan Include PPn',
             'document_path' => 'Dokumen PO',
+        ],
+        'field' => [
+            'date_po' => [
+                'placeholder' => 'Pilih Tanggal',
+            ]
         ]
     ],
     'spk' => [
@@ -198,7 +221,7 @@ return [
             'job_description' => 'Deskripsi/Detail',
             'job_value' => 'Nilai Pekerjaan',
             'tax_ppn' => 'PPN',
-            'total_value_with_tax' => 'Nilai Pekerjaan Termasuk PPN',
+            'total_value_with_tax' => 'Nilai Pekerjaan Include PPn',
             'document_path' => 'Dokumen SPK',
         ],
         'field' => [

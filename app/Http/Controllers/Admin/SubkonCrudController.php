@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\SubkonRequest;
+use App\Models\PurchaseOrder;
+use App\Models\Spk;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Dotenv\Parser\Entry;
 
 /**
  * Class SubkonCrudController
@@ -19,7 +22,7 @@ class SubkonCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -42,6 +45,11 @@ class SubkonCrudController extends CrudController
     protected function setupListOperation()
     {
         // CRUD::setFromDb(); // set columns from db columns.
+
+        $request = request();
+
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
+
         $this->crud->addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -87,6 +95,96 @@ class SubkonCrudController extends CrudController
             'label' => trans('backpack::crud.subkon.column.bank_account'),
             'type'  => 'text',
         ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po_number',
+            'label'    => trans('backpack::crud.subkon.column.list_po'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                return "".$entry->purchase_orders->map(function($item, $key){
+                    return "<li>".$item->po_number."</li>";
+                })->implode('')."";
+            },
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
+                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
+                });
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po_count',
+            'label'    => trans('backpack::crud.subkon.column.count_po'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                $count_data = $entry->purchase_orders->count();
+                if($count_data > 0){
+                    return $count_data;
+                }
+                return '-';
+            },
+            'orderable'  => true,
+            'orderLogic' => function ($query, $column, $columnDirection) {
+                $po = PurchaseOrder::select(DB::raw('subkon_id, count(po_number) as total_po'))
+                ->groupBy('subkon_id');
+                return $query->leftJoinSub($po, 'po', function($join){
+                    $join->on('po.subkon_id', 'subkons.id');
+                })->select('subkons.*')->orderBy('po.total_po', $columnDirection);
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_spk_number',
+            'label'    => trans('backpack::crud.subkon.column.list_spk'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                return "".$entry->spks->map(function($item, $key){
+                    return "<li>".$item->no_spk."</li>";
+                })->implode('')."";
+            },
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
+                    $q->where('no_spk', 'like', '%'.$searchTerm.'%');
+                });
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_spk_count',
+            'label'    => trans('backpack::crud.subkon.column.count_spk'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                $count_data = $entry->spks->count();
+                if($count_data > 0){
+                    return $count_data;
+                }
+                return '-';
+            },
+            'orderable'  => true,
+            'orderLogic' => function ($query, $column, $columnDirection) {
+                $spk = Spk::select(DB::raw('subkon_id, count(no_spk) as total_spk'))
+                ->groupBy('subkon_id');
+                return $query->leftJoinSub($spk, 'spk', function($join){
+                    $join->on('spk.subkon_id', 'subkons.id');
+                })->select('subkons.*')->orderBy('spk.total_spk', $columnDirection);
+            }
+        ]);
+
+        if($request->has('filter_year')){
+            if($request->filter_year != 'all'){
+                $filterYear = $request->filter_year;
+                $this->crud->query = $this->crud->query
+                ->where(function($query) use($filterYear){
+                    $query->whereHas('purchase_orders', function($q) use($filterYear){
+                        $q->where(DB::raw("YEAR(date_po)"), $filterYear);
+                    })
+                    ->orWhereHas('spks', function($q) use($filterYear){
+                        $q->where(DB::raw("YEAR(date_spk)"), $filterYear);
+                    });
+                });
+            }
+        }
+
     }
 
     public function index()
@@ -237,8 +335,8 @@ class SubkonCrudController extends CrudController
         ]);
 
         CRUD::addField([
-            'name' => 'phone',
-            'label' => trans('backpack::crud.subkon.column.phone'),
+            'name' => 'npwp',
+            'label' => trans('backpack::crud.subkon.column.npwp'),
             'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
@@ -246,8 +344,8 @@ class SubkonCrudController extends CrudController
         ]);
 
         CRUD::addField([
-            'name' => 'npwp',
-            'label' => trans('backpack::crud.subkon.column.npwp'),
+            'name' => 'phone',
+            'label' => trans('backpack::crud.subkon.column.phone'),
             'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
@@ -294,4 +392,57 @@ class SubkonCrudController extends CrudController
     {
         $this->setupCreateOperation();
     }
+
+    protected function setupShowOperation()
+    {
+        $this->setupCreateOperation();
+        $this->setupListOperation();
+        CRUD::column('row_number')->remove();
+        CRUD::column('list_po_count')->remove();
+        CRUD::column('list_spk_count')->remove();
+        CRUD::addField([
+            'name' => 'list_po_number',
+            'label' => trans('backpack::crud.subkon.column.list_po'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+        CRUD::addField([
+            'name' => 'list_spk_number',
+            'label' => trans('backpack::crud.subkon.column.list_spk'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+    }
+
+
+    public function show($id)
+    {
+        $this->crud->hasAccessOrFail('show');
+
+        // get entry ID from Request (makes sure its the last ID for nested resources)
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        // get the info for that entry (include softDeleted items if the trait is used)
+        if ($this->crud->get('show.softDeletes') && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this->crud->model))) {
+            $this->data['entry'] = $this->crud->getModel()->withTrashed()->findOrFail($id);
+        } else {
+            $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+        }
+
+        $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
+        $this->data['crud'] = $this->crud;
+
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+
+        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
+        // return view($this->crud->getShowView(), $this->data);
+        return response()->json([
+            'html' => view($this->crud->getShowView(), $this->data)->render()
+        ]);
+    }
+
 }

@@ -14,4 +14,13 @@ class CustomHelper {
             'Maybank' => 'Maybank Indonesia',
         ];
     }
+
+    public static function getYearOptions(){
+        return [
+            2025,
+            2024,
+            2023,
+            2022
+        ];
+    }
 }
