@@ -11,13 +11,13 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Clear Config and Cache
-        run: |
-          php artisan route:clear
-          php artisan view:clear
+      # - name: Install Dependencies
+      #   run: |
+      #     composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      # - name: Clear Config and Cache
+      #   run: |
+      #     php artisan route:clear
+      #     php artisan view:clear
       - name: Set Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
 
@@ -29,11 +29,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /
           dangerous-clean-slate: false
-          # exclude: |
-          #   **/.git*
-          #   **/.github*
-          #   **/node_modules/**
-          #   **/vendor/**
-          #   **/tests/**
-          #   **/.env
-          #   **/README.md
+          exclude: |
+            **/.git*
+            **/.github*
+            **/node_modules/**
+            **/vendor/**
+            **/tests/**
+            **/.env
+            **/README.md
