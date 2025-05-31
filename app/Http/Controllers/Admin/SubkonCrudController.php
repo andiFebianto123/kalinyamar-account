@@ -46,6 +46,7 @@ class SubkonCrudController extends CrudController
     {
         // CRUD::setFromDb(); // set columns from db columns.
 
+        CRUD::disableResponsiveTable();
         $request = request();
 
         CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');

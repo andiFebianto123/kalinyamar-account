@@ -361,13 +361,16 @@ class PurchaseOrderCrudController extends CrudController
             // ],
         ]);
 
+
         CRUD::addField([
             'name' => 'job_value',
             'label' => trans('backpack::crud.po.column.job_value'),
-            'type' => 'number',
-              // optionals
-            'attributes' => ["step" => "any"], // allow decimals
-            'prefix'     => "Rp.",
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -391,8 +394,15 @@ class PurchaseOrderCrudController extends CrudController
             'name' => 'total_value_with_tax',
             'label' => trans('backpack::crud.po.column.total_value_with_tax'),
             'type' => 'number-disable-po',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.spk.field.total_value_with_tax.placeholder'),
+            ],
               // optionals
-            'attributes' => ["step" => "any"], // allow decimals
+            // 'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "Rp.",
             'wrapper'   => [
                 'class' => 'form-group col-md-6'

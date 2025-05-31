@@ -9,6 +9,12 @@
     <x-backpack::menu-dropdown-item title="{{ trans('backpack::crud.menu.spk') }}" icon="la la-circle-notch" :link="backpack_url('vendor/spk-trans')" />
 </x-backpack::menu-dropdown>
 
+<x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.client')}}" icon="la la-group" :link="backpack_url('client')" >
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_client')}}" icon="la la-circle-notch" :link="backpack_url('client/client-list')" />
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.client_po')}}" icon="la la-circle-notch" :link="backpack_url('client/po')" />
+</x-backpack::menu-dropdown>
+
+
 
 <x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">
     <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />

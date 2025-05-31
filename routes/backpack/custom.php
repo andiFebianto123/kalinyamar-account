@@ -38,6 +38,12 @@ Route::group([
         Route::crud('purchase-order', 'PurchaseOrderCrudController');
         Route::crud('spk-trans', 'SpkCrudController');
     });
+
+    Route::prefix('client')->group(function(){
+        Route::crud('client-list', 'ClientCrudController');
+        Route::post('select2-client', 'ClientPoCrudController@select2Client');
+        Route::crud('po', 'ClientPoCrudController');
+    });
 }); // this should be the absolute last line of this file
 
 /**

@@ -1,5 +1,9 @@
 {{-- number input --}}
 
+@php
+    $getValue = \App\Http\Helpers\CustomHelper::formatRupiah(old_empty_or_null($field['name'], '') ??  $field['value'] ?? $field['default'] ?? 0);
+@endphp
+
 @include('crud::fields.inc.wrapper_start')
     <label>{!! $field['label'] !!}</label>
     @include('crud::fields.inc.translatable_icon')
@@ -8,9 +12,9 @@
         @if(isset($field['prefix'])) <span class="input-group-text">{!! $field['prefix'] !!}</span> @endif
         <input
             disabled
-        	type="number"
+        	type="text"
         	name="{{ $field['name'] }}"
-            value="{{ old_empty_or_null($field['name'], '') ??  $field['value'] ?? $field['default'] ?? '' }}"
+            value="{{ $getValue }}"
             @include('crud::fields.inc.attributes')
         	>
         @if(isset($field['suffix'])) <span class="input-group-text">{!! $field['suffix'] !!}</span> @endif
@@ -32,22 +36,30 @@
                     ppn_value_total = job_value;
                 }
 
+                var maskElement = $(form_type+' input[name="'+name+'"]').mask('{{ $field['mask'] }}', {reverse: true});
+
+                var total = 0;
+
                 if(isNaN(ppn_value_total)){
-                    $(form_type+' input[name="'+name+'"]').val(0);
+                    // $(form_type+' input[name="'+name+'"]').val(0);
                 }else{
-                    $(form_type+' input[name="'+name+'"]').val(ppn_value_total);
+                    // $(form_type+' input[name="'+name+'"]').val(ppn_value_total);
+                    total = ppn_value_total;
                 }
+                var totalmask = maskElement.masked(total);
+                $(form_type+' input[name="'+name+'"]').val(totalmask);
+
             }
 
             var form_type = "{{ $crud->getActionMethod() }}";
             var name = "{{ $field['name'] }}";
             if(form_type == 'create'){
-                $('#form-create input[name="job_value"], #form-create input[name="tax_ppn"]').off('keyup').on('keyup', function(){
+                $('#form-create input[data-alt="job_value_masked"], #form-create input[name="tax_ppn"]').on('keyup', function(){
                     calculationPPN('#form-create');
                 });
 
             }else{
-                $('#form-edit input[name="job_value"], #form-edit input[name="tax_ppn"]').off('keyup').on('keyup', function(){
+                $('#form-edit input[data-alt="job_value_masked"], #form-edit input[name="tax_ppn"]').off('keyup').on('keyup', function(){
                     calculationPPN('#form-edit');
                 });
             }

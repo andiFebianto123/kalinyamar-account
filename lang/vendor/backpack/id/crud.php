@@ -170,6 +170,9 @@ return [
         'list_subkon' => 'Daftar Subkon',
         'po' => 'PO',
         'spk' => 'SPK',
+        'client' => 'Client',
+        'list_client' => 'Daftar Client',
+        'client_po' => 'PO',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -254,6 +257,80 @@ return [
                 'label' => 'Unggah Dokumen SPK',
                 'placeholder' => '000.000',
             ],
+        ]
+    ],
+    'client' => [
+        'title_header' => 'Daftar Client',
+        'column' => [
+            'name' => 'Nama Perusahaan',
+            'address' => 'Alamat',
+            'npwp' => 'No. NPWP',
+            'phone' => 'No. Telepon'
+        ],
+    ],
+    'client_po' => [
+        'title_header' => 'PO',
+        'column' => [
+            'client_id' => 'Nama Perusahaan',
+            'work_code' => 'Kode Kerja',
+            'po_number' => 'No. PO',
+            'job_name' => 'Nama Pekerjaan',
+            'job_value' => 'Nilai Pekerjaan',
+            'tax_ppn' => 'PPn',
+            'total_value_with_tax' => 'Nilai Pekerjaan Include PPn',
+            'startdate_and_enddate' => "Start Date - End Date",
+            'reimburse_type' => 'Reimburse/NonReimburse',
+            'price_total' => 'Total Biaya',
+            'profit_and_loss' => "Laba/Rugi PO",
+            'document_path' => 'Dokumen PO',
+            'date_invoice' => 'Tanggal Invoice',
+        ],
+        'field' => [
+            'client_id' => [
+                'label' => 'Nama Perusahaan',
+                'placeholder' => "- NAMA PERUSAHAAN",
+            ],
+            'work_code' => [
+                'label' => 'Kode Kerja',
+                'placeholder' => 'Masukan kode kerja perusahaan',
+            ],
+            'po_number' => [
+                'label' => 'No. PO',
+                'placeholder' => 'Masukan nomor PO Perusahaan',
+            ],
+            'job_name' => [
+                'label' => 'Nama Pekerjaan',
+                'placeholder' => 'Masukan nama pekerjaan',
+            ],
+            'job_value' => [
+                'label' => 'Nilai Pekerjaan',
+                'placeholder' => '000.000',
+            ],
+            'tax_ppn' => [
+                'label' => 'PPn',
+                'placeholder' => '0',
+            ],
+            'startdate_and_enddate' => [
+                'label' => 'Start Date - End Date',
+                'placeholder' => 'Start Date - End Date',
+            ],
+            'reimburse_type' => [
+                'label' => 'Reimburse/NonReimburse',
+                'placeholder' => '-PILIH',
+            ],
+            'price_total' => [
+                'label' => 'Total Biaya'
+            ],
+            'profit_and_loss' => [
+                'label' => 'Laba/Rugi PO',
+            ],
+            'document_path' => [
+                'label' => 'Upload Dokumen PO',
+            ],
+            'date_invoice' => [
+                'label' => 'Tanggal Invoice',
+                'placeholder' => 'Pilih Tanggal',
+            ]
         ]
     ],
     'save_submit' => 'Simpan',

@@ -370,16 +370,33 @@ class SpkCrudController extends CrudController
             // ],
         ]);
 
+        // CRUD::addField([
+        //     'name' => 'job_value',
+        //     'label' => trans('backpack::crud.spk.column.job_value'),
+        //     'type' => 'number',
+        //       // optionals
+        //     'attributes' => [
+        //         "step" => "any",
+        //         'placeholder' => trans('backpack::crud.spk.field.job_value.placeholder'),
+        //     ], // allow decimals
+        //     'prefix'     => "Rp.",
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        // ]);
+
         CRUD::addField([
             'name' => 'job_value',
             'label' => trans('backpack::crud.spk.column.job_value'),
-            'type' => 'number',
-              // optionals
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
             'attributes' => [
-                "step" => "any",
                 'placeholder' => trans('backpack::crud.spk.field.job_value.placeholder'),
-            ], // allow decimals
-            'prefix'     => "Rp.",
+            ],
+            'prefix' => 'Rp',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -406,9 +423,12 @@ class SpkCrudController extends CrudController
             'name' => 'total_value_with_tax',
             'label' => trans('backpack::crud.po.column.total_value_with_tax'),
             'type' => 'number-disable-po',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
               // optionals
             'attributes' => [
-                "step" => "any",
                 'placeholder' => trans('backpack::crud.spk.field.total_value_with_tax.placeholder'),
             ], // allow decimals
             'prefix'     => "Rp.",

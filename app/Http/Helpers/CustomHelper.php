@@ -20,7 +20,27 @@ class CustomHelper {
             2025,
             2024,
             2023,
-            2022
+            2022,
+            2021,
+            2020,
+            2019,
+            2018,
+            2017
         ];
+    }
+
+    public static function formatRupiah($number, $decimal_digits = 2) {
+        $is_negative = $number < 0;
+
+        $absolute = abs($number);
+
+        $formatted = number_format(
+            $absolute,
+            $decimal_digits,
+            ',',
+            '.'
+        );
+
+        return $is_negative ? '-' . $formatted : $formatted;
     }
 }
