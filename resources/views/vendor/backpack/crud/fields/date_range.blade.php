@@ -75,15 +75,33 @@
 
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
     @push('crud_fields_styles')
-    <link rel="stylesheet" type="text/css" href="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.css') }}" />
+    {{-- <link rel="stylesheet" type="text/css" href="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.css') }}" /> --}}
     @endpush
 
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
-    <script type="text/javascript" src="{{ asset('packages/moment/min/moment-with-locales.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+    {{-- <script type="text/javascript" src="{{ asset('packages/moment/min/moment-with-locales.min.js') }}"></script> --}}
+    {{-- <script type="text/javascript" src="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.js') }}"></script> --}}
+    <script>
+        SIAOPS.loadCSS("{{ asset('packages/bootstrap-daterangepicker/daterangepicker.css') }}");
+        SIAOPS.loadScript([
+            "{{ asset('packages/moment/min/moment-with-locales.min.js') }}",
+            "{{ asset('packages/bootstrap-daterangepicker/daterangepicker.js') }}"
+        ], {
+            async: false, // Load secara synchronous
+            defer: true,
+            // callback: function() {
+            //     console.log('Semua script sudah dimuat');
+            // }
+        });
+
+    </script>
     <script>
         function bpFieldInitDateRangeElement(element) {
+
+            setTimeout(() => {
+
+                $('.daterangepicker').remove();
 
                 moment.locale('{{app()->getLocale()}}');
 
@@ -118,6 +136,7 @@
                     $startInput.val( picker.startDate.format('YYYY-MM-DD HH:mm:ss') );
                     $endInput.val( picker.endDate.format('YYYY-MM-DD HH:mm:ss') );
                 });
+            }, 300);
         }
     </script>
     @endpush

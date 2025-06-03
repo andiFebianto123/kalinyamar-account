@@ -24,6 +24,8 @@ class SubkonCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
+    public $card, $modal, $script;
+
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -34,6 +36,35 @@ class SubkonCrudController extends CrudController
         CRUD::setModel(\App\Models\Subkon::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/subkon');
         CRUD::setEntityNameStrings(trans('backpack::crud.subkon.title_header'), trans('backpack::crud.subkon.title_header'));
+        $this->card = app('component.card');
+        $this->modal = app('component.modal');
+        $this->script = app('component.script');
+    }
+
+    private function setupCard(){
+        // $this->card->addCard([
+        //     'name' => 'first card',
+        //     'line' => 'top',
+        //     'title' => 'Hai namaku andi',
+        //     'wrapper' => 'col-md-4',
+        //     'view' => 'crud::components.card-1',
+        //     'params' => [
+        //         'name' => 'This is my card'
+        //     ]
+        // ]);
+    }
+
+    private function setupModal(){
+        // $this->modal->addModal([
+        //     'name' => 'first_modal',
+        //     'title' => 'judul modal',
+        //     'view' => 'crud::components.modal-1',
+        // ]);
+    }
+
+    public function setupComponent(){
+        $this->setupCard();
+        $this->setupModal();
     }
 
     /**
@@ -192,7 +223,11 @@ class SubkonCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('list');
 
+        $this->setupComponent();
 
+        $this->data['cards'] = $this->card;
+        $this->data['modals'] = $this->modal;
+        $this->data['scripts'] = $this->script;
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "Data Vendor (Subkon)";

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------
@@ -44,6 +45,9 @@ Route::group([
         Route::post('select2-client', 'ClientPoCrudController@select2Client');
         Route::crud('po', 'ClientPoCrudController');
     });
+    Route::crud('invoice-client', 'InvoiceClientCrudController');
+    Route::post('invoice-client/select2-client-po', [InvoiceClientCrudController::class, 'select2ClientPo']);
+    Route::get('invoice-client/get-client-po', [InvoiceClientCrudController::class, 'selectedClientPo']);
 }); // this should be the absolute last line of this file
 
 /**

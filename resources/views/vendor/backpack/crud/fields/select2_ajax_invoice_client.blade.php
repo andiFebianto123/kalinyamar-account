@@ -32,7 +32,7 @@
         <select
             name="{{ $field['name'] }}"
             style="width: 100%"
-            data-init-function="bpFieldInitSelect2FromAjaxCustom"
+            data-init-function="bpFieldInitSelect2FromAjaxInvoiceClient"
             data-minimum-input-length="{{ $minimum_input_length }}"
             data-placeholder="{{ $placeholder }}"
             data-data-source="{{ $data_source }}"
@@ -90,7 +90,7 @@
     }
 </style>
 <script>
-    function bpFieldInitSelect2FromAjaxCustom(element) {
+    function bpFieldInitSelect2FromAjaxInvoiceClient(element) {
         if (!element.data('data-source')) {
             console.error('Select2 AJAX: data_source URL is required');
             return;
@@ -159,6 +159,33 @@
             var selectedOption = new Option(valueName, valueId, true, true);
             element.append(selectedOption).trigger('change');
         }
+
+        $(element).off('select2:select').on('select2:select', function (e) {
+            var id = e.params.data.id;
+            var form_type = "{{ $crud->getActionMethod() }}";
+
+            $.ajax({
+                url: '{!! backpack_url("invoice-client/get-client-po") !!}',
+                method: 'GET',
+                data: {
+                    id: id,
+                },
+                success: function(response) {
+                    var respon = response.result;
+                    if(form_type == 'create'){
+                        $('#form-create input[name="po_date"]').val(respon.date_invoice);
+                        $('#form-create input[name="client_name"]').val(respon.client_name);
+                        $('#form-create input[name="price_total_exclude_ppn"]').val(respon.job_value);
+                        $('#form-create input[name="price_total_include_ppn"]').val(respon.total_value_with_tax);
+                    }else{
+                        $('#form-edit input[name="po_date"]').val(respon.date_invoice);
+                        $('#form-edit input[name="client_name"]').val(respon.client_name);
+                        $('#form-edit input[name="price_total_exclude_ppn"]').val(respon.job_value);
+                        $('#form-edit input[name="price_total_include_ppn"]').val(respon.total_value_with_tax);
+                    }
+                }
+            });
+        });
 
     }
 

@@ -162,6 +162,7 @@ return [
 
     'filter' => [
         'all_year' => 'Semua Tahun',
+        'all_paid' => 'Semua',
     ],
 
     'menu' => [
@@ -173,6 +174,7 @@ return [
         'client' => 'Client',
         'list_client' => 'Daftar Client',
         'client_po' => 'PO',
+        'invoice_client' => 'Invoice (Client)',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -332,6 +334,61 @@ return [
                 'placeholder' => 'Pilih Tanggal',
             ]
         ]
+    ],
+    'invoice_client' => [
+        'title_header' => 'Invoice (Client)',
+        'title_modal_create' => 'Data Invoice (Client)',
+        'title_modal_edit' => 'Data Invoice (Client)',
+        'title_modal_delete' => 'Invoice (Client)',
+        'column' => [
+            'invoice_number' => 'No. Invoice',
+            'name' => 'Nama Invoice',
+            'invoice_date' => 'Tanggal Invoice',
+            'client_po_id' => 'No. PO',
+            'po_date' => 'Tanggal PO',
+            'client_id' => 'Client',
+            'price_total_exclude_ppn' => 'Nilai Exclude PPn',
+            'price_total_include_ppn' => 'Nilai Include PPn',
+            'status' => 'Status',
+        ],
+        'field' => [
+            'invoice_number' => [
+                'label' => 'No. Invoice',
+                'placeholder' => 'Masukan nomor invoice',
+            ],
+            'name' => [
+                'label' => 'Nama Invoice',
+                'placeholder' => 'Masukan nama invoice',
+            ],
+            'invoice_date' => [
+                'label' => 'Tanggal Invoice',
+                'placeholder' => 'Pilih Tanggal',
+            ],
+            'client_po_id' => [
+                'placeholder' => 'Masukan nomor PO Client',
+                'label' => 'No. PO',
+            ],
+            'po_date' => [
+                'label' => 'Tanggal PO',
+                'placeholder' => 'Pilih tanggal',
+            ],
+            'client_id' => [
+                'label' => 'Client',
+                'placeholder' => 'Nama Client',
+            ],
+            'price_total_exclude_ppn' => [
+                'label' => 'Total Biaya Exclude PPn',
+                'placeholder' => '000.000',
+            ],
+            'price_total_include_ppn' => [
+                'label' => 'Total Biaya Include PPn',
+                'placeholder' => '000.000',
+            ],
+            'status' => [
+                'label' => 'Status',
+                'placeholder' => '-STATUS',
+            ]
+        ],
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batal',

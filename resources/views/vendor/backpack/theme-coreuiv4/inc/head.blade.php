@@ -19,6 +19,10 @@
 @yield('after_styles')
 @stack('after_styles')
 
+@loadScriptOnce(asset('sia.plugin.js'));
+
+@stack('inline_scripts')
+
 {{-- @basset(base_path('public\custom-theme.css')) --}}
 
 {{-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries --}}

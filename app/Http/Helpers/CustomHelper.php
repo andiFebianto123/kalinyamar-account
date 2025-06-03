@@ -1,6 +1,9 @@
 <?php
 namespace App\Http\Helpers;
 
+use App\Models\PurchaseOrder;
+use Illuminate\Support\Facades\DB;
+
 class CustomHelper {
     public static function getBanks(){
         return [
@@ -16,16 +19,20 @@ class CustomHelper {
     }
 
     public static function getYearOptions(){
+        $vendor_po = PurchaseOrder::select(DB::raw('YEAR(date_po) as year'))
+        ->distinct()->get();
+        $results = [];
+
+        foreach($vendor_po as $po){
+            $results[] = $po->year;
+        }
+        return $results;
+    }
+
+    public static function getPaidOptions(){
         return [
-            2025,
-            2024,
-            2023,
-            2022,
-            2021,
-            2020,
-            2019,
-            2018,
-            2017
+            'Paid',
+            'Unpaid',
         ];
     }
 

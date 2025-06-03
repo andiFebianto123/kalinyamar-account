@@ -8,7 +8,7 @@
   ];
 
   // if breadcrumbs aren't defined in the CrudController, use the default breadcrumbs
-  $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
+  $breadcrumbs = $breadcrumbs ?? [];
 @endphp
 
 @section('header')
@@ -16,7 +16,7 @@
         <h1 class="text-capitalize mb-0" bp-section="page-heading">{!! $crud->getHeading() ?? $crud->entity_name_plural !!}</h1>
         <p class="ms-2 ml-2 mb-0" id="datatable_info_stack" bp-section="page-subheading">{!! $crud->getSubheading() ?? '' !!}</p>
     </section>
-    @if (backpack_theme_config('breadcrumbs') && isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs))
+    @if (backpack_theme_config('breadcrumbs') && isset($breadcrumbs) && is_array($breadcrumbs))
         <nav aria-label="breadcrumb" class="d-none d-lg-block">
             <div class="d-flex justify-content-between">
                 <ol class="breadcrumb bg-transparent p-0 mx-3">
@@ -42,6 +42,18 @@
 @endsection
 
 @section('content')
+    @if (isset($cards))
+        <div class="row">
+            @foreach ($cards->getCards()->where('line', 'top')->all() as $card)
+                @if (isset($card['parent_view']))
+                    @include($card['parent_view'], ['card' => $card])
+                @else
+                    @include('vendor.backpack.crud.components.card', ['card' => $card])
+                @endif
+            @endforeach
+        </div>
+    @endif
+
   {{-- Default box --}}
     <div class="card mt-2">
         <div class="card-body p-4">
@@ -154,6 +166,18 @@
             </div>
         </div>
     </div>
+
+    @if (isset($cards))
+        <div class="row">
+            @foreach ($cards->getCards()->where('line', 'bottom')->all() ?? [] as $card)
+                @if (isset($card['parent_view']))
+                    @include($card['parent_view'], ['card' => $card])
+                @else
+                    @include('vendor.backpack.crud.components.card', ['card' => $card])
+                @endif
+            @endforeach
+        </div>
+    @endif
 
 @endsection
 
@@ -381,3 +405,44 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @endpush
+
+@if (isset($scripts) && isset($modals))
+    @foreach ($scripts->getScripts()->where('line', 'top')->all() ?? [] as $script)
+        @push('inline_scripts')
+            @if($script['type'] === 'src')
+                <script src="{{ $script['content'] }}"
+                    @if($script['defer']) defer @endif
+                    @if($script['async']) async @endif>
+                </script>
+            @else
+                <script>
+                    {!! $script['content'] !!}
+                </script>
+            @endif
+        @endpush
+    @endforeach
+    @foreach ($scripts->getScripts()->where('line', 'bottom')->all() ?? [] as $script)
+        @push('after_scripts')
+            @if($script['type'] === 'src')
+                <script src="{{ $script['content'] }}"
+                    @if($script['defer']) defer @endif
+                    @if($script['async']) async @endif>
+                </script>
+            @else
+                <script>
+                    {!! $script['content'] !!}
+                </script>
+            @endif
+        @endpush
+    @endforeach
+
+    @foreach ($modals->getModals()->all() ?? [] as $modal)
+        @push('after_scripts')
+            @if (isset($modal['parent_view']))
+                @include($modal['parent_view'], ['modal' => $modal])
+            @else
+                @include('vendor.backpack.crud.components.modal', ['modal' => $modal])
+            @endif
+        @endpush
+    @endforeach
+@endif
