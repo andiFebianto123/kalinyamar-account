@@ -18,10 +18,17 @@ class ComponentModal
             throw new \InvalidArgumentException('Card must have a "name" key.');
         }
 
-        $card['buttons'] = $card['buttons'] ?? [
+        $modals['buttons'] = $modals['buttons'] ?? [
             'left' => [],
             'right' => []
         ];
+
+        $modals['title_alignment'] = $modals['title_alignment'] ?? 'left';
+
+        // Validate title alignment
+        if (!in_array($modals['title_alignment'], ['left', 'center', 'right'])) {
+            throw new \InvalidArgumentException('Invalid title_alignment value. Allowed: left, center, right.');
+        }
 
         $this->modals->put($modals['name'], $modals);
     }

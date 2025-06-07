@@ -25,9 +25,9 @@
     <div class="modal-dialog {!! $modalSize !!}" role="document">
         <div class="modal-content">
             <!-- Modal Header -->
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">{{ $title }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#{!! $attributes['id'] !!}').modal('hide')"></button>
+            <div class="modal-header justify-content-center">
+                <h5 class="modal-title text-{{ $modal['title_alignment'] }} w-100" id="exampleModalLabel">{{ $title }}</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close" onclick="$('#{!! $attributes['id'] !!}').modal('hide')"></button>
             </div>
             <!-- Modal Body -->
             <div class="modal-body">

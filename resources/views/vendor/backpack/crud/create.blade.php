@@ -27,7 +27,7 @@
 <script>
     $('#btn-submit-create').unbind('click').on('click', function (e) {
         e.preventDefault();
-        var url = "{{ url($crud->route) }}";
+        var url = $('#form-create').attr('action');
         var formData = new FormData($('#modalCreate form')[0]);
         normalizeShowMessage('form-create');
         btnLoader('btn-submit-create', false);
@@ -50,7 +50,14 @@
                     });
                     $('#modalCreate').modal('hide');
                     hideModal('modalCreate');
-                    window.crud.table.ajax.reload();
+                    if(window.crud.table){
+                        window.crud.table.ajax.reload();
+                    }
+                    if(data.events){
+                        forEachFlexible(data.events, function(eventname, data){
+                            eventEmitter.emit(eventname, data);
+                        });
+                    }
                 }else{
                     swal({
                         title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
@@ -59,6 +66,11 @@
                         timer: 4000,
                         buttons: false,
                     });
+                    // if(data.events){
+                    //     data.events.forEach((listener) => {
+                    //         eventEmitter.emit(listener+'_error', data.error);
+                    //     });
+                    // }
                 }
                 // $('#modalCreate .modal-body').html(data.html);
             },

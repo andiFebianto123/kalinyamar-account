@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Helpers;
 
+use App\Models\ClientPo;
 use App\Models\PurchaseOrder;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +30,18 @@ class CustomHelper {
         return $results;
     }
 
+    public static function getYearOptionsClient(){
+        $dataset = ClientPo::select(DB::raw("YEAR(date_invoice) as year"))
+        ->distinct()->get();
+
+        $results = [];
+
+        foreach($dataset as $po){
+            $results[] = $po->year;
+        }
+        return $results;
+    }
+
     public static function getPaidOptions(){
         return [
             'Paid',
@@ -36,7 +49,7 @@ class CustomHelper {
         ];
     }
 
-    public static function formatRupiah($number, $decimal_digits = 2) {
+    public static function formatRupiah($number, $decimal_digits = 0) {
         $is_negative = $number < 0;
 
         $absolute = abs($number);

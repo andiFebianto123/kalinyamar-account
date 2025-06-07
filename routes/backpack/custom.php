@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\CastAccountsCrudController;
+use App\Http\Controllers\Admin\InvoiceClientCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -48,6 +49,15 @@ Route::group([
     Route::crud('invoice-client', 'InvoiceClientCrudController');
     Route::post('invoice-client/select2-client-po', [InvoiceClientCrudController::class, 'select2ClientPo']);
     Route::get('invoice-client/get-client-po', [InvoiceClientCrudController::class, 'selectedClientPo']);
+
+    Route::prefix('cash-flow')->group(function(){
+        Route::crud('cast-accounts', 'CastAccountsCrudController');
+        Route::post('cast-accounts-transaction', [CastAccountsCrudController::class, 'storeTransaction']);
+        Route::get('cast-accounts-show', [CastAccountsCrudController::class, 'showTransaction']);
+        Route::get('cast-accounts-select-to-account', [CastAccountsCrudController::class, 'getSelectToAccount']);
+        Route::post('cast-accounts-move-transaction', [CastAccountsCrudController::class, 'storeMoveTransfer']);
+    });
+
 }); // this should be the absolute last line of this file
 
 /**

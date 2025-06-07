@@ -251,3 +251,59 @@ function notificationPanel(){
         }
     }
 }
+
+class MyEventEmitter {
+  constructor() {
+    this.events = {};
+  }
+
+  on(eventName, listener) {
+    if (!this.events[eventName]) this.events[eventName] = [];
+    this.events[eventName].push(listener);
+  }
+
+  emit(eventName, data) {
+    const listeners = this.events[eventName];
+    if (listeners) {
+      listeners.forEach(listener => listener(data));
+    }
+  }
+}
+
+window.eventEmitter = new MyEventEmitter();
+
+function setLoadingButton(selector, isLoading, options = {}) {
+    const buttons = document.querySelectorAll(selector);
+    const loadingText = options.loadingText || 'Loading...';
+    const spinnerHTML = options.spinnerHTML || '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ';
+
+    buttons.forEach(button => {
+        if (isLoading) {
+            if (!button.dataset.originalHtml) {
+                button.dataset.originalHtml = button.innerHTML;
+            }
+
+            button.innerHTML = spinnerHTML + loadingText;
+            button.disabled = true;
+        } else {
+            if (button.dataset.originalHtml) {
+                button.innerHTML = button.dataset.originalHtml;
+            }
+            button.disabled = false;
+        }
+    });
+}
+
+function forEachFlexible(data, callback) {
+    if (Array.isArray(data)) {
+        data.forEach((value, index) => callback(index, value));
+    } else if (typeof data === 'object' && data !== null) {
+        Object.entries(data).forEach(([key, value]) => callback(key, value));
+    } else {
+        console.warn('Data bukan array atau object');
+    }
+}
+
+function hideModal(modal_id){
+    document.querySelector('#'+modal_id+' button.btn-close').click();
+}

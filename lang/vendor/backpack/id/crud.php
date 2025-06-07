@@ -165,6 +165,25 @@ return [
         'all_paid' => 'Semua',
     ],
 
+    'card' => [
+        'blank_cast_account' => 'Belum ada akun rekening',
+        'cast_account_card' => [
+            'name_bank' => 'Nama Bank',
+            'no_rekening' => 'Nomor Rekening',
+            'balance' => 'Saldo',
+            'title_add_transaction' => "Tambah Data Transaksi",
+        ],
+    ],
+
+    'modal' => [
+        'close' => 'Tutup',
+        'bank_name' => 'Nama Bank',
+        'no_account' => 'Nomor Rekening',
+        'transfer_balance' => 'Pindah Saldo',
+        'move' => 'Pindah',
+        'cancel' => 'Batalkan',
+    ],
+
     'menu' => [
         'dashboard' => 'Dashboard',
         'vendor_subkon' => 'Vendor(Subkon)',
@@ -175,6 +194,8 @@ return [
         'list_client' => 'Daftar Client',
         'client_po' => 'PO',
         'invoice_client' => 'Invoice (Client)',
+        'cash_flow' => 'Arus Rekening',
+        'cash_flow_cash' => 'Rekening Kas',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -389,6 +410,75 @@ return [
                 'placeholder' => '-STATUS',
             ]
         ],
+    ],
+    'cash_account' => [
+        'title_header' => 'Rekening Kas',
+        'title_modal_create' => 'Akun Rekening Kas',
+        'title_modal_edit' => 'Akun Rekening Kas',
+        'title_modal_delete' => 'Akun Rekening Kas',
+        'title_modal_create_transaction' => 'Data Transaksi',
+        'field' => [
+            'name' => [
+                'label' => 'Nama Rekening',
+                'placeholder' => 'Masukan nama rekening',
+            ],
+            'bank_name' => [
+                'label' => 'Nama Bank',
+                'placeholder' => '-List Bank',
+            ],
+            'no_account' => [
+                'label' => 'No. Rekening',
+                'placeholder' => 'Masukan nomor rekening',
+            ],
+            'total_saldo' => [
+                'label' => 'Saldo Rekening',
+                'placeholder' => '000.000'
+            ],
+            'additional_information' => [
+                'label' => 'Keterangan Tambahan',
+            ]
+        ],
+        'field_transaction' => [
+            'date_transaction' => [
+                'label' => 'Tanggal Transaksi',
+                'placeholder' => 'Pilih Tanggal',
+            ],
+            'no_transaction' => [
+                'label' => 'No. PO/SPK',
+                'placeholder' => 'Masukan nomor PO/SPK transaksi'
+            ],
+            'no_invoice' => [
+                'label' => 'No. Invoice',
+                'placeholder' => 'Masukan nomor invoice transaksi'
+            ],
+            'nominal' => [
+                'label' => 'Nominal',
+            ],
+            'nominal_transaction' => [
+                'label' => 'Nominal Transaksi',
+                'placeholder' => '000.000',
+            ],
+            'status' => [
+                'label' => 'Keterangan',
+                'placeholder' => '-KETERANGAN',
+                'enter' => 'MASUK',
+                'out' => 'KELUAR',
+            ]
+            ],
+        'field_transfer' => [
+            'nominal_transfer' => [
+                'label' => 'Nominal Yang Ingin Dipindahkan',
+
+            ],
+            'to_account' => [
+                'label' => 'Rekening Tujuan',
+                'placeholder' => '-Rekening Tujuan'
+            ],
+            'errors' => [
+                'nominal_transfer_to_more' => 'Nominal tidak boleh melebihi jumlah saldo.',
+                'to_account_is_same' => 'Rekening tujuan harus berbeda dengan rekening yang dipindah',
+            ]
+        ]
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batal',

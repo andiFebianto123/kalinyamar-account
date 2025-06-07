@@ -16,6 +16,9 @@
 <x-backpack::menu-item title="{{ trans('backpack::crud.menu.invoice_client') }}" icon="la la-group" :link="backpack_url('invoice-client')" />
 
 
+<x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.cash_flow')}}" icon="la la-group" :link="backpack_url('cash-flow')" >
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.cash_flow_cash')}}" icon="la la-circle-notch" :link="backpack_url('cash-flow/cast-accounts')" />
+</x-backpack::menu-dropdown>
 
 <x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">
     <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />
