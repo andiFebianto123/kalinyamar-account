@@ -10,9 +10,9 @@
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card p-2">
                 <div class="card-body">
-                    {{-- <div class="text-center mb-4">
-                        <img src="{{ asset('kp-logo.png') }}" alt="Logo" class="img-fluid" style="max-width: 150px;">
-                    </div> --}}
+                    <div class="text-center mb-4">
+                        <img src="{{ asset('kp-logo-login.png') }}" alt="Logo" class="img-fluid" style="max-width: 100px;">
+                    </div>
                     <h3 class="text-center mb-4">{{ trans('backpack::base.login_message') }}</h3>
                     <form class="col-md-12 p-t-10" role="form" method="POST" action="{{ route('backpack.auth.login') }}">
                         {!! csrf_field() !!}
