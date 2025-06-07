@@ -163,6 +163,7 @@ return [
     'filter' => [
         'all_year' => 'Semua Tahun',
         'all_paid' => 'Semua',
+        'change_order' => 'Ubah Urutan',
     ],
 
     'card' => [

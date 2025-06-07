@@ -151,6 +151,9 @@ class CastAccountsCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        // filter-cash-account-order
+        CRUD::addButtonFromView('top', 'filter_cash_account_order', 'filter-cash-account-order', 'beginning');
+
         // CRUD::setFromDb(); // set columns from db columns.
 
         /**
