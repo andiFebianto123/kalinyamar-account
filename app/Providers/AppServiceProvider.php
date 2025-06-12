@@ -5,10 +5,21 @@ namespace App\Providers;
 use App\Services\ComponentCard;
 use App\Services\ComponentModal;
 use App\Services\ComponentScript;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+
+    public function load_helper(){
+        $helper_path = app_path().'/Http/Helpers/'.'Helpers.php';
+
+
+        if (File::isFile($helper_path)) {
+            require_once $helper_path;
+        }
+    }
+
     /**
      * Register any application services.
      */
@@ -28,6 +39,8 @@ class AppServiceProvider extends ServiceProvider
             return new ComponentScript();
         });
         $this->app->alias(ComponentScript::class, 'component.script');
+
+        // $this->load_helper();
     }
 
     /**

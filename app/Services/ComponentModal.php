@@ -23,6 +23,9 @@ class ComponentModal
             'right' => []
         ];
 
+        $modals['params'] = $modals['params'] ?? [];
+        $modals['params']['name'] = $modals['name'];
+
         $modals['title_alignment'] = $modals['title_alignment'] ?? 'left';
 
         // Validate title alignment

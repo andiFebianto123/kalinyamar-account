@@ -54,36 +54,70 @@ class UserCrudController extends CrudController
             ],
         ]);
 
-        if (backpack_pro()) {
-            // Role Filter
-            $this->crud->addFilter(
-                [
-                    'name'  => 'role',
-                    'type'  => 'dropdown',
-                    'label' => trans('backpack::permissionmanager.role'),
+        if (!backpack_pro()) {
+            $this->crud->addFilter([
+                    'name' => 'status',
+                    'type' => 'select2',
+                    'label' => 'contoh select',
                 ],
-                config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
+                [
+                    1 => 'In stock',
+                    2 => 'In provider stock',
+                    3 => 'Available upon ordering',
+                    4 => 'Not available',
+                ],
                 function ($value) { // if the filter is active
-                    $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
-                        $query->where('role_id', '=', $value);
-                    });
-                }
-            );
+                    // $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
+                    //     $query->where('role_id', '=', $value);
+                    // });
+                });
 
-            // Extra Permission Filter
-            $this->crud->addFilter(
-                [
-                    'name'  => 'permissions',
-                    'type'  => 'select2',
-                    'label' => trans('backpack::permissionmanager.extra_permissions'),
-                ],
-                config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
-                function ($value) { // if the filter is active
-                    $this->crud->addClause('whereHas', 'permissions', function ($query) use ($value) {
-                        $query->where('permission_id', '=', $value);
-                    });
-                }
-            );
+                $this->crud->filter('birthday')
+                ->type('date')
+                ->whenActive(function($value) {
+                // CRUD::addClause('where', 'date', $value);
+                });
+
+                $this->crud->filter('contoh_2')
+                ->type('dropdown')
+                    ->values([
+                    1 => 'In stock',
+                    2 => 'In provider stock',
+                    3 => 'Available upon ordering',
+                    4 => 'Not available',
+                    ])
+                ->whenActive(function($value) {
+                // CRUD::addClause('where', 'status', $value);
+                });
+            // Role Filter
+            // $this->crud->addFilter(
+            //     [
+            //         'name'  => 'role',
+            //         'type'  => 'dropdown',
+            //         'label' => trans('backpack::permissionmanager.role'),
+            //     ],
+            //     config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
+            //     function ($value) { // if the filter is active
+            //         $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
+            //             $query->where('role_id', '=', $value);
+            //         });
+            //     }
+            // );
+
+            // // Extra Permission Filter
+            // $this->crud->addFilter(
+            //     [
+            //         'name'  => 'permissions',
+            //         'type'  => 'select2',
+            //         'label' => trans('backpack::permissionmanager.extra_permissions'),
+            //     ],
+            //     config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
+            //     function ($value) { // if the filter is active
+            //         $this->crud->addClause('whereHas', 'permissions', function ($query) use ($value) {
+            //             $query->where('permission_id', '=', $value);
+            //         });
+            //     }
+            // );
         }
     }
 

@@ -2,6 +2,7 @@
 namespace App\Http\Helpers;
 
 use App\Models\ClientPo;
+use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
 use Illuminate\Support\Facades\DB;
 
@@ -63,4 +64,16 @@ class CustomHelper {
 
         return $is_negative ? '-' . $formatted : $formatted;
     }
+
+    // update or create journal_entry
+    public static function updateOrCreateJournalEntry($payload, $reference){
+        $journal = JournalEntry::class;
+        $journal::updateOrCreate($reference, $payload);
+        return $journal::where($reference)->first();
+    }
+
+    public static function deleteJournalEntry($reference){
+        return JournalEntry::where($reference)->delete();
+    }
+
 }

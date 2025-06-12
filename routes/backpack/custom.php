@@ -57,6 +57,7 @@ Route::group([
         Route::get('cast-accounts-select-to-account', [CastAccountsCrudController::class, 'getSelectToAccount']);
         Route::post('cast-accounts-move-transaction', [CastAccountsCrudController::class, 'storeMoveTransfer']);
     });
+    Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 
 }); // this should be the absolute last line of this file
 

@@ -159,6 +159,11 @@
                 },
                 eventLoader: function(){
                     // event when create success
+
+                    eventEmitter.on("cast_account_store_success", function(){
+                        window.location.href = location.href;
+                    });
+
                     eventEmitter.on("{{$name}}_create_success", function(data){
                         $('#{{$name}} .saldo-str').html(data.new_saldo);
                     });

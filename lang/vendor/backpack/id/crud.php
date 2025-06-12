@@ -448,6 +448,25 @@ return [
                 'label' => 'No. PO/SPK',
                 'placeholder' => 'Masukan nomor PO/SPK transaksi'
             ],
+            'description' => [
+                'label' => 'Deskripsi Pembayaran',
+                'placeholder' => 'Masukan deskripsi pembayaran'
+            ],
+            'kdp' => [
+                'label' => 'KDP',
+                'placeholder' => 'Masukan kode perusahaan',
+            ],
+            'job_name' => [
+                'label' => 'Nama Pekerjaan',
+                'placeholder' => 'Masukan nama pekerjaan'
+            ],
+            'account_id' => [
+                'label' => 'Akun Biaya',
+                'placeholder' => '-AKUN BIAYA'
+            ],
+            'account' => [
+                'label' => 'Akun',
+            ],
             'no_invoice' => [
                 'label' => 'No. Invoice',
                 'placeholder' => 'Masukan nomor invoice transaksi'
@@ -460,8 +479,8 @@ return [
                 'placeholder' => '000.000',
             ],
             'status' => [
-                'label' => 'Keterangan',
-                'placeholder' => '-KETERANGAN',
+                'label' => 'Keluar/Masuk',
+                'placeholder' => '-KELUAR/MASUK',
                 'enter' => 'MASUK',
                 'out' => 'KELUAR',
             ]

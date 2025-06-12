@@ -23,6 +23,9 @@ class ComponentCard
             'right' => []
         ];
 
+        $card['params'] = $card['params'] ?? [];
+        $card['params']['name'] = $card['name'];
+
         $this->cards->put($card['name'], $card);
     }
 

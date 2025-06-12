@@ -307,3 +307,50 @@ function forEachFlexible(data, callback) {
 function hideModal(modal_id){
     document.querySelector('#'+modal_id+' button.btn-close').click();
 }
+
+var callApi = function(method, uri, payload, header){
+    let parameter = {
+        method: (method == 'DOWNLOAD') ? 'POST' : method,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+        },
+    }
+    if(method == 'POST' || method == 'DOWNLOAD'){
+        parameter.body = (payload instanceof FormData) ? payload : JSON.stringify(payload);
+    }else if (method == 'GET'){
+        let newUri = uri+'?' + $.param(payload);
+        uri = newUri;
+    }
+
+    if(payload instanceof FormData){
+        // parameter.headers['Accept'] = 'application/json';
+        // parameter.headers['Content-Type'] = 'multipart/form-data';
+    }else{
+        parameter.headers['Content-Type'] = 'application/json;charset=utf-8';
+    }
+
+    const api = fetch(uri, parameter).then((response) => {
+        if(response.ok){
+            return response;
+        }
+        let error = (response.status == 500 || response.status == 404) ? 'Internet lost connection !' : response.json();
+        return Promise.reject(error);
+    })
+    return api;
+}
+
+var API_REQUEST = async function(method, url, payload, header = {}){
+    let errors, response = null;
+    await callApi(method, url, payload, header)
+    .then(res => {
+        if(method == 'DOWNLOAD'){
+            response = res.blob();
+        }else{
+            response = res.json();
+        }
+        return response;
+    })
+    .catch(err => errors = err);
+    return {errors, response};
+}
+

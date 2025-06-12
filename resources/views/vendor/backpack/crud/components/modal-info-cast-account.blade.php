@@ -14,24 +14,27 @@
 
     <div class="table-responsive">
         <table class="detail-information table info-cast-account">
-        <thead>
-            <tr>
-            <th>{{ trans('backpack::crud.cash_account.field_transaction.date_transaction.label') }}</th>
-            <th>{{ trans('backpack::crud.cash_account.field_transaction.nominal.label') }}</th>
-            <th>{{ trans('backpack::crud.cash_account.field_transaction.no_transaction.label') }}</th>
-            <th>{{ trans('backpack::crud.cash_account.field_transaction.no_invoice.label') }}</th>
-            <th>{{ trans('backpack::crud.cash_account.field_transaction.status.label') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{-- <tr>
-            <td>3 Feb 2025</td>
-            <td>Rp3.000.000</td>
-            <td>PO001</td>
-            <td>INV33/55/55</td>
-            <td>Masuk</td>
-            </tr> --}}
-        </tbody>
+            <thead>
+                <tr>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.date_transaction.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.nominal.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.description.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.kdp.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.job_name.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.account.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.no_invoice.label') }}</th>
+                <th>{{ trans('backpack::crud.cash_account.field_transaction.status.label') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{-- <tr>
+                <td>3 Feb 2025</td>
+                <td>Rp3.000.000</td>
+                <td>PO001</td>
+                <td>INV33/55/55</td>
+                <td>Masuk</td>
+                </tr> --}}
+            </tbody>
         </table>
     </div>
 </div>
@@ -48,8 +51,13 @@
                 border-color: transparent;
             }
 
+            .infor-cast-account {
+                width: auto;
+                table-layout: auto;
+            }
             .info-cast-account th, .info-cast-account td{
-                text-align: center;
+                text-align: left;
+                white-space: nowrap;
             }
         </style>
     @endonce
@@ -123,7 +131,10 @@
                                 <tr>
                                     <td>${detail.date_transaction_str}</td>
                                     <td>${detail.nominal_transaction_str}</td>
-                                    <td>${detail.no_transaction_str}</td>
+                                    <td>${detail.description_str}</td>
+                                    <td>${detail.kdp_str}</td>
+                                    <td>${detail.job_name_str}</td>
+                                    <td>${detail.account_id_str}</td>
                                     <td>${detail.no_invoice_str}</td>
                                     <td>${detail.status_str}</td>
                                 </tr>

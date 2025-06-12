@@ -12,6 +12,7 @@
 
     $value_name = '';
 
+
     if(array_key_exists('value', $field)) {
         $entity_model = $field['model'] ?? $crud->model::getRelationModel($field['entity']);
         $entry_data = $entity_model::find($field['value']);

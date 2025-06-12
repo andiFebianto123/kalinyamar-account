@@ -9,6 +9,7 @@ use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
+use App\Models\JournalEntry;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -121,7 +122,7 @@ class CastAccountsCrudController extends CrudController
         $this->data['is_disabled_list'] = true;
 
 
-        $listCashAccounts = CastAccount::get();
+        $listCashAccounts = CastAccount::orderBy('id', 'ASC')->get();
         $this->listCardComponents($listCashAccounts);
 
         $this->data['crud'] = $this->crud;
@@ -174,18 +175,60 @@ class CastAccountsCrudController extends CrudController
     }
 
     function ruleValidationTransaction(){
+        $cast_account_id = request()->cast_account_id;
+        $status = request()->status;
         return [
             'date_transaction' => 'required',
-            'nominal_transaction' => 'required|numeric|min:1000',
-            'no_transaction' => 'required|max:100',
-            'no_invoice' => 'required|max:100',
+            'nominal_transaction' => [
+                'required',
+                'numeric',
+                'min:1000',
+                function ($attribute, $value, $fail) use ($cast_account_id, $status) {
+                    if($status == CastAccount::OUT){
+                        $balance = CastAccount::find($cast_account_id)->total_saldo ?? 0;
+                        if ($value > $balance) {
+                            $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
+                        }
+                    }
+                }
+            ],
+            'kdp' => 'max:50',
+            'job_name' => 'max:100',
+            'no_invoice' => 'max:100',
+            'account_id' => 'exists:accounts,id',
             'status' => 'required|in:enter,out',
         ];
     }
 
+    function account_select2(){
+        $this->crud->hasAccessOrFail('create');
+
+        $search = request()->input('q');
+        $dataset = \App\Models\Account::select(['id', 'code', 'name'])
+            ->where('name', 'LIKE', "%$search%")
+            ->orWhere('code', 'LIKE', "%$search%")
+            ->orderBy('code', 'ASC')
+            ->paginate(10);
+
+        $results = [];
+        foreach ($dataset as $item) {
+            $results[] = [
+                'id' => $item->id,
+                'text' => $item->code.' - '.$item->name,
+            ];
+        }
+        return response()->json(['results' => $results]);
+    }
+
     function createTransactionOperation($id = null){
 
+        CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationTransaction());
+        CRUD::addField([
+            'name' => 'cast_account_id ',
+            'type' => 'hidden',
+            'value' => $id,
+        ]);
 
         CRUD::addField([   // date_picker
             'name'  => 'date_transaction',
@@ -202,15 +245,6 @@ class CastAccountsCrudController extends CrudController
             'attributes' => [
                 'placeholder' => trans('backpack::crud.cash_account.field_transaction.date_transaction.placeholder')
             ]
-        ]);
-
-        CRUD::addField([
-            'name' => 'cast_account_id ',
-            'type' => 'hidden',
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'value' => $id,
         ]);
 
         CRUD::addField([
@@ -231,22 +265,56 @@ class CastAccountsCrudController extends CrudController
         ]);
 
         CRUD::addField([
-            'name' => 'space_2',
-            'type' => 'hidden',
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
+            'name' => 'description',
+            'label' => trans('backpack::crud.cash_account.field_transaction.description.label'),
+            'type' => 'textarea',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.cash_account.field_transaction.description.placeholder'),
+            ]
         ]);
 
         CRUD::addField([
-            'name' => 'no_transaction',
-            'label' => trans('backpack::crud.cash_account.field_transaction.no_transaction.label'),
+            'name' => 'kdp',
+            'label' => trans('backpack::crud.cash_account.field_transaction.kdp.label'),
             'type' => 'text',
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.cash_account.field_transaction.kdp.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_1',
+            'type' => 'hidden',
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'job_name',
+            'label' => trans('backpack::crud.cash_account.field_transaction.job_name.label'),
+            'type' => 'text',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.cash_account.field_transaction.job_name.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'label'       => trans('backpack::crud.cash_account.field_transaction.account_id.label'), // Table column heading
+            'type'        => "select2_ajax_custom",
+            'name'        => 'account_id',
+            'entity'      => 'account',
+            'model'       => 'App\Models\Account',
+            'attribute'   => "name",
+            'data_source' => backpack_url('account/select2-account'),
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
-                'placeholder' => trans('backpack::crud.cash_account.field_transaction.no_transaction.placeholder'),
+                'placeholder' => trans('backpack::crud.cash_account.field_transaction.account_id.placeholder'),
             ]
         ]);
 
@@ -431,7 +499,15 @@ class CastAccountsCrudController extends CrudController
             $this->crud->setSaveAction();
 
             DB::commit();
-            return $this->crud->performSaveAction($item->getKey());
+            // return $this->crud->performSaveAction($item->getKey());
+
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => [
+                    'cast_account_store_success' => $item,
+                ]
+            ]);
 
         }catch (\Exception $e) {
             DB::rollBack();
@@ -458,7 +534,9 @@ class CastAccountsCrudController extends CrudController
             $cast_account_id = $request->cast_account_id;
             $date_transaction = $request->date_transaction;
             $nominal_transaction = $request->nominal_transaction;
-            $no_transaction = $request->no_transaction;
+            $description = $request->description;
+            $kdp = $request->kdp;
+            $job_name = $request->job_name;
             $no_invoice = $request->no_invoice;
             $status = $request->status;
 
@@ -473,13 +551,36 @@ class CastAccountsCrudController extends CrudController
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $cast_account_id;
             $newTransaction->date_transaction = $date_transaction;
-            $newTransaction->no_transaction = $no_transaction;
             $newTransaction->no_invoice = $no_invoice;
             $newTransaction->nominal_transaction = $nominal_transaction;
             $newTransaction->total_saldo_before = $before_saldo;
             $newTransaction->total_saldo_after = $new_saldo;
             $newTransaction->status = $status;
-            $newTransaction->save();
+            $newTransaction->description = $description;
+            $newTransaction->kdp = $kdp;
+            $newTransaction->job_name = $job_name;
+
+            if($request->has('account_id')){
+                $newTransaction->account_id = $request->account_id;
+                $newTransaction->save();
+
+                // catat di journal
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $newTransaction->account_id,
+                    'reference_id' => $newTransaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => Carbon::now(),
+                    'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
+                    'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'reference_id' => $newTransaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
+            }else{
+                $newTransaction->save();
+            }
+
 
             $updateAccount = CastAccount::where('id', $cast_account_id)->first();
             $updateAccount->total_saldo = $new_saldo;
@@ -622,6 +723,15 @@ class CastAccountsCrudController extends CrudController
 
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
+        // delete journal entry
+        JournalEntry::whereHas('reference', function($q) use($id){
+            $q->where('reference_type', AccountTransaction::class)
+            ->whereHas('cast_account', function($q) use($id){
+                $q->where('id', $id);
+            });
+        })
+        ->delete();
+
         return $this->crud->delete($id);
     }
 
@@ -632,13 +742,12 @@ class CastAccountsCrudController extends CrudController
         foreach($detail as $entry){
             $entry->date_transaction_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
             $entry->nominal_transaction_str = 'Rp'.CustomHelper::formatRupiah($entry->nominal_transaction);
+            $entry->description_str = ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
+            $entry->kdp_str = $entry->kdp ?? '-';
+            $entry->job_name_str = $entry->job_name ?? '-';
+            $entry->account_id_str = ($entry->account_id) ? $entry->account->code.' - '.$entry->account->name : '-';
             $entry->no_invoice_str = ($entry->no_invoice) ? $entry->no_invoice : '-';
             $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
-            if($entry->no_transaction == null){
-                $entry->no_transaction_str = $entry->cast_account_destination->name;
-            }else{
-                $entry->no_transaction_str = $entry->no_transaction;
-            }
         }
         $castAccount->total_saldo_str = 'Rp'.CustomHelper::formatRupiah($castAccount->total_saldo);
         return response()->json([

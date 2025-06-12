@@ -13,22 +13,12 @@
             }
         </script>
     @endonce
-@endpush
+@endpush --}}
 
 @push('after_scripts')
-    @once
     <script>
-        function halloAndi(){
-            console.log('hallo andi');
-        }
-        SIAOPS.setAttribute('andi_attribute', function(){
-            return {
-                name: 'andi',
-                read: function(){
-                    console.log(this);
-                }
-            }
+        eventEmitter.on("cast_account_store_success", function(){
+            window.location.href = location.href;
         });
     </script>
-    @endonce
-@endpush --}}
+@endpush
