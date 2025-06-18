@@ -9,7 +9,6 @@
     $method = strtoupper($field['method'] ?? 'POST');
     $dependencies = $field['dependencies'] ?? [];
     $include_all_form_fields = $field['include_all_form_fields'] ?? false;
-
     $value_name = '';
 
 
@@ -162,6 +161,12 @@
         }
 
     }
+
+    // jQuery(document).ready(function($) {
+    //     $('[data-init-function="bpFieldInitSelect2FromAjaxCustom"]').each(function() {
+    //         bpFieldInitSelect2FromAjaxCustom($(this));
+    //     });
+    // });
 </script>
 @endpush
 @include('crud::fields.inc.wrapper_end')

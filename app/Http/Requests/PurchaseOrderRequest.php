@@ -30,7 +30,9 @@ class PurchaseOrderRequest extends FormRequest
             'po_number' => 'required|string|max:255',
             'date_po' => 'required|string',
             'job_name' => 'required|string|max:255',
+            'job_description' => 'required',
             'total_value_with_tax' => 'required|numeric|min:1000',
+            'status' => 'required|in:open,close',
             'document_path' => ValidUpload::field('required')->file('mimes:pdf|max:5000'),
         ];
     }

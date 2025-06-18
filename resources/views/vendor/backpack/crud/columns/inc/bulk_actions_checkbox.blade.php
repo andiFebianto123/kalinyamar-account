@@ -20,7 +20,7 @@
                 let primaryKeyValue = checkbox.dataset.primaryKeyValue;
 
                 crud.checkedItems ??= [];
-                
+
                 if (checked) {
                     // add item to crud.checkedItems variable
                     crud.checkedItems.push(primaryKeyValue);
@@ -33,7 +33,7 @@
                         let last = document.querySelector(`input.crud_bulk_actions_line_checkbox[data-primary-key-value="${primaryKeyValue}"]`).closest('tr');
                         let firstIndex = getNodeindex(first);
                         let lastIndex = getNodeindex(last)
-                        
+
                         while(first !== last) {
                             first = firstIndex < lastIndex ? first.nextElementSibling : first.previousElementSibling;
                             first.querySelector('input.crud_bulk_actions_line_checkbox:not(:checked)')?.click();
@@ -82,7 +82,7 @@
                         crud.checkedItems.push(elem.dataset.primaryKeyValue);
                     }
                 });
-            
+
             localStorage.removeItem('page_changed');
         }
     }
@@ -99,7 +99,7 @@
                 // when the crud_bulk_actions_general_checkbox is selected, toggle all visible checkboxes
                 checkbox.onclick = event => {
                     rowCheckboxes.filter(elem => checkbox.checked !== elem.checked).forEach(elem => elem.click());
-                    
+
                     // make sure the other checkbox has the same checked status
                     mainCheckboxes.forEach(elem => elem.checked = checkbox.checked);
 

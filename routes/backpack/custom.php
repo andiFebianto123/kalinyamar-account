@@ -38,7 +38,10 @@ Route::group([
         Route::crud('subkon', 'SubkonCrudController');
         Route::post('select2-subkon-id', 'PurchaseOrderCrudController@select2SubkonId')->name('select2-subkon-id');
         Route::crud('purchase-order', 'PurchaseOrderCrudController');
+        Route::crud('purchase-order-tab', 'PurchaseOrderTabController');
         Route::crud('spk-trans', 'SpkCrudController');
+        Route::post('download-po', 'PurchaseOrderCrudController@exportExcel');
+        Route::post('download-po-pdf', 'PurchaseOrderCrudController@exportPdf');
     });
 
     Route::prefix('client')->group(function(){

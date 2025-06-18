@@ -219,6 +219,13 @@ return [
         'title_header' => 'PO',
         'title_modal_create' => 'Data PO Vendor (Subkon)',
         'title_modal_edit' => 'Data PO Vendor (Subkon)',
+        'tab' => [
+            'input_per_page' => 'masukan per halaman',
+            'title_all_po' => 'Daftar PO',
+            'open' => 'Open',
+            'close' => 'Close',
+            'title_total_incl_ppn' => 'Total Incl PPn',
+        ],
         'column' => [
             'subkon_id ' => 'Nama Perusahaan',
             'po_number' => 'No. PO',
@@ -228,11 +235,32 @@ return [
             'job_value' => 'Nilai Pekerjaan',
             'tax_ppn' => 'PPN',
             'total_value_with_tax' => 'Nilai Pekerjaan Include PPn',
+            'due_date' => 'Jatuh Tempo',
+            'status' => 'Status PO',
             'document_path' => 'Dokumen PO',
         ],
         'field' => [
             'date_po' => [
                 'placeholder' => 'Pilih Tanggal',
+            ],
+            'job_description' => [
+                'placeholder' => 'Masukan nama pekerjaan',
+                'label' => 'Deskripsi Pekerjaan'
+            ],
+            'due_date' => [
+                'label' => 'Jatuh Tempo',
+                'placeholder' => 'Pilih Tanggal'
+            ],
+            'status' => [
+                'label' => 'Status PO',
+                'placeholder' => '-STATUS',
+                'open' => 'OPEN',
+                'close' => 'CLOSE',
+            ]
+        ],
+        'export' => [
+            'pdf' => [
+                'title_header' => 'Daftar Purchase Order (Subkon)',
             ]
         ]
     ],

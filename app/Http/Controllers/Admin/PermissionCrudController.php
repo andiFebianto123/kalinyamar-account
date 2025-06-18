@@ -42,6 +42,7 @@ class PermissionCrudController extends CrudController
 
     public function setupListOperation()
     {
+        $this->crud->disableResponsiveTable();
         $this->crud->addColumn([
             'name'  => 'name',
             'label' => trans('backpack::permissionmanager.name'),

@@ -90,7 +90,7 @@
                     @include('crud::inc.filters_navbar')
                     @endif
 
-                    <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
+                    <div class="{{ backpack_theme_config('classes.tableWrapper') }} andi">
                         <table
                         id="crudTable"
                         class="{{ backpack_theme_config('classes.table') ?? 'table table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }}"

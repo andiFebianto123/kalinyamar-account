@@ -53,7 +53,14 @@
                     });
                     $('#modalEdit').modal('hide');
                     hideModal('modalEdit');
-                    window.crud.table.ajax.reload();
+                    if(window.crud.table){
+                        window.crud.table.ajax.reload();
+                    }
+                    if(data.events){
+                        forEachFlexible(data.events, function(eventname, data){
+                            eventEmitter.emit(eventname, data);
+                        });
+                    }
                 }else{
                     swal({
                         title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",

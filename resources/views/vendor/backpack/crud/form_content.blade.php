@@ -26,6 +26,7 @@
     @stack('crud_fields_scripts')
 
 <script>
+    // form-create
     function initializeFieldsWithJavascript(container) {
       var selector;
       if (container instanceof jQuery) {

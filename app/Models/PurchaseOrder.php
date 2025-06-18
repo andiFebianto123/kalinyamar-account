@@ -11,6 +11,9 @@ class PurchaseOrder extends Model
     use CrudTrait;
     use HasFactory;
 
+    const OPEN = 'open';
+    const CLOSE = 'close';
+
     /*
     |--------------------------------------------------------------------------
     | GLOBAL VARIABLES
