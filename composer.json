@@ -76,6 +76,12 @@
             "php-http/discovery": true
         }
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.backpackforlaravel.com/"
+        }
+    ],
     "minimum-stability": "stable",
     "prefer-stable": true
 }

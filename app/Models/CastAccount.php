@@ -18,6 +18,8 @@ class CastAccount extends Model
     const CASH = 'cash';
     const LOAN = 'loan';
 
+    const FIRST_BALANCE = 'FIRST_BALANCE';
+
     /*
     |--------------------------------------------------------------------------
     | GLOBAL VARIABLES
@@ -53,6 +55,10 @@ class CastAccount extends Model
 
     public function account_transactions_destination(){
         return $this->hasMany(AccountTransaction::class, 'cast_account_destination_id');
+    }
+
+    public function account(){
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     /*

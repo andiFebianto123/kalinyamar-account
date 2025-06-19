@@ -2,8 +2,10 @@
 namespace App\Http\Helpers;
 
 use App\Models\ClientPo;
+use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
+use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 
 class CustomHelper {
@@ -65,6 +67,22 @@ class CustomHelper {
         return $is_negative ? '-' . $formatted : $formatted;
     }
 
+    public static function formatRupiahWithCurrency($number, $decimal_digits = 0) {
+        $is_negative = $number < 0;
+
+        $absolute = abs($number);
+
+        $formatted = number_format(
+            $absolute,
+            $decimal_digits,
+            ',',
+            '.'
+        );
+
+        $nominal = $is_negative ? '-' . $formatted : $formatted;
+        return "Rp.$nominal";
+    }
+
     // update or create journal_entry
     public static function updateOrCreateJournalEntry($payload, $reference){
         $journal = JournalEntry::class;
@@ -74,6 +92,40 @@ class CustomHelper {
 
     public static function deleteJournalEntry($reference){
         return JournalEntry::where($reference)->delete();
+    }
+
+    public static function total_balance_cast_account($id, $status){
+        if($status == CastAccount::CASH){
+            $listCashAccounts = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
+            ->where('cast_accounts.status', CastAccount::CASH)
+            ->groupBy('cast_accounts.id')
+            ->orderBy('id', 'ASC')->select(DB::raw('
+                cast_accounts.*,
+                SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
+                SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
+            '
+            ))->get();
+            if($listCashAccounts){
+                foreach($listCashAccounts as $cash){
+                    if($cash->id == $id){
+                        return ($cash->total_saldo_enter - $cash->total_saldo_out);
+                    }
+                }
+            }
+        }else if($status == CastAccount::LOAN){
+            $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($id){
+                $q->where('cast_account_id', $id);
+            })->orWhereHasMorph('reference', CastAccount::class, function($q) use($id){
+                $q->where('id', $id);
+            })
+            ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+            ->get();
+            if($journal_){
+                foreach($journal_ as $journal){
+                    return $journal->total;
+                }
+            }
+        }
     }
 
 }

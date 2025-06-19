@@ -272,6 +272,33 @@ class MyEventEmitter {
 
 window.eventEmitter = new MyEventEmitter();
 
+function OpenCreateFormModal(attr = {}){
+    var config = {
+        modal: {},
+        ...attr,
+    };
+
+    $(`${config.modal.id} .modal-body`).html('loading...');
+    if(config.modal.title != undefined){
+        $(`${config.modal.id} .modal-title`).html(config.modal.title);
+    }
+    $.ajax({
+        url: config.route,
+        type: 'GET',
+        typeData: 'json',
+        success: function (data) {
+            $(`${config.modal.id} .modal-body`).html(data.html);
+            if(config.modal.action != undefined){
+                $(`${config.modal.id} #form-create`).attr('action', config.modal.action);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(xhr);
+            alert('An error occurred while loading the create form.');
+        }
+    });
+}
+
 function setLoadingButton(selector, isLoading, options = {}) {
     const buttons = document.querySelectorAll(selector);
     const loadingText = options.loadingText || 'Loading...';

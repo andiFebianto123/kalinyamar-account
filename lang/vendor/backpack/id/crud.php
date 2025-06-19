@@ -170,6 +170,7 @@ return [
         'blank_cast_account' => 'Belum ada akun rekening',
         'cast_account_card' => [
             'name_bank' => 'Nama Bank',
+            'name_rekening' => 'Nama Rekening',
             'no_rekening' => 'Nomor Rekening',
             'balance' => 'Saldo',
             'title_add_transaction' => "Tambah Data Transaksi",
@@ -197,6 +198,7 @@ return [
         'invoice_client' => 'Invoice (Client)',
         'cash_flow' => 'Arus Rekening',
         'cash_flow_cash' => 'Rekening Kas',
+        'cash_flow_loan' => 'Rekening Pinjaman',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -525,6 +527,38 @@ return [
             'errors' => [
                 'nominal_transfer_to_more' => 'Nominal tidak boleh melebihi jumlah saldo.',
                 'to_account_is_same' => 'Rekening tujuan harus berbeda dengan rekening yang dipindah',
+            ]
+        ]
+    ],
+    'cash_account_loan' => [
+        'title_header' => 'Rekening Pinjaman',
+        'title_modal_create' => 'Akun Rekening Pinjaman',
+        'title_modal_edit' => 'Akun Rekening Pinjaman',
+        'title_modal_delete' => 'Akun Rekening Pinjaman',
+        'field' => [
+            'name' => [
+                'label' => 'Nama Rekening',
+                'placeholder' => "Masukan nama rekening",
+            ],
+            'bank_name' => [
+                'label' => 'Nama Bank',
+                'placeholder' => '-List Bank',
+            ],
+            'no_account' => [
+                'label' => 'No. Rekening',
+                'placeholder' => 'Masukan nomor rekening',
+            ],
+            'account' => [
+                'label' => 'Akun',
+                'placeholder' => '-AKUN'
+            ],
+            'total_saldo' => [
+                'label' => 'Saldo Rekening',
+                'placeholder' => '000.000'
+            ],
+            'cast_account_destination_id' => [
+                'label' => 'Asal/Tujuan Rekening',
+                'placeholder' => '-ASAL/TUJUAN REKENING'
             ]
         ]
     ],

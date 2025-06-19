@@ -2,18 +2,21 @@
     @php
         // dd($access->where('id', 4)->first(), $access);
     @endphp
-    <div><h5>{{ $detail->name }}</h5></div>
+    <div><h5>{{trans('backpack::crud.card.cast_account_card.name_rekening')}} : {{ $detail->name }}</h5></div>
     <div class="d-flex justify-content-between">
         <div class="left-buttons d-flex gap-2">
             {{ trans('backpack::crud.card.cast_account_card.name_bank') }} : <b>{{ $detail->bank_name }}</b> | {{ trans("backpack::crud.card.cast_account_card.no_rekening") }} : <b>{{$detail->no_account}}</b>
         </div>
         <div class="right-buttons d-flex gap-2">
-            <button class="btn btn-sm btn-secondary"
+            @if ($detail->status != \App\Models\CastAccount::LOAN)
+                <button class="btn btn-sm btn-secondary"
                 id="btn-{{$name}}-info"
                 data-bs-toggle="modal"
                 data-bs-target="#modal_info_cast_account"
                 ><i class="la la-eye"></i></button>
-            @if ($access->where('id', 3)->first())
+            @endif
+
+            @if ($access->where('id', 3)->first() || $detail->status == \App\Models\CastAccount::LOAN)
                 <button
                     id="btn-{{$name}}-transfer-balance"
                     data-bs-toggle="modal"
@@ -43,7 +46,10 @@
         </div>
     </div>
     <div>
-        <strong>{{ trans('backpack::crud.card.cast_account_card.balance') }} : </strong><span class="saldo-str">Rp{!! \App\Http\Helpers\CustomHelper::formatRupiah($detail->total_saldo) !!}</span>
+        @if ($detail->status == \App\Models\CastAccount::LOAN)
+            {{ trans('backpack::crud.cash_account_loan.field.account.label') }} : <b>{{ $detail->account->code }} - {{ $detail->account->name }}</b><br>
+        @endif
+        <strong>{{ trans('backpack::crud.card.cast_account_card.balance') }} : </strong><span class="saldo-str">{!! \App\Http\Helpers\CustomHelper::formatRupiahWithCurrency($detail->saldo) !!}</span>
     </div>
 </div>
 
@@ -191,21 +197,13 @@
 
                     $(instance.btnAdd).off('click').click(function(e){
                         e.preventDefault();
-                        var url =  $(this).data('route');
-                        $('#modalCreate .modal-body').html('loading...');
-                        $('#modalCreate .modal-title').html($(this).data('title'));
-                        let routeAddTransaction = instance.route+'-transaction';
-                        $.ajax({
-                            url: url,
-                            type: 'GET',
-                            typeData: 'json',
-                            success: function (data) {
-                                $('#modalCreate .modal-body').html(data.html);
-                                $('#modalCreate #form-create').attr('action', routeAddTransaction);
-                            },
-                            error: function (xhr, status, error) {
-                                console.error(xhr);
-                                alert('An error occurred while loading the create form.');
+                        var btn = $(this);
+                        OpenCreateFormModal({
+                            route: btn.data('route'),
+                            modal: {
+                                id: '#modalCreate',
+                                title: btn.data('title'),
+                                action: instance.route+'-transaction'
                             }
                         });
                     });

@@ -119,10 +119,11 @@
                     refreshBody: function(data){
                         var header = data.result.cast_account;
                         var details = data.result.detail;
+                        var balance = data.result.balance;
                         $("#{{$name}} .modal-title").html(header.name);
                         $("#{{$name}} .bank_name").html(header.bank_name);
                         $('#{{$name}} .no_account').html(header.no_account);
-                        $('#{{$name}} .total_saldo').html(header.total_saldo_str);
+                        $('#{{$name}} .total_saldo').html(balance);
 
                         var tabel = $('#{{$name}} .detail-information tbody').html('');
 

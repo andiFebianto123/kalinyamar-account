@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
+use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
 
 // --------------------------
@@ -59,6 +60,10 @@ Route::group([
         Route::get('cast-accounts-show', [CastAccountsCrudController::class, 'showTransaction']);
         Route::get('cast-accounts-select-to-account', [CastAccountsCrudController::class, 'getSelectToAccount']);
         Route::post('cast-accounts-move-transaction', [CastAccountsCrudController::class, 'storeMoveTransfer']);
+
+        Route::crud('cast-account-loan', 'CastAccountsLoanCrudController');
+        Route::post('cast-account-loan-transaction', [CastAccountsLoanCrudController::class, 'storeTransaction']);
+
     });
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 
