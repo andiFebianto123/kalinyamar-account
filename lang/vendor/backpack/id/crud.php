@@ -522,7 +522,7 @@ return [
             ],
             'to_account' => [
                 'label' => 'Rekening Tujuan',
-                'placeholder' => '-Rekening Tujuan'
+                'placeholder' => '-REKENING TUJUAN'
             ],
             'errors' => [
                 'nominal_transfer_to_more' => 'Nominal tidak boleh melebihi jumlah saldo.',
@@ -558,7 +558,14 @@ return [
             ],
             'cast_account_destination_id' => [
                 'label' => 'Asal/Tujuan Rekening',
-                'placeholder' => '-ASAL/TUJUAN REKENING'
+                'placeholder' => '-ASAL/TUJUAN REKENING',
+                'bank_loan' => 'PINJAMAN BANK',
+                'bank_loan_placeholder' => 'PINJAMAN BANK',
+                'bank_loan_alert' => "Maaf pinjaman bank hanya untuk uang masuk bukan keluar",
+            ],
+            'balance_information' => [
+                'label' => 'Saldo',
+                'placeholder' => 'Nominal Yang Ingin Dipindahkan'
             ]
         ]
     ],

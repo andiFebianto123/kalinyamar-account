@@ -195,7 +195,7 @@ class CastAccountsCrudController extends CrudController
                 'min:1000',
                 function ($attribute, $value, $fail) use ($cast_account_id, $status) {
                     if($status == CastAccount::OUT){
-                        $balance = CastAccount::find($cast_account_id)->total_saldo ?? 0;
+                        $balance = CustomHelper::total_balance_cast_account($cast_account_id, CastAccount::CASH);
                         if ($value > $balance) {
                             $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
                         }
@@ -762,7 +762,7 @@ class CastAccountsCrudController extends CrudController
         ->orderBy('date_transaction', 'ASC')->get();
         foreach($detail as $entry){
             $entry->date_transaction_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
-            $entry->nominal_transaction_str = 'Rp'.CustomHelper::formatRupiah($entry->nominal_transaction);
+            $entry->nominal_transaction_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
             $entry->description_str = ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
             $entry->kdp_str = $entry->kdp ?? '-';
             $entry->job_name_str = $entry->job_name ?? '-';

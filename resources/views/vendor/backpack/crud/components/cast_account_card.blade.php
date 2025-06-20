@@ -16,13 +16,23 @@
                 ><i class="la la-eye"></i></button>
             @endif
 
-            @if ($access->where('id', 3)->first() || $detail->status == \App\Models\CastAccount::LOAN)
-                <button
-                    id="btn-{{$name}}-transfer-balance"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modal_transfer_balance"
-                    class="btn btn-sm btn-primary">
-                    <i class="la la-exchange-alt"></i></button>
+            @if ($detail->status == \App\Models\CastAccount::LOAN)
+            <button
+                id="btn-{{$name}}-move-balance"
+                data-route="{{url($crud->route.'/create?_id='.$detail->id."&type=move")}}"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCreate"
+                data-title="{{ trans('backpack::crud.modal.transfer_balance') }}"
+                class="btn btn-sm btn-primary"><i class="la la-exchange-alt"></i></button>
+            @else
+                @if ($access->where('id', 3)->first())
+                    <button
+                        id="btn-{{$name}}-transfer-balance"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modal_transfer_balance"
+                        class="btn btn-sm btn-primary">
+                        <i class="la la-exchange-alt"></i></button>
+                @endif
             @endif
             <button
                 id="btn-{{$name}}-add"
@@ -51,6 +61,24 @@
         @endif
         <strong>{{ trans('backpack::crud.card.cast_account_card.balance') }} : </strong><span class="saldo-str">{!! \App\Http\Helpers\CustomHelper::formatRupiahWithCurrency($detail->saldo) !!}</span>
     </div>
+    @if($detail->status == \App\Models\CastAccount::LOAN)
+    <div>
+        <center>
+            <table class="info-cast-account table text-center">
+            <thead class="text-center">
+                <tr>
+                <th>{{trans('backpack::crud.cash_account.field_transaction.date_transaction.label')}}</th>
+                <th>{{trans('backpack::crud.cash_account.field_transaction.nominal.label')}}</th>
+                <th>{{trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label')}}</th>
+                <th>{{trans('backpack::crud.cash_account.field_transaction.status.label')}}</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+            </tbody>
+        </table>
+        </center>
+    </div>
+    @endif
 </div>
 
 @push('inline_scripts')
@@ -60,6 +88,25 @@
                 font-size: 20px;
                 font-weight: 700;
                 padding-top: 200px;
+            }
+        </style>
+        <style>
+            .info-cast-account tbody,
+            .info-cast-account td,
+            .info-cast-account tfoot,
+            .info-cast-account th,
+            .info-cast-account thead,
+            .info-cast-account tr {
+                border-color: transparent;
+            }
+
+            .infor-cast-account {
+                width: auto;
+                table-layout: auto;
+            }
+            .info-cast-account th, .info-cast-account td{
+                /* text-align: left; */
+                white-space: nowrap;
             }
         </style>
     @endonce
@@ -73,6 +120,34 @@
                 btnDelete:$("#btn-{{$name}}"),
                 route: "{{url($crud->route)}}",
                 btnAdd: $("#btn-{{$name}}-add"),
+                @if($detail->status == \App\Models\CastAccount::LOAN)
+                    loadTransactionLoan: function(){
+                        var instance = this;
+                        $.ajax({
+                            url: instance.route+'-show?_id='+instance.id,
+                            type: 'GET',
+                            typeData: 'json',
+                            success: function (data) {
+                                var table = $('.info-cast-account tbody');
+                                table.empty();
+                                forEachFlexible(data.result.detail, function(key, value){
+                                    table.append(`
+                                    <tr>
+                                        <td>${value.date_transaction_str}</td>
+                                        <td>${value.nominal_transaction_str}</td>
+                                        <td>${value.description_str}</td>
+                                        <td>${value.status_str}</td>
+                                    </tr>`);
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(xhr);
+                                alert('An error occurred while loading the create form.');
+                            }
+                        });
+                    },
+                @endif
+
                 deleteEntryCardAccount: function(button) {
                     // ask for confirmation before deleting an item
                     // e.preventDefault();
@@ -174,6 +249,13 @@
                         $('#{{$name}} .saldo-str').html(data.new_saldo);
                     });
 
+                    @if($detail->status == \App\Models\CastAccount::LOAN)
+                        eventEmitter.on("{{$name}}_store_move_success", function(data){
+                            $('#{{$name}} .saldo-str').html(data.saldo);
+                             SIAOPS.getAttribute("{{$name}}").loadTransactionLoan();
+                        });
+                    @endif
+
                     // event when delete success
                     // eventEmitter.on("{{$name}}_delete_success", function(data){
                     //     $('#{{$name}} .saldo-str').html(data.new_saldo);
@@ -208,6 +290,19 @@
                         });
                     });
 
+                    $('#btn-{{$name}}-move-balance').off('click').click(function(e){
+                        e.preventDefault();
+                        var btn = $(this);
+                        OpenCreateFormModal({
+                            route: btn.data('route'),
+                            modal: {
+                                id: '#modalCreate',
+                                title: btn.data('title'),
+                                action: instance.route+'-move-transaction'
+                            }
+                        });
+                    });
+
                     $("#btn-{{$name}}-info").off('click').click(function(e){
                         SIAOPS.getAttribute('modal_info_cast_account')
                         .loadData(instance.id);
@@ -217,6 +312,10 @@
                         SIAOPS.getAttribute('modal_transfer_balance')
                         .loadData(instance.id);
                     });
+
+                    if(instance.loadTransactionLoan){
+                        instance.loadTransactionLoan();
+                    }
 
                 }
             }

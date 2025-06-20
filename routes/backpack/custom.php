@@ -63,6 +63,9 @@ Route::group([
 
         Route::crud('cast-account-loan', 'CastAccountsLoanCrudController');
         Route::post('cast-account-loan-transaction', [CastAccountsLoanCrudController::class, 'storeTransaction']);
+        Route::post('cast-account-loan-move-transaction', [CastAccountsLoanCrudController::class, 'storeMoveTransaction']);
+        Route::get('cast-account-loan-show', [CastAccountsLoanCrudController::class, 'showTransaction']);
+
 
     });
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);

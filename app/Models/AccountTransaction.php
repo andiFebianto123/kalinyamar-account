@@ -11,6 +11,8 @@ class AccountTransaction extends Model
     use CrudTrait;
     use HasFactory;
 
+    const BANK_LOAN = 'PINJAMAN BANK';
+
     /*
     |--------------------------------------------------------------------------
     | GLOBAL VARIABLES
