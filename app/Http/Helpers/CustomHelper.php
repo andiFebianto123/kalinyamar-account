@@ -99,7 +99,7 @@ class CustomHelper {
             $listCashAccounts = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
             ->where('cast_accounts.status', CastAccount::CASH)
             ->groupBy('cast_accounts.id')
-            ->orderBy('id', 'ASC')->select(DB::raw('
+            ->orderBy('cast_accounts.id', 'ASC')->select(DB::raw('
                 SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
                 SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
             '
