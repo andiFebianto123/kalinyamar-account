@@ -88,7 +88,10 @@ class CastAccountsLoanCrudController extends CrudController
         ->where('cast_accounts.status', CastAccount::LOAN)
         ->groupBy('cast_accounts.id')
         ->orderBy('id', 'ASC')->select(DB::raw('
-            cast_accounts.*,
+            cast_accounts.id,
+            MAX(cast_accounts.name) as name,
+            MAX(cast_accounts.bank_name) as bank_name,
+            MAX(cast_accounts.no_account) as no_account,
             SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
             SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
         '
@@ -881,12 +884,12 @@ class CastAccountsLoanCrudController extends CrudController
 
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
-        JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($id){
-            $q->where('cast_account_id', $id);
+        $journal = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($id){
+            $q->where('cast_account_id', $id)
+            ->orWhere('cast_account_destination_id', $id);
         })->orWhereHasMorph('reference', CastAccount::class, function($q) use($id){
             $q->where('id', $id);
-        })
-        ->delete();
+        })->delete();
 
         return $this->crud->delete($id);
     }
