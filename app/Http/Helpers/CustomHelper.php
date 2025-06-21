@@ -100,7 +100,6 @@ class CustomHelper {
             ->where('cast_accounts.status', CastAccount::CASH)
             ->groupBy('cast_accounts.id')
             ->orderBy('id', 'ASC')->select(DB::raw('
-                cast_accounts.*,
                 SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
                 SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
             '
