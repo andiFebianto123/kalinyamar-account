@@ -131,6 +131,7 @@ class CastAccountsCrudController extends CrudController
             MAX(cast_accounts.name) as name,
             MAX(cast_accounts.bank_name) as bank_name,
             MAX(cast_accounts.no_account) as no_account,
+            MAX(cast_accounts.status) as status,
             SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
             SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
         '
