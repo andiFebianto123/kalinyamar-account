@@ -53,6 +53,7 @@ class CastAccountsLoanCrudController extends CrudController
                 ->first();
 
                 $l->saldo = ($journal_) ? $journal_->total : 0;
+                $l->account = Account::find($l->account_id);
 
                 $this->card->addCard([
                     'name' => 'card_cast_account'.$l->id,
@@ -93,6 +94,7 @@ class CastAccountsLoanCrudController extends CrudController
             MAX(cast_accounts.bank_name) as bank_name,
             MAX(cast_accounts.no_account) as no_account,
             MAX(cast_accounts.status) as status,
+            MAX(cast_accounts.account_id) as account_id,
             SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
             SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
         '
