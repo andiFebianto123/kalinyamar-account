@@ -21,6 +21,10 @@
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.cash_flow_loan')}}" icon="la la-circle-notch" :link="backpack_url('cash-flow/cast-account-loan')" />
 </x-backpack::menu-dropdown>
 
+<x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.finance_report')}}" icon="la la-group" :link="backpack_url('finance-report')" >
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.expense_account')}}" icon="la la-circle-notch" :link="backpack_url('finance-report/expense-account')" />
+</x-backpack::menu-dropdown>
+
 <x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">
     <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />
     <x-backpack::menu-dropdown-item title="Roles" icon="la la-circle-notch" :link="backpack_url('auth/role')" />

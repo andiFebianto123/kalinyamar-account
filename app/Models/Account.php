@@ -11,6 +11,8 @@ class Account extends Model
     use CrudTrait;
     use HasFactory;
 
+    const EXPENSE = "Expense";
+
     /*
     |--------------------------------------------------------------------------
     | GLOBAL VARIABLES
@@ -23,6 +25,11 @@ class Account extends Model
     protected $guarded = ['id'];
     // protected $fillable = [];
     // protected $hidden = [];
+
+
+    function journals(){
+        return $this->hasMany(JournalEntry::class, 'account_id');
+    }
 
     /*
     |--------------------------------------------------------------------------

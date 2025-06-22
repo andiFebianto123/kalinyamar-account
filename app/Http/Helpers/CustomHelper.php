@@ -96,10 +96,15 @@ class CustomHelper {
 
     public static function total_balance_cast_account($id, $status){
         if($status == CastAccount::CASH){
-            $listCashAccounts = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
+            $listCashAccounts = CastAccount::leftJoin('account_transactions', function($q) use($id){
+                $q->on('account_transactions.cast_account_destination_id', '=', 'cast_accounts.id')
+                ->orOn('account_transactions.cast_account_id', '=', 'cast_accounts.id');
+            })
             ->where('cast_accounts.status', CastAccount::CASH)
+            ->where('cast_accounts.id', $id)
             ->groupBy('cast_accounts.id')
             ->orderBy('cast_accounts.id', 'ASC')->select(DB::raw('
+                cast_accounts.id,
                 SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
                 SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
             '

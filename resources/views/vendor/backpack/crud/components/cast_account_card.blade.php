@@ -65,17 +65,17 @@
     <div>
         <center>
             <table class="info-cast-account table text-center">
-            <thead class="text-center">
-                <tr>
-                <th>{{trans('backpack::crud.cash_account.field_transaction.date_transaction.label')}}</th>
-                <th>{{trans('backpack::crud.cash_account.field_transaction.nominal.label')}}</th>
-                <th>{{trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label')}}</th>
-                <th>{{trans('backpack::crud.cash_account.field_transaction.status.label')}}</th>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-            </tbody>
-        </table>
+                <thead class="text-center">
+                    <tr>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.date_transaction.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.nominal.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.status.label')}}</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                </tbody>
+            </table>
         </center>
     </div>
     @endif

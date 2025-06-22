@@ -199,6 +199,8 @@ return [
         'cash_flow' => 'Arus Rekening',
         'cash_flow_cash' => 'Rekening Kas',
         'cash_flow_loan' => 'Rekening Pinjaman',
+        'finance_report' => 'Laporan Keuangan',
+        'expense_account' => 'Akun Biaya',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -567,6 +569,31 @@ return [
                 'label' => 'Saldo',
                 'placeholder' => 'Nominal Yang Ingin Dipindahkan'
             ]
+        ]
+    ],
+    'expense_account' => [
+        'title_header' => 'Akun Biaya',
+        'title_modal_create' => 'Akun Biaya',
+        'title_modal_edit' => 'Akun Biaya',
+        'title_modal_delete' => 'Akun Biaya',
+        'column' => [
+            'code' => 'Kode Akun',
+            'name' => 'Nama Akun',
+            'balance' => 'Saldo',
+            'action' => 'Action',
+        ],
+        'field' => [
+            'code' => [
+                'placeholder' => 'Masukan nomor kode akun',
+                'errors' => [
+                    'depedency' => "Kode akun tidak dapat diubah karena digantungkan pada akun lainnya.",
+                    'delete' => 'Maaf akun tidak dapat dihapus karena digantungkan pada akun lainnya.',
+                    'not_change_balance' => "Tidak dapat mengubah saldo karena akun telah digunakan untuk transaksi data lainnya.",
+                ]
+            ],
+            'name' => [
+                'placeholder' => 'Masukan nama akun',
+            ],
         ]
     ],
     'save_submit' => 'Simpan',

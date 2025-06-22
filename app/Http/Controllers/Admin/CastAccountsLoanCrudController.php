@@ -568,7 +568,6 @@ class CastAccountsLoanCrudController extends CrudController
 
         DB::beginTransaction();
         try{
-
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
 
             $this->data['entry'] = $this->crud->entry = $item;

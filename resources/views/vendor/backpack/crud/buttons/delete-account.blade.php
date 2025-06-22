@@ -8,7 +8,7 @@
     <a href="javascript:void(0)"
         onclick="deleteEntry(this)"
         bp-button="delete"
-        data-route="{{ url($crud->route.'/'.$entry->getKey()) }}"
+        data-route="{{ url($crud->route.'/'.$entry->id_) }}"
         class="btn btn-sm btn-danger"
         data-button-type="delete"
         data-bs-toggle="modal"
@@ -75,18 +75,20 @@
                         // trigger one or more bubble notifications
                         Object.entries(result).forEach(function(entry, index) {
                             var type = entry[0];
-                            entry[1].forEach(function(message, i) {
-                                new Noty({
-                                type: type,
-                                text: message
-                                }).show();
-                            });
-                        });
-                            if(result.events){
-                                forEachFlexible(data.events, function(eventname, data){
+                            if(type == 'events'){
+                                forEachFlexible(result.events, function(eventname, data){
                                     eventEmitter.emit(eventname, data);
                                 });
+                            }else{
+                                entry[1].forEach(function(message, i) {
+                                    new Noty({
+                                    type: type,
+                                    text: message
+                                    }).show();
+                                });
                             }
+
+                        });
                         } else {// Show an error alert
                             swal({
                             title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
