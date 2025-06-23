@@ -192,7 +192,7 @@ class ExpenseAccountCrudController extends CrudController{
 
         CRUD::addField([
             'name' => 'name',
-            'label' => trans('backpack::crud.expense_account.column.code'),
+            'label' => trans('backpack::crud.expense_account.column.name'),
             'type' => 'text',
             'attributes' => [
                 'placeholder' => trans('backpack::crud.expense_account.field.name.placeholder')
