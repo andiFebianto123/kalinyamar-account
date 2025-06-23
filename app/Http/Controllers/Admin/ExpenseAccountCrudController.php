@@ -440,6 +440,8 @@ class ExpenseAccountCrudController extends CrudController{
 
     protected function setupListOperation()
     {
+        // $this->crud->setFromDb(false);
+
         CRUD::disableResponsiveTable();
         CRUD::removeButton('update');
         CRUD::removeButton('delete');
@@ -486,14 +488,19 @@ class ExpenseAccountCrudController extends CrudController{
             $code = Account::find($id);
 
             $this->crud->query = $this->crud->query
-            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-            ->select(DB::raw("
-                accounts.id as id_,
-                MAX(accounts.code) as code_,
-                MAX(accounts.name) as name_,
-                MAX(accounts.level) as level_,
-                (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
-            "));
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
+
+            CRUD::addClause('select', [
+                DB::raw("
+                    accounts.id as id,
+                    accounts.id as id_,
+                    MAX(accounts.code) as code_,
+                    MAX(accounts.name) as name_,
+                    MAX(accounts.level) as level_,
+                    (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+                ")
+            ]);
+
 
             if($code->level == 1){
                 $this->crud->query = $this->crud->query
@@ -509,6 +516,66 @@ class ExpenseAccountCrudController extends CrudController{
             ->groupBy('accounts.id');
         }
 
+    }
+
+    public function search()
+    {
+        $this->crud->hasAccessOrFail('list');
+
+        $this->crud->applyUnappliedFilters();
+
+        $start = (int) request()->input('start');
+        $length = (int) request()->input('length');
+        $search = request()->input('search');
+
+        // check if length is allowed by developer
+        if ($length && ! in_array($length, $this->crud->getPageLengthMenu()[0])) {
+            return response()->json([
+                'error' => 'Unknown page length.',
+            ], 400);
+        }
+
+        // if a search term was present
+        if ($search && $search['value'] ?? false) {
+            // filter the results accordingly
+            $this->crud->applySearchTerm($search['value']);
+        }
+        // start the results according to the datatables pagination
+        if ($start) {
+            $this->crud->skip($start);
+        }
+        // limit the number of results according to the datatables pagination
+        if ($length) {
+            $this->crud->take($length);
+        }
+        // overwrite any order set in the setup() method with the datatables order
+        $this->crud->applyDatatableOrder();
+
+        $entries = $this->crud->getEntries();
+
+        // if show entry count is disabled we use the "simplePagination" technique to move between pages.
+        if ($this->crud->getOperationSetting('showEntryCount')) {
+            $query_clone = $this->crud->query->toBase()->clone();
+
+            $outer_query = $query_clone->newQuery();
+            $subQuery = $query_clone->cloneWithout(['limit', 'offset']);
+
+            $totalEntryCount = $outer_query->select(DB::raw('count(*) as total_rows'))
+            ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
+            $filteredEntryCount = $totalEntryCount;
+
+            // $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
+            // $filteredEntryCount = $this->crud->getFilteredQueryCount() ?? $totalEntryCount;
+        } else {
+            $totalEntryCount = $length;
+            $entryCount = $entries->count();
+            $filteredEntryCount = $entryCount < $length ? $entryCount : $length + $start + 1;
+        }
+
+        // store the totalEntryCount in CrudPanel so that multiple blade files can access it
+        $this->crud->setOperationSetting('totalEntryCount', $totalEntryCount);
+
+        return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
 
 }
