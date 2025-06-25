@@ -422,6 +422,42 @@ return [
                 'placeholder' => 'Masukan nomor PO Client',
                 'label' => 'No. PO',
             ],
+            'address' => [
+                'placeholder' => 'Masukan alamat PO',
+                'label' => 'Alamat',
+            ],
+            'description' => [
+                'placeholder' => 'Tulis deskripsi invoice',
+                'label' => 'Deskripsi'
+            ],
+            'nominal_exclude_ppn' => [
+                'placeholder' => '000.000',
+                'label' => 'Nominal Exclude PPn',
+            ],
+            'dpp_other' => [
+                'placeholder' => '000.000',
+                'label' => 'DPP Nilai Lainnya',
+            ],
+            'tax_ppn' => [
+                'placeholder' => '',
+                'label' => 'PPn',
+            ],
+            'nominal_include_ppn' => [
+                'placeholder' => '000.000',
+                'label' => 'Nominal Include PPn',
+            ],
+            'kdp' => [
+                'placeholder' => 'Masukan KDP',
+                'label' => 'KDP',
+            ],
+            'send_invoice_normal' => [
+                'label' => 'Pengiriman Invoice - Normal',
+                'placeholder' => '',
+            ],
+            'send_invoice_revision' => [
+                'label' => 'Pengiriman Invoice - Revisi',
+                'placeholder' => '',
+            ],
             'po_date' => [
                 'label' => 'Tanggal PO',
                 'placeholder' => 'Pilih tanggal',

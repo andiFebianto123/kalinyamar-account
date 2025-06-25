@@ -30,7 +30,7 @@ class ExpenseAccountCrudController extends CrudController{
 
     public function listCardComponents($type){
         $dataset = Account::where('type', $type)
-        ->whereIn('level', [1, 2])
+        ->whereIn('level', [2])
         ->where('is_active', 1)->orderBy('code', 'asc')->get();
 
         foreach($dataset as $account){
@@ -126,13 +126,14 @@ class ExpenseAccountCrudController extends CrudController{
     private function ruleAccount(){
         $id = request()->id;
         $rule = [
-            'code' => 'required|max:20|unique:accounts,code,'.$id,
+            'code' => 'required|min:3|max:20|unique:accounts,code,'.$id,
             'name' => 'required|max:100|unique:accounts,name,'.$id,
             'balance' => 'required|numeric|min:0',
         ];
         if($id){
             $rule['code'] = [
                 'required',
+                'min:3',
                 'max:20',
                 Rule::unique('accounts', 'code')->ignore($id),
                 function($attribute, $value, $fail) use($id){
@@ -235,14 +236,7 @@ class ExpenseAccountCrudController extends CrudController{
         try{
 
             $old_account = Account::find($request->id);
-            $old_parent = null;
-            for ($i = 1; $i < strlen($old_account->code); $i++) {
-                $prefix = substr($old_account->code, 0, $i);
-                $account = Account::where('code', $prefix)->first();
-                if($account){
-                    $old_parent = $account;
-                }
-            }
+            $rootParent_1 = $this->getRootParentAccount($old_account->code);
 
             $new_code = $request->code;
             $new_parent = null;
@@ -250,14 +244,19 @@ class ExpenseAccountCrudController extends CrudController{
                 $prefix = substr($new_code, 0, $i);
                 $account = Account::where('code', $prefix)->first();
                 if($account){
-                    $new_parent = $account;
+                    if($account->code != $old_account->code){
+                        $new_parent = $account;
+                    }
                 }
             }
-
+            $rootParant_2 = $this->getRootParentAccount($new_code);
 
             $item = Account::where('id', $request->id)->first();
             $item->code = $new_code;
             $item->name = $request->name;
+            if($new_parent){
+                $item->level = $new_parent->level + 1;
+            }
             $item->save();
 
             if($request->balance > 0){
@@ -268,17 +267,29 @@ class ExpenseAccountCrudController extends CrudController{
                     $journal->debit = $request->balance;
                     $journal->credit = 0;
                     $journal->save();
+                }else{
+                    CustomHelper::updateOrCreateJournalEntry([
+                        'account_id' => $item->id,
+                        'reference_id' => $item->id,
+                        'reference_type' => Account::class,
+                        'description' => 'FIRST BALANCE',
+                        'date' => Carbon::now(),
+                        'debit' => $request->balance,
+                    ], [
+                        'reference_id' => $item->id,
+                        'reference_type' => Account::class,
+                    ]);
                 }
             }
 
             $events = [];
 
-            if($old_parent){
-                $events['account_'.$old_parent->id.'_update_success'] = true;
+            if($rootParent_1){
+                $events['account_'.$rootParent_1->id.'_update_success'] = true;
             }
 
-            if($new_parent){
-                $events['account_'.$new_parent->id.'_update_success'] = true;
+            if($rootParant_2){
+                $events['account_'.$rootParant_2->id.'_update_success'] = true;
             }
 
             $this->data['entry'] = $this->crud->entry = $item;
@@ -305,6 +316,19 @@ class ExpenseAccountCrudController extends CrudController{
         }
     }
 
+    public function getRootParentAccount($code){
+        $parent = null;
+        for ($i = 1; $i < strlen($code); $i++) {
+            $prefix = substr($code, 0, $i);
+            $account = Account::where('code', $prefix)
+            ->whereIn('level', [1, 2])->first();
+            if($account){
+                $parent = $account;
+            }
+        }
+        return $parent;
+    }
+
     public function store()
     {
         $this->crud->hasAccessOrFail('create');
@@ -326,6 +350,8 @@ class ExpenseAccountCrudController extends CrudController{
                     $beforeAccount = $account;
                 }
             }
+
+            $rootParent = $this->getRootParentAccount($code);
 
             $request->merge([
                 'level' => ($beforeAccount) ? $beforeAccount->level + 1 : 2,
@@ -358,8 +384,8 @@ class ExpenseAccountCrudController extends CrudController{
                 'reference_type' => Account::class,
             ]);
 
-            if($beforeAccount){
-                $item->component_name = 'account_'.$beforeAccount->id;
+            if($rootParent){
+                $item->component_name = 'account_'.$rootParent->id;
             }
 
             DB::commit();
@@ -391,7 +417,7 @@ class ExpenseAccountCrudController extends CrudController{
             $item = $this->crud->model::findOrFail($id);
             $parent_account = null;
 
-            if($item->level == 1 || $item->level == 2){
+            if($item){
                 $child_exists = Account::where('code', 'LIKE', "{$item->code}%")
                 ->where('id', '!=', $item->id)->count();
 
@@ -404,13 +430,7 @@ class ExpenseAccountCrudController extends CrudController{
                 }
             }
 
-            for ($i = 1; $i < strlen($item->code); $i++) {
-                $prefix = substr($item->code, 0, $i);
-                $account = Account::where('code', $prefix)->first();
-                if($account){
-                    $parent_account = $account;
-                }
-            }
+            $parent_account = $this->getRootParentAccount($item->code);
 
             $events = [];
 

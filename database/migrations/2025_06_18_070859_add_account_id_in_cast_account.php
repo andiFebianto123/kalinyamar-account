@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cast_accounts', function (Blueprint $table) {
-            $table->unsignedBigInteger('account_id')->nullable()->after('total_saldo');
-            $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('cast_accounts', 'account_id')) {
+            Schema::table('cast_accounts', function (Blueprint $table) {
+                $table->unsignedBigInteger('account_id')->nullable()->after('total_saldo');
+                $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -22,8 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cast_accounts', function (Blueprint $table) {
-            $table->dropColumn('account_id');
-        });
+        if (Schema::hasColumn('cast_accounts', 'account_id')){
+            Schema::table('cast_accounts', function (Blueprint $table) {
+                $table->dropColumn('account_id');
+            });
+        }
     }
 };

@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('client_po', function (Blueprint $table) {
-            $table->date('date_invoice')->nullable()->after('document_path');
-        });
+        if (!Schema::hasColumn('client_po', 'date_invoice')) {
+            Schema::table('client_po', function (Blueprint $table) {
+                $table->date('date_invoice')->nullable()->after('document_path');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('client_po', function (Blueprint $table) {
-            $table->dropColumn('date_invoice');
-        });
+        if (Schema::hasColumn('client_po', 'date_invoice')){
+            Schema::table('client_po', function (Blueprint $table) {
+                $table->dropColumn('date_invoice');
+            });
+        }
     }
 };

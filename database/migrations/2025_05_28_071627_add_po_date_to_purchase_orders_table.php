@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->date('date_po')->nullable()->after('po_number');
-        });
+        if (!Schema::hasColumn('purchase_orders', 'date_po')) {
+            Schema::table('purchase_orders', function (Blueprint $table) {
+                $table->date('date_po')->nullable()->after('po_number');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->dropColumn('date_po');
-        });
+        if (Schema::hasColumn('purchase_orders', 'date_po')) {
+            Schema::table('purchase_orders', function (Blueprint $table) {
+                $table->dropColumn('date_po');
+            });
+        }
     }
 };

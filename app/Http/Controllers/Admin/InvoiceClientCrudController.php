@@ -216,8 +216,8 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
-                'name' => 'price_total_exclude_ppn',
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
+                'name' => 'price_total_include_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,
@@ -228,8 +228,8 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
-                'name' => 'price_total_include_ppn',
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
+                'name' => 'price_total_exclude_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,
@@ -237,6 +237,7 @@ class InvoiceClientCrudController extends CrudController
                 'thousands_sep' => '.',
             ],
         );
+
 
         CRUD::column(
             [
@@ -278,19 +279,7 @@ class InvoiceClientCrudController extends CrudController
             ]
         ]);
 
-        CRUD::addField([
-            'name' => 'name',
-            'label' => trans('backpack::crud.invoice_client.field.name.label'),
-            'type' => 'text',
-            'wrapper'   => [
-                'class' => 'form-group col-md-12',
-            ],
-            'attributes' => [
-                'placeholder' => trans('backpack::crud.invoice_client.field.name.placeholder'),
-            ]
-        ]);
-
-        CRUD::field([   // date_picker
+        CRUD::addField([   // date_picker
             'name'  => 'invoice_date',
             'type'  => 'date_picker',
             'label' => trans('backpack::crud.invoice_client.field.invoice_date.label'),
@@ -304,34 +293,6 @@ class InvoiceClientCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.invoice_client.field.invoice_date.placeholder')
-            ]
-        ]);
-
-        CRUD::field([   // 1-n relationship
-            'label'       => trans('backpack::crud.invoice_client.field.client_po_id.label'), // Table column heading
-            'type'        => "select2_ajax_invoice_client",
-            'name'        => 'client_po_id', // the column that contains the ID of that connected entity
-            'entity'      => 'client_po', // the method that defines the relationship in your Model
-            'attribute'   => 'po_number', // foreign key attribute that is shown to user
-            'data_source' => backpack_url('invoice-client/select2-client-po'), // url to controller search function (with /{id} should return a single entry)
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'placeholder' => trans('backpack::crud.invoice_client.field.client_po_id.placeholder'),
-        ]);
-
-        CRUD::field([   // date_picker
-            'name'  => 'po_date',
-            'type'  => 'text',
-            'label' => trans('backpack::crud.invoice_client.field.po_date.label'),
-
-            'suffix' => '<i class="la la-calendar"></i>',
-            'wrapper'   => [
-                'class' => 'form-group col-md-6'
-            ],
-            'attributes' => [
-                'placeholder' => trans('backpack::crud.invoice_client.field.po_date.placeholder'),
-                'disabled' => true,
             ]
         ]);
 
@@ -349,34 +310,166 @@ class InvoiceClientCrudController extends CrudController
         ]);
 
         CRUD::addField([
-            'name' => 'price_total_exclude_ppn',
-            'label' => trans('backpack::crud.invoice_client.field.price_total_exclude_ppn.label'),
+            'name' => 'address',
+            'label' => trans('backpack::crud.invoice_client.field.address.label'),
             'type' => 'text',
-            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.invoice_client.field.address.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([   // 1-n relationship
+            'label'       => trans('backpack::crud.invoice_client.field.client_po_id.label'), // Table column heading
+            'type'        => "select2_ajax_invoice_client",
+            'name'        => 'client_po_id', // the column that contains the ID of that connected entity
+            'entity'      => 'client_po', // the method that defines the relationship in your Model
+            'attribute'   => 'po_number', // foreign key attribute that is shown to user
+            'data_source' => backpack_url('invoice-client/select2-client-po'), // url to controller search function (with /{id} should return a single entry)
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
+            'placeholder' => trans('backpack::crud.invoice_client.field.client_po_id.placeholder'),
+        ]);
+
+        CRUD::addField([   // date_picker
+            'name'  => 'po_date',
+            'type'  => 'text',
+            'label' => trans('backpack::crud.invoice_client.field.po_date.label'),
+
+            'suffix' => '<i class="la la-calendar"></i>',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
             'attributes' => [
-                'placeholder' => trans('backpack::crud.invoice_client.field.price_total_exclude_ppn.placeholder'),
+                'placeholder' => trans('backpack::crud.invoice_client.field.po_date.placeholder'),
                 'disabled' => true,
             ]
         ]);
 
         CRUD::addField([
-            'name' => 'price_total_include_ppn',
-            'label' => trans('backpack::crud.invoice_client.field.price_total_include_ppn.label'),
+            'name' => 'description',
+            'label' => trans('backpack::crud.invoice_client.field.description.label'),
+            'type' => 'textarea',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.invoice_client.field.description.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'nominal_exclude_ppn',
+            'label' => trans('backpack::crud.invoice_client.field.nominal_exclude_ppn.label'),
             'type' => 'text',
             'prefix' => 'Rp',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
-                'placeholder' => trans('backpack::crud.invoice_client.field.price_total_include_ppn.placeholder'),
+                'placeholder' => trans('backpack::crud.invoice_client.field.nominal_exclude_ppn.placeholder'),
                 'disabled' => true,
             ]
         ]);
 
-        CRUD::field([
+        CRUD::addField([
+            'name' => 'dpp_other',
+            'label' => trans('backpack::crud.invoice_client.field.dpp_other.label'),
+            'type' => 'text',
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.invoice_client.field.dpp_other.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'tax_ppn',
+            'label' => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
+            'type' => 'number',
+             // optionals
+            'attributes' => ["step" => "any"], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '0',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'nominal_include_ppn',
+            'label' => trans('backpack::crud.invoice_client.field.nominal_include_ppn.label'),
+            'type' => 'text',
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.invoice_client.field.nominal_include_ppn.placeholder'),
+                'disabled' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'kdp',
+            'label' => trans('backpack::crud.invoice_client.field.kdp.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.invoice_client.field.kdp.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_1',
+            'label' => '',
+            'type' => 'hidden',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+        ]);
+
+
+        CRUD::addField([   // date_picker
+            'name'  => 'send_invoice_normal',
+            'type'  => 'date_picker',
+            'label' => trans('backpack::crud.invoice_client.field.send_invoice_normal.label'),
+
+            // optional:
+            'date_picker_options' => [
+                'language' => App::getLocale(),
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([   // date_picker
+            'name'  => 'send_invoice_revision',
+            'type'  => 'date_picker',
+            'label' => trans('backpack::crud.invoice_client.field.send_invoice_revision.label'),
+
+            // optional:
+            'date_picker_options' => [
+                'language' => App::getLocale(),
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+
+        CRUD::addField([
             'name'        => 'status',
             'label'       => trans('backpack::crud.invoice_client.field.status.label'),
             'type'        => 'select_from_array',

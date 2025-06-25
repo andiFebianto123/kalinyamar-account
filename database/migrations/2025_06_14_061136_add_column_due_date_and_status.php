@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->date('due_date')->nullable()->after('total_value_with_tax');
-            $table->enum('status', ['open', 'close'])->default('open')->after('document_path');
-        });
+        if (!Schema::hasColumn('purchase_orders', 'due_date')) {
+            Schema::table('purchase_orders', function (Blueprint $table) {
+                $table->date('due_date')->nullable()->after('total_value_with_tax');
+                $table->enum('status', ['open', 'close'])->default('open')->after('document_path');
+            });
+        }
+
     }
 
     /**
@@ -22,9 +25,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->dropColumn('due_date');
-            $table->dropColumn('status');
-        });
+        if (Schema::hasColumn('purchase_orders', 'due_date')){
+            Schema::table('purchase_orders', function (Blueprint $table) {
+                $table->dropColumn('due_date');
+                $table->dropColumn('status');
+            });
+        }
     }
 };

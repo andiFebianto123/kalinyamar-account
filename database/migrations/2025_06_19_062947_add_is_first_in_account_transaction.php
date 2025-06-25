@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('account_transactions', function (Blueprint $table) {
-            $table->boolean('is_first')->default(false)->after('status');
-        });
+        if (!Schema::hasColumn('account_transactions', 'is_first')){
+            Schema::table('account_transactions', function (Blueprint $table) {
+                $table->boolean('is_first')->default(false)->after('status');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('account_transactions', function (Blueprint $table) {
-            $table->dropColumn('is_first');
-        });
+        if (Schema::hasColumn('account_transactions', 'is_first')){
+            Schema::table('account_transactions', function (Blueprint $table) {
+                $table->dropColumn('is_first');
+            });
+        }
     }
 };
