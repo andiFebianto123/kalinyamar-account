@@ -477,6 +477,23 @@ return [
             'status' => [
                 'label' => 'Status',
                 'placeholder' => '-STATUS',
+            ],
+            'item' => [
+                'label' => 'Invoice Item',
+                'new_item_label' => 'Tambah Item',
+                'errors' => [
+                    'total_price' => 'Total harga pada item anda tidak sama dengan total harga PO',
+                ],
+                'items' => [
+                    'name' => [
+                        'label' => 'Nama Item',
+                        'placeholder' => 'Nama Item',
+                    ],
+                    'price' => [
+                        'label' => 'Harga Item',
+                        'placeholder' => '000.000',
+                    ]
+                ]
             ]
         ],
     ],

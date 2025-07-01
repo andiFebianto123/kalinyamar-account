@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 // use Backpack\CRUD\app\Http\Controllers\CrudController;
 use App\Models\ClientPo;
-use Dotenv\Parser\Entry;
+use App\Models\InvoiceClient;
+use App\Models\PurchaseOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
+use App\Models\InvoiceClientDetail;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
 use App\Http\Requests\InvoiceClientRequest;
-use App\Models\InvoiceClient;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -37,6 +39,7 @@ class InvoiceClientCrudController extends CrudController
         CRUD::setModel(\App\Models\InvoiceClient::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice-client');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.invoice_client'), trans('backpack::crud.menu.invoice_client'));
+        CRUD::allowAccess('print');
     }
 
     public function select2ClientPo()
@@ -117,9 +120,16 @@ class InvoiceClientCrudController extends CrudController
 
         $entry = $this->crud->getEntryWithLocale($id);
         $entry->po_date = Carbon::createFromFormat('Y-m-d', $entry->po_date)->format('d/m/Y');
-        $entry->client_name = $entry->client->name;
+        // $entry->client_name = $entry->client->name;
         $entry->price_total_exclude_ppn = CustomHelper::formatRupiah($entry->price_total_exclude_ppn);
         $entry->price_total_include_ppn = CustomHelper::formatRupiah($entry->price_total_include_ppn);
+
+        $entry->invoice_client_details_edit = $entry->invoice_client_details;
+        $entry->client_name = $entry->client_po->client->name;
+        $entry->nominal_exclude_ppn = $entry->price_total_exclude_ppn;
+        $entry->nominal_include_ppn = $entry->price_total_include_ppn;
+        $entry->send_invoice_normal = $entry->send_invoice_normal_date;
+        $entry->send_invoice_revision = $entry->send_invoice_revision_date;
 
         $this->data['entry'] = $entry;
 
@@ -144,9 +154,13 @@ class InvoiceClientCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::disableResponsiveTable();
+        CRUD::removeButtons(['delete', 'show', 'update'], 'line');
 
         CRUD::addButtonFromView('top', 'filter_paid_unpaid', 'filter-paid_unpaid', 'beginning');
-
+        CRUD::addButtonFromView('line', 'show', 'show', 'end');
+        CRUD::addButtonFromView('line', 'update', 'update', 'end');
+        CRUD::addButtonFromView('line', 'print', 'print', 'end');
+        CRUD::addButtonFromView('line', 'delete', 'delete', 'end');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -205,11 +219,11 @@ class InvoiceClientCrudController extends CrudController
         CRUD::column([
             // 1-n relationship
             'label' => trans('backpack::crud.invoice_client.column.client_id'),
-            'type'      => 'select',
-            'name'      => 'client_id', // the column that contains the ID of that connected entity;
-            'entity'    => 'client', // the method that defines the relationship in your Model
-            'attribute' => 'name', // foreign key attribute that is shown to user
-            'model'     => "App\Models\Client", // foreign key model
+            'type'      => 'closure',
+            'name'      => 'client_name',
+            'function' => function($entry) {
+                return $entry->client_po->client->name;
+            } // the column that contains the ID of that connected entity;
             // OPTIONAL
             // 'limit' => 32, // Limit the number of characters shown
         ]);
@@ -310,7 +324,7 @@ class InvoiceClientCrudController extends CrudController
         ]);
 
         CRUD::addField([
-            'name' => 'address',
+            'name' => 'address_po',
             'label' => trans('backpack::crud.invoice_client.field.address.label'),
             'type' => 'text',
             'wrapper'   => [
@@ -378,10 +392,14 @@ class InvoiceClientCrudController extends CrudController
         CRUD::addField([
             'name' => 'dpp_other',
             'label' => trans('backpack::crud.invoice_client.field.dpp_other.label'),
-            'type' => 'text',
+            'type' => 'dpp_other_invoice_client',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
             'prefix' => 'Rp',
             'wrapper'   => [
-                'class' => 'form-group col-md-6',
+                'class' => 'form-group col-md-6'
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.invoice_client.field.dpp_other.placeholder'),
@@ -481,6 +499,71 @@ class InvoiceClientCrudController extends CrudController
             // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
         ]);
 
+
+        $id = request()->segment(3);
+
+        if($id != 'create'){
+            CRUD::addField([
+                'name' => 'invoice_client_details_edit',
+                'label' => trans('backpack::crud.invoice_client.field.item.label'),
+                'type' => 'repeatable',
+                'new_item_label'  => trans('backpack::crud.invoice_client.field.item.new_item_label'),
+                'fields' => [
+                    [
+                        'name' => 'name',
+                        'type' => 'text',
+                        'label' => trans('backpack::crud.invoice_client.field.item.items.name.label'),
+                        'wrapper' => [
+                            'class' => 'form-group col-md-6',
+                        ]
+                    ],
+                    [
+                        'name' => 'price',
+                        'type' => 'mask_repeat',
+                        'label' => trans('backpack::crud.invoice_client.field.item.items.name.label'),
+                        'wrapper' => [
+                            'class' => 'form-group col-md-6',
+                        ],
+                        'prefix' => 'Rp',
+                        'mask' => '000.000.000.000.000.000',
+                        'mask_options' => [
+                            'reverse' => true
+                        ],
+                    ],
+                ]
+            ]);
+        }else{
+            CRUD::addField([
+                'name' => 'invoice_client_details',
+                'label' => trans('backpack::crud.invoice_client.field.item.label'),
+                'type' => 'repeatable',
+                'new_item_label'  => trans('backpack::crud.invoice_client.field.item.new_item_label'),
+                'fields' => [
+                    [
+                        'name' => 'name',
+                        'type' => 'text',
+                        'label' => trans('backpack::crud.invoice_client.field.item.items.name.label'),
+                        'wrapper' => [
+                            'class' => 'form-group col-md-6',
+                        ]
+                    ],
+                    [
+                        'name' => 'price',
+                        'label' => trans('backpack::crud.invoice_client.field.item.items.price.label'),
+                        'type' => 'mask',
+                        'mask' => '000.000.000.000.000.000',
+                        'mask_options' => [
+                            'reverse' => true
+                        ],
+                        'prefix' => 'Rp',
+                        'wrapper'   => [
+                            'class' => 'form-group col-md-6'
+                        ],
+                    ]
+                ]
+            ]);
+        }
+
         /**
          * Fields can be defined using the fluent syntax:
          * - CRUD::field('price')->type('number');
@@ -502,44 +585,151 @@ class InvoiceClientCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('create');
 
-        $request = $this->crud->validateRequest();
+        $po = ClientPo::find(request()->client_po_id);
 
-        $clientPo = ClientPo::where('id', $request->client_po_id)->first();
-
-        $request->merge([
-            'po_date' => $clientPo->date_invoice,
-            'client_id' => $clientPo->client_id,
-            'price_total_exclude_ppn' => $clientPo->job_value,
-            'price_total_include_ppn' => $clientPo->total_value_with_tax,
+        request()->merge([
+            'nominal_exclude_ppn' => $po->job_value,
+            'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
         ]);
+
+        $request = $this->crud->validateRequest();
 
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
         try{
 
-            // $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
-            $item = new InvoiceClient();
-            $item->invoice_number  = $request->invoice_number;
-            $item->name = $request->name;
-            $item->invoice_date = $request->invoice_date;
-            $item->client_po_id = $request->client_po_id;
-            $item->po_date = $request->po_date;
-            $item->client_id = $request->client_id;
-            $item->price_total_exclude_ppn = $request->price_total_exclude_ppn;
-            $item->price_total_include_ppn = $request->price_total_include_ppn;
-            $item->status = $request->status;
-            $item->save();
+            $total_price = 0;
+            if($request->dpp_other){
+                $total_price += $request->dpp_other;
+            }
+            if($request->nominal_include_ppn){
+                $total_price += $request->nominal_include_ppn;
+            }
 
-            $this->data['entry'] = $this->crud->entry = $item;
+            $items = $request->invoice_client_details;
+            foreach($items as $item){
+                $total_price += $item['price'];
+            }
+
+            // $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
+            $invoice = new InvoiceClient();
+            $invoice->invoice_number = $request->invoice_number;
+            $invoice->name = 'invoice';
+            $invoice->address_po = $request->address_po;
+            $invoice->description = $request->description;
+            $invoice->invoice_date = $request->invoice_date;
+            $invoice->client_po_id = $request->client_po_id;
+            $invoice->po_date = $po->date_invoice;
+            $invoice->tax_ppn = $request->tax_ppn;
+            $invoice->price_dpp = $request->dpp_other;
+            $invoice->kdp = $request->kdp;
+            $invoice->send_invoice_normal_date = $request->send_invoice_normal;
+            $invoice->send_invoice_revision_date = $request->send_invoice_revision;
+            $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
+            $invoice->price_total_include_ppn = $request->nominal_include_ppn;
+            $invoice->status = $request->status;
+            $invoice->price_total = $total_price;
+            $invoice->save();
+
+            foreach($items as $item){
+                $invoice_item = new InvoiceClientDetail();
+                $invoice_item->invoice_client_id = $invoice->id;
+                $invoice_item->name = $item['name'];
+                $invoice_item->price = $item['price'];
+                $invoice_item->save();
+            }
+
+            $this->data['entry'] = $this->crud->entry = $invoice;
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
             $this->crud->setSaveAction();
 
             DB::commit();
-            return $this->crud->performSaveAction($item->getKey());
+            return $this->crud->performSaveAction($invoice->getKey());
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
+    public function update($id)
+    {
+        $this->crud->hasAccessOrFail('update');
+
+        $po = ClientPo::find(request()->client_po_id);
+
+        request()->merge([
+            'nominal_exclude_ppn' => $po->job_value,
+            'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+        ]);
+
+        // execute the FormRequest authorization and validation, if one is required
+        $request = $this->crud->validateRequest();
+
+        // register any Model Events defined on fields
+        $this->crud->registerFieldEvents();
+
+        // update the row in the db
+        DB::beginTransaction();
+        try{
+
+            $total_price = 0;
+            if($request->dpp_other){
+                $total_price += $request->dpp_other;
+            }
+            if($request->nominal_include_ppn){
+                $total_price += $request->nominal_include_ppn;
+            }
+
+            $items = $request->invoice_client_details_edit;
+            foreach($items as $item){
+                $total_price += $item['price'];
+            }
+
+            // $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
+            $invoice = InvoiceClient::where('id', $id)->first();
+            $invoice->invoice_number = $request->invoice_number;
+            $invoice->name = 'invoice';
+            $invoice->address_po = $request->address_po;
+            $invoice->description = $request->description;
+            $invoice->invoice_date = $request->invoice_date;
+            $invoice->client_po_id = $request->client_po_id;
+            $invoice->po_date = $po->date_invoice;
+            $invoice->tax_ppn = $request->tax_ppn;
+            $invoice->price_dpp = $request->dpp_other;
+            $invoice->kdp = $request->kdp;
+            $invoice->send_invoice_normal_date = $request->send_invoice_normal;
+            $invoice->send_invoice_revision_date = $request->send_invoice_revision;
+            $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
+            $invoice->price_total_include_ppn = $request->nominal_include_ppn;
+            $invoice->status = $request->status;
+            $invoice->price_total = $total_price;
+            $invoice->save();
+
+            InvoiceClientDetail::where('invoice_client_id', $id)->delete();
+
+            foreach($items as $item){
+                $invoice_item = new InvoiceClientDetail();
+                $invoice_item->invoice_client_id = $invoice->id;
+                $invoice_item->name = $item['name'];
+                $invoice_item->price = $item['price'];
+                $invoice_item->save();
+            }
+
+            $this->data['entry'] = $this->crud->entry = $invoice;
+
+            DB::commit();
+            // show a success message
+            \Alert::success(trans('backpack::crud.update_success'))->flash();
+            // save the redirect choice for next time
+            $this->crud->setSaveAction();
+            return $this->crud->performSaveAction($invoice);
         }catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -580,6 +770,29 @@ class InvoiceClientCrudController extends CrudController
         return response()->json([
             'html' => view($this->crud->getShowView(), $this->data)->render()
         ]);
+    }
+
+
+    public function destroy($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+
+        // get entry ID from Request (makes sure its the last ID for nested resources)
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        return $this->crud->delete($id);
+    }
+
+
+    public function printInvoice($id){
+
+        $data = [];
+        $data['header'] = InvoiceClient::where('id', $id)->first();
+        $data['details'] = InvoiceClientDetail::where('invoice_client_id', $id)->get();
+
+        $pdf = Pdf::loadView('exports.invoice-client-pdf-new', $data);
+        return $pdf->stream('invoice.pdf');
+        return view('exports.invoice-client-pdf-new');
     }
 
 }

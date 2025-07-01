@@ -181,6 +181,29 @@ function formatTimeAgo(timestamp) {
     }
 }
 
+function formatRupiah(angka, prefix = '') {
+    let isNegative = false;
+    if (typeof angka === 'number' && angka < 0) {
+        isNegative = true;
+        angka = Math.abs(angka);
+    }
+
+    const numberString = angka.toString().replace(/[^,\d]/g, '');
+    const split = numberString.split(',');
+    let sisa = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    const ribuan = split[0].substr(sisa).match(/\d{3}/g);
+
+    if (ribuan) {
+        const separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+
+    rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+
+    return (prefix ? prefix + ' ' : '') + (isNegative ? '-' : '') + rupiah;
+}
+
 function notificationPanel(){
     this.notifIncrement = 0;
 
@@ -271,6 +294,7 @@ class MyEventEmitter {
 }
 
 window.eventEmitter = new MyEventEmitter();
+
 
 function OpenCreateFormModal(attr = {}){
     var config = {

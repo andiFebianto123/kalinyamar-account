@@ -28,9 +28,16 @@
 	</div>
 </div>
 <script>
-    $('#btn-submit-edit').unbind('click').on('click', function (e) {
+    $('#btn-submit-edit').unbind('click').on('click', async function (e) {
         e.preventDefault();
         var url = $('#form-edit').attr('action');
+
+        var lazySubmit = await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(1)
+            }, 100);
+        });
+
         var formData = new FormData($('#modalEdit form')[0]);
         normalizeShowMessage('form-edit');
         btnLoader('btn-submit-edit', false);

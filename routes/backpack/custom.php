@@ -51,6 +51,7 @@ Route::group([
         Route::crud('po', 'ClientPoCrudController');
     });
     Route::crud('invoice-client', 'InvoiceClientCrudController');
+    Route::get('invoice-client/{id}/print', [InvoiceClientCrudController::class, 'printInvoice']);
     Route::post('invoice-client/select2-client-po', [InvoiceClientCrudController::class, 'select2ClientPo']);
     Route::get('invoice-client/get-client-po', [InvoiceClientCrudController::class, 'selectedClientPo']);
 

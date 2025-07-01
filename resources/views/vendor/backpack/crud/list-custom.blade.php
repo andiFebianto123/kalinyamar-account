@@ -214,7 +214,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('backpack::crud.cancel_submit') }}</button>
-                    <button type="button" id="btn-submit-create" class="btn btn-primary">
+                    <button type="button" id="btn-submit-create" class="btn btn-primary save-block">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         {{ trans('backpack::crud.save_submit') }}
                     </button>
@@ -234,7 +234,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('backpack::crud.cancel_submit') }}</button>
-                    <button type="button" id="btn-submit-edit" class="btn btn-primary">
+                    <button type="button" id="btn-submit-edit" class="btn btn-primary save-block">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         {{ trans('backpack::crud.save_submit') }}
                     </button>
@@ -311,8 +311,21 @@
 
                         var field = $('#'+rootForm+' [name="' + normalizedProperty + '[]"]').length ?
                                     $('#'+rootForm+' [name="' + normalizedProperty + '[]"]') :
-                                    $('#'+rootForm+' [name="' + normalizedProperty + '"]'),
-                                    container = field.closest('.form-group');
+                                    $('#'+rootForm+' [name="' + normalizedProperty + '"]');
+
+                        // if(field.length == 0){
+                        //     field = $('#'+rootForm+' [name="' + inputName + '"]');
+                        // }
+                        if (field.length === 0) {
+                            // Tangani input repeatable, contoh: experiences[0][company]
+                            const match = inputName.match(/^(\w+)\.(\d+)\.(\w+)$/); // ex: experiences.0.company
+                            if (match) {
+                                const [_, repeatableName, rowIndex, subFieldName] = match;
+
+                                field = $('#'+rootForm+` [data-repeatable-holder="${repeatableName}"] [data-repeatable-input-name="${subFieldName}"][data-row-number="${parseInt(rowIndex)+1}"]`);
+                            }
+                        }
+                        container = field.closest('.form-group');
 
                         // iterate the inputs to add invalid classes to fields and red text to the field container.
                         container.find('input, textarea, select').each(function() {
@@ -355,6 +368,7 @@
                     };
 
                 }
+                $('#'+rootForm+' .text-danger').removeClass('text-danger');
                 $.each(errors, function(bag, errorMessages){
                     $.each(errorMessages,  function (inputName, messages) {
                         var normalizedProperty = inputName.split('.').map(function(item, index){

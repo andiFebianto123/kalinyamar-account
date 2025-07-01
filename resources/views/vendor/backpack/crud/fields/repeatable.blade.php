@@ -40,7 +40,7 @@
     <div class="col-md-12 well repeatable-element row m-1 p-2" data-repeatable-identifier="{{ $field['name'] }}">
       @if (isset($field['fields']) && is_array($field['fields']) && count($field['fields']))
         <button type="button" class="close delete-element"><span aria-hidden="true">×</span></button>
-        @foreach($field['fields'] as $subfield)
+        @foreach($field['fields'] as $key => $subfield)
           @php
               $subfield = $crud->makeSureFieldHasNecessaryAttributes($subfield);
               $fieldViewNamespace = $subfield['view_namespace'] ?? 'crud::fields';
@@ -50,7 +50,6 @@
 
           @include($fieldViewPath, ['field' => $subfield])
         @endforeach
-
       @endif
     </div>
     {{-- @endpush --}}
@@ -87,6 +86,9 @@
           border-radius: 15px;
           text-align: center;
           background-color: #e8ebf0 !important;
+          padding-left: 0px !important;
+          padding-right: 0px !important;
+          border: 1px solid #3a3a3a4f !important;
         }
       </style>
   @endpush
@@ -124,7 +126,6 @@
         function bpFieldInitRepeatableElement(element) {
 
             var field_name = element.attr('name');
-
             // element will be a jQuery wrapped DOM node
             var container = $('[data-repeatable-identifier='+field_name+']');
             var container_holder = $('[data-repeatable-holder='+field_name+']');

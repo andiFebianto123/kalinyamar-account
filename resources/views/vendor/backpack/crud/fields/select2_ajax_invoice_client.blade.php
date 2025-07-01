@@ -175,13 +175,19 @@
                     if(form_type == 'create'){
                         $('#form-create input[name="po_date"]').val(respon.date_invoice);
                         $('#form-create input[name="client_name"]').val(respon.client_name);
-                        $('#form-create input[name="price_total_exclude_ppn"]').val(respon.job_value);
-                        $('#form-create input[name="price_total_include_ppn"]').val(respon.total_value_with_tax);
+                        $('#form-create input[name="nominal_exclude_ppn"]').val(respon.job_value);
+                        $('#form-create input[name="dpp_other"]').val('');
+                        $('#form-create #dpp_other_masked').val('');
+                        $('#form-create input[name="tax_ppn"]').val('');
+                        $('#form-create input[name="nominal_include_ppn"]').val('');
                     }else{
                         $('#form-edit input[name="po_date"]').val(respon.date_invoice);
                         $('#form-edit input[name="client_name"]').val(respon.client_name);
-                        $('#form-edit input[name="price_total_exclude_ppn"]').val(respon.job_value);
-                        $('#form-edit input[name="price_total_include_ppn"]').val(respon.total_value_with_tax);
+                        $('#form-edit input[name="nominal_exclude_ppn"]').val(respon.job_value);
+                        $('#form-edit input[name="dpp_other"]').val('');
+                        $('#form-edit #dpp_other_masked').val('');
+                        $('#form-edit input[name="tax_ppn"]').val('');
+                        $('#form-edit input[name="nominal_include_ppn"]').val('');
                     }
                 }
             });

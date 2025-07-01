@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class InvoiceClient extends Model
+class InvoiceClientDetail extends Model
 {
     use CrudTrait;
     use HasFactory;
@@ -18,7 +18,7 @@ class InvoiceClient extends Model
     |--------------------------------------------------------------------------
     */
 
-    protected $table = 'invoice_clients';
+    protected $table = 'invoice_client_details';
     // protected $primaryKey = 'id';
     // public $timestamps = false;
     protected $guarded = ['id'];
@@ -37,16 +37,8 @@ class InvoiceClient extends Model
     |--------------------------------------------------------------------------
     */
 
-    function client_po(){
-        return $this->belongsTo(ClientPo::class, 'client_po_id');
-    }
-
-    function client(){
-        return $this->belongsTo(ClientTransaction::class, 'client_id');
-    }
-
-    function invoice_client_details(){
-        return $this->hasMany(InvoiceClientDetail::class, 'invoice_client_id');
+    function invoice_client(){
+        return $this->belongsTo(InvoiceClient::class, 'invoice_client_id');
     }
 
     /*
