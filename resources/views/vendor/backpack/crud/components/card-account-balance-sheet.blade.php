@@ -1,4 +1,5 @@
 <div>
+    <h5>{{$title}}</h5>
     <div class="table-responsive">
         <table id="table-account-{{$name}}" class="info-cast-account table">
             <thead class="text-left">
@@ -10,6 +11,7 @@
                 </tr>
             </thead>
             <tbody class="text-left">
+
             </tbody>
         </table>
     </div>
@@ -63,8 +65,6 @@
     @endonce
 @endpush
 
-
-
 @push('after_scripts')
     <script>
         if(SIAOPS.getAttribute('accounts') == null){
@@ -76,6 +76,8 @@
                         eventEmitter.on("account_create_success", async function(data){
                             if(data.component_name != undefined){
                                 await SIAOPS.getAttribute(data.component_name).load();
+                            }else{
+                                window.location.href = location.href;
                             }
                         });
                     },
@@ -107,7 +109,7 @@
                             type: 'POST',
                             typeData: 'json',
                             success: function (result) {
-                                $('#'+instance.table+ ' tbody').empty();
+                                $('#'+instance.table+' tbody').empty();
                                 forEachFlexible(result.data, function(index, value){
                                     $('#'+instance.table+' tbody').append(`
                                         <tr>
@@ -135,7 +137,10 @@
             SIAOPS.getAttribute("{{$name}}"));
 
         eventEmitter.on("{{$name}}_update_success", async function(data){
-            await SIAOPS.getAttribute("{{$name}}").load();
+            // if(data.level == 2){
+            window.location.href = location.href;
+            // }
+            // await SIAOPS.getAttribute("{{$name}}").load();
         });
     </script>
 @endpush

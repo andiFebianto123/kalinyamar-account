@@ -12,6 +12,7 @@ class Account extends Model
     use HasFactory;
 
     const EXPENSE = "Expense";
+    const INCOME = 'Income';
 
     /*
     |--------------------------------------------------------------------------

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
-use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
+use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
+use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -70,6 +72,11 @@ Route::group([
 
     Route::prefix('finance-report')->group(function(){
         Route::crud('expense-account', 'ExpenseAccountCrudController');
+        Route::crud('profit-lost', 'ProfitLostAccountCrudController');
+        Route::post('profit-lost/store-project', [ProfitLostAccountCrudController::class, 'storeProject']);
+        Route::get('profit-lost/{id}/detail', [ProfitLostAccountCrudController::class, 'detail']);
+        Route::crud('balance-sheet', 'BalanceSheetCrudController');
+        Route::get('show-total-account', [BalanceSheetCrudController::class, 'showTotalAccount']);
     });
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 

@@ -201,6 +201,8 @@ return [
         'cash_flow_loan' => 'Rekening Pinjaman',
         'finance_report' => 'Laporan Keuangan',
         'expense_account' => 'Akun Biaya',
+        'profit_lost' => 'Laba Rugi',
+        'balance_sheet' => 'Neraca',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -648,6 +650,147 @@ return [
                 'placeholder' => 'Masukan nama akun',
             ],
         ]
+    ],
+    'profit_lost' => [
+        'title_header' => 'Laba Rugi',
+        'title_modal_create_consolidation' => 'Akun Laba Rugi Konsolidasi',
+        'title_modal_edit_consolidation' => 'Akun Laba Rugi Konsolidasi',
+        'title_modal_delete_consolidation' => 'Akun Laba Rugi Konsolidasi',
+        'title_modal_create_project' => '',
+        'title_modal_edit_project' => '',
+
+        'title_modal_create_project' => 'Tambah Laporan Laba Rugi Proyek',
+        'title_modal_delete' => 'Akun Biaya',
+        'empty_account' => 'Belum ada akun',
+        'consolidation_income_statement' => 'Laporan Laba Rugi Konsolidasi',
+        'project_income_statement' => 'Laporan Laba Rugi Proyek',
+        'choose_create' => [
+            'consolidation_account' => 'Akun Laba Rugi Konsolidasi',
+            'project_account' => 'Laba Rugi Proyek Proyek',
+        ],
+        'show_detail' => 'LIHAT DETAIL',
+        'fields' => [
+            'no_po' => [
+                'label' => 'No PO',
+                'placeholder' => '-No. PO'
+            ],
+            'job_code' => [
+                'label' => 'Kode Kerja',
+                'placeholder' => 'Kode Kerja',
+            ],
+            'contract_value' => [
+                'label' => 'Nilai Kontrak',
+                'placeholder' => '',
+            ],
+            'total_project' => [
+                'label' => 'Total Biaya Proyek',
+                'placeholder' => '000.000'
+            ],
+            'price_material' => [
+                'label' => 'Biaya Material',
+                'placeholder' => '000.000'
+            ],
+            'price_subkon' => [
+                'label' => 'Biaya Subkon',
+                'placeholder' => '000.000',
+            ],
+            'price_btkl' => [
+                'label' => 'Upah Pekerja Langsung (BTKL)',
+                'placeholder' => '',
+            ],
+            'price_transport_project' => [
+                'label' => 'Biaya Transportasi Proyek',
+                'placeholder' => '',
+            ],
+            'price_worker_consumption' => [
+                'label' => 'Biaya Konsumsi Pekerja',
+                'placeholder' => '',
+            ],
+            'price_project_equipment' => [
+                'label' => 'Sewa Peralatan Proyek',
+            ],
+            'price_other' => [
+                'label' => 'Biaya Lain - lain (jika ada)'
+            ],
+            'price_profit_lost_project' => [
+                'label' => 'Nilai Laba Rugi Proyek',
+            ]
+        ],
+        'column' => [
+            'client_po_id' => 'Nama Client',
+            'job_code' => 'Kode Kerja',
+            'no_po' => 'No.PO',
+            'contract_value' => 'Nilai Kontrak',
+            'total_project' => 'Total Biaya Proyek',
+            'price_profit_lost_project' => 'Laba/Rugi Proyek'
+        ],
+        'detail' => [
+            'project_profit_and_loss_report' => 'Laporan Laba Rugi Proyek',
+            'contract_revenue' => 'Pendapatan Kontrak',
+            'contract_value' => 'Nilai Kontrak',
+            'project_related_costs' => 'Biaya-biaya Terkait Proyek',
+            'fee_type' => 'Jenis Biaya',
+            'balance' => 'Saldo',
+            'material' => 'Material',
+            'subcon' => 'Subkon',
+            'direct_labor_wages' => 'Upah Pekerja Langsung (BTKL)',
+            'project_transportation' => 'Transportasi Proyek',
+            'worker_consumption' => 'Konsumsi Pekerja',
+            'project_equipment_rental' => 'Sewa Peralatan Proyek',
+            'other_costs' => 'Biaya Lain-lain (jika ada)',
+            'total_project_cost' => 'Total Biaya Proyek',
+            'project_profit_loss' => 'Laba (Rugi) Proyek',
+            'project_profit_loss_value' => 'Nilai Laba (Rugi) Proyek',
+        ],
+    ],
+    'balance_sheet' => [
+        'title_header' => 'Neraca',
+        'title_modal_create' => 'Akun Neraca',
+        'title_modal_edit' => 'Ubah Akun Neraca',
+        'title_modal_delete' => 'Akun Neraca',
+        'card' => [
+            'asset' => 'Aset',
+            'liabilities' => 'Kewajiban',
+            'equity' => 'Ekuitas',
+        ],
+        'filters' => [
+            'year' => [
+                'label' => 'Tahun',
+                'placeholder' => '- PILIH TAHUN'
+            ],
+            'quarter' => [
+                'label' => 'Kuartal',
+                'placeholder' => '- PILIH KUARTAL',
+            ]
+        ],
+        'fields' => [
+            'account_type' => [
+                'label' => 'Jenis Akun',
+                'placeholder' => '-PILIH JENIS AKUN',
+                'options' => [
+                    'account_asset' => 'AKUN ASET',
+                    'account_liabilities' => 'AKUN KEWAJIBAN',
+                    'account_equity' => 'AKUN EKUITAS',
+                ]
+            ],
+            'code' => [
+                'label' => 'Kode Akun',
+                'placeholder' => 'Masukan nomor kode akun',
+            ],
+            'name' => [
+                'label' => 'Nama Akun',
+                'placeholder' => 'Masukan nama akun',
+            ],
+            'balance' => [
+                'label' => 'Saldo',
+                'placeholder' => '000.000',
+            ],
+            'date' => [
+                'label' => 'Tanggal Akun',
+                'placeholder' => 'Pilih Tanggal',
+            ]
+        ]
+
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batal',
