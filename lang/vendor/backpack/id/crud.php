@@ -203,6 +203,7 @@ return [
         'expense_account' => 'Akun Biaya',
         'profit_lost' => 'Laba Rugi',
         'balance_sheet' => 'Neraca',
+        'asset' => 'Daftar Aset',
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -791,6 +792,88 @@ return [
             ]
         ]
 
+    ],
+    'asset' => [
+        'title_header' => 'Daftar Aset',
+        'title_modal_create' => 'Daftar Aset',
+        'title_modal_edit' => 'Ubah Daftar Aset',
+        'title_modal_delete' => 'Daftar Aset',
+        'column' => [
+            'account_id' => 'Akun',
+            'depreciation_account_id' => 'Akun Penyusutan',
+            'expense_account_id' => 'Akun Beban',
+            'description' => 'Keterangan',
+            'year_acquisition' => 'Tahun Perolehan',
+            'price_acquisition' => 'Harga Perolehan',
+            'economic_age' => 'U.E',
+            'tarif' => 'Tarif (%)',
+            'price_rate_per_year' => 'Tarif Penyusutan Per Tahun',
+            'price_rate_year_ago' => 'Tarif Penyusutan Tahun Lalu',
+            'accumulated_until_december_last_year' => 'Akumulasi Penyusutan s.d. Desember Tahun Lalu',
+            'book_value_last_december' => 'Nilai Buku Desember Tahun Lalu',
+            'this_year_depreciation_rate' => 'Tarif Penysutan Tahun Ini',
+            'accumulated_until_december_this_year' => 'Akumulasi Penyusutan s.d. Desember Tahun Ini',
+            'book_value_this_december' => 'Nilai Buku Desember Tahun Ini',
+        ],
+        'field' => [
+            'account_id' => [
+                'label' => 'Akun Asset',
+                'placeholder' => ''
+            ],
+            'account_depreciation' => [
+                'label' => 'Akun Penyusutan',
+                'placeholder' => ''
+            ],
+            'expense_account_id' => [
+                'label' => 'Akun Beban',
+            ],
+            'description' => [
+                'label' => 'Keterangan',
+                'placeholder' => 'Masukan keterangan Asset',
+            ],
+            'year_acquisition' => [
+                'label' => 'Tahun Perolehan',
+                'placeholder' => 'Masukan Tahun Perolehan',
+            ],
+            'price_acquisition' => [
+                'label' => 'Harga Perolehan',
+                'placeholder' => '000.000',
+            ],
+            'economic_age' => [
+                'label' => 'U.E. (Tahun)',
+                'placeholder' => 'Masukan U.E.'
+            ],
+            'tarif' => [
+                'label' => 'Tarif (%)',
+                'placeholder' => '',
+            ],
+            'price_rate_per_year' => [
+                'label' => 'Tarif Penyusutan Per Tahun',
+            ],
+            'price_rate_year_ago' => [
+                'label' => 'Penyusutan Tahun Lalu',
+                'placeholder' => '',
+            ],
+            'accumulated_until_december_last_year' => [
+                'label' => 'Akumulasi Penyusutan s.d. Desember Tahun Lalu',
+                'placeholder' => '',
+            ],
+            'book_value_last_december' => [
+                'label' => 'Nilai Buku Desember Tahun Lalu',
+                'placeholder' => '',
+            ],
+            'this_year_depreciation_rate' => [
+                'label' => 'Tarif Penysutan Tahun Ini',
+                'placeholder' => ''
+            ],
+            'accumulated_until_december_this_year' => [
+                'label' => 'Akumulasi Penyusutan s.d. Desember Tahun Ini',
+                'placeholder' => '',
+            ],
+            'book_value_this_december' => [
+                'label' => 'Nilai Buku Desember Tahun Ini',
+            ]
+        ],
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batal',

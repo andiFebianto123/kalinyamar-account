@@ -20,6 +20,7 @@
     @include('crud::fields.inc.translatable_icon')
     <div class="input-group date">
         <input
+            id="{{$field['name']}}"
             data-bs-name="{{$field['name']}}"
             data-bs-datepicker="{{ isset($field['date_picker_options']) ? json_encode($field['date_picker_options']) : '{}'}}"
             data-init-function="bpFieldInitDatePickerElement"
@@ -98,7 +99,7 @@
                 $field = $fake.closest('.input-group').parent().children('input[type="hidden"]');
 
                 $customConfig = $.extend({
-                    format: 'dd/mm/yyyy'
+                    format: 'dd/mm/yyyy',
                 }, $fake.data('bs-datepicker'));
                 $picker = $fake.bootstrapDP($customConfig);
 
@@ -113,6 +114,7 @@
                     var year = parts[0];
                     var month = parts[1] - 1; // Date constructor expects a zero-indexed month
                     var day = parts[2];
+                    console.log($customConfig.format);
                     preparedDate = new Date(year, month, day).format($customConfig.format);
                     $fake.val(preparedDate);
                     $picker.bootstrapDP('update', preparedDate);

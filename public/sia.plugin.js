@@ -405,3 +405,13 @@ var API_REQUEST = async function(method, url, payload, header = {}){
     return {errors, response};
 }
 
+function getInputNumber(selected){
+    let value = '';
+    value = $(selected).val() || 0;
+    return isNaN(value) ? 0 : parseFloat(value);
+}
+
+function setInputNumber(selected, value){
+    $(selected).val(value).trigger('input');
+}
+

@@ -26,7 +26,6 @@ class BalanceSheetCrudController extends CrudController{
         CRUD::setEntityNameStrings(trans('backpack::crud.balance_sheet.title_header'), trans('backpack::crud.balance_sheet.title_header'));
 
         CRUD::allowAccess(['create', 'update', 'delete', 'print']);
-
     }
 
     public function listCardComponents(){
@@ -41,7 +40,6 @@ class BalanceSheetCrudController extends CrudController{
             'view' => 'crud::components.filter-account-balance',
             'parent_view' => 'crud::components.filter-parent',
             'params' => [
-
             ]
         ]);
 

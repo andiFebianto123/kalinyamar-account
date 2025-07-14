@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AssetCrudController;
+use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
@@ -77,6 +78,8 @@ Route::group([
         Route::get('profit-lost/{id}/detail', [ProfitLostAccountCrudController::class, 'detail']);
         Route::crud('balance-sheet', 'BalanceSheetCrudController');
         Route::get('show-total-account', [BalanceSheetCrudController::class, 'showTotalAccount']);
+        Route::crud('list-asset', 'AssetCrudController');
+        Route::post('select2-account-id', [AssetCrudController::class, 'select2account']);
     });
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 

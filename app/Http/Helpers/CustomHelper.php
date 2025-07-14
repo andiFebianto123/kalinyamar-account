@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Helpers;
 
+use App\Models\Asset;
 use App\Models\ClientPo;
 use App\Models\CastAccount;
 use App\Models\JournalEntry;
@@ -37,6 +38,17 @@ class CustomHelper {
         $dataset = ClientPo::select(DB::raw("YEAR(date_invoice) as year"))
         ->distinct()->get();
 
+        $results = [];
+
+        foreach($dataset as $po){
+            $results[] = $po->year;
+        }
+        return $results;
+    }
+
+    public static function getYearOptionsAsset(){
+        $dataset = Asset::select(DB::raw("YEAR(year_acquisition) as year"))
+        ->distinct()->get();
         $results = [];
 
         foreach($dataset as $po){
