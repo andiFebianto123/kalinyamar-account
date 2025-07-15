@@ -260,11 +260,19 @@ class AssetCrudController extends CrudController
         $this->crud->hasAccessOrFail('create');
 
         $search = request()->input('q');
-        $dataset = \App\Models\Account::select(['id', 'name'])
-            ->where('type', 'Assets')
-            ->where('code', 'LIKE', "105%")
-            // ->where('name', 'LIKE', "%$search%")
-            ->paginate(10);
+        $dataset = \App\Models\Account::select(['id', 'name']);
+
+        if(request()->has('type')){
+            if(request()->get('type') == 'beban'){
+                $dataset = $dataset->where('type', 'Expense');
+            }
+        }else{
+            $dataset = $dataset->where('type', 'Assets')
+            ->where('code', 'LIKE', "105%");
+        }
+        $dataset = $dataset
+        ->where('name', 'LIKE', "%$search%")
+        ->paginate(10);
 
         $results = [];
         foreach ($dataset as $item) {
@@ -322,7 +330,7 @@ class AssetCrudController extends CrudController
             'name'        => 'expense_account_id', // the column that contains the ID of that connected entity
             'entity'      => 'account_expense', // the method that defines the relationship in your Model
             'attribute'   => "name", // foreign key attribute that is shown to user
-            'data_source' => backpack_url('finance-report/select2-account-id'), // url to controller search function (with /{id} should return a single entry)
+            'data_source' => backpack_url('finance-report/select2-account-id?type=beban'), // url to controller search function (with /{id} should return a single entry)
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
