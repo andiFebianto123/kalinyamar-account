@@ -114,7 +114,6 @@
                     var year = parts[0];
                     var month = parts[1] - 1; // Date constructor expects a zero-indexed month
                     var day = parts[2];
-                    console.log($customConfig.format);
                     preparedDate = new Date(year, month, day).format($customConfig.format);
                     $fake.val(preparedDate);
                     $picker.bootstrapDP('update', preparedDate);

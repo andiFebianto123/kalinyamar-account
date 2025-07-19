@@ -2,11 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AssetCrudController;
+use App\Http\Controllers\Admin\VoucherCrudController;
 use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
+use App\Http\Controllers\Admin\VoucherPaymentCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -81,6 +83,17 @@ Route::group([
         Route::crud('list-asset', 'AssetCrudController');
         Route::post('select2-account-id', [AssetCrudController::class, 'select2account']);
     });
+
+    Route::prefix('fa')->group(function(){
+        Route::crud('voucher', 'VoucherCrudController');
+        Route::post('voucher/select2-po-spk', [VoucherCrudController::class, 'select2_no_po_spk']);
+        Route::post('voucher/{id}/approve', [VoucherCrudController::class, 'approvedStore']);
+        Route::get('voucher/total', [VoucherCrudController::class, 'total_voucher']);
+        Route::crud('voucher-payment', 'VoucherPaymentCrudController');
+        Route::post('voucher-payment/{id}/approve', [VoucherPaymentCrudController::class, 'approvedStore']);
+        Route::get('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);
+    });
+
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 
 }); // this should be the absolute last line of this file

@@ -204,6 +204,17 @@ return [
         'profit_lost' => 'Laba Rugi',
         'balance_sheet' => 'Neraca',
         'asset' => 'Daftar Aset',
+        'fa' => 'FA',
+        'voucher' => 'Voucher',
+        'voucher_payment' => 'Pembayaran',
+    ],
+    'user' => [
+        'field' => [
+            'no_order' => [
+                'label' => 'Nomor Order',
+                'placeholder' => 'Masukan Nomor Order',
+            ]
+        ]
     ],
     'subkon' => [
         'title_header' => 'Daftar Subkon',
@@ -875,8 +886,269 @@ return [
             ]
         ],
     ],
+    'voucher' => [
+        'title_header' => 'Voucher',
+        'title_modal_create' => 'Voucher',
+        'title_modal_edit' => 'Ubah Data Voucher',
+        'title_modal_delete' => 'Voucher',
+        'field' => [
+            'no_payment' => [
+                'label' => 'No Pengajuan Pembayaran',
+                'placeholder' => 'Masukan nomor pengajuan pembayaran',
+            ],
+            'account_id' => [
+                'label' => 'Akun Biaya',
+                'placeholder' => '-AKUN BIAYA'
+            ],
+            'no_voucher' => [
+                'label' => 'Nomor Voucher',
+                'placeholder' => 'Masukan nomor voucher',
+            ],
+            'work_code' => [
+                'label' => 'Kode Kerja',
+                'placeholder' => 'Masukan kode kerja voucher',
+            ],
+            'job_name' => [
+                'label' => 'Nama Pekerjaan',
+                'placeholder' => 'Nama pekerjaan',
+            ],
+            'for_voucher' => [
+                'label' => 'For Voucher',
+                'placeholder' => '-FOR VOUCHER',
+            ],
+            'date_voucher' => [
+                'label' => 'Tanggal Voucher',
+            ],
+            'bussines_entity_code' => [
+                'label' => 'Kode Badan Usaha',
+                'placeholder' => 'Masukan kode badan usaha',
+            ],
+            'bussines_entity_type' => [
+                'label' => 'Bentuk Badan Usaha',
+                'placeholder' => '-BENTUK BADAN USAHA',
+            ],
+            'bussines_entity_name' => [
+                'label' => 'Nama Badan Usaha',
+                'placeholder' => 'Nama badan usaha',
+            ],
+            'bill_number' => [
+                'label' => 'No. Tagihan',
+                'placeholder' => 'Masukan nomor tagihan',
+            ],
+            'bill_date' => [
+                'label' => 'Tanggal Tagihan',
+            ],
+            'date_receipt_bill' => [
+                'label' => 'Tanggal Terima Tagihan',
+            ],
+            'payment_description' => [
+                'label' => 'Deskripsi Pembayaran',
+                'placeholder' => 'Masukan deskripsi pembayaran',
+            ],
+            'no_po_spk' => [
+                'label' => 'No. PO/SPK',
+                'placeholder' => 'Masukan nomor PO/SPK',
+            ],
+            'date_po_spk' => [
+                'label' => 'Tanggal PO/SPK',
+            ],
+            'bill_value' => [
+                'label' => 'Nilai Tagihan',
+            ],
+            'tax_ppn' => [
+                'label' => 'PPn',
+            ],
+            'total' => [
+                'label' => 'Total',
+            ],
+            'pph_23' => [
+                'label' => 'PPh 23',
+            ],
+            'discount_pph_23' => [
+                'label' => 'Potongan PPh 23',
+            ],
+            'pph_4' => [
+                'label' => 'PPh 4',
+            ],
+            'discount_pph_4' => [
+                'label' => 'Potongan PPh 4',
+            ],
+            'pph_21' => [
+                'label' => 'PPh 21',
+            ],
+            'discount_pph_21' => [
+                'label' => 'Potongan PPh 21'
+            ],
+            'payment_transfer' => [
+                'label' => 'Pembayaran (Nilai Transfer)',
+            ],
+            'due_date' => [
+                'label' => 'Jatuh Tempo',
+            ],
+            'factur_status' => [
+                'label' => 'Status Faktur',
+                'placeholder' => '- STATUS FAKTUR',
+            ],
+            'no_factur' => [
+                'label' => 'No. Faktur',
+                'placeholder' => 'Masukan no faktur',
+            ],
+            'date_factur' => [
+                'label' => 'Tanggal Faktur',
+            ],
+            'bank_name' => [
+                'label' => 'Nama Bank',
+                'placeholder' => 'Masukan nama bank',
+            ],
+            'no_account' => [
+                'label' => 'No. Rekening',
+                'placeholder' => 'Masukan no rekening',
+            ],
+            'payment_type' => [
+                'label' => 'Jenis Pembayaran',
+                'placeholder' => '- JENIS PEMBAYARAN',
+            ],
+            'payment_status' => [
+                'label' => 'Status Bayar',
+                'placeholder' => '- STATUS BAYAR',
+            ],
+            'priority' => [
+                'label' => 'Prioritas',
+                'placeholder' => '- PRIORITAS',
+            ],
+            'information' => [
+                'label' => 'Keterangan',
+                'placeholder' => 'Masukan keterangan',
+            ]
+        ],
+        'tab' => [
+            'title_voucher' => 'Data',
+            'title_voucher_edit' => 'Riwayat Edit',
+        ],
+        'column' => [
+            'voucher' => [
+                'no_voucher' => [
+                    'label' => 'No. Voucher',
+                ],
+                'date_voucher' => [
+                    'label' => 'Tanggal Voucher',
+                ],
+                'bussines_entity_name' => [
+                    'label' => 'Nama BU',
+                ],
+                'bill_number' => [
+                    'label' => 'No. Tagihan',
+                ],
+                'no_po_spk' => [
+                    'label' => 'No. PO/SPK',
+                ],
+                'bill_date' => [
+                    'label' => 'Tanggal Tagihan',
+                ],
+                'payment_description' => [
+                    'label' => 'Deskripsi Pembayaran',
+                ],
+                'bill_value' => [
+                    'label' => 'Nilai (Exclude PPn)',
+                ],
+                'total' => [
+                    'label' => 'Nilai (Include PPn)',
+                ],
+                'payment_transfer' => [
+                    'label' => 'Nilai Transfer',
+                    'label_2' => 'Pembayaran (Nilai Transfer)'
+                ],
+                'factur_status' => [
+                    'label' => 'Status Faktur',
+                ],
+                'bussines_entity_code' => [
+                    'label' => 'KDP',
+                ],
+                'job_name' => [
+                    'label' => 'Nama Pekerjaan',
+                ],
+                'account_id' => [
+                    'label' => 'Akun Biaya',
+                ],
+                'no_account' => [
+                    'label' => 'Sumber Rekening',
+                ],
+                'payment_type' => [
+                    'label' => 'Jenis Pembayaran',
+                ],
+                'payment_status' => [
+                    'label' => 'Status Bayar',
+                ],
+                'due_date' => [
+                    'label' => 'Tanggal Bayar',
+                    'label_2' => 'Jatuh Tempo',
+                ],
+                'approved_at' => [
+                    'label' => 'Tanggal Approve'
+                ],
+                'status' => [
+                    'label' => 'Status Approve',
+                ]
+            ],
+            'voucher_edit' => [
+                'user_id' => [
+                    'label' => 'Diedit Oleh',
+                ],
+                'date_update' => [
+                    'label' => 'Waktu Perubahan',
+                ],
+                'history_update' => [
+                    'label' => 'Riwayat Perubahan',
+                ],
+                'no_apprv' => [
+                    'label' => 'Tahap Approval',
+                ],
+                'status' => [
+                    'label' => 'Status Approval',
+                ]
+            ]
+
+        ],
+        'confirm' => [
+            'title' => 'Menyetujui Voucher',
+            'caution' => 'Perhatian !',
+            'confirm_approved_statement' => 'Setujui untuk voucher ini?',
+            'yes_approved' => 'Ya, Setujui',
+            'cancel' => 'Batal',
+            'confirm_after_success' => 'Voucher Berhasil Disetujui',
+            'alert_success' => '',
+            'update_failed_status' => 'Anda tidak bisa melakukan edit voucher karena status voucher saat ini masih Pending',
+        ],
+        'total_exclude_ppn' => 'Jumlah Exlude PPn',
+        'total_include_ppn' => 'Jumlah Include PPn',
+        'total_transfer_value' => 'Jumlah Nilai Transfer',
+        'waiting_approval' => 'Menunggu Approval',
+        'approved_approval' => 'Sudah Approval',
+        'reject_approval' => 'Ditolak',
+    ],
+    'voucher_payment' => [
+        'title_header' => 'Pembayaran',
+        'title_modal_create' => 'Rencana Bayar',
+        'title_modal_edit' => 'Ubah Rencana Bayar',
+        'title_modal_delete' => 'Rencana Bayar',
+        'voucher_payment_exists' => "Data voucher sudah ada di pembayaran",
+        'tab' => [
+            'title_voucher_payment' => 'Data',
+            'title_voucher_payment_plan' => 'Rencana Bayar',
+        ],
+        'confirm' => [
+            'title' =>  'Menyetujui Pembayaran',
+            'confirm_approved_statement' => 'Setujui untuk pembayaran ini?',
+            'yes_approved' => 'Ya, Setujui',
+            'cancel' => 'Batal',
+            'confirm_after_success' => 'Pembayaran Berhasil Disetujui',
+        ],
+        'total_payment_value' => 'Jumlah Nilai Transfer',
+        'total_payment_approve_value' => 'Total Nilai Transfer Approved',
+    ],
     'save_submit' => 'Simpan',
-    'cancel_submit' => 'Batal',
+    'cancel_submit' => 'Batalkan',
     'save_changes_submit' => 'Simpan Perubahan',
+    'approve_submit' => 'Setujui',
 
 ];

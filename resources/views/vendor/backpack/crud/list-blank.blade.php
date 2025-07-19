@@ -168,6 +168,30 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="modalApproval" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalApprovalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('backpack::crud.cancel_submit') }}</button>
+                    <button type="button" id="btn-approve" class="btn btn-primary">
+                        <span class="btn-spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="btn-text">{{ trans('backpack::crud.approve_submit') }}</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <script>
         function btnLoader(btn_id, enabled = true){
             var idbtn = $('#'+btn_id);

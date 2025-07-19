@@ -70,7 +70,7 @@
                     }
                 }else{
                     swal({
-                        title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
+                        title: "{!! trans('backpack::crud.ajax_error_title') !!}",
                         text: data.error,
                         icon: "error",
                         timer: 4000,

@@ -12,6 +12,7 @@
         @if(isset($field['prefix'])) <span class="input-group-text">{!! $field['prefix'] !!}</span> @endif
         <select
             name="{{ $field['name'] }}"
+            data-init-function="bpFieldInitSelect2"
             @include('crud::fields.inc.attributes', ['default_class' => 'form-control select2 select2_field'])>
             @if (!empty($field['allows_null']) && $field['allows_null'] === true)
                 <option value="">-</option>
@@ -61,14 +62,23 @@
             border-radius: 0.2rem;
         }
     </style>
+    <script>
+        function bpFieldInitSelect2(element){
+            element.select2({
+                // theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $(".modal.show .modal-body")
+            });
+        }
+    </script>
         <script>
             // $('.select2_field').val(null).trigger('change'); // Clear
-            $('.select2-field').select2('destroy');
-            $('.select2_field').select2({
-                    // theme: 'bootstrap-5',
-                    // width: '100%',
-                    dropdownParent: $(".modal.show")
-            });
+            // $('#').select2('destroy');
+            // $('#{{$field['name']}}').select2({
+            //         // theme: 'bootstrap-5',
+            //         // width: '100%',
+            //         dropdownParent: $(".modal.show")
+            // });
             // var d =  {!! json_encode($field) !!};
             // // console.log(d);
             // // if(d !== undefined){

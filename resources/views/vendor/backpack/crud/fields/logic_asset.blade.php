@@ -36,8 +36,6 @@
                     var ue = getInputNumber(form+' input[name="economic_age"]');
                     var period = getInclusiveMonthDiff($(form+ ' input[name="year_acquisition"]').val());
 
-                    console.log(period);
-
                     var penyusutan_per_tahun = (ue == 0) ? 0 : (price_acquisition - 0) / ue;
                     setInputNumber(form+ ' #price_rate_per_year_masked', penyusutan_per_tahun);
 

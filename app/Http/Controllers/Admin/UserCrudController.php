@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -18,7 +19,7 @@ class UserCrudController extends CrudController
 
     public function setup()
     {
-        $this->crud->setModel(config('backpack.permissionmanager.models.user'));
+        $this->crud->setModel(User::class);
         $this->crud->setEntityNameStrings(trans('backpack::permissionmanager.user'), trans('backpack::permissionmanager.users'));
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/auth/user');
     }
@@ -52,6 +53,14 @@ class UserCrudController extends CrudController
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => config('permission.models.permission'), // foreign key model
             ],
+            [
+                'label' => trans('backpack::crud.user.field.no_order.label'),
+                'type' => 'number',
+                'name' => 'no_order',
+                'attributes' => [
+                    'placeholder' => trans('backpack::crud.user.field.no_order.placeholder'),
+                ]
+            ]
         ]);
 
         if (!backpack_pro()) {
@@ -160,7 +169,7 @@ class UserCrudController extends CrudController
         $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
         $this->crud->unsetValidation();
 
-        return $this->traitStore();
+        // return $this->traitStore();
 
         // execute the FormRequest authorization and validation, if one is required
         $request = $this->crud->validateRequest();
@@ -174,6 +183,9 @@ class UserCrudController extends CrudController
             // insert item in the db
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
             $this->data['entry'] = $this->crud->entry = $item;
+
+            $item->no_order = $request->no_order;
+            $item->save();
 
             // show a success message
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
@@ -227,7 +239,7 @@ class UserCrudController extends CrudController
         $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
         $this->crud->unsetValidation(); // validation has already been run
 
-        return $this->traitUpdate();
+        // return $this->traitUpdate();
 
         // execute the FormRequest authorization and validation, if one is required
         $request = $this->crud->validateRequest();
@@ -243,6 +255,11 @@ class UserCrudController extends CrudController
                 $request->get($this->crud->model->getKeyName()),
                 $this->crud->getStrippedSaveRequest($request)
             );
+
+            $update = User::where('id', $request->id)->first();
+            $update->no_order = $request->no_order;
+            $update->save();
+
             $this->data['entry'] = $this->crud->entry = $item;
 
             // show a success message
@@ -251,6 +268,7 @@ class UserCrudController extends CrudController
             // save the redirect choice for next time
             $this->crud->setSaveAction();
 
+            DB::commit();
             return $this->crud->performSaveAction($item->getKey());
 
         }catch (\Exception $e) {
@@ -351,6 +369,14 @@ class UserCrudController extends CrudController
                 'name'  => 'password_confirmation',
                 'label' => trans('backpack::permissionmanager.password_confirmation'),
                 'type'  => 'password',
+            ],
+            [
+                'label' => trans('backpack::crud.user.field.no_order.label'),
+                'type' => 'number',
+                'name' => 'no_order',
+                'attributes' => [
+                    'placeholder' => trans('backpack::crud.user.field.no_order.placeholder'),
+                ]
             ],
             [
                 // two interconnected entities
