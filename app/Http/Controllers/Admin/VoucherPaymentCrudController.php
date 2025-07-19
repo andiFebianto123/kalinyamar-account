@@ -1834,7 +1834,7 @@ class VoucherPaymentCrudController extends CrudController {
                 }
             }
 
-            // DB::commit();
+            DB::commit();
             return response()->json([
                 'success' => true,
                 'data' => $voucher,

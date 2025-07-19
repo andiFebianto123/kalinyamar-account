@@ -28,6 +28,7 @@ class VoucherCrudController extends CrudController {
         CRUD::setModel(Voucher::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher');
         CRUD::setEntityNameStrings('Voucher', 'Voucher');
+        CRUD::allowAccess('print');
     }
 
     function total_voucher(){
@@ -291,7 +292,13 @@ class VoucherCrudController extends CrudController {
             CRUD::setModel(Voucher::class);
             CRUD::disableResponsiveTable();
 
+            CRUD::removeButtons(['delete', 'show', 'update'], 'line');
+            CRUD::addButtonFromView('line', 'show', 'show', 'end');
+            CRUD::addButtonFromView('line', 'update', 'update', 'end');
+            CRUD::addButtonFromView('line', 'print', 'print', 'end');
+            CRUD::addButtonFromView('line', 'delete', 'delete', 'end');
             CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
+
 
             $user_id = backpack_user()->id;
             $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
@@ -1374,7 +1381,7 @@ class VoucherCrudController extends CrudController {
         "))
         ->first();
 
-        $flag_approval_status = ($voucher_status->approval_status == Approval::APPROVED || $voucher_status->approval_status == Approval::REJECTED) ? false : true;
+        $flag_approval_status = ($voucher_status->approval_status == Approval::APPROVED || $voucher_status->approval_status == Approval::REJECTED) ? true : false;
 
         DB::beginTransaction();
         try{
@@ -1555,6 +1562,7 @@ class VoucherCrudController extends CrudController {
                     'success' => true,
                     'data' => $item,
                     'events' => [
+                        'crudTable-voucher_plugin_load' => $item,
                         'crudTable-voucher_updated_success' => $item,
                         'crudTable-history_edit_voucher_updated_success' => $item,
                     ]
@@ -1664,6 +1672,8 @@ class VoucherCrudController extends CrudController {
         DB::beginTransaction();
         try{
 
+            $event = [];
+            $event['crudTable-voucher_plugin_load'] = true;
             $data = $request->only(['bill_value', 'tax_ppn', 'pph_23', 'pph_4', 'pph_21']);
 
             $hasilPerhitungan = $this->calculatePayment($data);
@@ -1756,6 +1766,9 @@ class VoucherCrudController extends CrudController {
                 $approval->save();
             }
 
+            $event['crudTable-voucher_create_success'] = $item;
+            $event['crudTable-history_edit_voucher_create_success'] = $item;
+
             // $item = $aset;
             // $this->data['entry'] = $this->crud->entry = $item;
 
@@ -1768,10 +1781,7 @@ class VoucherCrudController extends CrudController {
                 return response()->json([
                     'success' => true,
                     'data' => $item,
-                    'events' => [
-                        'crudTable-voucher_create_success' => $item,
-                        'crudTable-history_edit_voucher_create_success' => $item,
-                    ]
+                    'events' => $event,
                 ]);
             }
             return $this->crud->performSaveAction($item->getKey());
@@ -1801,6 +1811,8 @@ class VoucherCrudController extends CrudController {
             $voucher_edit = VoucherEdit::find($id);
             $voucher_id = $voucher_edit->voucher_id;
 
+            $event = [];
+
             $approval = Approval::where('model_type', VoucherEdit::class)
             ->where('model_id', $voucher_edit->id)
             ->where('user_id', $user_id)
@@ -1819,29 +1831,31 @@ class VoucherCrudController extends CrudController {
 
             if($request->action == Approval::APPROVED){
 
-                if($final_approval->no_apprv == $request->no_apprv){
-                    CustomHelper::updateOrCreateJournalEntry([
-                        'account_id' => $voucher->account_id,
-                        'reference_id' => $voucher->id,
-                        'reference_type' => Voucher::class,
-                        'description' => 'FIRST BALANCE',
-                        'date' => Carbon::now(),
-                        'debit' => $voucher->payment_transfer,
-                        // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-                    ], [
-                        'account_id' => $voucher->account_id,
-                        'reference_id' => $voucher->id,
-                        'reference_type' => Voucher::class,
-                    ]);
-                }
+                // if($final_approval->no_apprv == $request->no_apprv){
+                //     CustomHelper::updateOrCreateJournalEntry([
+                //         'account_id' => $voucher->account_id,
+                //         'reference_id' => $voucher->id,
+                //         'reference_type' => Voucher::class,
+                //         'description' => 'FIRST BALANCE',
+                //         'date' => Carbon::now(),
+                //         'debit' => $voucher->payment_transfer,
+                //         // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                //     ], [
+                //         'account_id' => $voucher->account_id,
+                //         'reference_id' => $voucher->id,
+                //         'reference_type' => Voucher::class,
+                //     ]);
+                // }
             }
+
+            $event['crudTable-voucher_create_success'] = true;
+            $event['crudTable-history_edit_voucher_create_success'] = true;
 
             DB::commit();
             return response()->json([
                 'success' => true,
                 'data' => $approval,
-                'events' => [
-                ]
+                'events' => $event,
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
@@ -2536,6 +2550,7 @@ class VoucherCrudController extends CrudController {
 
             $messages['success'][] = '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message');
             $messages['events'] = [
+                'crudTable-voucher_plugin_load' => true,
                 'crudTable-voucher_create_success' => true,
                 'crudTable-history_edit_voucher_create_success' => true,
             ];

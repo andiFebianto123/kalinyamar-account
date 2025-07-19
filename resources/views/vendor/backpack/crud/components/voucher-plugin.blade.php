@@ -6,9 +6,14 @@
                 name: 'voucher_plugin',
                 accounts_compact:[],
                 eventLoader: async function(){
-
+                    var instance = this;
+                    eventEmitter.on("crudTable-voucher_plugin_load", function(data){
+                        instance.load();
+                    });
                 },
                 load: function(){
+                    var instance = this;
+                    instance.eventLoader();
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
