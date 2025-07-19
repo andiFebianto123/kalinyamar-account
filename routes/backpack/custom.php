@@ -94,6 +94,10 @@ Route::group([
         Route::get('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);
     });
 
+    Route::prefix('monitoring')->group(function(){
+        Route::crud('project-system-setup', 'ProjectSystemSetupCrudController');
+    });
+
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 
 }); // this should be the absolute last line of this file

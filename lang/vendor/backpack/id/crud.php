@@ -207,6 +207,8 @@ return [
         'fa' => 'FA',
         'voucher' => 'Voucher',
         'voucher_payment' => 'Pembayaran',
+        'monitoring_project' => 'Monitoring Proyek',
+        'project_system_setup' => 'Project System Setup',
     ],
     'user' => [
         'field' => [
@@ -1146,6 +1148,130 @@ return [
         ],
         'total_payment_value' => 'Jumlah Nilai Transfer',
         'total_payment_approve_value' => 'Total Nilai Transfer Approved',
+    ],
+    'project_system_setup' => [
+        'title_header' => 'Project System Setup',
+        'card' => [
+            'setup_category_project' => "Setup Ketegori Proyek",
+            'setup_category_project_title_create' => 'Tambah Data Item Setup',
+            'setup_category_project_title_edit' => 'Edit Data Item Setup',
+            'setup_status_project' => "Setup Status Proyek",
+            'setup_status_project_title_create' => 'Tambah Data Item Setup Status Proyek',
+            'setup_status_project_title_edit' => 'Edit Data Item Setup Status Proyek',
+            'setup_status_offering' => "Setup Status Penawaran",
+            'setup_status_offering_title_create' => 'Tambah Data Item Setup Status Penawaran',
+            'setup_status_offering_title_edit' => 'Edit Data Item Setup Status Penawaran',
+            'setup_client' => "Setup Data Client",
+            'setup_client_title_create' => 'Tambah Data Item Setup Data Client',
+            'setup_client_title_edit' => 'Edit Data Item Setup Data Client',
+            'setup_ppn' => 'Setup Tarif PPn',
+            'setup_ppn_title_create' => 'Tambah Data Item Setup Tarif PPn',
+            'setup_ppn_title_edit' => 'Edit Data Item Setup Tarif PPn',
+        ],
+        'field' => [
+            'setup_category_project' => [
+                'title' => [
+                    'label' => 'Setup Kategori Proyek',
+                ],
+                'name' => [
+                    'label' => 'Nama Item',
+                    'placeholder' => 'Masukan nama item',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
+            'setup_status_project' => [
+                'title' => [
+                    'label' => 'Setup Status Proyek',
+                ],
+                'name' => [
+                    'label' => 'Nama Item',
+                    'placeholder' => 'Masukan nama item',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
+            'setup_status_offering' => [
+                'title' => [
+                    'label' => 'Setup Status Penawaran',
+                ],
+                'name' => [
+                    'label' => 'Nama Item',
+                    'placeholder' => 'Masukan nama item',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
+            'setup_client' => [
+                'title' => [
+                    'label' => 'Setup Client',
+                ],
+                'name' => [
+                    'label' => 'Nama Item',
+                    'placeholder' => 'Masukan nama item',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
+            'setup_ppn' => [
+                'title' => [
+                    'label' => 'Setup Tarif PPn',
+                ],
+                'name' => [
+                    'label' => 'Nilai Item',
+                    'placeholder' => '000.000',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
+        ],
+        'delete' => [
+            'setup_category_project' => [
+                'title' => 'Hapus Item Setup Sistem Proyek',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup sistem proyek ?',
+            ],
+            'setup_status_project' => [
+                'title' => 'Hapus Item Setup Status Proyek',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup status proyek ?',
+            ],
+            'setup_status_offering' => [
+                'title' => 'Hapus Item Setup Status Penawaran',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup status penawaran ?',
+            ],
+            'setup_client' => [
+                'title' => 'Hapus Item Setup Client',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup client ?',
+            ],
+            'setup_ppn' => [
+                'title' => 'Hapus Item Setup Tarif PPn',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup tarif ppn ?',
+            ]
+        ]
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batalkan',
