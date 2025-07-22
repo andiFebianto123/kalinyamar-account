@@ -54,7 +54,6 @@
 
                     @if ($set_value != null)
                         var data_po_spk = {!! json_encode($set_value) !!};
-                        console.log(data_po_spk);
                         var selectedOption = new Option(data_po_spk.no_po_spk, data_po_spk.id, true, true);
                         $(form+ ' select[name="no_po_spk"]').append(selectedOption).trigger('change');
                         $(form+ ' input[name="bussines_entity_name"]').val(data_po_spk.name_company);

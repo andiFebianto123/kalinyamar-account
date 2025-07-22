@@ -164,6 +164,7 @@ return [
         'all_year' => 'Semua Tahun',
         'all_paid' => 'Semua',
         'change_order' => 'Ubah Urutan',
+        'all_category' => 'Semua Kategori',
     ],
 
     'card' => [
@@ -209,6 +210,7 @@ return [
         'voucher_payment' => 'Pembayaran',
         'monitoring_project' => 'Monitoring Proyek',
         'project_system_setup' => 'Project System Setup',
+        'project_list' => 'Daftar Proyek',
     ],
     'user' => [
         'field' => [
@@ -1270,6 +1272,164 @@ return [
             'setup_ppn' => [
                 'title' => 'Hapus Item Setup Tarif PPn',
                 'body' => 'Apakah anda yakin ingin menghapus data item setup tarif ppn ?',
+            ]
+        ]
+    ],
+    'project' => [
+        'title_header' => 'Daftar Proyek',
+        'title_modal_create' => 'Data Daftar Proyek',
+        'title_modal_edit' => 'Data Daftar Proyek',
+        'title_modal_delete' => 'Data Daftar Proyek',
+        'tab' => [
+            'title_project' => 'Data',
+            'title_project_edit' => 'Riwayat Edit',
+        ],
+        'column' => [
+            'project' => [
+                'no_po_spk' => [
+                    'label' => 'No. PO/SPK',
+                ],
+                'name' => [
+                    'label' => 'Nama Proyek',
+                ],
+                'po_date' => [
+                    'label' => 'Tanggal PO',
+                ],
+                'price_total_exclude_ppn' => [
+                    'label' => 'Nilai Exclude PPn'
+                ],
+                'price_ppn' => [
+                    'label' => 'Tarif PPn'
+                ],
+                'tax_ppn' => [
+                    'label' => 'PPn',
+                ],
+                'price_total_include_ppn' => [
+                    'label' => 'Nilai Include PPn',
+                ],
+                'client_id' => [
+                    'label' => 'Klient',
+                ],
+                'received_po_date' => [
+                    'label' => 'Tanggal Terima PO',
+                ],
+                'startdate_and_enddate' => [
+                    'label' => 'Start Date - End Date',
+                ],
+                'duration' => [
+                    'label' => 'Durasi hari',
+                ],
+                'actual_start_date' => [
+                    'label' => 'Actual Start Date',
+                ],
+                'actual_end_date' => [
+                    'label' => 'Actual End Date',
+                ],
+                'status_po' => [
+                    'label' => 'Status PO',
+                ],
+                'progress' => [
+                    'label' => 'Progress (%)',
+                ],
+                'pic' => [
+                    'label' => 'PIC',
+                ],
+                'user' => [
+                    'label' => 'User',
+                ],
+                'category' => [
+                    'label' => 'Kategori',
+                ],
+                'information' => [
+                    'label' => 'Keterangan',
+                ]
+            ],
+            'project_edit' => [
+                'name' => [
+                    'label' => 'Name Proyek',
+                ],
+                'user_id' => [
+                    'label' => 'Diedit Oleh',
+                ],
+                'date_update' => [
+                    'label' => 'Waktu Perubahan',
+                ],
+                'history_update' => [
+                    'label' => 'Riwayat Perubahan',
+                ]
+            ]
+        ],
+        'field' => [
+            'name' => [
+                'label' => 'Nama Proyek',
+                'placeholder' => 'Masukan nama proyek',
+            ],
+            'po_status' => [
+                'label' => 'Belum ada PO'
+            ],
+            'no_po_spk' => [
+                'label' => 'No. PO/SPK',
+                'placeholder' => 'Masukan nomor PO/SPK',
+            ],
+            'po_date' => [
+                'label' => 'Tanggal PO',
+                'placeholder' => 'Pilih Tanggal',
+            ],
+            'received_po_date' => [
+                'label' => 'Tanggal Terima PO',
+                'placeholder' => 'Pilih Tanggal',
+            ],
+            'price_total_exclude_ppn' => [
+                'label' => 'Nilai Exclude PPn',
+            ],
+            'tax_ppn' => [
+                'label' => 'Tarif PPn',
+                'placeholder' => '-PILIH TARIF PPN'
+            ],
+            'price_ppn' => [
+                'label' => 'PPn',
+            ],
+            'price_total_include_ppn' => [
+                'label' => 'Nilai Include PPn',
+            ],
+            'start_date' => [
+                'label' => 'Start Data - End Date',
+            ],
+            'duration' => [
+                'label' => 'Durasi Hari',
+            ],
+            'actual_start_date' => [
+                'label' => 'Actual Start Date',
+            ],
+            'actual_end_date' => [
+                'label' => 'Actual End Date',
+            ],
+            'status_po' => [
+                'label' => 'Status PO',
+                'placeholder' => '-PILIH STATUS',
+            ],
+            'client_id' => [
+                'label' => 'Client',
+                'placeholder' => '-PILIH CLIENT',
+            ],
+            'category' => [
+                'label' => 'Kategori',
+                'placeholder' => '-PILIH KATEGORI',
+            ],
+            'progress' => [
+                'label' => 'Progress'
+            ],
+            'pic' => [
+                'label' => 'PIC',
+                'placeholder' => 'Masukan nama pic'
+            ],
+            'user' => [
+                'label' => 'User',
+                'placeholder' => 'Masukan nama user'
+            ],
+            'information' => [
+                'label' => 'Keterangan',
+                'placeholder' => 'Masukan Keterangan Proyek'
             ]
         ]
     ],

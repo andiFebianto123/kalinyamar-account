@@ -2,6 +2,7 @@
 namespace App\Http\Helpers;
 
 use App\Models\Asset;
+use App\Models\Project;
 use App\Models\ClientPo;
 use App\Models\CastAccount;
 use App\Models\JournalEntry;
@@ -53,6 +54,17 @@ class CustomHelper {
 
         foreach($dataset as $po){
             $results[] = $po->year;
+        }
+        return $results;
+    }
+
+    public static function getOptionProject(){
+        $dataset = Project::select(DB::raw("category"))
+        ->distinct()->get();
+        $results = [];
+
+        foreach($dataset as $po){
+            $results[] = $po->category;
         }
         return $results;
     }

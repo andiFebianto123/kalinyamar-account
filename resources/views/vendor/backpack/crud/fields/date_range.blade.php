@@ -51,6 +51,7 @@
     <label>{!! $field['label'] !!}</label>
     <div class="input-group date">
         <input
+            id="{{$fieldName[0].'_'.$fieldName[1]}}"
             data-bs-daterangepicker="{{ json_encode($field['date_range_options'] ?? []) }}"
             data-init-function="bpFieldInitDateRangeElement"
             type="text"
