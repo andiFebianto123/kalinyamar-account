@@ -1428,6 +1428,39 @@ class ProjectListCrudController extends CrudController {
         ]);
     }
 
+    public function destroy($id)
+    {
+        DB::beginTransaction();
+        try {
+            $this->crud->hasAccessOrFail('delete');
 
+            $item = Project::find($id);
+
+            $project_history = new ProjectHistory;
+            $project_history->project_id = $item->id;
+            $project_history->name = $item->name;
+            $project_history->user_id = backpack_auth()->user()->id;
+            $project_history->date_update = Carbon::now();
+            $project_history->history_update = "Menghapus data proyek";
+            $project_history->save();
+
+            $item->delete();
+
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+            $messages['events'] = [
+                'crudTable-project_updated_success' => 1,
+                'crudTable-project_edit_updated_success' => 1,
+            ];
+
+            DB::commit();
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'type' => 'errors',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }

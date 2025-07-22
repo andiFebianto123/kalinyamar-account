@@ -2548,7 +2548,7 @@ class VoucherCrudController extends CrudController {
 
             $item->delete();
 
-            $messages['success'][] = '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message');
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
             $messages['events'] = [
                 'crudTable-voucher_plugin_load' => true,
                 'crudTable-voucher_create_success' => true,
