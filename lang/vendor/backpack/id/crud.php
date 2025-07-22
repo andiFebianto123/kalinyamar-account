@@ -212,6 +212,7 @@ return [
         'project_system_setup' => 'Project System Setup',
         'project_list' => 'Daftar Proyek',
         'project_report' => 'Project Report',
+        'list_quotation' => 'Daftar Penawaran',
     ],
     'user' => [
         'field' => [
@@ -1471,6 +1472,98 @@ return [
                 'label' => 'Progress (%)'
             ]
         ],
+    ],
+    'quotation' => [
+        'title_header' => 'Daftar Penawaran',
+        'title_modal_create' => 'Data Daftar Penawaran',
+        'title_modal_edit' => 'Data Daftar Penawaran',
+        'title_modal_delete' => 'Penawaran',
+        'tab' => [
+            'quotation' => 'Data',
+            'quotation_history' => 'Riwayat Edit',
+        ],
+        'field' => [
+            'no_rfq' => [
+                'label' => 'No. RFQ',
+                'placeholder' => 'Masukan nomor RFQ',
+            ],
+            'name_project' => [
+                'label' => 'Proyek',
+                'placeholder' => 'Masukan nama penawaran proyek'
+            ],
+            'rab' => [
+                'label' => 'RAB',
+            ],
+            'rap' => [
+                'label' => 'RAP',
+            ],
+            'client_id ' => [
+                'label' => 'Client',
+                'placeholder' => '-PILIH CLIENT',
+            ],
+            'pic' => [
+                'label' => 'PIC',
+                'placeholder' => 'Masukan nama PIC'
+            ],
+            'user' => [
+                'label' => 'User',
+                'placeholder' => 'Masukan nama user'
+            ],
+            'closing_date' => [
+                'label' => 'Closing Date',
+                'placeholder' => 'Pilih Tanggal',
+            ],
+            'status' => [
+                'label' => 'Status',
+                'placeholder' => '-PILIH STATUS'
+            ],
+            'information' => [
+                'label' => 'Keterangan',
+                'placeholder' => 'Masukan keterangan penawaran'
+            ]
+        ],
+        'column' => [
+            'no_rfq' => [
+                'label' => 'No. RFQ'
+            ],
+            'name_project' => [
+                'label' => 'Proyek',
+                'label_2' => 'Nama Proyek',
+            ],
+            'rab' => [
+                'label' => 'RAB',
+            ],
+            'rap' => [
+                'label' => 'RAP',
+            ],
+            'client_id' => [
+                'label' => 'Client',
+            ],
+            'pic' => [
+                'label' => 'PIC',
+            ],
+            'user' => [
+                'label' => 'User',
+            ],
+            'closing_date' => [
+                'label' => 'Closing Date',
+            ],
+            'status' => [
+                'label' => 'Status',
+            ],
+            'information' => [
+                'label' => 'Keterangan',
+            ],
+            'user_id' => [
+                'label' => 'Diedit Oleh',
+            ],
+            'date_update' => [
+                'label' => 'Waktu Perubahan',
+            ],
+            'history_update' => [
+                'label' => 'Riwayat Perubahan',
+            ]
+        ]
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batalkan',

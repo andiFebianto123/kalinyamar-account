@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->enum('po_status', ['1', '0'])->default('not_exist');
+            $table->enum('po_status', ['1', '0'])->default('0');
             $table->string('reference_type', 70)->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
             $table->string('no_po_spk', 100)->nullable();

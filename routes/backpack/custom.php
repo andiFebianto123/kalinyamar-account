@@ -98,6 +98,7 @@ Route::group([
         Route::crud('project-system-setup', 'ProjectSystemSetupCrudController');
         Route::crud('project-list', 'ProjectListCrudController');
         Route::crud('project-report', 'ProjectListReportCrudController');
+        Route::crud('quotation', 'QuotationCrudController');
     });
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
