@@ -28,8 +28,17 @@
                         route_project += "&filter_category="+value;
                         route_project_edit += "&filter_category="+value;
 
-                        SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
-                        SIAOPS.getAttribute('crudTable-project_edit').table.ajax.url(route_project_edit).load();
+                        if(SIAOPS.getAttribute('crudTable-project') != null){
+                            SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
+                        }
+                        if(SIAOPS.getAttribute('crudTable-project_edit') != null){
+                            SIAOPS.getAttribute('crudTable-project_edit').table.ajax.url(route_project_edit).load();
+                        }
+
+                        if(crud.table){
+                            crud.table.ajax.url(route_project).load();
+                        }
+
                     });
                 });
             }

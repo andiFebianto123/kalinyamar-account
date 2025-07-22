@@ -256,8 +256,8 @@ class ProjectListCrudController extends CrudController {
     {
         $type = request()->tab;
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
-        CRUD::addButtonFromView('top', 'download-excel-po', 'download-excel-po', 'beginning');
-        CRUD::addButtonFromView('top', 'download-pdf-po', 'download-pdf-po', 'beginning');
+        CRUD::addButtonFromView('top', 'download-excel', 'download-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'download-pdf', 'download-pdf', 'beginning');
 
         if($type == 'project'){
             CRUD::setModel(Project::class);

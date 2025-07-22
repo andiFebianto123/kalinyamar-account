@@ -211,6 +211,7 @@ return [
         'monitoring_project' => 'Monitoring Proyek',
         'project_system_setup' => 'Project System Setup',
         'project_list' => 'Daftar Proyek',
+        'project_report' => 'Project Report',
     ],
     'user' => [
         'field' => [
@@ -1432,6 +1433,44 @@ return [
                 'placeholder' => 'Masukan Keterangan Proyek'
             ]
         ]
+    ],
+    'project_report' => [
+        'title_header' => 'Project Report',
+        'title_modal_create' => 'Data Project Report',
+        'title_modal_edit' => 'Data Project Report',
+        'title_modal_delete' => 'Data Project Report',
+        'column' => [
+            'no_po_spk' => [
+                'label' => 'No. PO/SPK',
+            ],
+            'name' => [
+                'label' => 'Nama Proyek',
+            ],
+            'price_total_include_ppn' => [
+                'label' => 'Nilai Include PPn',
+            ],
+            'client_id' => [
+                'label' => 'Client',
+            ],
+            'startdate_and_enddate' => [
+                'label' => 'Start Date - End Date',
+            ],
+            'duration' => [
+                'label' => 'Durasi Hari',
+            ],
+            'actual_start_date' => [
+                'label' => 'Actual Start Date',
+            ],
+            'actual_end_date' => [
+                'label' => 'Actual End Date',
+            ],
+            'status_po' => [
+                'label' => 'Status PO',
+            ],
+            'progress' => [
+                'label' => 'Progress (%)'
+            ]
+        ],
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batalkan',

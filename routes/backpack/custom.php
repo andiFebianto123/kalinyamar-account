@@ -97,6 +97,7 @@ Route::group([
     Route::prefix('monitoring')->group(function(){
         Route::crud('project-system-setup', 'ProjectSystemSetupCrudController');
         Route::crud('project-list', 'ProjectListCrudController');
+        Route::crud('project-report', 'ProjectListReportCrudController');
     });
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
