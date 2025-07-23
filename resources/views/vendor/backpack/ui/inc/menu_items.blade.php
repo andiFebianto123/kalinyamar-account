@@ -34,10 +34,11 @@
 <x-backpack::menu-item title="{{ trans('backpack::crud.menu.invoice_client') }}" icon="la la-group" :link="backpack_url('invoice-client')" />
 
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.monitoring_project')}}" icon="la la-group" :link="backpack_url('monitoring')" >
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_system_setup')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-system-setup')" />
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.quotation_status')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-status')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_list')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-list')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_quotation')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_report')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-report')" />
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_system_setup')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-system-setup')" />
 </x-backpack::menu-dropdown>
 
 <x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">

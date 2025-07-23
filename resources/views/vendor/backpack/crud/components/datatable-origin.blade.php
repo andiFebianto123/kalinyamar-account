@@ -48,7 +48,6 @@
                 {{-- Table columns --}}
                 @foreach ($columns as $column)
                     @php
-
                     $column['orderable'] = $column['orderable'] ?? true;
                     $column['priority'] = $column['priority'] ?? 1;
                     $column['visibleInTable'] = $column['visibleInTable'] ?? true;
@@ -211,7 +210,7 @@
                     }
                     window.history.pushState({}, '', newUrl);
                     @if ($crud->getPersistentTable())
-                        localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url', newUrl);
+                        // localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url', newUrl);
                     @endif
                 },
                 dataTableConfiguration: {
@@ -277,7 +276,7 @@
                     @endif
 
                     @if ($crud->getPersistentTable())
-                    stateSave: true,
+                    stateSave: false,
                     /*
                         if developer forced field into table 'visibleInTable => true' we make sure when saving datatables state
                         that it reflects the developer decision.
@@ -285,7 +284,7 @@
 
                     stateSaveParams: function(settings, data) {
 
-                        localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url_time', data.time);
+                        // localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url_time', data.time);
 
                         data.columns.forEach(function(item, index) {
                             var columnHeading = crud.table.columns().header()[index];
@@ -303,11 +302,11 @@
 
                         //if the save time as expired we force datatabled to clear localStorage
                         if($saved_time < $current_date) {
-                            if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url')) {
-                                localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url');
-                            }
-                            if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url_time')) {
-                                localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
+                            // if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url')) {
+                            //     localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url');
+                            // }
+                            // if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url_time')) {
+                            //     localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
                             }
                         return false;
                         }
@@ -359,7 +358,7 @@
                     @endif
                     searching: @json($crud->getOperationSetting('searchableTable') ?? true),
                     ajax: {
-                        "url":  "{!! url($route) !!}",
+                        "url":  "{!! $route !!}",
                         "type": "POST",
                         "data": {
                             "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
@@ -415,13 +414,20 @@
                         processing: true,
                         serverSide: true,
                         searching: 400,
+                        ajax: {
+                            "url":  "{!! $route !!}",
+                            "type": "POST",
+                            "data": {
+                                "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
+                            },
+                        },
                     });
-                    window.crud.updateUrl(location.href);
-                    $('.dataTables_length').appendTo($('.datatable-widget-stack'));
+                    // window.crud.updateUrl(location.href);
+                    $('#crudTable-{{$name}}_length').appendTo($('#{{$name}} .datatable-widget-stack'));
 
-                    $("#datatable_search_stack input").remove();
-                    $("#crudTable-{{$name}}_filter input").appendTo($('#datatable_search_stack .input-icon'));
-                    $("#datatable_search_stack input").removeClass('form-control-sm');
+                    $("#{{$name}} #datatable_search_stack input").remove();
+                    $("#crudTable-{{$name}}_filter input").appendTo($('#{{$name}} #datatable_search_stack .input-icon'));
+                    $("#{{$name}} #datatable_search_stack input").removeClass('form-control-sm');
                     $("#crudTable-{{$name}}_filter").remove();
 
                     // remove btn-secondary from export and column visibility buttons
@@ -443,26 +449,26 @@
 
                     @if($crud->getOperationSetting('resetButton') ?? true)
                         // create the reset button
-                        var crudTableResetButton = '<a href="{{url($crud->route)}}" class="ml-1 ms-1" id="crudTable_reset_button">{{ trans('backpack::crud.reset') }}</a>';
+                        // var crudTableResetButton = '<a href="{{url($crud->route)}}" class="ml-1 ms-1" id="crudTable_reset_button">{{ trans('backpack::crud.reset') }}</a>';
 
-                        $('#datatable_info_stack').append(crudTableResetButton);
+                        // $('#datatable_info_stack').append(crudTableResetButton);
 
-                        // when clicking in reset button we clear the localStorage for datatables.
-                        $('#crudTable-{{$name}}_reset_button').on('click', function() {
+                        // // when clicking in reset button we clear the localStorage for datatables.
+                        // $('#crudTable-{{$name}}_reset_button').on('click', function() {
 
-                        //clear the filters
-                        if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url')) {
-                            localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url');
-                        }
-                        if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url_time')) {
-                            localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
-                        }
+                        // //clear the filters
+                        // if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url')) {
+                        //     localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url');
+                        // }
+                        // if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url_time')) {
+                        //     localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
+                        // }
 
-                        //clear the table sorting/ordering/visibility
-                        if(localStorage.getItem('DataTables_crudTable_/{{ $crud->getRoute() }}')) {
-                            localStorage.removeItem('DataTables_crudTable_/{{ $crud->getRoute() }}');
-                        }
-                        });
+                        // //clear the table sorting/ordering/visibility
+                        // if(localStorage.getItem('DataTables_crudTable_/{{ $crud->getRoute() }}')) {
+                        //     localStorage.removeItem('DataTables_crudTable_/{{ $crud->getRoute() }}');
+                        // }
+                        // });
                     @endif
                     $("#bottom_buttons").insertBefore($('#crudTable-{{$name}}_wrapper .row:last-child' ));
                     $.fn.dataTable.ext.errMode = 'none';
@@ -472,13 +478,13 @@
                             text: "<strong>{{ trans('backpack::crud.ajax_error_title') }}</strong><br>{{ trans('backpack::crud.ajax_error_text') }}"
                         }).show();
                     });
-                    $('#crudTable-{{$name}}').on( 'length.dt', function ( e, settings, len ) {
-                        localStorage.setItem('DataTables_crudTable_/{{$crud->getRoute()}}_pageLength', len);
-                    });
+                    // $('#crudTable-{{$name}}').on( 'length.dt', function ( e, settings, len ) {
+                    //     localStorage.setItem('DataTables_crudTable_/{{$crud->getRoute()}}_pageLength', len);
+                    // });
 
-                    $('#crudTable-{{$name}}').on( 'page.dt', function () {
-                        localStorage.setItem('page_changed', true);
-                    });
+                    // $('#crudTable-{{$name}}').on( 'page.dt', function () {
+                    //     localStorage.setItem('page_changed', true);
+                    // });
 
                     $('#crudTable-{{$name}}').on( 'draw.dt',   function () {
                         crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {

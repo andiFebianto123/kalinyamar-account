@@ -213,6 +213,7 @@ return [
         'project_list' => 'Daftar Proyek',
         'project_report' => 'Project Report',
         'list_quotation' => 'Daftar Penawaran',
+        'quotation_status' => 'Status Penawaran',
     ],
     'user' => [
         'field' => [
@@ -1564,6 +1565,12 @@ return [
                 'label' => 'Riwayat Perubahan',
             ]
         ]
+    ],
+    'quotation_status' => [
+        'title_header' => 'Status Penawaran',
+        'title_modal_create' => 'Data Daftar Penawaran',
+        'title_modal_edit' => 'Data Daftar Penawaran',
+        'title_modal_delete' => 'Penawaran',
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batalkan',
