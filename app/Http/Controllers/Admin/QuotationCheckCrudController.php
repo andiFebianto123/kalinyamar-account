@@ -229,12 +229,28 @@ class QuotationCheckCrudController extends CrudController {
         if($type == 'quotation_check'){
             CRUD::setModel(QuotationCheck::class);
             $this->crud->query = $this->crud->query
-            ->join('quotations', 'quotations.id', '=', 'quotation_checks.quotation_id');
+            ->join('quotations', 'quotations.id', '=', 'quotation_checks.quotation_id')
+            ->join('setup_clients', 'setup_clients.id', '=', 'quotations.client_id');
             CRUD::addClause('select', [
                 DB::raw("
                     quotations.*
                 ")
             ]);
+            if(strlen(trim(request()->search['value'])) > 0){
+                $search = request()->search['value'];
+                $this->crud->query = $this->crud->query
+                ->where(function($query) use ($search){
+                    $query->where('quotations.no_rfq', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.name_project', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.rab', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.rap', 'like', '%'.$search.'%')
+                    ->orWhere('setup_clients.name', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.pic', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.user', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.closing_date', 'like', '%'.$search.'%')
+                    ->orWhere('quotations.status', 'like', '%'.$search.'%');
+                });
+            }
         }
         CRUD::addColumn([
                 'name'      => 'row_number',
