@@ -1564,6 +1564,9 @@ return [
             'history_update' => [
                 'label' => 'Riwayat Perubahan',
             ]
+        ],
+        'validate' => [
+            'quotation_check_exists' => 'Terdapat pilihan penawaran yang sudah diinput sebelumnya',
         ]
     ],
     'quotation_status' => [
@@ -1571,6 +1574,15 @@ return [
         'title_modal_create' => 'Data Daftar Penawaran',
         'title_modal_edit' => 'Data Daftar Penawaran',
         'title_modal_delete' => 'Penawaran',
+    ],
+    'quotation_check' => [
+        'title_header' => 'Data Proyeksi Pekerjaan',
+        'title_modal_create' => 'Data Proyeksi Pekerjaan',
+        'title_modal_edit' => 'Data Daftar Penawaran',
+        'title_modal_delete' => 'Penawaran',
+        'tab' => [
+            'quotation_check' => 'Penawaran Terceklis',
+        ]
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batalkan',
