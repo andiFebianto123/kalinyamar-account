@@ -1319,6 +1319,12 @@ return [
                 'startdate_and_enddate' => [
                     'label' => 'Start Date - End Date',
                 ],
+                'start_date' => [
+                    'label' => ''
+                ],
+                'end_date' => [
+                    'label' => 'End Date',
+                ],
                 'duration' => [
                     'label' => 'Durasi hari',
                 ],
@@ -1345,6 +1351,15 @@ return [
                 ],
                 'information' => [
                     'label' => 'Keterangan',
+                ],
+                'invoice_date' => [
+                    'label' => 'Tanggal Kirim Invoice'
+                ],
+                'payment_date' => [
+                    'label' => 'Tanggal Terbayar',
+                ],
+                'total_progress_day' => [
+                    'label' => 'Total Proses (Hari)'
                 ]
             ],
             'project_edit' => [
@@ -1583,6 +1598,14 @@ return [
         'tab' => [
             'quotation_check' => 'Penawaran Terceklis',
         ]
+    ],
+    'project_status' => [
+        'title_header' => 'Status Proyek',
+        'title_modal_create' => 'Status Proyek',
+        'title_modal_edit' => 'Status Proyek',
+        'title_modal_delete' => 'Status Proyek',
+        'title_model_edit_unpaid' => 'Edit Data Unpaid Project',
+        'title_model_edit_close' => 'Edit Data Close Project',
     ],
     'save_submit' => 'Simpan',
     'cancel_submit' => 'Batalkan',

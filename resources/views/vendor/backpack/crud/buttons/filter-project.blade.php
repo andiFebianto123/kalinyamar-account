@@ -28,16 +28,24 @@
                         route_project += "&filter_category="+value;
                         route_project_edit += "&filter_category="+value;
 
-                        if(SIAOPS.getAttribute('crudTable-project') != null){
-                            SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
-                        }
-                        if(SIAOPS.getAttribute('crudTable-project_edit') != null){
-                            SIAOPS.getAttribute('crudTable-project_edit').table.ajax.url(route_project_edit).load();
-                        }
+                        // if(SIAOPS.getAttribute('crudTable-project') != null){
+                        //     SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
+                        // }
+                        // if(SIAOPS.getAttribute('crudTable-project_edit') != null){
+                        //     SIAOPS.getAttribute('crudTable-project_edit').table.ajax.url(route_project_edit).load();
+                        // }
 
                         if(crud.table){
                             crud.table.ajax.url(route_project).load();
                         }
+
+                        forEachFlexible(SIAOPS.getAllAttributes(), function(key, item){
+                            if(key.includes("crudTable")){
+                                var url_route = item.table.ajax.url();
+                                url_route += "&filter_category="+value;
+                                item.table.ajax.url(url_route).load();
+                            }
+                        });
 
                     });
                 });

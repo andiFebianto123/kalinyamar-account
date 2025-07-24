@@ -101,6 +101,7 @@ Route::group([
         Route::crud('quotation', 'QuotationCrudController');
         Route::crud('quotation-status', 'StatusQuotaionCrudController');
         Route::crud('quotation-check', 'QuotationCheckCrudController');
+        Route::crud('project-status', 'StatusProjectCrudController');
     });
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);

@@ -20,6 +20,10 @@ function siaOps(){
         return null;
     }
 
+    this.getAllAttributes = function(){
+        return this.attributes;
+    }
+
     this.addModules = function(name, callback){
         if(this.modules.hasOwnProperty(name)){
             delete this.modules[name];

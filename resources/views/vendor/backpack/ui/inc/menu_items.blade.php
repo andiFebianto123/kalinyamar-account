@@ -34,6 +34,7 @@
 <x-backpack::menu-item title="{{ trans('backpack::crud.menu.invoice_client') }}" icon="la la-group" :link="backpack_url('invoice-client')" />
 
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.monitoring_project')}}" icon="la la-group" :link="backpack_url('monitoring')" >
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.project_status.title_header')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-status')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.quotation_status')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-status')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.quotation_check.title_header')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-check')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_list')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-list')" />
