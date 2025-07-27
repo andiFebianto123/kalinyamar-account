@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
+use App\Http\Controllers\Admin\ClientPoCrudController;
 use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
 use App\Http\Controllers\Admin\VoucherPaymentCrudController;
 
@@ -35,6 +36,7 @@ Route::group([
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
     Route::crud('tag', 'TagCrudController');
+    Route::crud('dashboard', 'DashboardController');
     Route::prefix('auth')->group(function () {
         Route::crud('permission', 'PermissionCrudController');
         Route::crud('role', 'RoleCrudController');
@@ -54,6 +56,7 @@ Route::group([
         Route::crud('client-list', 'ClientCrudController');
         Route::post('select2-client', 'ClientPoCrudController@select2Client');
         Route::crud('po', 'ClientPoCrudController');
+        Route::get('po/total', [ClientPoCrudController::class, 'countAllPPn']);
     });
     Route::crud('invoice-client', 'InvoiceClientCrudController');
     Route::get('invoice-client/{id}/print', [InvoiceClientCrudController::class, 'printInvoice']);

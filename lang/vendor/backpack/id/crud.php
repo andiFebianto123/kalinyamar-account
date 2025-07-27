@@ -361,6 +361,17 @@ return [
             'profit_and_loss' => "Laba/Rugi PO",
             'document_path' => 'Dokumen PO',
             'date_invoice' => 'Tanggal Invoice',
+            'rap_value' => 'Nilai RAP',
+            'job_value_exclude_ppn' => 'Nilai Pekerjaan Excl PPn',
+            'job_value_include_ppn' => 'Nilai Pekerjaan Incld PPn',
+            'job_value_include_ppn_2' => 'Nilai Pekerjaan Include PPn',
+            'start_date' => 'Start Date',
+            'end_date' => 'End Date',
+            'start_date_end_date' => 'Start Date - End Date',
+            'price_after_year' => 'Biaya Lewat Tahun',
+            'load_general_value' => 'Beban Umum',
+            'profit_and_lost_final' => 'Laba/Rugi Akhir',
+            'category' => 'Kategori',
         ],
         'field' => [
             'client_id' => [
@@ -407,8 +418,20 @@ return [
             'date_invoice' => [
                 'label' => 'Tanggal Invoice',
                 'placeholder' => 'Pilih Tanggal',
-            ]
-        ]
+            ],
+            'rap_value' => 'Nilai RAP',
+            'job_value_exclude_ppn' => 'Nilai Pekerjaan Excl PPn',
+            'job_value_include_ppn' => 'Nilai Pekerjaan Incld PPn',
+            'start_date' => 'Start Date',
+            'end_date' => 'End Date',
+            'start_date_end_date' => 'Start Date - End Date',
+            'price_after_year' => 'Biaya Lewat Tahun',
+            'load_general_value' => 'Beban Umum',
+            'profit_and_lost_final' => 'Laba/Rugi Akhir',
+            'category' => 'Kategori',
+        ],
+        'count_include_ppn' => 'Jml nilai pekerjaan incld PPn',
+        'count_exclude_ppn' => 'Jml nilai pekerjaan excld PPn',
     ],
     'invoice_client' => [
         'title_header' => 'Invoice (Client)',

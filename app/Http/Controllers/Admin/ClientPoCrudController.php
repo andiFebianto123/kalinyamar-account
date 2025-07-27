@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Requests\ClientPoRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
+use App\Http\Controllers\CrudController;
+use App\Http\Helpers\CustomHelper;
+use App\Models\ClientPo;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -28,7 +30,7 @@ class ClientPoCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\ClientPo::class);
+        CRUD::setModel(ClientPo::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client/po');
         CRUD::setEntityNameStrings(trans('backpack::crud.client_po.title_header'), trans('backpack::crud.client_po.title_header'));
     }
@@ -37,11 +39,142 @@ class ClientPoCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('list');
 
+        $this->card->addCard([
+            'name' => 'client_po',
+            'line' => 'top',
+            'view' => 'crud::components.datatable-origin',
+            'params' => [
+                'filter' => true,
+                'crud_custom' => $this->crud,
+                'hide_title' => true,
+                'columns' => [
+                    [
+                        'name'      => 'row_number',
+                        'type'      => 'row_number',
+                        'label'     => 'No',
+                        'orderable' => false,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.client_po.column.client_id'),
+                        'type'      => 'text',
+                        'name'      => 'client_id',
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'reimburse_type',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.reimburse_type'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'work_code',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.work_code'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'po_number',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.po_number'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'job_name',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.job_name'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'rap_value',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.rap_value'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'job_value_exclude_ppn',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'job_value_include_ppn',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'start_date,end_date',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.start_date_end_date'),
+                        'orderable' => false,
+                    ],
+                    [
+                        'name'      => 'price_after_year',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.price_after_year'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'price_total',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.price_total'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'profit_and_loss',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.profit_and_loss'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'load_general_value',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.load_general_value'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'profit_and_lost_final',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.profit_and_lost_final'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name'      => 'document_path',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.document_path'),
+                        'orderable' => false,
+                    ],
+                    [
+                        'name'      => 'category',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.category'),
+                        'orderable' => true,
+                    ],
+                    [
+                        'name' => 'action',
+                        'type' => 'action',
+                        'label' =>  trans('backpack::crud.actions'),
+                    ]
+                ],
+                'route' => backpack_url('/client/po/search'),
+            ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'client_po-plugin',
+            'line' => 'top',
+            'view' => 'crud::components.client_po-plugin',
+            'parent_view' => 'crud::components.filter-parent',
+            'params' => [],
+        ]);
+
+
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "PO Client";
         $this->data['title_modal_edit'] = "PO Client";
         $this->data['title_modal_delete'] = "PO Client";
+        $this->data['cards'] = $this->card;
 
         $breadcrumbs = [
             'Client' => backpack_url('client'),
@@ -49,8 +182,23 @@ class ClientPoCrudController extends CrudController
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
 
-        $list = "crud::list-custom" ?? $this->crud->getListView();
+        $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
+    }
+
+    public function countAllPPn(){
+        $client_po = ClientPo::select(DB::raw("SUM(job_value) as total_job_value, SUM(job_value_include_ppn) as total_job_value_ppn"))
+        ->get();
+        if($client_po->count() > 0){
+            return response()->json([
+                'total_job_value' => CustomHelper::formatRupiah($client_po[0]->total_job_value),
+                'total_job_value_ppn' => CustomHelper::formatRupiah($client_po[0]->total_job_value_ppn)
+            ]);
+        }
+        return response()->json([
+            'total_job_value' => CustomHelper::formatRupiah(0),
+            'total_job_value_ppn' => CustomHelper::formatRupiah(0)
+        ]);
     }
 
     public function create()
@@ -85,30 +233,38 @@ class ClientPoCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
+    public function calculateClientPo($request)
+    {
+        $nilaiPekerjaan = floatval(str_replace(',', '', $request->input('job_value')));
+        $ppn = floatval($request->input('tax_ppn'));
+
+        $nilaiPpn = ($ppn == 0) ? 0 : ($nilaiPekerjaan * ($ppn / 100));
+        $total = $nilaiPekerjaan + $nilaiPpn;
+
+        $totalBiaya = floatval(str_replace(',', '', $request->input('price_total')));
+        $labaRugiPo = $nilaiPekerjaan - $totalBiaya;
+
+        $bebanUmum = floatval(str_replace(',', '', $request->input('load_general_value')));
+        $labaRugiAkhir = $labaRugiPo - $bebanUmum;
+
+        // Simpan ke database atau kirim balik ke view
+        return [
+            'job_value_include_ppn' => $total,
+            'profit_and_loss' => $labaRugiPo,
+            'profit_and_loss_final' => $labaRugiAkhir,
+        ];
+    }
+
     public function store()
     {
         $this->crud->hasAccessOrFail('create');
 
-        request()->merge([
-            'total_value_with_tax' => request()->job_value + (request()->job_value * request()->tax_ppn / 100),
-        ]);
-
-        if(request()->tax_ppn == null){
-            request()->merge([
-                'tax_ppn' => 0,
-            ]);
-        }
-
-        $profit_and_loss = request()->job_value - request()->price_total;
-
-        request()->merge([
-            'profit_and_loss' => $profit_and_loss,
-        ]);
-
-
         $request = $this->crud->validateRequest();
 
         $this->crud->registerFieldEvents();
+
+        $calculate = $this->calculateClientPo($request);
+        request()->merge($calculate);
 
         DB::beginTransaction();
         try{
@@ -121,6 +277,17 @@ class ClientPoCrudController extends CrudController
             $this->crud->setSaveAction();
 
             DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $item,
+                    'events' => [
+                        'crudTable-client_po_plugin_load' => true,
+                        'crudTable-client_po_create_success' => true
+                    ],
+                ]);
+            }
+
             return $this->crud->performSaveAction($item->getKey());
 
         }catch (\Exception $e) {
@@ -159,17 +326,10 @@ class ClientPoCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('update');
 
-        request()->merge([
-            'total_value_with_tax' => request()->job_value + (request()->job_value * request()->tax_ppn / 100),
-        ]);
-
-        if(request()->tax_ppn == null){
-            request()->merge([
-                'tax_ppn' => 0,
-            ]);
-        }
-
         $request = $this->crud->validateRequest();
+
+        $calculate = $this->calculateClientPo($request);
+        request()->merge($calculate);
 
         $this->crud->registerFieldEvents();
 
@@ -187,7 +347,14 @@ class ClientPoCrudController extends CrudController
             $this->crud->setSaveAction();
 
             DB::commit();
-
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => [
+                    'crudTable-client_po_plugin_load' => true,
+                    'crudTable-client_po_updated_success' => true
+                ]
+            ]);
             return $this->crud->performSaveAction($item->getKey());
 
         }catch (\Exception $e) {
@@ -241,12 +408,19 @@ class ClientPoCrudController extends CrudController
 
         CRUD::column(
             [
+                'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
+                'name' => 'reimburse_type',
+                'type'  => 'text'
+            ],
+        );
+
+        CRUD::column(
+            [
                 'label'  => trans('backpack::crud.client_po.column.work_code'),
                 'name' => 'work_code',
                 'type'  => 'text'
             ],
         );
-
 
         CRUD::column(
             [
@@ -266,8 +440,8 @@ class ClientPoCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.client_po.column.job_value'),
-                'name' => 'job_value',
+                'label'  => trans('backpack::crud.client_po.column.rap_value'),
+                'name' => 'rap_value',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,
@@ -276,25 +450,27 @@ class ClientPoCrudController extends CrudController
             ],
         );
 
-        CRUD::column([
-            'label'  => trans('backpack::crud.client_po.column.tax_ppn'),
-            'name' => 'tax_ppn',
-            'type'  => 'number',
-            'suffix' => '%',
-        ]);
-
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.client_po.column.total_value_with_tax'),
-                'name' => 'total_value_with_tax',
-                'type'  => 'number-custom',
+                'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
+                'name' => 'job_value_exclude_ppn',
+                'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
-                'function' => function($entry){
-                    return $entry->job_value + ($entry->job_value * $entry->tax_ppn / 100);
-                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+                'name' => 'job_value_include_ppn',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
             ],
         );
 
@@ -308,9 +484,13 @@ class ClientPoCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
-                'name' => 'reimburse_type',
-                'type'  => 'text'
+                'label'  => trans('backpack::crud.client_po.column.price_after_year'),
+                'name' => 'price_after_year',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
             ],
         );
 
@@ -338,6 +518,30 @@ class ClientPoCrudController extends CrudController
             ],
         );
 
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.load_general_value'),
+                'name' => 'load_general_value',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+         CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.profit_and_lost_final'),
+                'name' => 'profit_and_lost_final',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
         CRUD::column([
             'name'   => 'document_path',
             'type'   => 'upload',
@@ -347,9 +551,9 @@ class ClientPoCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.client_po.column.date_invoice'),
-                'name' => 'date_invoice',
-                'type'  => 'date'
+                'label'  => trans('backpack::crud.client_po.column.category'),
+                'name' => 'category',
+                'type'  => 'text'
             ],
         );
 
@@ -418,8 +622,7 @@ class ClientPoCrudController extends CrudController
             ]
         ]);
 
-
-        CRUD::addField([
+         CRUD::addField([
             'name' => 'job_name',
             'label' => trans('backpack::crud.client_po.field.job_name.label'),
             'type' => 'text',
@@ -428,6 +631,23 @@ class ClientPoCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.client_po.field.job_name.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'rap_value',
+            'label' => trans('backpack::crud.client_po.column.rap_value'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
             ]
         ]);
 
@@ -441,7 +661,7 @@ class ClientPoCrudController extends CrudController
             ],
             'prefix' => 'Rp',
             'wrapper'   => [
-                'class' => 'form-group col-md-4',
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'placeholder' => '000.000',
@@ -464,26 +684,49 @@ class ClientPoCrudController extends CrudController
             ]
         ]);
 
+        CRUD::addField([   // Hidden
+            'name'  => 'space_1',
+            'type'  => 'hidden',
+            'value' => 'active',
+            'wrapper'   => [
+                'class' => 'form-group col-md-2'
+            ],
+            'attributes' => [
+                'disabled'  => 'disabled',
+                // 'placeholder' => trans('backpack::crud.spk.field.')
+            ]
+        ]);
+
+        CRUD::addField([   // Hidden
+            'name'  => 'space_2',
+            'type'  => 'hidden',
+            'value' => 'active',
+            'wrapper'   => [
+                'class' => 'form-group col-md-2'
+            ],
+            'attributes' => [
+                'disabled'  => 'disabled',
+                // 'placeholder' => trans('backpack::crud.spk.field.')
+            ]
+        ]);
+
         CRUD::addField([
-            'name' => 'total_value_with_tax',
-            'label' => trans('backpack::crud.po.column.total_value_with_tax'),
-            'type' => 'number-disable-po',
+            'name' => 'job_value_include_ppn',
+            'label' => trans('backpack::crud.client_po.column.job_value_include_ppn_2'),
+            'type' => 'mask',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
             ],
-            'attributes' => [
-                'placeholder' => trans('backpack::crud.spk.field.total_value_with_tax.placeholder'),
-            ],
               // optionals
-            // 'attributes' => ["step" => "any"], // allow decimals
+            'attributes' => [
+                'disabled' => true,
+            ], // allow decimals
             'prefix'     => "Rp.",
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
         ]);
-
-
 
         CRUD::field([   // date_range
             'name'  => 'start_date,end_date', // db columns for start_date & end_date
@@ -515,6 +758,23 @@ class ClientPoCrudController extends CrudController
         ]);
 
         CRUD::addField([
+            'name' => 'price_after_year',
+            'label' => trans('backpack::crud.client_po.column.price_after_year'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
             'name' => 'price_total',
             'label' => trans('backpack::crud.client_po.field.price_total.label'),
             'type' => 'mask',
@@ -533,8 +793,8 @@ class ClientPoCrudController extends CrudController
 
         CRUD::addField([
             'name' => 'profit_and_loss',
-            'label' => trans('backpack::crud.client_po.field.profit_and_loss.label'),
-            'type' => 'number_profit_loss',
+            'label' => trans('backpack::crud.client_po.column.profit_and_loss'),
+            'type' => 'mask',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -545,7 +805,42 @@ class ClientPoCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => '000.000',
-                'disabled' => 'disabled',
+                'disabled' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'load_general_value',
+            'label' => trans('backpack::crud.client_po.column.load_general_value'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'profit_and_lost_final',
+            'label' => trans('backpack::crud.client_po.column.profit_and_lost_final'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+                'disabled' => true,
             ]
         ]);
 
@@ -563,22 +858,38 @@ class ClientPoCrudController extends CrudController
             ],
         ]);
 
-        CRUD::field([   // date_picker
-            'name'  => 'date_invoice',
-            'type'  => 'date_picker',
-            'label' => trans('backpack::crud.client_po.field.date_invoice.label'),
+        // CRUD::field([   // date_picker
+        //     'name'  => 'date_invoice',
+        //     'type'  => 'date_picker',
+        //     'label' => trans('backpack::crud.client_po.field.date_invoice.label'),
 
-            // optional:
-            'date_picker_options' => [
-                'language' => App::getLocale(),
-            ],
-            'wrapper'   => [
+        //     // optional:
+        //     'date_picker_options' => [
+        //         'language' => App::getLocale(),
+        //     ],
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        // ]);
+
+        CRUD::addField([  // Select2
+            'label'     => trans('backpack::crud.client_po.column.category'),
+            'type'      => 'select2_array',
+            'name'      => 'category',
+            'options'   => [
+                '' => trans('backpack::crud.voucher.field.payment_type.placeholder'),
+                'RUTIN' => 'RUTIN',
+                'NON RUTIN' => 'NON RUTIN',
+            ], // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+            'wrapper' => [
                 'class' => 'form-group col-md-6'
-            ],
+            ]
         ]);
 
-
-
+        CRUD::addField([
+            'name' => 'logic_client_po',
+            'type' => 'logic_client_po',
+        ]);
 
         /**
          * Fields can be defined using the fluent syntax:
@@ -599,11 +910,34 @@ class ClientPoCrudController extends CrudController
 
     protected function setupShowOperation()
     {
-        $this->setupCreateOperation();
-        CRUD::field('po_number')->remove();
-        CRUD::field('tax_ppn')->remove();
-        CRUD::field('space')->remove();
-        CRUD::field([
+        CRUD::field([   // 1-n relationship
+            'label'       => trans('backpack::crud.client_po.field.client_id.label'), // Table column heading
+            'type'        => "select2_ajax_custom",
+            'name'        => 'client_id', // the column that contains the ID of that connected entity
+            'entity'      => 'client', // the method that defines the relationship in your Model
+            'attribute'   => "name", // foreign key attribute that is shown to user
+            'data_source' => backpack_url('client/select2-client'), // url to controller search function (with /{id} should return a single entry)
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.client_po.field.client_id.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'work_code',
+            'label' => trans('backpack::crud.client_po.field.work_code.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.client_po.field.work_code.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
             'name' => 'po_number',
             'label' => trans('backpack::crud.client_po.field.po_number.label'),
             'type' => 'text',
@@ -614,9 +948,38 @@ class ClientPoCrudController extends CrudController
             'attributes' => [
                 'placeholder' => trans('backpack::crud.client_po.field.po_number.placeholder')
             ]
-        ])->after('work_code');
-        CRUD::field('job_value')->remove();
-        CRUD::field([
+        ]);
+
+        CRUD::addField([
+            'name' => 'job_name',
+            'label' => trans('backpack::crud.client_po.field.job_name.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.client_po.field.job_name.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'rap_value',
+            'label' => trans('backpack::crud.client_po.column.rap_value'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
             'name' => 'job_value',
             'label' => trans('backpack::crud.client_po.field.job_value.label'),
             'type' => 'mask',
@@ -631,31 +994,301 @@ class ClientPoCrudController extends CrudController
             'attributes' => [
                 'placeholder' => '000.000',
             ]
-        ])->after('job_name');
+        ]);
 
+        CRUD::addField([
+            'name' => 'job_value_include_ppn',
+            'label' => trans('backpack::crud.client_po.column.job_value_include_ppn_2'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+              // optionals
+            'attributes' => [
+                'disabled' => true,
+            ], // allow decimals
+            'prefix'     => "Rp.",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
 
-        $this->setupListOperation();
-        CRUD::column('row_number')->remove();
-        CRUD::column('tax_ppn')->remove();
-        CRUD::column('document_path')->remove();
+        CRUD::field([   // date_range
+            'name'  => 'start_date,end_date', // db columns for start_date & end_date
+            'label' => trans('backpack::crud.client_po.field.startdate_and_enddate.label'),
+            'type'  => 'date_range',
+
+            'date_range_options' => [
+                'drops' => 'down', // can be one of [down/up/auto]
+                // 'locale' => ['format' => 'DD/MM/YYYY']
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.client_po.field.startdate_and_enddate.placeholder'),
+            ]
+        ]);
+
+        CRUD::field([
+            'name'        => 'reimburse_type',
+            'label'       => trans('backpack::crud.client_po.field.reimburse_type.label'),
+            'type'        => 'select_from_array',
+            'options'     => ['' => trans('backpack::crud.client_po.field.reimburse_type.placeholder'), 'REIMBURSE' => 'REIMBURSE', 'NON REIMBURSE' => 'NON REIMBURSE'],
+            'allows_null' => false,
+             'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
+        ]);
+
+        CRUD::addField([
+            'name' => 'price_after_year',
+            'label' => trans('backpack::crud.client_po.column.price_after_year'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'price_total',
+            'label' => trans('backpack::crud.client_po.field.price_total.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'profit_and_loss',
+            'label' => trans('backpack::crud.client_po.column.profit_and_loss'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+                'disabled' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'profit_and_lost_final',
+            'label' => trans('backpack::crud.client_po.column.profit_and_lost_final'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => 'Rp',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+                'disabled' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'document_path',
+            'label' => trans('backpack::crud.client_po.field.document_path.label'),
+            'type' => 'upload',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+             'withFiles' => [
+                'disk' => 'public',
+                'path' => 'document_client_po',
+                'deleteWhenEntryIsDeleted' => true,
+            ],
+        ]);
+
+        CRUD::addField([  // Select2
+            'label'     => trans('backpack::crud.client_po.column.category'),
+            'type'      => 'select2_array',
+            'name'      => 'category',
+            'options'   => [
+                '' => trans('backpack::crud.voucher.field.payment_type.placeholder'),
+                'RUTIN' => 'RUTIN',
+                'NON RUTIN' => 'NON RUTIN',
+            ], // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+        //
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.client_po.column.client_id'),
+            'type'      => 'select',
+            'name'      => 'client_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'client', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Client", // foreign key model
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.client_po.field.document_path.label'),
-                'name' => 'document_path',
-                'type'  => 'text',
-                 'wrapper'   => [
-                    'element' => 'a', // the element will default to "a" so you can skip it here
-                    'href' => function ($crud, $column, $entry, $related_key) {
-                        if($entry->document_path != ''){
-                            return url('storage/document_client_po/'.$entry->document_path);
-                        }
-                        return "javascript:void(0)";
-                    },
-                    'target' => '_blank',
-                    // 'class' => 'some-class',
-                ],
+                'label'  => trans('backpack::crud.client_po.column.work_code'),
+                'name' => 'work_code',
+                'type'  => 'text'
             ],
-        )->after('profit_and_loss');
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.po_number'),
+                'name' => 'po_number',
+                'type'  => 'text'
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.job_name'),
+                'name' => 'job_name',
+                'type'  => 'text'
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.rap_value'),
+                'name' => 'rap_value',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.rap_value'),
+                'name' => 'job_value',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+                'name' => 'job_value_include_ppn',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
+                'name' => 'start_date,end_date',
+                'type'  => 'date_range_custom'
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
+                'name' => 'reimburse_type',
+                'type'  => 'text'
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.price_after_year'),
+                'name' => 'price_after_year',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.price_total'),
+                'name' => 'price_total',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.profit_and_loss'),
+                'name' => 'profit_and_loss',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.profit_and_lost_final'),
+                'name' => 'profit_and_lost_final',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.field.document_path.label'),
+            'name' => 'document_path',
+            'type'  => 'text',
+                'wrapper'   => [
+                'element' => 'a', // the element will default to "a" so you can skip it here
+                'href' => function ($crud, $column, $entry, $related_key) {
+                    if($entry->document_path != ''){
+                        return url('storage/document_client_po/'.$entry->document_path);
+                    }
+                    return "javascript:void(0)";
+                },
+                'target' => '_blank',
+                // 'class' => 'some-class',
+            ],
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.category'),
+                'name' => 'category',
+                'type'  => 'text'
+            ],
+        );
+
     }
 
     public function show($id)
@@ -682,5 +1315,22 @@ class ClientPoCrudController extends CrudController
         return response()->json([
             'html' => view($this->crud->getShowView(), $this->data)->render()
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+
+        // get entry ID from Request (makes sure its the last ID for nested resources)
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        $this->crud->delete($id);
+
+        $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+        $messages['events'] = [
+            'crudTable-client_po_plugin_load' => true,
+            'crudTable-client_po_create_success' => true,
+        ];
+        return response()->json($messages);
     }
 }

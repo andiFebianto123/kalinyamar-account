@@ -1,5 +1,7 @@
 <div class="row" bp-section="crud-operation-list">
-    <h5>{{$title}}</h5>
+    @if (!isset($hide_title))
+        <h5>{{$title}}</h5>
+    @endif
     {{-- THE ACTUAL CONTENT --}}
     <div class="{{ $crud->getListContentClass() }}">
 
@@ -33,6 +35,8 @@
         @endif
 
         <div class="{{ backpack_theme_config('classes.tableWrapper') }} andi">
+            <div id="panel-{{$name}}">
+            </div>
             <table
             id="crudTable-{{$name}}"
             class="{{ backpack_theme_config('classes.table') ?? 'table table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }}"
@@ -380,6 +384,46 @@
 
 @push('after_scripts')
     <script>
+        var filterValues = [];
+        function setupFilterInputs(tableId) {
+            const $table = $(tableId);
+            const totalColumns = $(tableId+' thead tr th').length;
+
+            $table.find('thead').append('<tr class="filters"></tr>');
+
+            $table.find('thead tr:first th').each(function (i) {
+                if (i === 0 || i === totalColumns - 1) {
+                    $table.find('thead tr.filters').append('<th><input type="hidden" /></th>');
+                } else {
+                    $table.find('thead tr.filters').append(
+                        `<th><input type="text" class="form-control form-control-sm" placeholder="" /></th>`
+                    );
+                }
+            });
+
+            $table.find('thead tr.filters th input').each(function (i) {
+                if (filterValues[i] !== undefined) {
+                    $(this).val(filterValues[i]);
+                }
+            });
+        }
+
+        function bindFilterEvents(tableInstance, tableId) {
+            const totalColumns = $(tableId).find('thead tr:first th').length;
+
+            tableInstance.columns().every(function (i) {
+                if (i !== 0 && i !== totalColumns - 1) {
+                    const column = this;
+                    const input = $(`${tableId} thead tr.filters th`).eq(i).find('input');
+                    input.on('change clear', function () {
+                        filterValues[i] = this.value;
+                        column.search(this.value).draw();
+                    });
+                }
+            });
+        }
+    </script>
+    <script>
         SIAOPS.setAttribute('crudTable-{{$name}}', function() {
             return {
                 id: $('#crudTable-{{$name}}'),
@@ -392,12 +436,20 @@
                         instance.table.ajax.reload();
                     });
 
+                    eventEmitter.on("crudTable-{{$name}}_create_success", function(data){
+                        instance.table.ajax.reload();
+                    });
+
+                    eventEmitter.on("crudTable-{{$name}}_updated_success", function(data){
+                        instance.table.ajax.reload();
+                    });
+
                     instance.table = $('#crudTable-{{$name}}').DataTable({
                         ...window.crud.dataTableConfiguration,
                         bInfo: true,
                         responsive: false,
                         scrollX: true,
-                        stateSave: true,
+                        stateSave: false,
                         stateSaveParams: function(settings, data) {
                             // localStorage.setItem('adminauthpermission_list_url_time', data.time);
                             data.columns.forEach(function(item, index) {
@@ -417,9 +469,27 @@
                         ajax: {
                             "url":  "{!! $route !!}",
                             "type": "POST",
-                            "data": {
-                                "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
+                            // "data": {
+                            //     "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
+                            // },
+                            data: function(d){
+                                d.totalEntryCount = "{{$crud->getOperationSetting('totalEntryCount') ?? false}}";
+                                const totalColumns = $('#crudTable-{{$name}}').find('thead tr:first th').length;
+                                $('#crudTable-{{$name}} thead tr.filters th').each(function (i) {
+                                    if (i !== 0 && i !== totalColumns - 1) {
+                                        const input = $(this).find('input');
+                                        if (input.length) {
+                                            d.columns[i].search.value = input.val();
+                                        }
+                                    }
+                                });
                             },
+                        },
+                        initComplete: function () {
+                            @if (isset($filter))
+                                setupFilterInputs('#crudTable-{{$name}}');
+                                bindFilterEvents(this.api(), '#crudTable-{{$name}}');
+                            @endif
                         },
                     });
                     // window.crud.updateUrl(location.href);
@@ -487,22 +557,26 @@
                     // });
 
                     $('#crudTable-{{$name}}').on( 'draw.dt',   function () {
-                        crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
-                            crud.executeFunctionByName(functionName);
-                        });
-                        if ($('#crudTable-{{$name}}').data('has-line-buttons-as-dropdown')) {
-                        formatActionColumnAsDropdown();
-                        }
+                       @if (isset($filter))
+                            setupFilterInputs('#crudTable-{{$name}}');
+                            bindFilterEvents(SIAOPS.getAttribute('crudTable-{{$name}}').table, '#crudTable-{{$name}}');
+                        @endif
+                        // crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+                        //     crud.executeFunctionByName(functionName);
+                        // });
+                        // if ($('#crudTable-{{$name}}').data('has-line-buttons-as-dropdown')) {
+                        // formatActionColumnAsDropdown();
+                        // }
 
-                        if (! instance.table.responsive.hasHidden()) {
-                            instance.table.columns().header()[0].style.paddingLeft = '0.6rem';
-                        }
+                        // if (! instance.table.responsive.hasHidden()) {
+                        //     instance.table.columns().header()[0].style.paddingLeft = '0.6rem';
+                        // }
 
-                        if (instance.table.responsive.hasHidden()) {
-                            $('.dtr-control').removeClass('d-none');
-                            $('.dtr-control').addClass('d-inline');
-                            $("#crudTable-{{$name}}").removeClass('has-hidden-columns').addClass('has-hidden-columns');
-                        }
+                        // if (instance.table.responsive.hasHidden()) {
+                        //     $('.dtr-control').removeClass('d-none');
+                        //     $('.dtr-control').addClass('d-inline');
+                        //     $("#crudTable-{{$name}}").removeClass('has-hidden-columns').addClass('has-hidden-columns');
+                        // }
 
                     }).dataTable();
 
@@ -536,20 +610,22 @@
                     @else
                         // make sure the column headings have the same width as the actual columns
                         // after the user manually resizes the window
-                        var resizeTimer;
-                        function resizeCrudTableColumnWidths() {
-                        clearTimeout(resizeTimer);
-                        resizeTimer = setTimeout(function() {
-                            // Run code here, resizing has "stopped"
-                            instance.table.columns.adjust();
-                        }, 250);
-                        }
-                        $(window).on('resize', function(e) {
-                        resizeCrudTableColumnWidths();
-                        });
-                        $('.sidebar-toggler').click(function() {
-                        resizeCrudTableColumnWidths();
-                        });
+                        @if (!isset($filter))
+                            var resizeTimer;
+                            function resizeCrudTableColumnWidths() {
+                            clearTimeout(resizeTimer);
+                            resizeTimer = setTimeout(function() {
+                                // Run code here, resizing has "stopped"
+                                instance.table.columns.adjust();
+                            }, 250);
+                            }
+                            $(window).on('resize', function(e) {
+                            resizeCrudTableColumnWidths();
+                            });
+                            $('.sidebar-toggler').click(function() {
+                            resizeCrudTableColumnWidths();
+                            });
+                        @endif
                     @endif
 
                 },

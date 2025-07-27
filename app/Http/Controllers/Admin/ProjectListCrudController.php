@@ -492,7 +492,7 @@ class ProjectListCrudController extends CrudController {
         if(request()->has('po_status')){
             $po_status = request()->po_status;
             if($po_status == 0){
-                $rule['no_po_spk'] = 'required|numeric';
+                $rule['no_po_spk'] = 'required|max:100';
                 $rule['po_date'] = 'required|date';
                 $rule['received_po_date'] = 'required|date';
             }
@@ -523,14 +523,26 @@ class ProjectListCrudController extends CrudController {
             ]
         ]);
 
+        // CRUD::addField([
+        //     'label'       => trans('backpack::crud.project.field.no_po_spk.label'), // Table column heading
+        //     'type'        => "select2_ajax_po_spk",
+        //     'name'        => 'no_po_spk',
+        //     'entity'      => 'setup_client',
+        //     'model'       => 'App\Models\SetupClient',
+        //     'attribute'   => "name",
+        //     'data_source' => backpack_url('fa/voucher/select2-po-spk'),
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6 no_po_spk',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => trans('backpack::crud.project.field.no_po_spk.placeholder'),
+        //     ]
+        // ]);
+
         CRUD::addField([
-            'label'       => trans('backpack::crud.project.field.no_po_spk.label'), // Table column heading
-            'type'        => "select2_ajax_po_spk",
-            'name'        => 'no_po_spk',
-            'entity'      => 'setup_client',
-            'model'       => 'App\Models\SetupClient',
-            'attribute'   => "name",
-            'data_source' => backpack_url('fa/voucher/select2-po-spk'),
+            'name' => 'no_po_spk',
+            'label' => trans('backpack::crud.project.field.no_po_spk.label'),
+            'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-6 no_po_spk',
             ],
@@ -676,7 +688,6 @@ class ProjectListCrudController extends CrudController {
                 "step" => "any",
                 'disabled' => true,
             ], // allow decimals
-            'prefix'     => "%",
             // 'suffix'     => ".00",
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
@@ -880,35 +891,36 @@ class ProjectListCrudController extends CrudController {
             $item->name = $request->name;
 
             if($po_status == 0){
-                $item->reference_type = ($request->no_type == 'po') ? PurchaseOrder::class : Spk::class;
-                $item->reference_id = $request->no_po_spk;
+                // $item->reference_type = ($request->no_type == 'po') ? PurchaseOrder::class : Spk::class;
+                // $item->reference_id = $request->no_po_spk;
+                $item->no_po_spk = $request->no_po_spk;
                 $item->po_date = $request->po_date;
                 $item->received_po_date = $request->received_po_date;
 
-                if($request->no_type == 'po'){
-                    $data_po_spk = PurchaseOrder::leftJoin('subkons', 'subkons.id', '=', 'purchase_orders.subkon_id')
-                    ->select(DB::raw("
-                        subkons.name as name_company,
-                        subkons.bank_name as bank_name,
-                        subkons.bank_account as bank_account,
-                        purchase_orders.id as id,
-                        purchase_orders.po_number as no_po_spk,
-                        purchase_orders.date_po as date_po_spk,
-                        'po' as type
-                    "))->where('purchase_orders.id',  $request->no_po_spk)->first();
-                }else{
-                    $data_po_spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
-                    ->select(DB::raw("
-                        subkons.name as name_company,
-                        subkons.bank_name as bank_name,
-                        subkons.bank_account as bank_account,
-                        spk.id as id,
-                        spk.no_spk as no_po_spk,
-                        spk.date_spk as date_po_spk,
-                        'spk' as type
-                    "))->where('spk.id',  $request->no_po_spk)->first();
-                }
-                $item->no_po_spk = $data_po_spk->no_po_spk;
+                // if($request->no_type == 'po'){
+                //     $data_po_spk = PurchaseOrder::leftJoin('subkons', 'subkons.id', '=', 'purchase_orders.subkon_id')
+                //     ->select(DB::raw("
+                //         subkons.name as name_company,
+                //         subkons.bank_name as bank_name,
+                //         subkons.bank_account as bank_account,
+                //         purchase_orders.id as id,
+                //         purchase_orders.po_number as no_po_spk,
+                //         purchase_orders.date_po as date_po_spk,
+                //         'po' as type
+                //     "))->where('purchase_orders.id',  $request->no_po_spk)->first();
+                // }else{
+                //     $data_po_spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
+                //     ->select(DB::raw("
+                //         subkons.name as name_company,
+                //         subkons.bank_name as bank_name,
+                //         subkons.bank_account as bank_account,
+                //         spk.id as id,
+                //         spk.no_spk as no_po_spk,
+                //         spk.date_spk as date_po_spk,
+                //         'spk' as type
+                //     "))->where('spk.id',  $request->no_po_spk)->first();
+                // }
+                // $item->no_po_spk = $data_po_spk->no_po_spk;
             }
 
             $item->po_status = $po_status;
@@ -978,50 +990,13 @@ class ProjectListCrudController extends CrudController {
         $this->crud->registerFieldEvents();
         $project = Project::find($id);
         $objdata = new \stdClass;
-
-        if($project->po_status == 0){
-            if($project->reference_type == PurchaseOrder::class){
-                $objdata->no_type = 'po';
-                $data_po_spk = PurchaseOrder::leftJoin('subkons', 'subkons.id', '=', 'purchase_orders.subkon_id')
-                ->select(DB::raw("
-                    subkons.name as name_company,
-                    subkons.bank_name as bank_name,
-                    subkons.bank_account as bank_account,
-                    purchase_orders.id as id,
-                    purchase_orders.po_number as no_po_spk,
-                    purchase_orders.date_po as date_po_spk,
-                    'po' as type
-                "))->where('purchase_orders.id', $project->reference_id)->first();
-            }else if($project->reference_type == Spk::class){
-                $objdata->no_type = 'spk';
-                $data_po_spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
-                ->select(DB::raw("
-                    subkons.name as name_company,
-                    subkons.bank_name as bank_name,
-                    subkons.bank_account as bank_account,
-                    spk.id as id,
-                    spk.no_spk as no_po_spk,
-                    spk.date_spk as date_po_spk,
-                    'spk' as type
-                "))->where('spk.id', $project->reference_id)->first();
-            }
-            $objdata->actual_price_ppn = $project->price_ppn;
-            $objdata->actual_price_total_include_ppn = $project->price_total_include_ppn;
-            $objdata->actual_duration = $project->duration;
-            $objdata->date_po_spk_str = Carbon::parse($project->date_po_spk)->format('d/m/Y');
-            $objdata->no_po_spk = $data_po_spk;
-            $objdata->po_status = $project->po_status;
-            $project->logic_project = $objdata;
-            $this->data['no_po_spk'] = $objdata;
-        }else{
-            $objdata->no_type = null;
-            $objdata->po_status = $project->po_status;
-            $objdata->actual_price_ppn = $project->price_ppn;
-            $objdata->actual_price_total_include_ppn = $project->price_total_include_ppn;
-            $objdata->actual_duration = $project->duration;
-            $this->data['no_po_spk'] = $objdata;
-            $project->logic_project = $objdata;
-        }
+        $objdata->no_type = null;
+        $objdata->po_status = $project->po_status;
+        $objdata->actual_price_ppn = $project->price_ppn;
+        $objdata->actual_price_total_include_ppn = $project->price_total_include_ppn;
+        $objdata->actual_duration = $project->duration;
+        $this->data['no_po_spk'] = $objdata;
+        $project->logic_project = $objdata;
 
 
         $this->data['entry'] = $project;
@@ -1064,14 +1039,14 @@ class ProjectListCrudController extends CrudController {
             $calculate = $this->calculateAll($request);
 
             if($po_status == 0){
-                $item->reference_type = ($request->no_type == 'po') ? PurchaseOrder::class : Spk::class;
-                if($old->reference_type != $item->reference_type){
-                    $flag_update = true;
-                }
-                $item->reference_id = $request->no_po_spk;
-                if($old->reference_id != $item->reference_id){
-                    $flag_update = true;
-                }
+                // $item->reference_type = ($request->no_type == 'po') ? PurchaseOrder::class : Spk::class;
+                // if($old->reference_type != $item->reference_type){
+                //     $flag_update = true;
+                // }
+                // $item->reference_id = $request->no_po_spk;
+                // if($old->reference_id != $item->reference_id){
+                //     $flag_update = true;
+                // }
                 $item->po_date = $request->po_date;
                 if($old->po_date != $item->po_date){
                     $flag_update = true;
@@ -1081,30 +1056,30 @@ class ProjectListCrudController extends CrudController {
                     $flag_update = true;
                 }
 
-                if($request->no_type == 'po'){
-                    $data_po_spk = PurchaseOrder::leftJoin('subkons', 'subkons.id', '=', 'purchase_orders.subkon_id')
-                    ->select(DB::raw("
-                        subkons.name as name_company,
-                        subkons.bank_name as bank_name,
-                        subkons.bank_account as bank_account,
-                        purchase_orders.id as id,
-                        purchase_orders.po_number as no_po_spk,
-                        purchase_orders.date_po as date_po_spk,
-                        'po' as type
-                    "))->where('purchase_orders.id',  $request->no_po_spk)->first();
-                }else{
-                    $data_po_spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
-                    ->select(DB::raw("
-                        subkons.name as name_company,
-                        subkons.bank_name as bank_name,
-                        subkons.bank_account as bank_account,
-                        spk.id as id,
-                        spk.no_spk as no_po_spk,
-                        spk.date_spk as date_po_spk,
-                        'spk' as type
-                    "))->where('spk.id',  $request->no_po_spk)->first();
-                }
-                $item->no_po_spk = $data_po_spk->no_po_spk;
+                // if($request->no_type == 'po'){
+                //     $data_po_spk = PurchaseOrder::leftJoin('subkons', 'subkons.id', '=', 'purchase_orders.subkon_id')
+                //     ->select(DB::raw("
+                //         subkons.name as name_company,
+                //         subkons.bank_name as bank_name,
+                //         subkons.bank_account as bank_account,
+                //         purchase_orders.id as id,
+                //         purchase_orders.po_number as no_po_spk,
+                //         purchase_orders.date_po as date_po_spk,
+                //         'po' as type
+                //     "))->where('purchase_orders.id',  $request->no_po_spk)->first();
+                // }else{
+                //     $data_po_spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
+                //     ->select(DB::raw("
+                //         subkons.name as name_company,
+                //         subkons.bank_name as bank_name,
+                //         subkons.bank_account as bank_account,
+                //         spk.id as id,
+                //         spk.no_spk as no_po_spk,
+                //         spk.date_spk as date_po_spk,
+                //         'spk' as type
+                //     "))->where('spk.id',  $request->no_po_spk)->first();
+                // }
+                $item->no_po_spk = $request->no_po_spk;
                 if($old->no_po_spk != $item->no_po_spk){
                     $flag_update = true;
                 }

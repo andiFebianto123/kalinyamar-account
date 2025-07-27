@@ -400,6 +400,12 @@ class StatusProjectCrudController extends CrudController {
             }
             $tabSetup[str_replace(' ', '_', $status->name)] = $tab;
         }
+        $tabSetup['resume'] = [
+            'name' => 'resume',
+            'label' => 'Resume',
+            'view' => 'crud::components.resume-project',
+            'params' => []
+        ];
         return $tabSetup;
     }
 
