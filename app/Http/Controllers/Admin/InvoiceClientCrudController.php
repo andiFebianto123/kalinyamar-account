@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
 use App\Http\Requests\InvoiceClientRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Validation\Rules\Can;
 
 /**
  * Class InvoiceClientCrudController
@@ -68,9 +69,9 @@ class InvoiceClientCrudController extends CrudController
         $id = request()->id;
         $entry = ClientPo::where('id', $id)->first();
 
-        $entry->date_invoice = Carbon::createFromFormat('Y-m-d', $entry->date_invoice)->format('d/m/Y');
+        $entry->date_invoice = ($entry->date_invoice) ? Carbon::createFromFormat('Y-m-d', $entry->date_invoice)->format('d/m/Y') : Carbon::now()->format('d/m/Y');
         $entry->job_value = CustomHelper::formatRupiah($entry->job_value);
-        $entry->total_value_with_tax = CustomHelper::formatRupiah($entry->total_value_with_tax);
+        $entry->total_value_with_tax = CustomHelper::formatRupiah($entry->job_value_include_ppn);
         $entry->client_name = $entry->client->name;
         return response()->json([
             'result' => $entry,
@@ -620,7 +621,7 @@ class InvoiceClientCrudController extends CrudController
             $invoice->description = $request->description;
             $invoice->invoice_date = $request->invoice_date;
             $invoice->client_po_id = $request->client_po_id;
-            $invoice->po_date = $po->date_invoice;
+            $invoice->po_date = Carbon::now();
             $invoice->tax_ppn = $request->tax_ppn;
             $invoice->price_dpp = $request->dpp_other;
             $invoice->kdp = $request->kdp;
@@ -700,7 +701,7 @@ class InvoiceClientCrudController extends CrudController
             $invoice->description = $request->description;
             $invoice->invoice_date = $request->invoice_date;
             $invoice->client_po_id = $request->client_po_id;
-            $invoice->po_date = $po->date_invoice;
+            $invoice->po_date = Carbon::now();
             $invoice->tax_ppn = $request->tax_ppn;
             $invoice->price_dpp = $request->dpp_other;
             $invoice->kdp = $request->kdp;

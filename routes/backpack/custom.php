@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\ClientPoCrudController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
 use App\Http\Controllers\Admin\VoucherPaymentCrudController;
 
@@ -37,6 +38,7 @@ Route::group([
 ], function () { // custom admin routes
     Route::crud('tag', 'TagCrudController');
     Route::crud('dashboard', 'DashboardController');
+    Route::get('dashboard/get-chart', [DashboardController::class, 'totalAlldashboard']);
     Route::prefix('auth')->group(function () {
         Route::crud('permission', 'PermissionCrudController');
         Route::crud('role', 'RoleCrudController');

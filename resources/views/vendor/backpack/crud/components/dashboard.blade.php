@@ -6,8 +6,8 @@
                     <div class="card2-header fs-6">Total Omzet (Exclude PPn)</div>
                 </div>
                 <div class="card2-body">
-                    <div class="sub-header">Per - 28 Mei 2025</div>
-                    <div class="amount">Rp46.000.000</div>
+                    <div class="sub-header">Per - <span class="date-invoice"></span></div>
+                    <div class="amount" id="omzet_all_total">Rp0</div>
                 </div>
 
             </div>
@@ -18,8 +18,8 @@
                     <div class="card2-header fs-6">Laba</div>
                 </div>
                 <div class="card2-body">
-                    <div class="sub-header">Per - 28 Mei 2025</div>
-                    <div class="amount">Rp5.000.000</div>
+                    <div class="sub-header">Per - <span class="date-invoice"></span></div>
+                    <div class="amount" id="laba_all_total">Rp0</div>
                 </div>
             </div>
         </div>
@@ -36,22 +36,22 @@
                             <div class="label fw-bold mb-1">Rutin</div>
                             <div class="item">
                                 <div class="icon blue"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Omzet<br><strong>Rp20.000.000</strong></div>
+                                <div>Omzet<br><strong id="rp_rutin_omzet_total">Rp0</strong></div>
                             </div>
                             <div class="item">
                                 <div class="icon cyan"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Biaya<br><strong>Rp18.000.000</strong></div>
+                                <div>Biaya<br><strong id="rp_rutin_biaya_total">Rp0</strong></div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="label fw-bold mb-1">Non Rutin</div>
                             <div class="item">
                                 <div class="icon orange"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Omzet<br><strong>Rp26.000.000</strong></div>
+                                <div>Omzet<br><strong id="rp_non_rutin_omzet_total">Rp0</strong></div>
                             </div>
                             <div class="item">
                                 <div class="icon pink"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Biaya<br><strong>Rp23.000.000</strong></div>
+                                <div>Biaya<br><strong id="rp_non_rutin_biaya_total">Rp0</strong></div>
                             </div>
                         </div>
                     </div>
@@ -67,20 +67,20 @@
                     <div class="row">
                         <div class="col">
                             <div class="btn mb-3">
-                                <button class="btn btn-primary btn-sm">Rutin</button>
+                                <button class="btn btn-primary btn-sm" id="btn-rutin">Rutin</button>
                             </div>
                             <div class="item">
                                 <div class="icon blue"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div><strong>Rp20.000.000</strong></div>
+                                <div><strong id="laba_rutin_total">Rp0</strong></div>
                             </div>
                         </div>
                         <div class="col">
                             <div class="btn mb-3">
-                                <button class="btn btn-primary btn-sm">Non Rutin</button>
+                                <button class="btn btn-primary btn-sm" id="btn-non-rutin">Non Rutin</button>
                             </div>
                             <div class="item">
                                 <div class="icon orange"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div><strong>Rp26.000.000</strong></div>
+                                <div><strong id="laba_non_rutin_total">Rp0</strong></div>
                             </div>
                         </div>
                     </div>
@@ -94,7 +94,7 @@
                 </div>
                 <div class="card2-body">
                     <div class="fs-5 fw-bold text-center mb-3">
-                       Per - 28 Mei 2025
+                       Per - <span class="date-invoice"></span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-borderless">
@@ -103,10 +103,16 @@
                                     <th>Total Nilai Pekerjaan</th>
                                     <th>Total Biaya Pekerjaan</th>
                                     <th>Laba Berjalan</th>
-                                    <th>JJumlah Pekerjaan</th>
+                                    <th>Jumlah Pekerjaan</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                @foreach ($data_monitoring as $item)
+                                    <th>Rp{{ ($item->total_job_value) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_job_value) : 0 }}</th>
+                                    <th>Rp{{ ($item->total_price_total) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_price_total) : 0 }}</th>
+                                    <th>Rp{{ ($item->total_profit_and_lost_final) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_profit_and_lost_final) : 0 }}</th>
+                                    <th>{{$item->total_po_number}}</th>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -124,37 +130,37 @@
                         <div class="col-md-4">
                             <div class="status-box red">
                                 <div class="status-title fs-6">UNPAID</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Unpaid_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box yellow">
                                 <div class="status-title fs-6">TERTUNDA</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Tertunda_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box blue">
                                 <div class="status-title fs-6">BELUM SELESAI</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Belum_Selesai_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box blue">
                                 <div class="status-title fs-6">RETENSI</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Retensi_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box yellow">
                                 <div class="status-title fs-6">BELUM ADA PO</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Belum_ada_PO_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box green">
                                 <div class="status-title fs-6">CLOSE</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Close">Rp0</div>
                             </div>
                         </div>
                     </div>
@@ -163,19 +169,19 @@
                         <div class="col-md-4">
                             <div class="status-box yellow">
                                 <div class="status-title fs-6">HPS</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="HPS_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box blue">
                                 <div class="status-title fs-6">QUOTATION</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Quotation_total">Rp0</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="status-box green">
                                 <div class="status-title fs-6">CLOSE</div>
-                                <div class="status-value">Rp5.000.00.000</div>
+                                <div class="status-value" id="Close_total">Rp0</div>
                             </div>
                         </div>
                     </div>
@@ -184,22 +190,22 @@
                             <div class="label fw-bold mb-1">Rutin</div>
                             <div class="item">
                                 <div class="icon blue"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Unpaid<br><strong>Rp20.000.000</strong></div>
+                                <div>Unpaid<br><strong id="Unpaid_rutin_total">Rp0</strong></div>
                             </div>
                             <div class="item">
                                 <div class="icon cyan"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Tertunda<br><strong>Rp18.000.000</strong></div>
+                                <div>Tertunda<br><strong id="Tertunda_rutin_total">Rp0</strong></div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="label fw-bold mb-1">Non Rutin</div>
                             <div class="item">
                                 <div class="icon orange"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Unpaid<br><strong>Rp26.000.000</strong></div>
+                                <div>Unpaid<br><strong id="Unpaid_non_rutin_total">Rp0</strong></div>
                             </div>
                             <div class="item">
                                 <div class="icon pink"><i class="la la-file-invoice-dollar fs-4"></i></div>
-                                <div>Tertunda<br><strong>Rp23.000.000</strong></div>
+                                <div>Tertunda<br><strong id="Tertunda_non_rutin_total">Rp0</strong></div>
                             </div>
                         </div>
                     </div>
@@ -317,5 +323,156 @@
 
 @push('after_scripts')
 <script>
+    $(function(){
+        SIAOPS.setAttribute('dashboard', function(){
+            return {
+                name: 'dashboard',
+                accounts_compact:[],
+                eventLoader: async function(){
+                    var instance = this;
+                    // eventEmitter.on("crudTable-voucher_plugin_load", function(data){
+                    //     instance.load();
+                    // });
+                },
+                load: function(){
+                    var instance = this;
+                    instance.eventLoader();
+                    $.ajax({
+                        url: "{{ url($crud->route.'/get-chart') }}",
+                        type: 'GET',
+                        typeData: 'json',
+                        success: function (result) {
+                            console.log(result);
+                            var date_invoice = $('.date-invoice');
+                            date_invoice.each(function(){
+                                $(this).html(result.first_invoice.invoice_first_date);
+                            });
+                            $('#rp_rutin_omzet_total').html('Rp'+result.total_job_realisasion.total_omzet_rutin);
+                            $('#rp_non_rutin_omzet_total').html('Rp'+result.total_job_realisasion.total_omzet_non_rutin);
+                            $('#rp_rutin_biaya_total').html('Rp'+result.total_job_realisasion.total_biaya_rutin);
+                            $('#rp_non_rutin_biaya_total').html('Rp'+result.total_job_realisasion.total_biaya_non_rutin);
+
+                            $('#laba_all_total').html('Rp'+result.total_laba_all.total_laba);
+
+                            $('#laba_rutin_total').html('Rp'+result.total_laba_category.total_laba_rutin);
+                            $('#laba_non_rutin_total').html('Rp'+result.total_laba_category.total_laba_non_rutin);
+
+                            $('#omzet_all_total').html('Rp'+result.total_omzet_all.total_omzet);
+
+                            var total_project = result.total_projects.list_projects;
+                            $('#Unpaid_total').html('Rp'+total_project.Unpaid);
+                            $('#Tertunda_total').html('Rp'+total_project.Tertunda);
+                            $('#Belum_Selesai_total').html('Rp'+total_project.Belum_Selesai);
+                            $('#Retensi_total').html('Rp'+total_project.Retensi);
+                            $('#Belum_ada_PO_total').html('Rp'+total_project.Belum_ada_PO);
+                            $('#Close').html('Rp'+total_project.Close);
+
+                            $('#Unpaid_rutin_total').html('Rp'+result.total_projects.total_unpaid_rutin);
+                            $('#Unpaid_non_rutin_total').html('Rp'+result.total_projects.total_unpaid_non_rutin);
+                            $('#Tertunda_rutin_total').html('Rp'+result.total_projects.total_tertunda_rutin);
+                            $('#Tertunda_non_rutin_total').html('Rp'+result.total_projects.total_tertunda_non_rutin);
+
+                            var quotation = result.total_quotations.list_quotations;
+                            $('#HPS_total').html('Rp'+quotation.HPS);
+                            $('#Quotation_total').html('Rp'+quotation.Quotation);
+                            $('#Close_total').html('Rp'+quotation.Close);
+                        },
+                        error: function (xhr, status, error) {
+                            console.error(xhr);
+                            alert('An error occurred while loading the create form.');
+                        }
+                    });
+                }
+            }
+        });
+
+        SIAOPS.getAttribute('dashboard').load();
+
+        $('#btn-rutin').click(function(){
+            $('#modalInfoLabaRutin').modal('show');
+        });
+        $('#btn-non-rutin').click(function(){
+            $('#modalInfoLabaNonRutin').modal('show');
+        });
+        $('.modal .btn-close').click(function(){
+            $('#modalInfoLabaRutin').modal('hide');
+            $('#modalInfoLabaNonRutin').modal('hide');
+        });
+    });
 </script>
+@endpush
+
+@push('after_scripts')
+<div class="modal fade" id="modalInfoLabaRutin" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center">
+                <h5 class="modal-title text-center w-100" id="modalTitleCentered">Tabel Pekerjaan Rutin</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless" style="width: 800px;">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>KDP</th>
+                                <th>Nama Pekerjaan</th>
+                                <th>Biaya</th>
+                                <th>Laba</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($data_laba['data_laba_rutin'] as $key => $laba)
+                                <tr>
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>{{ $laba->kdp }}</td>
+                                    <td>{{ $laba->job_name }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalInfoLabaNonRutin" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center">
+                <h5 class="modal-title text-center w-100" id="modalTitleCentered">Tabel Pekerjaan Rutin</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless" style="width: 800px;">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>KDP</th>
+                                <th>Nama Pekerjaan</th>
+                                <th>Biaya</th>
+                                <th>Laba</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($data_laba['data_laba_non_rutin'] as $key => $laba)
+                                <tr>
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>{{ $laba->kdp }}</td>
+                                    <td>{{ $laba->job_name }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endpush
