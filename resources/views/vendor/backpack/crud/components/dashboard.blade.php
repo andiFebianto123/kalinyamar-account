@@ -342,7 +342,7 @@
                         type: 'GET',
                         typeData: 'json',
                         success: function (result) {
-                            console.log(result);
+                            // console.log(result);
                             var date_invoice = $('.date-invoice');
                             date_invoice.each(function(){
                                 $(this).html(result.first_invoice.invoice_first_date);
