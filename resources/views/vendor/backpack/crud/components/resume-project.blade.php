@@ -1,16 +1,15 @@
 <div class="mt-2">
-    <div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="d-flex justify-content-between align-items-start mb-2">
     <div>
-      <strong class="fs-6">PER: Rabu, 28 Mei 2025</strong><br>
-      <strong class="fs-5">07:52</strong>
+      <strong class="fs-6" id="date-invoice">PER: Rabu, 28 Mei 2025</strong><br>
     </div>
     <div class="text-end">
-      <strong class="fs-6">Invoice Terlama 642 Hari</strong><br>
-      <strong class="fs-6">Nama Pekerjaan</strong>
+      <strong class="fs-6" id="duration-invoice">Invoice Terlama 642 Hari</strong><br>
+      <strong class="fs-6" id="name-invoice">Nama Pekerjaan</strong>
     </div>
   </div>
 
-  <div class="table-responsive mb-1">
+  {{-- <div class="table-responsive mb-1">
     <table class="table table-borderless">
         <thead class="bg-navy">
             <tr>
@@ -27,9 +26,9 @@
           </tr>
         </tbody>
     </table>
-  </div>
+  </div> --}}
 
-  <div class="table-responsive mb-1">
+  {{-- <div class="table-responsive mb-1">
     <table class="table table-borderless">
         <thead class="bg-navy">
             <tr>
@@ -44,9 +43,9 @@
           </tr>
         </tbody>
     </table>
-  </div>
+  </div> --}}
 
-  <div class="table-responsive mb-1">
+  {{-- <div class="table-responsive mb-1">
     <table class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
@@ -93,326 +92,101 @@
           </tr>
         </tbody>
     </table>
-  </div>
+  </div> --}}
 
   <div class="fs-6"><strong>KATEGORI TAGIHAN</strong></div>
   <div><strong>1. TAGIHAN YANG BELUM DIBAYAR</strong></div>
 
   <div class="table-responsive mt-2">
-    <table class="table table-borderless">
+    <table id="invoice_1" class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
                 <th style="width:4%;"><strong>No.</strong></th>
                 <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
+                <th style="width:70%;"><strong>Nominal Include PPn</strong></th>
             </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
         </tbody>
     </table>
   </div>
 
   <div class="mt-2"><strong>2. TAGIHAN TERTUNDA (RUTIN)</strong></div>
   <div class="table-responsive mt-2">
-    <table class="table table-borderless">
+    <table id="invoice_2" class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
                 <th style="width:4%;"><strong>No.</strong></th>
                 <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
+                <th style="width:70%;"><strong>Nominal Include PPn</strong></th>
             </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
+
         </tbody>
     </table>
   </div>
 
   <div class="mt-2"><strong>3. TAGIHAN TERTUNDA (PROJECT)</strong></div>
   <div class="table-responsive mt-2">
-    <table class="table table-borderless">
+    <table id="invoice_3" class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
                 <th style="width:4%;"><strong>No.</strong></th>
                 <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
+                <th style="width:70%;"><strong>Nominal Include PPn</strong></th>
             </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
+
         </tbody>
     </table>
   </div>
 
-  <div class="mt-2"><strong>4. TAGIHAN TERTUNDA (PK PLN)</strong></div>
+  <div class="mt-2"><strong>4. TAGIHAN RETENSI</strong></div>
   <div class="table-responsive mt-2">
-    <table class="table table-borderless">
+    <table id="invoice_4" class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
                 <th style="width:4%;"><strong>No.</strong></th>
                 <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
+                <th style="width:70%;"><strong>Nominal Include PPn</strong></th>
             </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
+
         </tbody>
     </table>
   </div>
 
-  <div class="mt-2"><strong>5. TAGIHAN RETENSI</strong></div>
+  <div class="mt-2"><strong>5. PEKERJAAN YANG BELUM SELESAI (RUTIN)</strong></div>
   <div class="table-responsive mt-2">
-    <table class="table table-borderless">
+    <table id="invoice_5" class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
                 <th style="width:4%;"><strong>No.</strong></th>
                 <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
+                <th style="width:70%;"><strong>Nominal Include PPn</strong></th>
             </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
+
         </tbody>
     </table>
   </div>
 
-  <div class="mt-2"><strong>6. PEKERJAAN YANG BELUM SELESAI (RUTIN)</strong></div>
+  <div class="mt-2"><strong>6. PEKERJAAN YANG BELUM SELESAI (PROJECT)</strong></div>
   <div class="table-responsive mt-2">
-    <table class="table table-borderless">
+    <table id="invoice_6" class="table table-borderless">
         <thead class="bg-light-actual">
             <tr>
                 <th style="width:4%;"><strong>No.</strong></th>
                 <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
+                <th style="width:70%;"><strong>Nominal Include PPn</strong></th>
             </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
-        </tbody>
-    </table>
-  </div>
 
-  <div class="mt-2"><strong>7. PEKERJAAN YANG BELUM SELESAI (PROJECT)</strong></div>
-  <div class="table-responsive mt-2">
-    <table class="table table-borderless">
-        <thead class="bg-light-actual">
-            <tr>
-                <th style="width:4%;"><strong>No.</strong></th>
-                <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
-        </tbody>
-    </table>
-  </div>
-
-  <div class="mt-2"><strong>8. PEKERJAAN YANG BELUM SELESAI (PK PLN)</strong></div>
-  <div class="table-responsive mt-2">
-    <table class="table table-borderless">
-        <thead class="bg-light-actual">
-            <tr>
-                <th style="width:4%;"><strong>No.</strong></th>
-                <th style="width:26%;"><strong>Nama Perusahaan</strong></th>
-                <th style="width:40%;"><strong>Nominal Include PPn</strong></th>
-                <th style="width:30%;"><strong>Estimasi ke Rekening</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1.</td>
-            <td>PT ABC</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>PT DEF</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr>
-            <td>3.</td>
-            <td>PT GHI</td>
-            <td>Rp4.000.000.000.000</td>
-            <td>Rp4.000.000.000.000</td>
-          </tr>
-          <tr class="bg-light-actual">
-            <td></td>
-            <td></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-            <td><strong>Rp.12.000.000.000.000</strong></td>
-          </tr>
         </tbody>
     </table>
   </div>
@@ -422,8 +196,7 @@
         <thead class="bg-navy">
             <tr>
                 <th colspan="2" style="width:30%;"><strong>GRAND TOTAL</strong></th>
-                <th style="width:40%;"><strong>Rp.96.000.000.000</strong></th>
-                <th style="width:30%;"><strong>Rp.96.000.000.000</strong></th>
+                <th style="width:70%;"><strong id="grand_total">Rp0</strong></th>
             </tr>
         </thead>
     </table>
@@ -517,5 +290,152 @@
 
 @push('after_scripts')
 <script>
+    $(function(){
+        SIAOPS.setAttribute('resume-project', function(){
+            return {
+                name: 'resume-project',
+                accounts_compact:[],
+                eventLoader: async function(){
+                    var instance = this;
+                    eventEmitter.on("crudTable-resume-project_load", function(data){
+                        instance.load();
+                    });
+                },
+                load: function(){
+                    var instance = this;
+                    instance.eventLoader();
+                    $.ajax({
+                        url: "{{ url($crud->route.'/resume-total') }}",
+                        type: 'GET',
+                        typeData: 'json',
+                        success: function (result) {
+                            // console.log(result);
+
+                            $('#date-invoice').html(`PER: ${result.list.tgl_start_invoice || ''}`);
+                            $('#duration-invoice').html(`Invoice Terlama ${result.list.invoice_old.duration || ''} Hari`);
+                            $('#name-invoice').html(`${result.list.invoice_old.name || ''}`);
+
+                            $('#invoice_1 tbody').html('');
+                            // console.log(result.list.invoice_1);
+                            forEachFlexible(result.list.invoice_1, function(index, value){
+                                $('#invoice_1 tbody').append(`
+                                    <tr>
+                                        <td>${(index+1)}</td>
+                                        <td>${value.setup_client.name}</td>
+                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                    <tr>
+                                `);
+                            });
+                            $('#invoice_1 tbody').append(`
+                                <tr class="bg-light-actual">
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Rp${formatRupiah(result.list.invoice_1_total)}</strong></td>
+                                </tr>
+                            `);
+
+                            $('#invoice_2 tbody').html('');
+                            forEachFlexible(result.list.invoice_2, function(index, value){
+                                $('#invoice_2 tbody').append(`
+                                    <tr>
+                                        <td>${index+1}</td>
+                                        <td>${value.setup_client.name}</td>
+                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                    <tr>
+                                `);
+                            });
+                            $('#invoice_2 tbody').append(`
+                                <tr class="bg-light-actual">
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Rp${formatRupiah(result.list.invoice_2_total)}</strong></td>
+                                </tr>
+                            `);
+
+                            $('#invoice_3 tbody').html('');
+                            forEachFlexible(result.list.invoice_3, function(index, value){
+                                $('#invoice_3 tbody').append(`
+                                    <tr>
+                                        <td>${index+1}</td>
+                                        <td>${value.setup_client.name}</td>
+                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                    <tr>
+                                `);
+                            });
+                            $('#invoice_3 tbody').append(`
+                                <tr class="bg-light-actual">
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Rp${formatRupiah(result.list.invoice_3_total)}</strong></td>
+                                </tr>
+                            `);
+
+                            $('#invoice_4 tbody').html('');
+                            forEachFlexible(result.list.invoice_4, function(index, value){
+                                $('#invoice_4 tbody').append(`
+                                    <tr>
+                                        <td>${index+1}</td>
+                                        <td>${value.setup_client.name}</td>
+                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                    <tr>
+                                `);
+                            });
+                            $('#invoice_4 tbody').append(`
+                                <tr class="bg-light-actual">
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Rp${formatRupiah(result.list.invoice_4_total)}</strong></td>
+                                </tr>
+                            `);
+
+                            $('#invoice_5 tbody').html('');
+                            forEachFlexible(result.list.invoice_5, function(index, value){
+                                $('#invoice_5 tbody').append(`
+                                    <tr>
+                                        <td>${index+1}</td>
+                                        <td>${value.setup_client.name}</td>
+                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                    <tr>
+                                `);
+                            });
+                            $('#invoice_5 tbody').append(`
+                                <tr class="bg-light-actual">
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Rp${formatRupiah(result.list.invoice_5_total)}</strong></td>
+                                </tr>
+                            `);
+
+                            $('#invoice_6 tbody').html('');
+                            forEachFlexible(result.list.invoice_6, function(index, value){
+                                $('#invoice_6 tbody').append(`
+                                    <tr>
+                                        <td>${index+1}</td>
+                                        <td>${value.setup_client.name}</td>
+                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                    <tr>
+                                `);
+                            });
+                            $('#invoice_6 tbody').append(`
+                                <tr class="bg-light-actual">
+                                    <td></td>
+                                    <td></td>
+                                    <td><strong>Rp${formatRupiah(result.list.invoice_6_total)}</strong></td>
+                                </tr>
+                            `);
+
+                            $('#grand_total').html(`Rp${result.grand_total}`);
+
+                        },
+                        error: function (xhr, status, error) {
+                            console.error(xhr);
+                            alert('An error occurred while loading the create form.');
+                        }
+                    });
+                }
+            }
+        });
+        SIAOPS.getAttribute('resume-project').load();
+    });
 </script>
 @endpush

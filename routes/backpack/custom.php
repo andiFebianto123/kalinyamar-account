@@ -2,15 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AssetCrudController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\VoucherCrudController;
+use App\Http\Controllers\Admin\ClientPoCrudController;
 use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
-use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
-use App\Http\Controllers\Admin\ClientPoCrudController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
+use App\Http\Controllers\Admin\StatusProjectCrudController;
 use App\Http\Controllers\Admin\VoucherPaymentCrudController;
+use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
+use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -107,6 +108,7 @@ Route::group([
         Route::crud('quotation-status', 'StatusQuotaionCrudController');
         Route::crud('quotation-check', 'QuotationCheckCrudController');
         Route::crud('project-status', 'StatusProjectCrudController');
+        Route::get('project-status/resume-total', [StatusProjectCrudController::class, 'resumeTotal']);
     });
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);

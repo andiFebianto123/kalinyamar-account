@@ -10,6 +10,7 @@ use App\Models\SetupStatusProject;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
+use App\Http\Helpers\CustomHelper;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 
@@ -439,6 +440,104 @@ class StatusProjectCrudController extends CrudController {
         // $list = "crud::list-custom" ?? $this->crud->getListView();
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
+    }
+
+    public function resumeTotal(){
+        $invoiceold = Project::where('status_po', 'UNPAID')
+        ->orderBy('total_progress_day', 'DESC')
+        ->first();
+
+        $data['invoice_old'] = $invoiceold;
+        $data['tgl_start_invoice'] = Carbon::parse($invoiceold->invoice_date)->locale(App::getLocale())->isoFormat('dddd, D MMMM Y');
+
+        $invoice_1 = Project::where('status_po', 'UNPAID')
+        ->orderBy('id', 'DESC')
+        ->get();
+        $data['invoice_1'] = $invoice_1;
+
+        $grand_total = 0;
+
+        $total_invoice_1 = 0;
+        foreach($invoice_1 as $val1){
+            $total_invoice_1 += $val1->price_total_include_ppn;
+            $val1->price_total_include_ppn_str = CustomHelper::formatRupiah($val1->price_total_include_ppn);
+            $val1->client_name_str = $val1->setup_client->name;
+        }
+        $grand_total += $total_invoice_1;
+        $data['invoice_1_total'] = $total_invoice_1;
+
+        $invoice_2 = Project::where('status_po', 'UNPAID')
+        ->where('category', 'RUTIN')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_2'] = $invoice_2;
+
+        $total_invoice_2 = 0;
+        foreach($invoice_2 as $val2){
+            $total_invoice_2 += $val2->price_total_include_ppn;
+            $val2->price_total_include_ppn_str = CustomHelper::formatRupiah($val2->price_total_include_ppn);
+            $val2->client_name_str = $val2->setup_client->name;
+        }
+        $grand_total += $total_invoice_1;
+        $data['invoice_2_total'] = $total_invoice_2;
+
+
+        $invoice_3 = Project::where('status_po', 'TERTUNDA')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_3'] = $invoice_3;
+
+        $total_invoice_3 = 0;
+        foreach($invoice_3 as $val3){
+            $total_invoice_3 += $val3->price_total_include_ppn;
+            $val3->price_total_include_ppn_str = CustomHelper::formatRupiah($val3->price_total_include_ppn);
+            $val3->client_name_str = $val3->setup_client->name;
+        }
+        $grand_total += $total_invoice_3;
+        $data['invoice_3_total'] = $total_invoice_3;
+
+        $invoice_4 = Project::where('status_po', 'RETENSI')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_4'] = $invoice_4;
+
+        $total_invoice_4 = 0;
+        foreach($invoice_4 as $val4){
+            $total_invoice_4 += $val4->price_total_include_ppn;
+            $val4->price_total_include_ppn_str = CustomHelper::formatRupiah($val4->price_total_include_ppn);
+            $val4->client_name_str = $val4->setup_client->name;
+        }
+        $grand_total += $total_invoice_4;
+        $data['invoice_4_total'] = $total_invoice_4;
+
+        $invoice_5 = Project::where('status_po', 'BELUM SELESAI')
+        ->where('category', 'RUTIN')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_5'] = $invoice_5;
+
+        $total_invoice_5 = 0;
+        foreach($invoice_5 as $val5){
+            $total_invoice_5 += $val5->price_total_include_ppn;
+            $val5->price_total_include_ppn_str = CustomHelper::formatRupiah($val5->price_total_include_ppn);
+            $val5->client_name_str = $val5->setup_client->name;
+        }
+        $grand_total += $total_invoice_5;
+        $data['invoice_5_total'] = $total_invoice_5;
+
+        $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_6'] = $invoice_6;
+
+        $total_invoice_6 = 0;
+        foreach($invoice_6 as $val6){
+            $total_invoice_6 += $val6->price_total_include_ppn;
+            $val6->price_total_include_ppn_str = CustomHelper::formatRupiah($val6->price_total_include_ppn);
+            $val6->client_name_str = $val6->setup_client->name;
+        }
+        $grand_total += $total_invoice_6;
+        $data['invoice_6_total'] = $total_invoice_6;
+
+        return response()->json([
+            'list' => $data,
+            'grand_total' => CustomHelper::formatRupiah($grand_total),
+        ]);
     }
 
     protected function setupListOperation()
@@ -911,7 +1010,7 @@ class StatusProjectCrudController extends CrudController {
 
         $this->data['entry'] = $project;
 
-        $this->fieldEditProject($project->status_po);
+        $this->fieldEditProject(strtoupper($project->status_po));
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
 
         $this->data['crud'] = $this->crud;
