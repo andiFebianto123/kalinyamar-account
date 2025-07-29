@@ -39,7 +39,7 @@ class StatusProjectCrudController extends CrudController {
                 ]
             ];
             $tab['params']['route'] = url($this->crud->route.'/search?tab='.$status->name);
-            if($status->name == 'Unpaid'){
+            if($status->name == 'UNPAID'){
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -95,7 +95,7 @@ class StatusProjectCrudController extends CrudController {
                         'label' =>  trans('backpack::crud.actions'),
                     ]
                 ];
-            }else if($status->name == 'Tertunda'){
+            }else if($status->name == 'TERTUNDA'){
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -158,7 +158,7 @@ class StatusProjectCrudController extends CrudController {
                         'orderable' => false,
                     ],
                 ];
-            }else if($status->name == 'Belum Selesai'){
+            }else if($status->name == 'BELUM SELESAI'){
                  $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -239,7 +239,7 @@ class StatusProjectCrudController extends CrudController {
                         'orderable' => false,
                     ],
                  ];
-            }else if($status->name == 'Retensi'){
+            }else if($status->name == 'RETENSI'){
                  $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -278,7 +278,7 @@ class StatusProjectCrudController extends CrudController {
                         'orderable' => false,
                     ],
                  ];
-            }else if($status->name == 'Belum ada PO'){
+            }else if($status->name == 'BELUM ADA PO'){
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -341,7 +341,7 @@ class StatusProjectCrudController extends CrudController {
                         'orderable' => false,
                     ],
                 ];
-            }else if($status->name == 'Close'){
+            }else if($status->name == 'CLOSE'){
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -460,7 +460,7 @@ class StatusProjectCrudController extends CrudController {
         }
         $this->crud->addClause('where', 'status_po', $type);
 
-        if($type == 'Unpaid'){
+        if($type == 'UNPAID'){
             CRUD::addButtonFromView('line', 'update-unpaid-project', 'update-unpaid-project', 'beginning');
             CRUD::addColumn([
                 'name'      => 'row_number',
@@ -525,7 +525,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'Tertunda'){
+        }else if($type == 'TERTUNDA'){
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -603,7 +603,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'Belum Selesai'){
+        }else if($type == 'BELUM SELESAI'){
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -702,7 +702,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'Retensi'){
+        }else if($type == 'RETENSI'){
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -753,7 +753,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'Belum ada PO'){
+        }else if($type == 'BELUM ADA PO'){
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -831,7 +831,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'Close'){
+        }else if($type == 'CLOSE'){
             CRUD::addButtonFromView('line', 'update-close-project', 'update-close-project', 'beginning');
             CRUD::addColumn([
                 'name'      => 'row_number',
@@ -1007,7 +1007,7 @@ class StatusProjectCrudController extends CrudController {
             ]
         ]);
 
-        if($po_status == 'Unpaid'){
+        if($po_status == 'UNPAID'){
             CRUD::addField([   // date_picker
                 'name'  => 'invoice_date',
                 'type'  => 'date_picker',
@@ -1035,7 +1035,7 @@ class StatusProjectCrudController extends CrudController {
                     'class' => 'form-group col-md-6'
                 ],
             ]);
-        }else if($po_status == 'Close'){
+        }else if($po_status == 'CLOSE'){
             CRUD::addField([   // date_picker
                 'name'  => 'invoice_date',
                 'type'  => 'date_picker',
@@ -1096,7 +1096,7 @@ class StatusProjectCrudController extends CrudController {
             $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
             $item = Project::find($this->crud->getCurrentEntryId());
 
-            if($item->status_po == 'Unpaid'){
+            if($item->status_po == 'UNPAID'){
                 if($old->invoice_date != $request->invoice_date){
                     $flag_update = 1;
                 }
@@ -1106,7 +1106,7 @@ class StatusProjectCrudController extends CrudController {
                     $flag_update = 1;
                 }
                 $item->total_progress_day = $request->total_progress_day;
-            }else if($item->status_po == 'Close'){
+            }else if($item->status_po == 'CLOSE'){
                 if($old->invoice_date != $request->invoice_date){
                     $flag_update = 1;
                 }
