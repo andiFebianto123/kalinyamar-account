@@ -8,6 +8,7 @@ use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
 use App\Models\AccountTransaction;
+use App\Models\SetupClient;
 use Illuminate\Support\Facades\DB;
 
 class CustomHelper {
@@ -65,6 +66,20 @@ class CustomHelper {
 
         foreach($dataset as $po){
             $results[] = $po->category;
+        }
+        return $results;
+    }
+
+    public static function getOptionProjectClient(){
+        $dataset = SetupClient::select(DB::raw("id, name"))
+        ->distinct()->get();
+        $results = [];
+
+        foreach($dataset as $po){
+            $results[] = [
+                'id' => $po->id,
+                'text' => $po->name,
+            ];
         }
         return $results;
     }

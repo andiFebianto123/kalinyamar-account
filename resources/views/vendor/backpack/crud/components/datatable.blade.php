@@ -406,6 +406,7 @@
         SIAOPS.setAttribute('crudTable-{{$name}}', function() {
             return {
                 id: $('#crudTable-{{$name}}'),
+                route: "{!! url($route) !!}",
                 table: null,
                 eventLoader: function(){
                     // event when create success

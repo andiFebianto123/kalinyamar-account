@@ -283,6 +283,18 @@ class ProjectListCrudController extends CrudController {
                 }
             }
 
+            if(request()->has('filter_client')){
+                if(request()->filter_client != 'all'){
+                    $this->crud->query = $this->crud->query
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                        ->from('setup_clients')
+                        ->whereRaw('setup_clients.id = projects.client_id')
+                        ->where('setup_clients.id', request()->filter_client);
+                    });
+                }
+            }
+
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -461,6 +473,23 @@ class ProjectListCrudController extends CrudController {
                             ->from('projects')
                             ->whereRaw('projects.id = project_history.project_id')
                             ->where('projects.category', $filter_category);
+                    });
+                }
+            }
+
+            if(request()->has('filter_client')){
+                if(request()->filter_client != 'all'){
+                    $this->crud->query = $this->crud->query
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                        ->from('projects')
+                        ->whereRaw('projects.id = project_history.project_id')
+                        ->whereExists(function ($query) {
+                            $query->select(DB::raw(1))
+                            ->from('setup_clients')
+                            ->whereRaw('setup_clients.id = projects.client_id')
+                            ->where('setup_clients.id', request()->filter_client);
+                        });
                     });
                 }
             }
@@ -922,7 +951,7 @@ class ProjectListCrudController extends CrudController {
             'price_total_include_ppn_masked' => $totalWithPpn,
             'actual_price_ppn' => $nilaiPpn,
             'actual_price_total_include_ppn' => $totalWithPpn,
-            'actual_duration' => ($request->actual_end_date) ? $this->hitungDurasiHari($request->actual_end_date) : null,
+            'actual_duration' => ($request->actual_end_date) ? $this->hitungDurasiHari($request->actual_end_date) : 0,
         ];
         return $data;
     }

@@ -466,7 +466,7 @@ class StatusProjectCrudController extends CrudController {
         $grand_total += $total_invoice_1;
         $data['invoice_1_total'] = $total_invoice_1;
 
-        $invoice_2 = Project::where('status_po', 'UNPAID')
+        $invoice_2 = Project::where('status_po', 'TERTUNDA')
         ->where('category', 'RUTIN')
         ->orderBy('id', 'DESC')->get();
         $data['invoice_2'] = $invoice_2;
@@ -482,6 +482,7 @@ class StatusProjectCrudController extends CrudController {
 
 
         $invoice_3 = Project::where('status_po', 'TERTUNDA')
+        ->where('category', 'NON RUTIN')
         ->orderBy('id', 'DESC')->get();
         $data['invoice_3'] = $invoice_3;
 
@@ -522,6 +523,7 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_5_total'] = $total_invoice_5;
 
         $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
+        ->where('category', 'NON RUTIN')
         ->orderBy('id', 'DESC')->get();
         $data['invoice_6'] = $invoice_6;
 
@@ -555,6 +557,17 @@ class StatusProjectCrudController extends CrudController {
         if(request()->has('filter_category')){
             if(request()->filter_category != 'all'){
                 $this->crud->addClause('where', 'category', request()->filter_category);
+            }
+        }
+        if(request()->has('filter_client')){
+            if(request()->filter_client != 'all'){
+                $this->crud->query = $this->crud->query
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                    ->from('setup_clients')
+                    ->whereRaw('setup_clients.id = projects.client_id')
+                    ->where('setup_clients.id', request()->filter_client);
+                });
             }
         }
         $this->crud->addClause('where', 'status_po', $type);
@@ -1178,11 +1191,27 @@ class StatusProjectCrudController extends CrudController {
             ]
         ]);
 
+        CRUD::addField([
+            'label' => '',
+            'name' => 'logic-status-project-unpaid',
+            'type' => 'logic-status-project-unpaid',
+        ]);
+
     }
 
     public function update()
     {
         $this->crud->hasAccessOrFail('update');
+
+        $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
+
+        if($old->status_po == 'CLOSE'){
+            $rule = [
+                'invoice_date' => 'nullable|date',
+                'payment_date' => 'nullable|date|after_or_equal:invoice_date',
+            ];
+            CRUD::setValidation($rule);
+        }
 
         $request = $this->crud->validateRequest();
 
@@ -1192,7 +1221,6 @@ class StatusProjectCrudController extends CrudController {
         DB::beginTransaction();
         try{
 
-            $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
             $item = Project::find($this->crud->getCurrentEntryId());
 
             if($item->status_po == 'UNPAID'){

@@ -165,6 +165,7 @@ return [
         'all_paid' => 'Semua',
         'change_order' => 'Ubah Urutan',
         'all_category' => 'Semua Kategori',
+        'all_client' => 'Semua Client',
     ],
 
     'card' => [

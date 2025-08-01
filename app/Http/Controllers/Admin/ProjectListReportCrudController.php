@@ -7,6 +7,7 @@ use App\Models\SetupPpn;
 use App\Models\SetupClient;
 use App\Models\CategoryProject;
 use App\Models\SetupStatusProject;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -64,6 +65,18 @@ class ProjectListReportCrudController extends CrudController {
         if(request()->has('filter_category')){
             if(request()->filter_category != 'all'){
                 $this->crud->addClause('where', 'category', request()->filter_category);
+            }
+        }
+
+        if(request()->has('filter_client')){
+            if(request()->filter_client != 'all'){
+                $this->crud->query = $this->crud->query
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                    ->from('setup_clients')
+                    ->whereRaw('setup_clients.id = projects.client_id')
+                    ->where('setup_clients.id', request()->filter_client);
+                });
             }
         }
 
