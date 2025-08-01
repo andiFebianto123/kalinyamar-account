@@ -99,6 +99,12 @@ class QuotationCrudController extends CrudController {
                                     'orderable' => true,
                                 ],
                                 [
+                                    'label' => trans('backpack::crud.quotation.column.rfq_date.label'),
+                                    'type' => 'text',
+                                    'name' => 'rfq_date',
+                                    'orderable' => true,
+                                ],
+                                [
                                     'label' => trans('backpack::crud.quotation.column.status.label'),
                                     'type' => 'text',
                                     'name' => 'status',
@@ -108,6 +114,12 @@ class QuotationCrudController extends CrudController {
                                     'label' => trans('backpack::crud.quotation.column.information.label'),
                                     'type' => 'text',
                                     'name' => 'information',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => 'Dokumen Penawaran',
+                                    'type' => 'text',
+                                    'name' => 'document_path',
                                     'orderable' => false,
                                 ],
                                 [
@@ -162,6 +174,14 @@ class QuotationCrudController extends CrudController {
                     ]
                 ]
             ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'hightlight',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::components.hightligh-column',
         ]);
 
         $this->data['crud'] = $this->crud;
@@ -226,6 +246,7 @@ class QuotationCrudController extends CrudController {
             'client_id' => 'required|exists:setup_clients,id',
             'pic' => 'required',
             'closing_date' => 'required',
+            'rfq_date' => 'nullable|date',
             'status' => 'required',
         ];
     }
@@ -356,6 +377,20 @@ class QuotationCrudController extends CrudController {
             ],
         ]);
 
+        CRUD::addField([   // date_picker
+            'name'  => 'rfq_date',
+            'type'  => 'date_picker',
+            'label' => trans('backpack::crud.quotation.field.rfq_date.label'),
+
+            // optional:
+            'date_picker_options' => [
+                'language' => App::getLocale(),
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
         $status_po = SetupOffering::pluck('name', 'name');
 
         $status_po_option = [
@@ -386,6 +421,20 @@ class QuotationCrudController extends CrudController {
             'attributes' => [
                 'placeholder' => trans('backpack::crud.quotation.field.information.placeholder'),
             ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'document_path',
+            'label' => 'Dokumen Penawaran',
+            'type' => 'upload',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+             'withFiles' => [
+                'disk' => 'public',
+                'path' => 'document_quotation',
+                'deleteWhenEntryIsDeleted' => true,
+            ],
         ]);
 
     }
@@ -474,12 +523,21 @@ class QuotationCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
+
             CRUD::column([
                 'label'  => '',
                 'name' => 'closing_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
+
+            CRUD::column([
+                'label'  => '',
+                'name' => 'rfq_date',
+                'type'  => 'date',
+                'format' => 'D MMM Y'
+            ]);
+
             CRUD::column(
                 [
                     'label'  => '',
@@ -494,6 +552,23 @@ class QuotationCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
+
+            CRUD::column([
+                'label'  => 'Dokumen Penawaran',
+                'name' => 'document_path',
+                'type'  => 'text',
+                    'wrapper'   => [
+                    'element' => 'a', // the element will default to "a" so you can skip it here
+                    'href' => function ($crud, $column, $entry, $related_key) {
+                        if($entry->document_path != ''){
+                            return url('storage/'.$entry->document_path);
+                        }
+                        return "javascript:void(0)";
+                    },
+                    'target' => '_blank',
+                    // 'class' => 'some-class',
+                ],
+            ]);
         }else if($type == 'quotation_history'){
             CRUD::setModel(QuotationHistory::class);
             CRUD::disableResponsiveTable();
@@ -559,6 +634,7 @@ class QuotationCrudController extends CrudController {
             $item->pic = $request->pic;
             $item->user = $request->user;
             $item->closing_date = $request->closing_date;
+            $item->rfq_date = $request->rfq_date;
             $item->status = $request->status;
             $item->information = $request->information;
             $item->save();
@@ -647,6 +723,10 @@ class QuotationCrudController extends CrudController {
                 $flag_update = true;
             }
             $item->closing_date = $request->closing_date;
+            if($old->rfq_date != $request->rfq_date){
+                $flag_update = true;
+            }
+            $item->rfq_date = $request->rfq_date;
             if($old->status != $request->status){
                 $flag_update = true;
             }
@@ -762,6 +842,24 @@ class QuotationCrudController extends CrudController {
         $this->setupCreateOperation();
         $this->setupListOperation();
         CRUD::column('row_number')->remove();
+        CRUD::column('document_path')->remove();
+        CRUD::column([
+            'label'  => 'Dokumen Penawaran',
+            'name' => 'document_path',
+            'type'  => 'text',
+                'wrapper'   => [
+                'element' => 'a', // the element will default to "a" so you can skip it here
+                'href' => function ($crud, $column, $entry, $related_key) {
+                    if($entry->document_path != ''){
+                        return url('storage/document_quotation/'.$entry->document_path);
+                    }
+                    return "javascript:void(0)";
+                },
+                'target' => '_blank',
+                // 'class' => 'some-class',
+            ],
+        ])->after('information');
+
     }
 
 

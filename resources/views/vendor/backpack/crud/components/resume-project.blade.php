@@ -282,9 +282,9 @@
         }
     </style>
     <style>
-        /* .table-borderless {
-            width: auto;
-        } */
+        .dataTables_wrapper .dataTables_scrollHead table thead tr th {
+            background-color: #FCD72D !important;
+        }
     </style>
 @endpush
 

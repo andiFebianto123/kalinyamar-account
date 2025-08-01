@@ -403,7 +403,7 @@ class StatusProjectCrudController extends CrudController {
         }
         $tabSetup['resume'] = [
             'name' => 'resume',
-            'label' => 'Resume',
+            'label' => 'RESUME',
             'view' => 'crud::components.resume-project',
             'params' => []
         ];

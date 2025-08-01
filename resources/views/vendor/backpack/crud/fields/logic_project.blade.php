@@ -43,7 +43,7 @@
                     const diffMs = end - start;
 
                     const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-                    $(form+ ' input[name="duration"]').val(totalDays);
+                    // $(form+ ' input[name="duration"]').val(totalDays);
 
                     $(form+' input[name="actual_price_ppn"]').val(nilai_ppn);
                     $(form+' input[name="actual_price_total_include_ppn"]').val(total_with_ppn);
@@ -53,6 +53,20 @@
                 load: function(){
                     var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
+
+                    function hitungDurasiHari(actualEndDate) {
+                        const [day, month, year] = actualEndDate.split('/');
+
+                        const endDate = new Date(year, month - 1, day);
+
+                        const today = new Date();
+
+                        const selisihMs = today - endDate;
+
+                        const durasiHari = Math.floor(selisihMs / (1000 * 60 * 60 * 24));
+
+                        return durasiHari;
+                    }
 
                     @if ($set_value != null)
                     var data_po_spk = {!! json_encode($set_value) !!};
@@ -111,6 +125,11 @@
                             $(form+' .space').show();
                         }
                     })
+
+                    $(form+' #actual_end_date').change(function(){
+                        var end_date = $(form+' #actual_end_date').val();
+                        $(form+ ' input[name="duration"]').val(hitungDurasiHari(end_date));
+                    });
 
 
                 }

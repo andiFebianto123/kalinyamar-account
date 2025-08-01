@@ -29,6 +29,14 @@ class ProjectListReportCrudController extends CrudController {
     function index(){
         $this->crud->hasAccessOrFail('list');
 
+        $this->card->addCard([
+            'name' => 'hightlight',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::components.hightligh-column',
+        ]);
+
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = trans('backpack::crud.project_report.title_modal_create');

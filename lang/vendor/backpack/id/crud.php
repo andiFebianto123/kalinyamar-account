@@ -1434,7 +1434,7 @@ return [
                 'label' => 'Nilai Include PPn',
             ],
             'start_date' => [
-                'label' => 'Start Data - End Date',
+                'label' => 'Start Date - End Date',
             ],
             'duration' => [
                 'label' => 'Durasi Hari',
@@ -1526,6 +1526,9 @@ return [
                 'label' => 'No. RFQ',
                 'placeholder' => 'Masukan nomor RFQ',
             ],
+            'rfq_date' => [
+                'label' => 'Tanggal RFQ',
+            ],
             'name_project' => [
                 'label' => 'Proyek',
                 'placeholder' => 'Masukan nama penawaran proyek'
@@ -1564,6 +1567,9 @@ return [
         'column' => [
             'no_rfq' => [
                 'label' => 'No. RFQ'
+            ],
+            'rfq_date' => [
+                'label' => 'Tanggal RFQ',
             ],
             'name_project' => [
                 'label' => 'Proyek',
@@ -1617,9 +1623,9 @@ return [
         'title_header' => 'Data Proyeksi Pekerjaan',
         'title_modal_create' => 'Data Proyeksi Pekerjaan',
         'title_modal_edit' => 'Data Daftar Penawaran',
-        'title_modal_delete' => 'Penawaran',
+        'title_modal_delete' => 'Check List Proyeksi Proyek',
         'tab' => [
-            'quotation_check' => 'Penawaran Terceklis',
+            'quotation_check' => 'Check List Proyeksi Proyek',
         ]
     ],
     'project_status' => [

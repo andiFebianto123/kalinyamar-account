@@ -170,6 +170,12 @@ class ProjectListCrudController extends CrudController {
                                     'orderable' => false,
                                 ],
                                 [
+                                    'name' => 'document_path',
+                                    'type' => 'text',
+                                    'label' => 'Dokumen Proyek',
+                                    'orderable' => false,
+                                ],
+                                [
                                     'name' => 'action',
                                     'type' => 'action',
                                     'label' =>  trans('backpack::crud.actions'),
@@ -221,6 +227,14 @@ class ProjectListCrudController extends CrudController {
                     ]
                 ]
             ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'hightlight',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::components.hightligh-column',
         ]);
 
         $this->data['crud'] = $this->crud;
@@ -418,6 +432,23 @@ class ProjectListCrudController extends CrudController {
                 ],
             );
 
+            CRUD::column([
+                'label'  => 'Dokumen Proyek',
+                'name' => 'document_path',
+                'type'  => 'text',
+                    'wrapper'   => [
+                    'element' => 'a', // the element will default to "a" so you can skip it here
+                    'href' => function ($crud, $column, $entry, $related_key) {
+                        if($entry->document_path != ''){
+                            return url('storage/'.$entry->document_path);
+                        }
+                        return "javascript:void(0)";
+                    },
+                    'target' => '_blank',
+                    // 'class' => 'some-class',
+                ],
+            ]);
+
         }else if($type == 'project_edit'){
             CRUD::setModel(ProjectHistory::class);
             CRUD::disableResponsiveTable();
@@ -486,7 +517,9 @@ class ProjectListCrudController extends CrudController {
             'end_date' => 'required|date',
             'status_po' => 'required',
             'client_id' => 'required|exists:setup_clients,id',
-            'category' => 'required'
+            'category' => 'required',
+            'actual_start_date' => 'nullable|date',
+            'actual_end_date' => 'nullable|date|after_or_equal:actual_start_date'
         ];
 
         if(request()->has('po_status')){
@@ -831,6 +864,20 @@ class ProjectListCrudController extends CrudController {
         ]);
 
         CRUD::addField([
+            'name' => 'document_path',
+            'label' => 'Dokumen Proyek',
+            'type' => 'upload',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+             'withFiles' => [
+                'disk' => 'public',
+                'path' => 'document_proyek',
+                'deleteWhenEntryIsDeleted' => true,
+            ],
+        ]);
+
+        CRUD::addField([
             'name' => 'logic_project',
             'type' => 'logic_project',
         ]);
@@ -840,6 +887,16 @@ class ProjectListCrudController extends CrudController {
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+
+    function hitungDurasiHari($actualEndDate)
+    {
+        $today = Carbon::today();
+        $endDate = Carbon::parse($actualEndDate);
+
+        // Selisih termasuk hari ini
+        return $endDate->diffInDays($today);
     }
 
     function calculateAll($request){
@@ -853,11 +910,11 @@ class ProjectListCrudController extends CrudController {
         $totalWithPpn = $excludePpn + $nilaiPpn;
 
         // Ambil tanggal
-        $startDate = Carbon::parse($request->input('start_date'));
-        $endDate = Carbon::parse($request->input('end_date'));
+        // $startDate = Carbon::parse($request->input('start_date'));
+        // $endDate = Carbon::parse($request->input('end_date'));
 
-        // Hitung durasi hari (inklusif)
-        $totalDays = (int) $startDate->diffInDays($endDate) + 1;
+        // // Hitung durasi hari (inklusif)
+        // $totalDays = (int) $startDate->diffInDays($endDate) + 1;
 
         // Return atau set ke variabel lain sesuai kebutuhan
         $data = [
@@ -865,7 +922,7 @@ class ProjectListCrudController extends CrudController {
             'price_total_include_ppn_masked' => $totalWithPpn,
             'actual_price_ppn' => $nilaiPpn,
             'actual_price_total_include_ppn' => $totalWithPpn,
-            'actual_duration' => $totalDays,
+            'actual_duration' => ($request->actual_end_date) ? $this->hitungDurasiHari($request->actual_end_date) : null,
         ];
         return $data;
     }
@@ -1379,6 +1436,23 @@ class ProjectListCrudController extends CrudController {
                 'type'  => 'text'
             ],
         );
+
+        CRUD::column([
+            'label'  => 'Dokumen Proyek',
+            'name' => 'document_path',
+            'type'  => 'text',
+                'wrapper'   => [
+                'element' => 'a', // the element will default to "a" so you can skip it here
+                'href' => function ($crud, $column, $entry, $related_key) {
+                    if($entry->document_path != ''){
+                        return url('storage/document_proyek/'.$entry->document_path);
+                    }
+                    return "javascript:void(0)";
+                },
+                'target' => '_blank',
+                // 'class' => 'some-class',
+            ],
+        ]);
     }
 
     public function show($id)

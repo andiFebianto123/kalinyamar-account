@@ -6,7 +6,7 @@
 <li class="nav-item d-md-down-none"><a class="nav-link" href="#"><i class="la la-map"></i></a></li> --}}
 
 <li class="nav-item d-md-down-none">
-    <div class="dropdown">
+    {{-- <div class="dropdown">
         <button class="btn btn-outline-primary dropdown-toggle"
              type="button" data-coreui-toggle="dropdown"
              aria-expanded="false"
@@ -19,5 +19,5 @@
             <li><button class="dropdown-item" type="button">Another action</button></li>
             <li><button class="dropdown-item" type="button">Something else here</button></li>
         </ul>
-    </div>
+    </div> --}}
 </li>

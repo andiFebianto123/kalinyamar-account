@@ -105,20 +105,271 @@ class StatusQuotaionCrudController extends CrudController{
 
         $this->data['is_disabled_list'] = true;
 
-        $statusQuotation = $this->listTableQotation();
-        foreach($statusQuotation as $quotation){
-            $this->card->addCard([
-                'name' => $quotation['name'],
-                'line' => 'bottom',
-                'view' => 'crud::components.datatable-origin',
-                'params' => [
-                    'title' => $quotation['title'],
-                    'crud_custom' => $this->crud,
-                    'columns' => $quotation['column'],
-                    'route' => $quotation['route'],
+        // $statusQuotation = $this->listTableQotation();
+        // foreach($statusQuotation as $quotation){
+        //     $this->card->addCard([
+        //         'name' => $quotation['name'],
+        //         'line' => 'bottom',
+        //         'view' => 'crud::components.datatable-origin',
+        //         'params' => [
+        //             'title' => $quotation['title'],
+        //             'crud_custom' => $this->crud,
+        //             'columns' => $quotation['column'],
+        //             'route' => $quotation['route'],
+        //         ]
+        //     ]);
+        // }
+
+        $this->card->addCard([
+            'name' => 'quotation',
+            'line' => 'top',
+            'view' => 'crud::components.card-tab',
+            'params' => [
+                'tabs' => [
+                    [
+                        'name' => 'hps',
+                        'label' => 'HPS',
+                        // 'class' => '',
+                        'active' => true,
+                        'view' => 'crud::components.datatable',
+                        'params' => [
+                            'crud_custom' => $this->crud,
+                            'columns' => [
+                                [
+                                    'name'      => 'row_number',
+                                    'type'      => 'row_number',
+                                    'label'     => 'No',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'no_rfq',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'name_project',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'rab',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'rap',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.client_id.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'client_id',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'pic',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.user.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'user',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'closing_date',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.status.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'status',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.information.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'information',
+                                    'orderable' => false,
+                                ],
+                            ],
+                            'route' => url($this->crud->route.'/search?type=hps'),
+                        ]
+                    ],
+                    [
+                        'name' => 'quotation',
+                        'label' => 'Quotation',
+                        'view' => 'crud::components.datatable',
+                        'params' => [
+                            'crud_custom' => $this->crud,
+                            'columns' => [
+                                [
+                                    'name'      => 'row_number',
+                                    'type'      => 'row_number',
+                                    'label'     => 'No',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'no_rfq',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'name_project',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'rab',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'rap',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.client_id.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'client_id',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'pic',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.user.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'user',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'closing_date',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.status.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'status',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.information.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'information',
+                                    'orderable' => false,
+                                ],
+                            ],
+                            'route' => url($this->crud->route.'/search?type=Quotation'),
+                        ]
+                    ],
+                    [
+                        'name' => 'close',
+                        'label' => 'Close',
+                        'view' => 'crud::components.datatable',
+                        'params' => [
+                            'crud_custom' => $this->crud,
+                            'columns' => [
+                                [
+                                    'name'      => 'row_number',
+                                    'type'      => 'row_number',
+                                    'label'     => 'No',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'no_rfq',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'name_project',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'rab',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'rap',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.client_id.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'client_id',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'pic',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.user.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'user',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'closing_date',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.status.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'status',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.quotation.column.information.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'information',
+                                    'orderable' => false,
+                                ],
+                            ],
+                            'route' => url($this->crud->route.'/search?type=Close'),
+                        ]
+                    ]
                 ]
-            ]);
-        }
+            ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'hightlight',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::components.hightligh-column',
+        ]);
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);

@@ -13,12 +13,12 @@ class QuotationCheckCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     public function setup()
     {
-        CRUD::setModel(Quotation::class);
+        CRUD::setModel(QuotationCheck::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/quotation-check');
         CRUD::setEntityNameStrings(trans('backpack::crud.quotation_check.title_header'), trans('backpack::crud.quotation_check.title_header'));
     }
@@ -32,89 +32,90 @@ class QuotationCheckCrudController extends CrudController {
             'view' => 'crud::components.card-tab',
             'params' => [
                 'tabs' => [
-                    [
-                        'name' => 'quotation',
-                        'label' => trans('backpack::crud.project.tab.title_project'),
-                        // 'class' => '',
-                        'active' => true,
-                        'view' => 'crud::components.datatable',
-                        'params' => [
-                            'crud_custom' => $this->crud,
-                            'columns' => [
-                                [
-                                    'name'      => 'row_number',
-                                    'type'      => 'row_number',
-                                    'label'     => 'No',
-                                    'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
-                                    'type'      => 'text',
-                                    'name'      => 'no_rfq',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
-                                    'type' => 'text',
-                                    'name' => 'name_project',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
-                                    'type' => 'text',
-                                    'name' => 'rab',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
-                                    'type' => 'text',
-                                    'name' => 'rap',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.client_id.label'),
-                                    'type' => 'text',
-                                    'name' => 'client_id',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
-                                    'type' => 'text',
-                                    'name' => 'pic',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.user.label'),
-                                    'type' => 'text',
-                                    'name' => 'user',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
-                                    'type' => 'text',
-                                    'name' => 'closing_date',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.status.label'),
-                                    'type' => 'text',
-                                    'name' => 'status',
-                                    'orderable' => true,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.quotation.column.information.label'),
-                                    'type' => 'text',
-                                    'name' => 'information',
-                                    'orderable' => false,
-                                ],
-                            ],
-                            'route' => backpack_url('/monitoring/quotation-check/search?tab=quotation'),
-                        ],
-                    ],
+                    // [
+                    //     'name' => 'quotation',
+                    //     'label' => trans('backpack::crud.project.tab.title_project'),
+                    //     // 'class' => '',
+                    //     'active' => true,
+                    //     'view' => 'crud::components.datatable',
+                    //     'params' => [
+                    //         'crud_custom' => $this->crud,
+                    //         'columns' => [
+                    //             [
+                    //                 'name'      => 'row_number',
+                    //                 'type'      => 'row_number',
+                    //                 'label'     => 'No',
+                    //                 'orderable' => false,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                    //                 'type'      => 'text',
+                    //                 'name'      => 'no_rfq',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'name_project',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.rab.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'rab',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.rap.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'rap',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.client_id.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'client_id',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.pic.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'pic',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.user.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'user',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'closing_date',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.status.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'status',
+                    //                 'orderable' => true,
+                    //             ],
+                    //             [
+                    //                 'label' => trans('backpack::crud.quotation.column.information.label'),
+                    //                 'type' => 'text',
+                    //                 'name' => 'information',
+                    //                 'orderable' => false,
+                    //             ],
+                    //         ],
+                    //         'route' => backpack_url('/monitoring/quotation-check/search?tab=quotation'),
+                    //     ],
+                    // ],
                     [
                         'name' => 'quotation_check',
                         'label' => trans('backpack::crud.quotation_check.tab.quotation_check'),
                         'view' => 'crud::components.datatable',
+                        'active' => true,
                         'params' => [
                             'crud_custom' => $this->crud,
                             'columns' => [
@@ -184,6 +185,11 @@ class QuotationCheckCrudController extends CrudController {
                                     'name' => 'information',
                                     'orderable' => false,
                                 ],
+                                [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  trans('backpack::crud.actions'),
+                                ]
                             ],
                             'route' => backpack_url('/monitoring/quotation-check/search?tab=quotation_check'),
                         ]
@@ -200,6 +206,14 @@ class QuotationCheckCrudController extends CrudController {
             'params' => [
                 'crud_custom' => $this->crud,
             ],
+        ]);
+
+        $this->card->addCard([
+            'name' => 'hightlight',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::components.hightligh-column',
         ]);
 
         $this->data['crud'] = $this->crud;
@@ -227,7 +241,7 @@ class QuotationCheckCrudController extends CrudController {
         CRUD::disableResponsiveTable();
 
         if($type == 'quotation_check'){
-            CRUD::setModel(QuotationCheck::class);
+            // CRUD::setModel(QuotationCheck::class);
             $this->crud->query = $this->crud->query
             ->join('quotations', 'quotations.id', '=', 'quotation_checks.quotation_id')
             ->join('setup_clients', 'setup_clients.id', '=', 'quotations.client_id');
@@ -510,4 +524,20 @@ class QuotationCheckCrudController extends CrudController {
         }
     }
 
+    public function destroy($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+
+        // get entry ID from Request (makes sure its the last ID for nested resources)
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        $this->crud->delete($id);
+
+        $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+        $messages['events'] = [
+            'crudTable-quotation_create_success' => true,
+            'crudTable-quotation_check_create_success' => true,
+        ];
+        return response()->json($messages);
+    }
 }

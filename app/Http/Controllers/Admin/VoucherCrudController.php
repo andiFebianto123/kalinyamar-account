@@ -1300,7 +1300,9 @@ class VoucherCrudController extends CrudController {
             'name'      => 'priority',
             'options'   => [
                 '' => trans('backpack::crud.voucher.field.priority.placeholder'),
-                'MENENGAH' => 'MENENGAH',
+                'HARI INI' => 'HARI INI',
+                'MINGGU INI' => 'MINGGU INI',
+                'TEMPO' => 'TEMPO'
             ], // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
             'wrapper' => [
                 'class' => 'form-group col-md-12'
