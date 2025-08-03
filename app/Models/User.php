@@ -50,4 +50,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getRoles()
+    {
+        $this->loadMissing('roles');
+
+        return $this->roles;
+    }
+
 }
