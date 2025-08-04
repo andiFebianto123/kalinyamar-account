@@ -6,9 +6,12 @@ use App\Models\Project;
 use App\Models\SetupPpn;
 use App\Models\SetupClient;
 use App\Models\CategoryProject;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Models\SetupStatusProject;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -21,10 +24,26 @@ class ProjectListReportCrudController extends CrudController {
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['list', 'show']);
         CRUD::setModel(Project::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/project-report');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.project_report'), trans('backpack::crud.menu.project_report'));
         CRUD::allowAccess('print');
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        // if($permissions->whereIn('name',[
+        //     'AKSES SEMUA MENU PROJECT',
+        // ])->count() > 0){
+        //     $this->crud->allowAccess(['create', 'update', 'delete']);
+        // }
     }
 
     function index(){
@@ -59,8 +78,8 @@ class ProjectListReportCrudController extends CrudController {
         CRUD::disableResponsiveTable();
 
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
-        CRUD::addButtonFromView('top', 'download-excel', 'download-excel', 'beginning');
-        CRUD::addButtonFromView('top', 'download-pdf', 'download-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
 
         if(request()->has('filter_category')){
             if(request()->filter_category != 'all'){
@@ -684,6 +703,80 @@ class ProjectListReportCrudController extends CrudController {
         ]);
     }
 
+    public function exportPdf(){
+        $type = request()->type;
 
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+            }
+        }
+
+        $title = 'Project Report';
+
+        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+        $type = request()->type;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+            }
+        }
+
+        $name = 'Status Project - '.$type;
+
+        return response()->streamDownload(function () use($type, $columns, $items){
+            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+
+    }
 
 }

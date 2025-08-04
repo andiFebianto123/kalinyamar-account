@@ -17,42 +17,48 @@
             @endif
 
             @if ($detail->status == \App\Models\CastAccount::LOAN)
-            <button
-                id="btn-{{$name}}-move-balance"
-                data-route="{{url($crud->route.'/create?_id='.$detail->id."&type=move")}}"
-                data-bs-toggle="modal"
-                data-bs-target="#modalCreate"
-                data-title="{{ trans('backpack::crud.modal.transfer_balance') }}"
-                class="btn btn-sm btn-primary"><i class="la la-exchange-alt"></i></button>
+                @if ($crud->hasAccess('create'))
+                    <button
+                    id="btn-{{$name}}-move-balance"
+                    data-route="{{url($crud->route.'/create?_id='.$detail->id."&type=move")}}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalCreate"
+                    data-title="{{ trans('backpack::crud.modal.transfer_balance') }}"
+                    class="btn btn-sm btn-primary"><i class="la la-exchange-alt"></i></button>
+                @endif
             @else
                 @if ($access->where('id', 3)->first())
-                    <button
-                        id="btn-{{$name}}-transfer-balance"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modal_transfer_balance"
-                        class="btn btn-sm btn-primary">
-                        <i class="la la-exchange-alt"></i></button>
+                    @if ($crud->hasAccess('create'))
+                        <button
+                            id="btn-{{$name}}-transfer-balance"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modal_transfer_balance"
+                            class="btn btn-sm btn-primary">
+                            <i class="la la-exchange-alt"></i></button>
+                    @endif
                 @endif
             @endif
-            <button
-                id="btn-{{$name}}-add"
-                data-route="{{url($crud->route.'/create?_id='.$detail->id)}}"
-                data-bs-toggle="modal"
-                data-bs-target="#modalCreate"
-                data-title="{{ trans('backpack::crud.add').' '.trans('backpack::crud.cash_account.title_modal_create_transaction') }}"
-                class="btn btn-sm btn-primary"><i class="la la-plus"></i></button>
-            <button
-                id="btn-{{$name}}"
-                {{-- onclick="deleteEntryCardAccount(this)" --}}
-                data-route="{{ url($crud->route.'/'.$detail->id) }}"
-                data-name="{{ $detail->name }}"
-                data-namecard="{{$name}}"
-                data-button-type="delete"
-                data-bs-toggle="modal"
-                data-bs-target="#modalDelete"
-                class="btn btn-sm btn-danger">
-                <i class="la la-trash"></i>
-            </button>
+            @if ($crud->hasAccessToAll(['create', 'delete']))
+                <button
+                    id="btn-{{$name}}-add"
+                    data-route="{{url($crud->route.'/create?_id='.$detail->id)}}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalCreate"
+                    data-title="{{ trans('backpack::crud.add').' '.trans('backpack::crud.cash_account.title_modal_create_transaction') }}"
+                    class="btn btn-sm btn-primary"><i class="la la-plus"></i></button>
+                <button
+                    id="btn-{{$name}}"
+                    {{-- onclick="deleteEntryCardAccount(this)" --}}
+                    data-route="{{ url($crud->route.'/'.$detail->id) }}"
+                    data-name="{{ $detail->name }}"
+                    data-namecard="{{$name}}"
+                    data-button-type="delete"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalDelete"
+                    class="btn btn-sm btn-danger">
+                    <i class="la la-trash"></i>
+                </button>
+            @endif
         </div>
     </div>
     <div>

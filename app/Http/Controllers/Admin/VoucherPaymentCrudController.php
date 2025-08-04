@@ -26,9 +26,27 @@ class VoucherPaymentCrudController extends CrudController {
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(PaymentVoucher::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher-payment');
         CRUD::setEntityNameStrings(trans('backpack::crud.voucher_payment.title_header'), trans('backpack::crud.voucher_payment.title_header'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU FA'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU FA'
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     function total_voucher(){

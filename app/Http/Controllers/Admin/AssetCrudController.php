@@ -24,9 +24,25 @@ class AssetCrudController extends CrudController
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         $this->crud->setModel(Asset::class);
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/finance-report/list-asset');
         $this->crud->setEntityNameStrings(trans('backpack::crud.asset.title_header'), trans('backpack::crud.asset.title_header'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     public function index()

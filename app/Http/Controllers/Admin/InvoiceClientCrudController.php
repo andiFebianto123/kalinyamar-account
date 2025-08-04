@@ -37,10 +37,26 @@ class InvoiceClientCrudController extends CrudController
      */
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\InvoiceClient::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice-client');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.invoice_client'), trans('backpack::crud.menu.invoice_client'));
         CRUD::allowAccess('print');
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     public function select2ClientPo()

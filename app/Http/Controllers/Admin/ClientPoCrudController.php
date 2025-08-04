@@ -30,9 +30,27 @@ class ClientPoCrudController extends CrudController
      */
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(ClientPo::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client/po');
         CRUD::setEntityNameStrings(trans('backpack::crud.client_po.title_header'), trans('backpack::crud.client_po.title_header'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU CLIENT'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU CLIENT'
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     public function index()

@@ -1,52 +1,146 @@
 {{-- This file is used for menu items by any Backpack v6 theme --}}
 {{-- <li class="nav-item nav-root active"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{ trans('backpack::base.dashboard') }}</a></li> --}}
+@php
+    $user = backpack_user();
+    $roles = $user->getRoles();
+    $permissions = $user->getAllPermissions();
+    // "AKSES SEMUA VIEW PROJECT
+@endphp
 
-<x-backpack::menu-item title="{{trans('backpack::crud.menu.dashboard')}}" icon="la la-home" :link="backpack_url('dashboard')" />
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING'
+        ])->count() > 0)
+    <x-backpack::menu-item title="{{trans('backpack::crud.menu.dashboard')}}" icon="la la-home" :link="backpack_url('dashboard')" />
+@endif
 
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU VENDOR'
+        ])->count() > 0)
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.vendor_subkon')}}" icon="la la-group" :link="backpack_url('vendor')" >
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_subkon')}}" icon="la la-circle-notch" :link="backpack_url('vendor/subkon')" />
     <x-backpack::menu-dropdown-item title="{{ trans('backpack::crud.menu.po') }}" icon="la la-circle-notch" :link="backpack_url('vendor/purchase-order')" />
     <x-backpack::menu-dropdown-item title="{{ trans('backpack::crud.menu.spk') }}" icon="la la-circle-notch" :link="backpack_url('vendor/spk-trans')" />
 </x-backpack::menu-dropdown>
+@endif
 
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU CLIENT'
+        ])->count() > 0)
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.client')}}" icon="la la-group" :link="backpack_url('client')" >
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_client')}}" icon="la la-circle-notch" :link="backpack_url('client/client-list')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.client_po')}}" icon="la la-circle-notch" :link="backpack_url('client/po')" />
 </x-backpack::menu-dropdown>
+@endif
 
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU FA'
+        ])->count() > 0)
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.fa')}}" icon="la la-group" :link="backpack_url('fa')" >
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.voucher')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.voucher_payment')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher-payment')" />
 </x-backpack::menu-dropdown>
+@endif
 
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING'
+        ])->count() > 0)
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.cash_flow')}}" icon="la la-group" :link="backpack_url('cash-flow')" >
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.cash_flow_cash')}}" icon="la la-circle-notch" :link="backpack_url('cash-flow/cast-accounts')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.cash_flow_loan')}}" icon="la la-circle-notch" :link="backpack_url('cash-flow/cast-account-loan')" />
 </x-backpack::menu-dropdown>
+@endif
 
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING'
+        ])->count() > 0)
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.finance_report')}}" icon="la la-group" :link="backpack_url('finance-report')" >
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.expense_account')}}" icon="la la-circle-notch" :link="backpack_url('finance-report/expense-account')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.profit_lost')}}" icon="la la-circle-notch" :link="backpack_url('finance-report/profit-lost')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.balance_sheet')}}" icon="la la-circle-notch" :link="backpack_url('finance-report/balance-sheet')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.asset')}}" icon="la la-circle-notch" :link="backpack_url('finance-report/list-asset')" />
 </x-backpack::menu-dropdown>
+@endif
 
-<x-backpack::menu-item title="{{ trans('backpack::crud.menu.invoice_client') }}" icon="la la-group" :link="backpack_url('invoice-client')" />
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING'
+        ])->count() > 0)
+    <x-backpack::menu-item title="{{ trans('backpack::crud.menu.invoice_client') }}" icon="la la-group" :link="backpack_url('invoice-client')" />
+@endif
 
+@if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT',
+            'AKSES SEMUA STATUS PENAWARAN PROJECT',
+            'AKSES SEMUA DAFTAR PENAWARAN PROJECT',
+        ])->count() > 0)
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.monitoring_project')}}" icon="la la-group" :link="backpack_url('monitoring')" >
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.project_status.title_header')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-status')" />
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.quotation_status')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-status')" />
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.quotation_check.title_header')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-check')" />
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_list')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-list')" />
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_quotation')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation')" />
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_report')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-report')" />
-    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_system_setup')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-system-setup')" />
-</x-backpack::menu-dropdown>
 
-<x-backpack::menu-dropdown title="Authentication" icon="la la-group" :link="backpack_url('auth')">
-    <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('auth/user')" />
-    <x-backpack::menu-dropdown-item title="Roles" icon="la la-circle-notch" :link="backpack_url('auth/role')" />
-    <x-backpack::menu-dropdown-item title="Permissions" icon="la la-circle-notch" :link="backpack_url('auth/permission')" />
+    @if($permissions->whereIn('name', [
+                'AKSES SEMUA VIEW PROJECT',
+                'AKSES SEMUA MENU PROJECT',
+            ])->count() > 0)
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.project_status.title_header')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-status')" />
+    @endif
+
+    @if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA STATUS PENAWARAN PROJECT'
+        ])->count() > 0)
+        <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.quotation_status')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-status')" />
+    @endif
+
+    @if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
+        ])->count() > 0)
+        <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.quotation_check.title_header')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation-check')" />
+    @endif
+
+
+    @if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+        ])->count() > 0)
+        <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_list')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-list')" />
+    @endif
+
+    @if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA DAFTAR PENAWARAN PROJECT'
+        ])->count() > 0)
+        <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.list_quotation')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/quotation')" />
+    @endif
+
+    @if($permissions->whereIn('name', [
+                'AKSES SEMUA VIEW PROJECT',
+                'AKSES SEMUA MENU PROJECT',
+            ])->count() > 0)
+        <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_report')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-report')" />
+        <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.project_system_setup')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-system-setup')" />
+    @endif
+</x-backpack::menu-dropdown>
+@endif
+<x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.setting')}}" icon="la la-group" :link="backpack_url('setting')">
+@if($roles->whereIn('name', ['Super Admin'])->count() > 0)
+    <x-backpack::menu-dropdown-item title="Users" icon="la la-circle-notch" :link="backpack_url('setting/user')" />
+    <x-backpack::menu-dropdown-item title="Roles" icon="la la-circle-notch" :link="backpack_url('setting/role')" />
+    <x-backpack::menu-dropdown-item title="Permissions" icon="la la-circle-notch" :link="backpack_url('setting/permission')" />
+    <x-backpack::menu-dropdown-item title="Pengaturan Akun" icon="la la-circle-notch" :link="backpack_url('setting/account')" />
     {{-- <li class="nav-group" aria-expanded="false"><a class="nav-link nav-group-toggle" href="#">
         <i class="nav-icon la la-puzzle-piece"></i> Icons</a>
         <ul class="nav-group-items compact" style="height: 0px;">
@@ -54,7 +148,9 @@
             <li class="nav-item"><a class="nav-link" href="icons/coreui-icons-brand.html"><i class="nav-icon la la-circle-notch"></i> CoreUI Brand</a></li>
         </ul>
     </li> --}}
+@endif
 </x-backpack::menu-dropdown>
+
 
 
 {{-- <li class="nav-group" aria-expanded="false"><a class="nav-link nav-group-toggle" href="#">

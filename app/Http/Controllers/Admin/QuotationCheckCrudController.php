@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Quotation;
+use App\Models\SetupClient;
 use App\Models\QuotationCheck;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -18,9 +22,27 @@ class QuotationCheckCrudController extends CrudController {
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(QuotationCheck::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/quotation-check');
         CRUD::setEntityNameStrings(trans('backpack::crud.quotation_check.title_header'), trans('backpack::crud.quotation_check.title_header'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'delete']);
+        }
     }
 
     function index(){
@@ -192,6 +214,10 @@ class QuotationCheckCrudController extends CrudController {
                                 ]
                             ],
                             'route' => backpack_url('/monitoring/quotation-check/search?tab=quotation_check'),
+                            'route_export_pdf' => backpack_url('/monitoring/quotation-check/export-pdf?tab=quotation_check'),
+                            'title_export_pdf' => 'Data_Proyeksi_Pekerjaan-check.pdf',
+                            'route_export_excel' => backpack_url('/monitoring/quotation-check/export-excel?tab=quotation_check'),
+                            'title_export_excel' => 'Data_Proyeksi_Pekerjaan-check.xlsx',
                         ]
                     ]
                 ]
@@ -250,21 +276,24 @@ class QuotationCheckCrudController extends CrudController {
                     quotations.*
                 ")
             ]);
-            if(strlen(trim(request()->search['value'])) > 0){
-                $search = request()->search['value'];
-                $this->crud->query = $this->crud->query
-                ->where(function($query) use ($search){
-                    $query->where('quotations.no_rfq', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.name_project', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.rab', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.rap', 'like', '%'.$search.'%')
-                    ->orWhere('setup_clients.name', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.pic', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.user', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.closing_date', 'like', '%'.$search.'%')
-                    ->orWhere('quotations.status', 'like', '%'.$search.'%');
-                });
+            if(request()->has('search')){
+                if(strlen(trim(request()->search['value'])) > 0){
+                    $search = request()->search['value'];
+                    $this->crud->query = $this->crud->query
+                    ->where(function($query) use ($search){
+                        $query->where('quotations.no_rfq', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.name_project', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.rab', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.rap', 'like', '%'.$search.'%')
+                        ->orWhere('setup_clients.name', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.pic', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.user', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.closing_date', 'like', '%'.$search.'%')
+                        ->orWhere('quotations.status', 'like', '%'.$search.'%');
+                    });
+                }
             }
+
         }
         CRUD::addColumn([
                 'name'      => 'row_number',
@@ -277,20 +306,20 @@ class QuotationCheckCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
                     'name' => 'no_rfq',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
                     'name' => 'name_project',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
                 'name' => 'rab',
                 'type'  => 'number',
                 'prefix' => "Rp.",
@@ -299,7 +328,7 @@ class QuotationCheckCrudController extends CrudController {
                 'thousands_sep' => '.',
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
                 'name' => 'rap',
                 'type'  => 'number',
                 'prefix' => "Rp.",
@@ -320,34 +349,34 @@ class QuotationCheckCrudController extends CrudController {
             ]);
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
                     'name' => 'pic',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.user.label'),
                     'name' => 'user',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
                 'name' => 'closing_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.status.label'),
                     'name' => 'status',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.information.label'),
                     'name' => 'information',
                     'type'  => 'text'
                 ],
@@ -540,4 +569,81 @@ class QuotationCheckCrudController extends CrudController {
         ];
         return response()->json($messages);
     }
+
+    public function exportPdf(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+            }
+        }
+
+        $title = 'Status Project - '.$type;
+
+        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+            }
+        }
+
+        $name = 'Status Project - '.$type;
+
+        return response()->streamDownload(function () use($type, $columns, $items){
+            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+
+    }
+
 }

@@ -1,9 +1,13 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\CrudController;
 use App\Models\Quotation;
+use App\Models\SetupClient;
 use App\Models\SetupOffering;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class StatusQuotaionCrudController extends CrudController{
@@ -14,9 +18,26 @@ class StatusQuotaionCrudController extends CrudController{
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['list', 'show']);
         CRUD::setModel(Quotation::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/quotation-status');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.quotation_status'), trans('backpack::crud.menu.quotation_status'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA STATUS PENAWARAN PROJECT'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        // if($permissions->whereIn('name',[
+        //     'AKSES SEMUA MENU PROJECT',
+        // ])->count() > 0){
+        //     // $this->crud->allowAccess(['create', 'update', 'delete']);
+        // }
     }
 
     public function listTableQotation(){
@@ -203,6 +224,10 @@ class StatusQuotaionCrudController extends CrudController{
                                 ],
                             ],
                             'route' => url($this->crud->route.'/search?type=hps'),
+                            'route_export_pdf' => url($this->crud->route.'/export-pdf?type=hps'),
+                            'title_export_pdf' => 'Status-quotation-HPS.pdf',
+                            'route_export_excel' => url($this->crud->route.'/export-excel?type=hps'),
+                            'title_export_excel' => 'Status-quotation-HPS.xlsx',
                         ]
                     ],
                     [
@@ -280,6 +305,10 @@ class StatusQuotaionCrudController extends CrudController{
                                 ],
                             ],
                             'route' => url($this->crud->route.'/search?type=Quotation'),
+                            'route_export_pdf' => url($this->crud->route.'/export-pdf?type=Quotation'),
+                            'title_export_pdf' => 'Status-quotation-Quotation.pdf',
+                            'route_export_excel' => url($this->crud->route.'/export-excel?type=Quotation'),
+                            'title_export_excel' => 'Status-quotation-Quotation.xlsx',
                         ]
                     ],
                     [
@@ -357,6 +386,10 @@ class StatusQuotaionCrudController extends CrudController{
                                 ],
                             ],
                             'route' => url($this->crud->route.'/search?type=Close'),
+                            'route_export_pdf' => url($this->crud->route.'/export-pdf?type=Close'),
+                            'title_export_pdf' => 'Status-quotation-Close.pdf',
+                            'route_export_excel' => url($this->crud->route.'/export-excel?type=Close'),
+                            'title_export_excel' => 'Status-quotation-Close.xlsx',
                         ]
                     ]
                 ]
@@ -394,8 +427,8 @@ class StatusQuotaionCrudController extends CrudController{
     {
         $type = request()->type;
         CRUD::disableResponsiveTable();
-        CRUD::addButtonFromView('top', 'download-excel', 'download-excel', 'beginning');
-        CRUD::addButtonFromView('top', 'download-pdf', 'download-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
         CRUD::addClause('where', 'status', $type);
         CRUD::addColumn([
             'name'      => 'row_number',
@@ -408,20 +441,20 @@ class StatusQuotaionCrudController extends CrudController{
         ])->makeFirstColumn();
         CRUD::column(
             [
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
                 'name' => 'no_rfq',
                 'type'  => 'text'
             ],
         );
         CRUD::column(
             [
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
                 'name' => 'name_project',
                 'type'  => 'text'
             ],
         );
         CRUD::column([
-            'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
             'name' => 'rab',
             'type'  => 'number',
             'prefix' => "Rp.",
@@ -430,7 +463,7 @@ class StatusQuotaionCrudController extends CrudController{
             'thousands_sep' => '.',
         ]);
         CRUD::column([
-            'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
             'name' => 'rap',
             'type'  => 'number',
             'prefix' => "Rp.",
@@ -451,38 +484,114 @@ class StatusQuotaionCrudController extends CrudController{
         ]);
         CRUD::column(
             [
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
                 'name' => 'pic',
                 'type'  => 'text'
             ],
         );
         CRUD::column(
             [
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.user.label'),
                 'name' => 'user',
                 'type'  => 'text'
             ],
         );
         CRUD::column([
-            'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
             'name' => 'closing_date',
             'type'  => 'date',
             'format' => 'D MMM Y'
         ]);
         CRUD::column(
             [
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.status.label'),
                 'name' => 'status',
                 'type'  => 'text'
             ],
         );
         CRUD::column(
             [
-                'label'  => '',
+                                    'label' => trans('backpack::crud.quotation.column.information.label'),
                 'name' => 'information',
                 'type'  => 'text'
             ],
         );
+    }
+
+    public function exportPdf(){
+        $type = request()->type;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+            }
+        }
+
+        $title = 'Status Quotation - '.$type;
+
+        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+        $type = request()->type;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+            }
+        }
+
+        $name = 'Status Project - '.$type;
+
+        return response()->streamDownload(function () use($type, $columns, $items){
+            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+
     }
 
 }

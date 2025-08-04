@@ -33,12 +33,31 @@ class SubkonCrudController extends CrudController
      */
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\Subkon::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/subkon');
         CRUD::setEntityNameStrings(trans('backpack::crud.subkon.title_header'), trans('backpack::crud.subkon.title_header'));
         $this->card = app('component.card');
         $this->modal = app('component.modal');
         $this->script = app('component.script');
+
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU VENDOR'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU VENDOR'
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     private function setupCard(){

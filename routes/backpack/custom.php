@@ -5,13 +5,19 @@ use App\Http\Controllers\Admin\AssetCrudController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\VoucherCrudController;
 use App\Http\Controllers\Admin\ClientPoCrudController;
+use App\Http\Controllers\Admin\QuotationCrudController;
+use App\Http\Controllers\Admin\AccountUserCrudController;
+use App\Http\Controllers\Admin\ProjectListCrudController;
 use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
 use App\Http\Controllers\Admin\StatusProjectCrudController;
+use App\Http\Controllers\Admin\QuotationCheckCrudController;
+use App\Http\Controllers\Admin\StatusQuotaionCrudController;
 use App\Http\Controllers\Admin\VoucherPaymentCrudController;
 use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
+use App\Http\Controllers\Admin\ProjectListReportCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -40,10 +46,13 @@ Route::group([
     Route::crud('tag', 'TagCrudController');
     Route::crud('dashboard', 'DashboardController');
     Route::get('dashboard/get-chart', [DashboardController::class, 'totalAlldashboard']);
-    Route::prefix('auth')->group(function () {
+    Route::prefix('setting')->group(function () {
         Route::crud('permission', 'PermissionCrudController');
         Route::crud('role', 'RoleCrudController');
         Route::crud('user', 'UserCrudController');
+        Route::crud('account', 'AccountUserCrudController');
+        Route::post('account/updated', [AccountUserCrudController::class, 'update_personal']);
+        Route::post('account/updated_password', [AccountUserCrudController::class, 'update_password']);
     });
     Route::prefix('vendor')->group(function(){
         Route::crud('subkon', 'SubkonCrudController');
@@ -103,13 +112,26 @@ Route::group([
     Route::prefix('monitoring')->group(function(){
         Route::crud('project-system-setup', 'ProjectSystemSetupCrudController');
         Route::crud('project-list', 'ProjectListCrudController');
+        Route::post('project-list/export-pdf', [ProjectListCrudController::class, 'exportPdf']);
+        Route::post('project-list/export-excel', [ProjectListCrudController::class, 'exportExcel']);
         Route::crud('project-report', 'ProjectListReportCrudController');
+        Route::post('project-report/export-pdf', [ProjectListReportCrudController::class, 'exportPdf']);
+        Route::post('project-report/export-excel', [ProjectListReportCrudController::class, 'exportExcel']);
         Route::crud('quotation', 'QuotationCrudController');
+        Route::post('quotation/export-pdf', [QuotationCrudController::class, 'exportPdf']);
+        Route::post('quotation/export-excel', [QuotationCrudController::class, 'exportExcel']);
         Route::crud('quotation-status', 'StatusQuotaionCrudController');
+        Route::post('quotation-status/export-pdf', [StatusQuotaionCrudController::class, 'exportPdf']);
+        Route::post('quotation-status/export-excel', [StatusQuotaionCrudController::class, 'exportExcel']);
         Route::crud('quotation-check', 'QuotationCheckCrudController');
+        Route::post('quotation-check/export-pdf', [QuotationCheckCrudController::class, 'exportPdf']);
+        Route::post('quotation-check/export-excel', [QuotationCheckCrudController::class, 'exportExcel']);
         Route::crud('project-status', 'StatusProjectCrudController');
         Route::get('project-status/resume-total', [StatusProjectCrudController::class, 'resumeTotal']);
+        Route::post('project-status/export-pdf', [StatusProjectCrudController::class, 'exportPdf']);
+        Route::post('project-status/export-excel', [StatusProjectCrudController::class, 'exportExcel']);
     });
+
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
 

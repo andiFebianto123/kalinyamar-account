@@ -26,7 +26,7 @@ class RoleCrudController extends CrudController
 
         $this->crud->setModel($role_model);
         $this->crud->setEntityNameStrings(trans('backpack::permissionmanager.role'), trans('backpack::permissionmanager.roles'));
-        $this->crud->setRoute(config('backpack.base.route_prefix') . '/auth/role');
+        $this->crud->setRoute(config('backpack.base.route_prefix') . '/setting/role');
 
         // deny access according to configuration file
         if (config('backpack.permissionmanager.allow_role_create') == false) {
@@ -37,6 +37,14 @@ class RoleCrudController extends CrudController
         }
         if (config('backpack.permissionmanager.allow_role_delete') == false) {
             $this->crud->denyAccess('delete');
+        }
+
+        $user = backpack_user();
+        $roles = $user->getRoles();
+        if($roles->whereIn('name', [
+            'Super Admin',
+        ])->count() == 0){
+            $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         }
     }
 

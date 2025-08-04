@@ -21,12 +21,25 @@ class ProfitLostAccountCrudController extends CrudController{
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Account::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/finance-report/profit-lost');
         CRUD::setEntityNameStrings(trans('backpack::crud.profit_lost.title_header'), trans('backpack::crud.profit_lost.title_header'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
 
-        CRUD::allowAccess(['create', 'update', 'delete']);
-
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     public function listCardComponents($type){

@@ -20,9 +20,25 @@ class ProjectSystemSetupCrudController extends CrudController{
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         $this->crud->setModel(CategoryProject::class);
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/monitoring/project-system-setup');
         $this->crud->setEntityNameStrings(trans('backpack::crud.menu.project_system_setup'), trans('backpack::crud.menu.project_system_setup'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU PROJECT',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     function listCardComponents(){

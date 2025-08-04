@@ -38,9 +38,27 @@ class PurchaseOrderCrudController extends CrudController
      */
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\PurchaseOrder::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/purchase-order');
         CRUD::setEntityNameStrings('purchase order', 'purchase orders');
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU VENDOR'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU VENDOR'
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
     public function setupTabsCrud($nameTabs){
@@ -139,6 +157,10 @@ class PurchaseOrderCrudController extends CrudController
                                 ]
                             ],
                             'route' => backpack_url('/vendor/purchase-order/search?tab=list_all_po'),
+                            'route_export_pdf' => backpack_url('/vendor/download-po-pdf?tab=list_all_po'),
+                            'title_export_pdf' => 'Purchase_order.pdf',
+                            'route_export_excel' => backpack_url('/vendor/download-po?tab=list_all_po'),
+                            'title_export_excel' => 'Purchase_order.xlsx',
                         ],
                     ],
                     [
@@ -215,6 +237,10 @@ class PurchaseOrderCrudController extends CrudController
                             ],
                             'total_include_ppn' => CustomHelper::formatRupiah(PurchaseOrder::where('status', PurchaseOrder::OPEN)->sum('total_value_with_tax')),
                             'route' => backpack_url('/vendor/purchase-order/search?tab=open'),
+                            'route_export_pdf' => backpack_url('/vendor/download-po-pdf?tab=open'),
+                            'title_export_pdf' => 'Purchase_order-open.pdf',
+                            'route_export_excel' => backpack_url('/vendor/download-po?tab=open'),
+                            'title_export_excel' => 'Purchase_order-open.xlsx',
                         ],
                     ],
                     [
@@ -291,6 +317,10 @@ class PurchaseOrderCrudController extends CrudController
                             ],
                             'total_include_ppn' => CustomHelper::formatRupiah(PurchaseOrder::where('status', PurchaseOrder::CLOSE)->sum('total_value_with_tax')),
                             'route' => backpack_url('/vendor/purchase-order/search?tab=close'),
+                            'route_export_pdf' => backpack_url('/vendor/download-po-pdf?tab=close'),
+                            'title_export_pdf' => 'Purchase_order-close.pdf',
+                            'route_export_excel' => backpack_url('/vendor/download-po?tab=close'),
+                            'title_export_excel' => 'Purchase_order-close.xlsx',
                         ],
                     ]
                 ]
@@ -594,8 +624,8 @@ class PurchaseOrderCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        CRUD::addButtonFromView('top', 'download-excel-po', 'download-excel-po', 'beginning');
-        CRUD::addButtonFromView('top', 'download-pdf-po', 'download-pdf-po', 'beginning');
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
 
         $type = request()->tab;
         if($type == 'open'){
@@ -980,7 +1010,7 @@ class PurchaseOrderCrudController extends CrudController
 
     public function exportExcel(Request $request){
         $name = "document-subkon-po".now()->format('Ymd_His').".xlsx";
-        $type = $request->type;
+        $type = $request->tab;
         return response()->streamDownload(function () use($type){
             echo Excel::raw(new ExportVendorPo($type), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
@@ -992,14 +1022,13 @@ class PurchaseOrderCrudController extends CrudController
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
 
-    public function exportPdf(Request $request){
-        $type = $request->type;
-        if($type == 'list_open'){
+    public function exportPdf(){
+        $type = request()->tab;
+        if($type == 'open'){
             $type_origin = 'open';
-        }else if($type == 'list_close'){
+        }else if($type == 'close'){
             $type_origin = 'close';
         }else {
             $type_origin = 'all';

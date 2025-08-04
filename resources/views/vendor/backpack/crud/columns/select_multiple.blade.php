@@ -4,7 +4,7 @@
     $column['escaped'] = $column['escaped'] ?? true;
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
-    $column['limit'] = $column['limit'] ?? 32;
+    $column['limit'] = $column['limit'] ?? 50;
     $column['attribute'] = $column['attribute'] ?? (new $column['model'])->identifiableAttribute();
     $column['separator'] = $column['separator'] ?? ',';
 

@@ -37,7 +37,7 @@ class CustomHelper {
     }
 
     public static function getYearOptionsClient(){
-        $dataset = ClientPo::select(DB::raw("YEAR(date_invoice) as year"))
+        $dataset = ClientPo::select(DB::raw("YEAR(end_date) as year"))
         ->distinct()->get();
 
         $results = [];

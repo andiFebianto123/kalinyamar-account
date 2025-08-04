@@ -29,9 +29,27 @@ class ClientCrudController extends CrudController
      */
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\Client::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client/client-list');
         CRUD::setEntityNameStrings(trans('backpack::crud.client.title_header'), trans('backpack::crud.client.title_header'));
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU CLIENT'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU CLIENT'
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
     }
 
      public function index()
@@ -192,7 +210,7 @@ class ClientCrudController extends CrudController
                 $this->crud->query = $this->crud->query
                 ->where(function($query) use($filterYear){
                     $query->whereHas('client_po', function($q) use($filterYear){
-                        $q->where(DB::raw("YEAR(date_invoice)"), $filterYear);
+                        $q->where(DB::raw("YEAR(end_date)"), $filterYear);
                     });
                 });
             }

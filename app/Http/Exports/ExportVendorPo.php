@@ -17,11 +17,12 @@ class ExportVendorPo implements FromCollection, WithHeadings, WithMapping, Shoul
 {
     private $type;
     private $rowNumber = 0;
+
     function __construct($type)
     {
-        if($type == 'list_open'){
+        if($type == 'open'){
             $this->type = 'open';
-        }else if($type == 'list_close'){
+        }else if($type == 'close'){
             $this->type = 'close';
         }else {
             $this->type = 'all';

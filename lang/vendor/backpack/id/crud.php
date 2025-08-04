@@ -215,6 +215,8 @@ return [
         'project_report' => 'Project Report',
         'list_quotation' => 'Daftar Penawaran',
         'quotation_status' => 'Status Penawaran',
+        'account_setting' => 'Pengaturan Akun',
+        'setting' => 'Pengaturan',
     ],
     'user' => [
         'field' => [

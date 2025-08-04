@@ -3,16 +3,20 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Spk;
+use App\Models\User;
 use App\Models\Project;
 use App\Models\SetupPpn;
 use App\Models\SetupClient;
 use App\Models\PurchaseOrder;
 use App\Models\ProjectHistory;
 use App\Models\CategoryProject;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use App\Models\SetupStatusProject;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -25,10 +29,33 @@ class ProjectListCrudController extends CrudController {
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Project::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/project-list');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.project_list'), trans('backpack::crud.menu.project_list'));
         CRUD::allowAccess('print');
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW PROJECT',
+            'AKSES SEMUA MENU PROJECT',
+            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU PROJECT',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
+
+        if($permissions->whereIn('name', [
+            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+        ])){
+            $this->crud->allowAccess(['update']);
+        }
     }
 
     function index(){
@@ -182,6 +209,10 @@ class ProjectListCrudController extends CrudController {
                                 ]
                             ],
                             'route' => backpack_url('/monitoring/project-list/search?tab=project'),
+                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=project'),
+                            'title_export_pdf' => 'Daftar-project.pdf',
+                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=project'),
+                            'title_export_excel' => 'Daftar-project.xlsx',
                         ],
                     ],
                     [
@@ -223,6 +254,10 @@ class ProjectListCrudController extends CrudController {
                                 ],
                             ],
                             'route' => backpack_url('/monitoring/project-list/search?tab=project_edit'),
+                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=project_edit'),
+                            'title_export_pdf' => 'Daftar-project-edit.pdf',
+                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=project_edit'),
+                            'title_export_excel' => 'Daftar-project-edit.xlsx',
                         ]
                     ]
                 ]
@@ -270,8 +305,8 @@ class ProjectListCrudController extends CrudController {
     {
         $type = request()->tab;
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
-        CRUD::addButtonFromView('top', 'download-excel', 'download-excel', 'beginning');
-        CRUD::addButtonFromView('top', 'download-pdf', 'download-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
 
         if($type == 'project'){
             CRUD::setModel(Project::class);
@@ -306,26 +341,26 @@ class ProjectListCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.po_date.label'),
                 'name' => 'po_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
                 'name' => 'price_total_exclude_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
@@ -334,7 +369,7 @@ class ProjectListCrudController extends CrudController {
                 'thousands_sep' => '.',
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.price_ppn.label'),
                 'name' => 'price_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
@@ -344,13 +379,13 @@ class ProjectListCrudController extends CrudController {
             ]);
 
             CRUD::column([
-                'label'  => trans('backpack::crud.client_po.column.tax_ppn'),
+                                    'label' => trans('backpack::crud.project.column.project.tax_ppn.label'),
                 'name' => 'tax_ppn',
                 'type'  => 'number',
                 'suffix' => '%',
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
@@ -370,7 +405,7 @@ class ProjectListCrudController extends CrudController {
                 // 'limit' => 32, // Limit the number of characters shown
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
                 'name' => 'received_po_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
@@ -384,61 +419,61 @@ class ProjectListCrudController extends CrudController {
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.duration.label'),
                     'name' => 'duration',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.actual_start_date.label'),
                 'name' => 'actual_start_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.actual_end_date.label'),
                 'name' => 'actual_end_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.status_po.label'),
                     'name' => 'status_po',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.progress.label'),
                     'name' => 'progress',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.pic.label'),
                     'name' => 'pic',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.user.label'),
                     'name' => 'user',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.category.label'),
                     'name' => 'category',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
                     'type'  => 'text'
                 ],
@@ -505,14 +540,14 @@ class ProjectListCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                    'label'  => trans('backpack::crud.client_po.column.work_code'),
+                                    'label' => trans('backpack::crud.project.column.project_edit.name.label'),
                     'name' => 'name',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
                 // 1-n relationship
-                'label' => trans('backpack::crud.client_po.column.client_id'),
+                                    'label' => trans('backpack::crud.project.column.project_edit.user_id.label'),
                 'type'      => 'select',
                 'name'      => 'user_id', // the column that contains the ID of that connected entity;
                 'entity'    => 'user', // the method that defines the relationship in your Model
@@ -522,13 +557,13 @@ class ProjectListCrudController extends CrudController {
                 // 'limit' => 32, // Limit the number of characters shown
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project_edit.date_update.label'),
                 'name' => 'date_update',
                 'type'  => 'date',
                 'format' => 'DD MMM YYYY HH:mm'
             ]);
             CRUD::column([
-                'label'  => '',
+                                    'label' => trans('backpack::crud.project.column.project_edit.history_update.label'),
                 'name' => 'history_update',
                 'type'  => 'text',
             ]);
@@ -563,7 +598,30 @@ class ProjectListCrudController extends CrudController {
     }
 
     protected function setupCreateOperation(){
-        CRUD::setValidation($this->ruleValidation());
+
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        $total_permission = $permissions->whereIn('name', [
+            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+        ])->count();
+        if($total_permission){
+            CRUD::setValidation([
+                'progress' => 'nullable|numeric',
+                'information' => 'nullable',
+            ]);
+            $edit_column_progress_and_information = true;
+        }else{
+            CRUD::setValidation($this->ruleValidation());
+            $edit_column_progress_and_information = false;
+        }
+
+       $attributes_added = [];
+       if($edit_column_progress_and_information){
+            $attributes_added = [
+                'disabled' => true,
+            ];
+       }
+
         CRUD::addField([
             'name' => 'name',
             'label' => trans('backpack::crud.project.field.name.label'),
@@ -572,6 +630,7 @@ class ProjectListCrudController extends CrudController {
                 'class' => 'form-group col-md-12',
             ],
             'attributes' => [
+                ...$attributes_added,
                 'placeholder' => trans('backpack::crud.project.field.name.placeholder'),
             ]
         ]);
@@ -581,6 +640,7 @@ class ProjectListCrudController extends CrudController {
             'label' => trans('backpack::crud.project.field.po_status.label'),
             'type'  => 'checkbox',
             'attributes' => [
+                ...$attributes_added,
                 'name' => 'po_status_check',
             ]
         ]);
@@ -609,6 +669,7 @@ class ProjectListCrudController extends CrudController {
                 'class' => 'form-group col-md-6 no_po_spk',
             ],
             'attributes' => [
+                ...$attributes_added,
                 'placeholder' => trans('backpack::crud.project.field.no_po_spk.placeholder'),
             ]
         ]);
@@ -625,6 +686,9 @@ class ProjectListCrudController extends CrudController {
             'wrapper'   => [
                 'class' => 'form-group col-md-6 po_date'
             ],
+            'attributes' =>  [
+                ...$attributes_added,
+            ]
         ]);
 
         CRUD::addField([   // date_picker
@@ -639,6 +703,9 @@ class ProjectListCrudController extends CrudController {
             'wrapper'   => [
                 'class' => 'form-group col-md-6 received_po_date'
             ],
+            'attributes' =>  [
+                ...$attributes_added,
+            ]
         ]);
 
         CRUD::addField([
@@ -664,6 +731,7 @@ class ProjectListCrudController extends CrudController {
             ],
             'attributes' => [
                 'placeholder' => '000.000',
+                ...$attributes_added,
             ]
         ]);
 
@@ -685,6 +753,9 @@ class ProjectListCrudController extends CrudController {
             'options'   => $tax_ppn_option, // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
             'wrapper' => [
                 'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
             ]
         ]);
 
@@ -737,6 +808,7 @@ class ProjectListCrudController extends CrudController {
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
+                ...$attributes_added,
                 'placeholder' => trans('backpack::crud.client_po.field.startdate_and_enddate.placeholder'),
             ]
         ]);
@@ -768,6 +840,9 @@ class ProjectListCrudController extends CrudController {
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
+            'attributes' => [
+                ...$attributes_added,
+            ]
         ]);
 
         CRUD::addField([   // date_picker
@@ -782,6 +857,9 @@ class ProjectListCrudController extends CrudController {
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
+            'attributes' => [
+                ...$attributes_added,
+            ]
         ]);
 
         $status_po = SetupStatusProject::pluck('name', 'name');
@@ -801,6 +879,9 @@ class ProjectListCrudController extends CrudController {
             'options'   => $status_po_option, // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
             'wrapper' => [
                 'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
             ]
         ]);
 
@@ -821,6 +902,9 @@ class ProjectListCrudController extends CrudController {
             'options'   => $client_option, // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
             'wrapper' => [
                 'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
             ]
         ]);
 
@@ -840,6 +924,9 @@ class ProjectListCrudController extends CrudController {
             'options'   => $category_option, // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
             'wrapper' => [
                 'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
             ]
         ]);
 
@@ -864,6 +951,7 @@ class ProjectListCrudController extends CrudController {
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
+                ...$attributes_added,
                 'placeholder' => trans('backpack::crud.project.field.pic.placeholder'),
             ]
         ]);
@@ -876,6 +964,7 @@ class ProjectListCrudController extends CrudController {
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
+                ...$attributes_added,
                 'placeholder' => trans('backpack::crud.project.field.user.placeholder'),
             ]
         ]);
@@ -898,6 +987,9 @@ class ProjectListCrudController extends CrudController {
             'type' => 'upload',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
             ],
              'withFiles' => [
                 'disk' => 'public',
@@ -1099,9 +1191,80 @@ class ProjectListCrudController extends CrudController {
         ]);
     }
 
+    public function updateProgress(){
+        $request = $this->crud->validateRequest();
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try{
+
+            $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
+            $item = Project::find($this->crud->getCurrentEntryId());
+
+            $item->progress = $request->progress;
+            if ($old->progress != $item->progress) {
+                $flag_update = true;
+            }
+
+            $item->information = $request->information;
+            if ($old->information != $item->information) {
+                $flag_update = true;
+            }
+            $item->save();
+
+            if(isset($flag_update)){
+                $project_history = new ProjectHistory;
+                $project_history->project_id = $item->id;
+                $project_history->name = $item->name;
+                $project_history->user_id = backpack_auth()->user()->id;
+                $project_history->date_update = Carbon::now();
+                $project_history->history_update = "Mengedit data proyek";
+                $project_history->save();
+            }
+
+            $this->data['entry'] = $this->crud->entry = $item;
+
+            \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $item,
+                    'events' => [
+                        'crudTable-project_updated_success' => $item,
+                        'crudTable-project_edit_updated_success' => $item,
+                    ]
+                ]);
+            }
+
+            return $this->crud->performSaveAction($item->getKey());
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+    }
+
     public function update()
     {
         $this->crud->hasAccessOrFail('update');
+
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+        ])){
+            return $this->updateProgress();
+        }
 
         $request = $this->crud->validateRequest();
 
@@ -1539,6 +1702,93 @@ class ProjectListCrudController extends CrudController {
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function exportPdf(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+
+        CRUD::removeColumn('document_path');
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'user_id'){
+                    $item->user_id = User::find($item->user_id)->name;
+                }
+            }
+        }
+
+        $title = 'Daftar Project - '.$type;
+
+        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+        CRUD::removeColumn('document_path');
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'user_id'){
+                    $item->user_id = User::find($item->user_id)->name;
+                }
+            }
+        }
+
+        $name = 'Status Project - '.$type;
+
+        return response()->streamDownload(function () use($type, $columns, $items){
+            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+
     }
 
 }

@@ -20,11 +20,26 @@ class ExpenseAccountCrudController extends CrudController{
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Account::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/finance-report/expense-account');
         CRUD::setEntityNameStrings(trans('backpack::crud.expense_account.title_header'), trans('backpack::crud.expense_account.title_header'));
 
-        CRUD::allowAccess(['create', 'update', 'delete']);
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
 
     }
 

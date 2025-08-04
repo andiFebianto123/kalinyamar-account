@@ -29,8 +29,22 @@
             @php
                 $tab['disabled'] = $tab['disabled'] ?? false;
                 $tab['active'] = $tab['active'] ?? false;
+                $route_export_pdf = $tab['params']['route_export_pdf'] ?? '';
+                $title_export_pdf = $tab['params']['title_export_pdf'] ?? '';
             @endphp
-            <li class="nav-link {{ ($tab['active']) ? 'active' : '' }}" id="{{ $tab['name'] }}-tab" data-alt-name="{{$tab['name']}}" data-bs-toggle="tab" data-bs-target="#{{ $tab['name'] }}-pane" type="button" role="tab" aria-controls="{{ $tab['name'] }}-pane" aria-selected="{{ ($tab['active']) ? 'true' : 'false' }}" {{ ($tab['disabled']) ? 'disabled' : '' }}>
+            <li
+                class="nav-link {{ ($tab['active']) ? 'active' : '' }}" id="{{ $tab['name'] }}-tab"
+                data-alt-name="{{$tab['name']}}"
+                data-bs-toggle="tab"
+                data-bs-target="#{{ $tab['name'] }}-pane"
+                data-route-export-pdf = "{{$route_export_pdf}}"
+                data-title-export-pdf = "{{$title_export_pdf}}"
+                data-route-export-excel = "{{$tab['params']['route_export_excel'] ?? ''}}"
+                data-title-export-excel = "{{$tab['params']['title_export_excel'] ?? ''}}"
+                type="button"
+                role="tab"
+                aria-controls="{{ $tab['name'] }}-pane"
+                aria-selected="{{ ($tab['active']) ? 'true' : 'false' }}" {{ ($tab['disabled']) ? 'disabled' : '' }}>
                 {{ $tab['label'] }}
             </li>
         @endforeach
@@ -51,3 +65,36 @@
         @endforeach
     </div>
 </div>
+
+
+@push('after_scripts')
+    <script>
+        $(function(){
+            const activeTab = document.querySelector('.nav-tabs .nav-link.active');
+
+            if(activeTab){
+                const name = activeTab.getAttribute('data-alt-name');
+                if(SIAOPS.getAttribute('export')){
+                    SIAOPS.getAttribute('export').url_pdf = activeTab.getAttribute('data-route-export-pdf');
+                    SIAOPS.getAttribute('export').title_pdf = activeTab.getAttribute('data-title-export-pdf');
+                    SIAOPS.getAttribute('export').url_excel = activeTab.getAttribute('data-route-export-excel');
+                    SIAOPS.getAttribute('export').title_excel = activeTab.getAttribute('data-title-export-excel');
+                }
+            }
+            const tabEl = document.querySelectorAll('li[data-bs-toggle="tab"]');
+            tabEl.forEach(el => {
+                el.addEventListener('shown.bs.tab', function (event) {
+                    const name = event.target.getAttribute('data-alt-name');
+                    if(SIAOPS.getAttribute('export')){
+                        SIAOPS.getAttribute('export').url_pdf = event.target.getAttribute('data-route-export-pdf');
+                        SIAOPS.getAttribute('export').title_pdf = event.target.getAttribute('data-title-export-pdf');
+                        SIAOPS.getAttribute('export').url_excel = event.target.getAttribute('data-route-export-excel');
+                        SIAOPS.getAttribute('export').title_excel = event.target.getAttribute('data-title-export-excel');
+                    }
+                });
+            });
+
+        })
+
+    </script>
+@endpush

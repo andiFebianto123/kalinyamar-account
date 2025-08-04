@@ -21,11 +21,28 @@ class BalanceSheetCrudController extends CrudController{
 
     public function setup()
     {
+        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Account::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/finance-report/balance-sheet');
         CRUD::setEntityNameStrings(trans('backpack::crud.balance_sheet.title_header'), trans('backpack::crud.balance_sheet.title_header'));
 
-        CRUD::allowAccess(['create', 'update', 'delete', 'print']);
+        $user = backpack_user();
+        $permissions = $user->getAllPermissions();
+        if($permissions->whereIn('name', [
+            'AKSES SEMUA VIEW ACCOUNTING',
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0)
+        {
+            $this->crud->allowAccess(['list', 'show']);
+        }
+
+        if($permissions->whereIn('name',[
+            'AKSES SEMUA MENU ACCOUNTING',
+        ])->count() > 0){
+            $this->crud->allowAccess(['create', 'update', 'delete']);
+        }
+
+        CRUD::allowAccess(['print']);
     }
 
     public function listCardComponents(){
