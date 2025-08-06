@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\SetupPpn;
 use App\Models\SetupClient;
 use App\Models\CategoryProject;
@@ -76,6 +77,7 @@ class ProjectListReportCrudController extends CrudController {
     protected function setupListOperation()
     {
         CRUD::disableResponsiveTable();
+        $settings = Setting::first();
 
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
@@ -126,7 +128,7 @@ class ProjectListReportCrudController extends CrudController {
             'label'  => trans('backpack::crud.project_report.column.price_total_include_ppn.label'),
             'name' => 'price_total_include_ppn',
             'type'  => 'number',
-            'prefix' => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -511,6 +513,7 @@ class ProjectListReportCrudController extends CrudController {
     }
 
     protected function setupShowOperation(){
+        $settings = Setting::first();
         $this->setupCreateOperation();
         CRUD::field('received_po_date')->remove();
         CRUD::field([   // date_picker
@@ -564,7 +567,7 @@ class ProjectListReportCrudController extends CrudController {
             'label'  => '',
             'name' => 'price_total_exclude_ppn',
             'type'  => 'number',
-            'prefix' => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -574,7 +577,7 @@ class ProjectListReportCrudController extends CrudController {
             'label'  => '',
             'name' => 'price_ppn',
             'type'  => 'number',
-            'prefix' => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -591,7 +594,7 @@ class ProjectListReportCrudController extends CrudController {
             'label'  => '',
             'name' => 'price_total_include_ppn',
             'type'  => 'number',
-            'prefix' => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',

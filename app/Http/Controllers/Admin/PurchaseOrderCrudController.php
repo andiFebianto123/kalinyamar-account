@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 // use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Carbon\Carbon;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use App\Models\PurchaseOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Http\Exports\ExportVendorPo;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,7 +17,6 @@ use App\Http\Controllers\CrudController;
 use App\Http\Requests\PurchaseOrderRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use App\Http\Controllers\Admin\PurchaseOrderTabController;
-use App\Http\Helpers\CustomHelper;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -151,10 +152,15 @@ class PurchaseOrderCrudController extends CrudController
                                     'label'  => trans('backpack::crud.po.column.document_path'),
                                 ],
                                 [
+                                    'label'  => trans('backpack::crud.po.column.additional_info'),
+                                    'name' => 'additional_info',
+                                    'type'  => 'textarea'
+                                ],
+                                [
                                     'name' => 'action',
                                     'type' => 'action',
                                     'label' =>  trans('backpack::crud.actions'),
-                                ]
+                                ],
                             ],
                             'route' => backpack_url('/vendor/purchase-order/search?tab=list_all_po'),
                             'route_export_pdf' => backpack_url('/vendor/download-po-pdf?tab=list_all_po'),
@@ -233,6 +239,11 @@ class PurchaseOrderCrudController extends CrudController
                                     'name'   => 'document_path',
                                     'type'   => 'upload',
                                     'label'  => trans('backpack::crud.po.column.document_path'),
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.additional_info'),
+                                    'name' => 'additional_info',
+                                    'type'  => 'textarea'
                                 ],
                             ],
                             'total_include_ppn' => CustomHelper::formatRupiah(PurchaseOrder::where('status', PurchaseOrder::OPEN)->sum('total_value_with_tax')),
@@ -313,6 +324,11 @@ class PurchaseOrderCrudController extends CrudController
                                     'name'   => 'document_path',
                                     'type'   => 'upload',
                                     'label'  => trans('backpack::crud.po.column.document_path'),
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.additional_info'),
+                                    'name' => 'additional_info',
+                                    'type'  => 'textarea'
                                 ],
                             ],
                             'total_include_ppn' => CustomHelper::formatRupiah(PurchaseOrder::where('status', PurchaseOrder::CLOSE)->sum('total_value_with_tax')),
@@ -504,6 +520,9 @@ class PurchaseOrderCrudController extends CrudController
 
     public function setCustomColumn($app){
         CRUD::disableResponsiveTable();
+
+        $settings = Setting::first();
+
         $app->addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -563,7 +582,7 @@ class PurchaseOrderCrudController extends CrudController
                 'label'  => trans('backpack::crud.po.column.job_value'),
                 'name' => 'job_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -582,7 +601,7 @@ class PurchaseOrderCrudController extends CrudController
                 'label'  => trans('backpack::crud.po.column.total_value_with_tax'),
                 'name' => 'total_value_with_tax',
                 'type'  => 'number-custom',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -614,6 +633,24 @@ class PurchaseOrderCrudController extends CrudController
             'disk'   => 'public',
         ]);
 
+        $app->addColumn(
+            [
+                'label'  => trans('backpack::crud.po.column.additional_info'),
+                'name' => 'additional_info',
+                'type'  => 'textarea'
+            ],
+        );
+
+        $request = request();
+
+        if($request->has('filter_year')){
+            if($request->filter_year != 'all'){
+                $filterYear = $request->filter_year;
+                $this->crud->query = $this->crud->query
+                ->where(DB::raw("YEAR(date_po)"), $filterYear);
+            }
+        }
+
     }
 
     /**
@@ -626,6 +663,8 @@ class PurchaseOrderCrudController extends CrudController
     {
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
+
 
         $type = request()->tab;
         if($type == 'open'){
@@ -646,6 +685,14 @@ class PurchaseOrderCrudController extends CrudController
     {
         CRUD::setValidation(PurchaseOrderRequest::class);
         // CRUD::setFromDb(); // set fields from db columns.
+
+        $settings = Setting::first();
+        $po_prefix_value = [];
+        if(!$this->crud->getCurrentEntryId()){
+            $po_prefix_value = [
+                'value' => $settings?->po_prefix,
+            ];
+        }
 
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.subkon.column.name'), // Table column heading
@@ -679,6 +726,7 @@ class PurchaseOrderCrudController extends CrudController
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
+            ...$po_prefix_value
         ]);
 
         CRUD::addField([
@@ -723,7 +771,7 @@ class PurchaseOrderCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -756,7 +804,7 @@ class PurchaseOrderCrudController extends CrudController
             ],
               // optionals
             // 'attributes' => ["step" => "any"], // allow decimals
-            'prefix'     => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -804,6 +852,17 @@ class PurchaseOrderCrudController extends CrudController
             ],
         ]);
 
+        CRUD::addField([
+            'name' => 'additional_info',
+            'label' => trans('backpack::crud.po.field.additional_info.label'),
+            'type' => 'textarea',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.po.field.additional_info.placeholder')
+            ]
+            // 'wrapper'   => [
+            //     'class' => 'form-group col-md-6'
+            // ],
+        ]);
 
         /**
          * Fields can be defined using the fluent syntax:
@@ -847,6 +906,7 @@ class PurchaseOrderCrudController extends CrudController
 
         // update field hidden
         CRUD::field('space')->remove();
+        CRUD::field('additional_info')->remove();
 
         // update subkon id
         CRUD::field('subkon_id')->remove();
@@ -881,6 +941,14 @@ class PurchaseOrderCrudController extends CrudController
                 'class' => 'form-group col-md-12',
             ]
         ])->before('job_value');
+        CRUD::field([
+            'label'  => trans('backpack::crud.po.column.additional_info'),
+            'name' => 'additional_info',
+            'type'  => 'text',
+            'wrapper' => [
+                'class' => 'form-group col-md-12',
+            ]
+        ])->after('document_path');
 
         // load entry data
         $this->setupListOperation();
@@ -890,6 +958,7 @@ class PurchaseOrderCrudController extends CrudController
 
         // update document path
         CRUD::column('document_path')->remove();
+        CRUD::column('additional_info')->remove();
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.po.column.document_path'),
@@ -923,6 +992,13 @@ class PurchaseOrderCrudController extends CrudController
                 'class' => 'form-group col-md-6'
             ],
         ])->after('po_number');
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.additional_info'),
+                'name' => 'additional_info',
+                'type'  => 'textarea'
+            ],
+        )->after('document_path');
     }
 
     /**

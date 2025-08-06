@@ -31,9 +31,9 @@
                         success: function (result) {
                             $('#panel-voucher').html(`
                                 <div class="d-flex justify-content-between">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher.total_exclude_ppn')}} : Rp${result.total_exclude_ppn}</strong></div>
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher.total_include_ppn')}} : Rp${result.total_include_ppn}</strong></div>
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher.total_transfer_value')}} : Rp${result.total_nilai_transfer}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher.total_exclude_ppn')}} : ${result.total_exclude_ppn}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher.total_include_ppn')}} : ${result.total_include_ppn}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher.total_transfer_value')}} : ${result.total_nilai_transfer}</strong></div>
                                 </div>
                             `);
                         },

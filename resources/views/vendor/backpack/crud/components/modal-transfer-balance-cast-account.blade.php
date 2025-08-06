@@ -15,7 +15,7 @@
                 <div class="form-group col-md-6 required" element="div" bp-field-wrapper="true" bp-field-name="nominal_transaction" bp-field-type="mask" bp-section="crud-field">
                     <label>{{trans('backpack::crud.cash_account.field_transfer.nominal_transfer.label')}}</label>
                     <div class="input-group">
-                        <span class="input-group-text">Rp</span>
+                        <span class="input-group-text">{{($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp' }}</span>
                         <input
                             type="text"
                             data-alt="nominal_transaction_masked"

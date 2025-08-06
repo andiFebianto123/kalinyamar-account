@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Asset;
 use App\Models\Account;
+use App\Models\Setting;
 use App\Models\JournalEntry;
 use Illuminate\Validation\Rule;
 use App\Models\ProjectProfitLost;
@@ -75,6 +76,7 @@ class AssetCrudController extends CrudController
 
         CRUD::addButtonFromView('top', 'filter-year-asset', 'filter-year-asset', 'beginning');
 
+        $settings = Setting::first();
         $this->crud->addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -143,7 +145,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.price_acquisition'),
                 'name' => 'price_acquisition',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -170,7 +172,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.price_rate_per_year'),
                 'name' => 'price_rate_per_year',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -182,7 +184,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.price_rate_year_ago'),
                 'name' => 'price_rate_year_ago',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -194,7 +196,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.accumulated_until_december_last_year'),
                 'name' => 'accumulated_until_december_last_year',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -206,7 +208,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.book_value_last_december'),
                 'name' => 'book_value_last_december',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -218,7 +220,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.this_year_depreciation_rate'),
                 'name' => 'this_year_depreciation_rate',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -230,7 +232,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.accumulated_until_december_this_year'),
                 'name' => 'accumulated_until_december_this_year',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -242,7 +244,7 @@ class AssetCrudController extends CrudController
                 'label'  => trans('backpack::crud.asset.column.book_value_this_december'),
                 'name' => 'book_value_this_december',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -316,6 +318,7 @@ class AssetCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation($this->ruleAsset());
+        $settings = Setting::first();
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.asset.field.account_id.label'), // Table column heading
             'type'        => "select2_ajax_custom",
@@ -389,7 +392,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -438,7 +441,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -456,7 +459,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -473,7 +476,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -490,7 +493,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -507,7 +510,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -526,7 +529,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -544,7 +547,7 @@ class AssetCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],

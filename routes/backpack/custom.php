@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ProjectListCrudController;
 use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
+use App\Http\Controllers\Admin\SettingSystemCrudController;
 use App\Http\Controllers\Admin\StatusProjectCrudController;
 use App\Http\Controllers\Admin\QuotationCheckCrudController;
 use App\Http\Controllers\Admin\StatusQuotaionCrudController;
@@ -53,6 +54,10 @@ Route::group([
         Route::crud('account', 'AccountUserCrudController');
         Route::post('account/updated', [AccountUserCrudController::class, 'update_personal']);
         Route::post('account/updated_password', [AccountUserCrudController::class, 'update_password']);
+        Route::crud('system', 'SettingSystemCrudController');
+        Route::post('system/updated-logo', [SettingSystemCrudController::class, 'updateLogo']);
+        Route::post('system/updated-system', [SettingSystemCrudController::class, 'updateSystem']);
+        Route::post('system/updated-company', [SettingSystemCrudController::class, 'updateCompany']);
     });
     Route::prefix('vendor')->group(function(){
         Route::crud('subkon', 'SubkonCrudController');

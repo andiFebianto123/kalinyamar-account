@@ -3,12 +3,13 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Account;
+use App\Models\Setting;
+use App\Models\JournalEntry;
 use Illuminate\Validation\Rule;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Action;
 use App\Http\Controllers\CrudController;
-use App\Models\JournalEntry;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ExpenseAccountCrudController extends CrudController{
@@ -197,6 +198,8 @@ class ExpenseAccountCrudController extends CrudController{
     protected function setupCreateOperation(){
         CRUD::setValidation($this->ruleAccount());
 
+        $settings = Setting::first();
+
         CRUD::addField([
             'name' => 'code',
             'label' => trans('backpack::crud.expense_account.column.code'),
@@ -223,7 +226,7 @@ class ExpenseAccountCrudController extends CrudController{
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -476,6 +479,7 @@ class ExpenseAccountCrudController extends CrudController{
     protected function setupListOperation()
     {
         // $this->crud->setFromDb(false);
+        $settings = Setting::first();
 
         CRUD::disableResponsiveTable();
         CRUD::removeButton('update');

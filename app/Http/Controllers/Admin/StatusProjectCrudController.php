@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\SetupClient;
 use App\Models\ProjectHistory;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -506,11 +507,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_1 = 0;
         foreach($invoice_1 as $val1){
             $total_invoice_1 += $val1->price_total_include_ppn;
-            $val1->price_total_include_ppn_str = CustomHelper::formatRupiah($val1->price_total_include_ppn);
+            $val1->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val1->price_total_include_ppn);
             $val1->client_name_str = $val1->setup_client->name;
         }
         $grand_total += $total_invoice_1;
         $data['invoice_1_total'] = $total_invoice_1;
+        $data['invoice_1_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_1);
 
         $invoice_2 = Project::where('status_po', 'TERTUNDA')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -521,11 +523,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_2 = 0;
         foreach($invoice_2 as $val2){
             $total_invoice_2 += $val2->price_total_include_ppn;
-            $val2->price_total_include_ppn_str = CustomHelper::formatRupiah($val2->price_total_include_ppn);
+            $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
             $val2->client_name_str = $val2->setup_client->name;
         }
         $grand_total += $total_invoice_1;
         $data['invoice_2_total'] = $total_invoice_2;
+        $data['invoice_2_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_2);
 
 
         $invoice_3 = Project::where('status_po', 'TERTUNDA')
@@ -537,11 +540,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_3 = 0;
         foreach($invoice_3 as $val3){
             $total_invoice_3 += $val3->price_total_include_ppn;
-            $val3->price_total_include_ppn_str = CustomHelper::formatRupiah($val3->price_total_include_ppn);
+            $val3->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val3->price_total_include_ppn);
             $val3->client_name_str = $val3->setup_client->name;
         }
         $grand_total += $total_invoice_3;
         $data['invoice_3_total'] = $total_invoice_3;
+        $data['invoice_3_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_3);
 
         $invoice_4 = Project::where('status_po', 'RETENSI')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -551,11 +555,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_4 = 0;
         foreach($invoice_4 as $val4){
             $total_invoice_4 += $val4->price_total_include_ppn;
-            $val4->price_total_include_ppn_str = CustomHelper::formatRupiah($val4->price_total_include_ppn);
+            $val4->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val4->price_total_include_ppn);
             $val4->client_name_str = $val4->setup_client->name;
         }
         $grand_total += $total_invoice_4;
         $data['invoice_4_total'] = $total_invoice_4;
+        $data['invoice_4_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_4);
 
         $invoice_5 = Project::where('status_po', 'BELUM SELESAI')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -566,11 +571,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_5 = 0;
         foreach($invoice_5 as $val5){
             $total_invoice_5 += $val5->price_total_include_ppn;
-            $val5->price_total_include_ppn_str = CustomHelper::formatRupiah($val5->price_total_include_ppn);
+            $val5->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val5->price_total_include_ppn);
             $val5->client_name_str = $val5->setup_client->name;
         }
         $grand_total += $total_invoice_5;
         $data['invoice_5_total'] = $total_invoice_5;
+        $data['invoice_5_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_5);
 
         $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -581,15 +587,16 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_6 = 0;
         foreach($invoice_6 as $val6){
             $total_invoice_6 += $val6->price_total_include_ppn;
-            $val6->price_total_include_ppn_str = CustomHelper::formatRupiah($val6->price_total_include_ppn);
+            $val6->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val6->price_total_include_ppn);
             $val6->client_name_str = $val6->setup_client->name;
         }
         $grand_total += $total_invoice_6;
         $data['invoice_6_total'] = $total_invoice_6;
+        $data['invoice_6_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_6);
 
         return response()->json([
             'list' => $data,
-            'grand_total' => CustomHelper::formatRupiah($grand_total),
+            'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
         ]);
     }
 
@@ -597,6 +604,7 @@ class StatusProjectCrudController extends CrudController {
     {
         CRUD::disableResponsiveTable();
         $type = request()->tab;
+        $settings = Setting::first();
 
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
@@ -652,7 +660,7 @@ class StatusProjectCrudController extends CrudController {
                 'label'  => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -716,7 +724,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -794,7 +802,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -893,7 +901,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -944,7 +952,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1023,7 +1031,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1096,6 +1104,7 @@ class StatusProjectCrudController extends CrudController {
 
     private function setupUpdateOperationUnpaid($po_status)
     {
+        $settings = Setting::first();
         CRUD::addField([
             'name' => 'name',
             'label' => trans('backpack::crud.project.field.name.label'),
@@ -1138,7 +1147,7 @@ class StatusProjectCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],

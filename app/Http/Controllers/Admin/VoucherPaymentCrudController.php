@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Spk;
 use App\Models\User;
-use App\Models\Voucher;
+use App\Models\Setting;
 
+use App\Models\Voucher;
 use App\Models\Approval;
 use App\Models\PurchaseOrder;
 use App\Models\PaymentVoucher;
@@ -564,6 +565,8 @@ class VoucherPaymentCrudController extends CrudController {
         $tab = request()->tab;
         $type = request()->type;
 
+        $settings = Setting::first();
+
         if($tab == 'voucher_payment' && $type == 'NON RUTIN'){
             CRUD::setModel(PaymentVoucher::class);
             CRUD::disableResponsiveTable();
@@ -750,7 +753,7 @@ class VoucherPaymentCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'payment_transfer',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1000,7 +1003,7 @@ class VoucherPaymentCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'payment_transfer',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1240,7 +1243,7 @@ class VoucherPaymentCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'payment_transfer',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1489,7 +1492,7 @@ class VoucherPaymentCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'payment_transfer',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1639,6 +1642,8 @@ class VoucherPaymentCrudController extends CrudController {
 
     protected function setupCreateOperation(){
         CRUD::setValidation($this->ruleValidation());
+        $settings = Setting::first();
+
 
         $v_e = DB::table('voucher_edit')
             ->select(DB::raw('MAX(id) as id'), 'voucher_id')
@@ -1680,7 +1685,7 @@ class VoucherPaymentCrudController extends CrudController {
             $list->date_voucher_str = Carbon::parse($list->date_voucher)->format('d M Y');
             $list->bill_date_str = Carbon::parse($list->bill_date)->format('d M Y');
             $list->due_date_str = Carbon::parse($list->due_date)->format('d M Y');
-            $list->payment_transfer_str = 'Rp.'.CustomHelper::formatRupiah($list->payment_transfer);
+            $list->payment_transfer_str = ($settings?->currency_symbol) ? $settings->currency_symbol.' '.CustomHelper::formatRupiah($list->payment_transfer) : "Rp.".CustomHelper::formatRupiah($list->payment_transfer);
             if($list->reference_type == PurchaseOrder::class){
                 $data_po_spk = PurchaseOrder::leftJoin('subkons', 'subkons.id', '=', 'purchase_orders.subkon_id')
                 ->select(DB::raw("

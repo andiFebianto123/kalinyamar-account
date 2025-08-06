@@ -1,3 +1,7 @@
+@php
+    $settings = App\Models\Setting::first();
+    $currency_symbol = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -126,7 +130,7 @@
                     <td class="remove-border border-item">{{$item->name}}</td>
                     <td class="remove-border border-item">
                         <div class="clearfix">
-                            <div class="float-start">Rp.</div>
+                            <div class="float-start">{{$currency_symbol}}</div>
                             <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($item->price)}}</div>
                         </div>
                     </td>
@@ -136,7 +140,7 @@
                 <td colspan="2" class="text-right remove-border border-top border-item">Sub Total</td>
                 <td class="remove-border border-top border-item">
                     <div class="clearfix">
-                        <div class="float-start">Rp.</div>
+                        <div class="float-start">{{$currency_symbol}}</div>
                         <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($details->sum('price'))}}</div>
                     </div>
                 </td>
@@ -145,7 +149,7 @@
                 <td colspan="2" class="text-right remove-border border-item">DPP Nilai Lain</td>
                 <td class="remove-border border-item">
                     <div class="clearfix">
-                        <div class="float-start">Rp.</div>
+                        <div class="float-start">{{$currency_symbol}}</div>
                         <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($header->price_dpp)}}</div>
                     </div>
                 </td>
@@ -157,7 +161,7 @@
                 <td colspan="2" class="text-right remove-border border-item">PPn</td>
                 <td class="remove-border border-item">
                     <div class="clearfix">
-                        <div class="float-start">Rp.</div>
+                        <div class="float-start">{{$currency_symbol}}</div>
                         <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($price_ppn)}}</div>
                     </div>
                 </td>
@@ -169,7 +173,7 @@
                 <th colspan="2" class="text-right remove-border border-item border-bottom">Total</th>
                 <th class="remove-border border-item border-bottom">
                     <div class="clearfix">
-                        <div class="float-start text-left">Rp.</div>
+                        <div class="float-start text-left">{{$currency_symbol}}</div>
                         <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($total_price)}}</div>
                     </div>
                 </th>

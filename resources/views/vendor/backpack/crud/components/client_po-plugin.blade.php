@@ -21,8 +21,8 @@
                         success: function (result) {
                             $('#panel-client_po').html(`
                                 <div class="d-flex justify-content-between">
-                                    <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.client_po.count_exclude_ppn')}} : Rp${result.total_job_value}</strong></div>
-                                    <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.client_po.count_include_ppn')}} : Rp${result.total_job_value_ppn}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.client_po.count_exclude_ppn')}} : ${result.total_job_value}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.client_po.count_include_ppn')}} : ${result.total_job_value_ppn}</strong></div>
                                     <div class="p-2 bd-highlight"></div>
                                 </div>
                             `);

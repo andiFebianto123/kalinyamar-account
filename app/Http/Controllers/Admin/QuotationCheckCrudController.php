@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Setting;
 use App\Models\Quotation;
 use App\Models\SetupClient;
 use App\Models\QuotationCheck;
@@ -265,6 +266,7 @@ class QuotationCheckCrudController extends CrudController {
     {
         $type = request()->tab;
         CRUD::disableResponsiveTable();
+        $settings = Setting::first();
 
         if($type == 'quotation_check'){
             // CRUD::setModel(QuotationCheck::class);
@@ -322,7 +324,7 @@ class QuotationCheckCrudController extends CrudController {
                                     'label' => trans('backpack::crud.quotation.column.rab.label'),
                 'name' => 'rab',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -331,7 +333,7 @@ class QuotationCheckCrudController extends CrudController {
                                     'label' => trans('backpack::crud.quotation.column.rap.label'),
                 'name' => 'rap',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',

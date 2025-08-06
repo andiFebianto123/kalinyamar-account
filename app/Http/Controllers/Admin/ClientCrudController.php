@@ -167,21 +167,21 @@ class ClientCrudController extends CrudController
             ],
         );
 
-        CRUD::addColumn([
-            'name'     => 'list_po_number',
-            'label'    => trans('backpack::crud.subkon.column.list_po'),
-            'type'     => 'custom_html',
-            'value' => function($entry) {
-                return "".$entry->client_po->map(function($item, $key){
-                    return "<li>".$item->po_number."</li>";
-                })->implode('')."";
-            },
-            'searchLogic' => function ($query, $column, $searchTerm) {
-                $query->orWhereHas('client_po', function ($q) use ($column, $searchTerm) {
-                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
-                });
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_po_number',
+        //     'label'    => trans('backpack::crud.subkon.column.list_po'),
+        //     'type'     => 'custom_html',
+        //     'value' => function($entry) {
+        //         return "".$entry->client_po->map(function($item, $key){
+        //             return "<li>".$item->po_number."</li>";
+        //         })->implode('')."";
+        //     },
+        //     'searchLogic' => function ($query, $column, $searchTerm) {
+        //         $query->orWhereHas('client_po', function ($q) use ($column, $searchTerm) {
+        //             $q->where('po_number', 'like', '%'.$searchTerm.'%');
+        //         });
+        //     }
+        // ]);
 
         CRUD::addColumn([
             'name'     => 'list_po_count',
@@ -348,17 +348,25 @@ class ClientCrudController extends CrudController
     protected function setupShowOperation()
     {
         $this->setupCreateOperation();
+        CRUD::field([
+            'name' => 'list_po_count',
+            'label' => trans('backpack::crud.client.column.list_po_count'),
+            'type' => 'text',
+            'wrapper' => [
+                'class' => 'form-group col-md-6',
+            ]
+        ]);
         $this->setupListOperation();
         CRUD::column('row_number')->remove();
-        CRUD::column('list_po_count')->remove();
-        CRUD::addField([
-            'name' => 'list_po_number',
-            'label' => trans('backpack::crud.subkon.column.list_po'),
-            'type' => 'text',
-            'wrapper'   => [
-                'class' => 'form-group col-md-6'
-            ],
-        ]);
+        // CRUD::column('list_po_count')->remove();
+        // CRUD::addField([
+        //     'name' => 'list_po_number',
+        //     'label' => trans('backpack::crud.subkon.column.list_po'),
+        //     'type' => 'text',
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        // ]);
     }
 
 

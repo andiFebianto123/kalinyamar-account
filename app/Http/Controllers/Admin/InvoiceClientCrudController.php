@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 // use Backpack\CRUD\app\Http\Controllers\CrudController;
+use App\Models\Setting;
 use App\Models\ClientPo;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
@@ -12,10 +13,10 @@ use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Models\InvoiceClientDetail;
 use Illuminate\Support\Facades\App;
+use Illuminate\Validation\Rules\Can;
 use App\Http\Controllers\CrudController;
 use App\Http\Requests\InvoiceClientRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Validation\Rules\Can;
 
 /**
  * Class InvoiceClientCrudController
@@ -297,6 +298,13 @@ class InvoiceClientCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(InvoiceClientRequest::class);
+        $settings = Setting::first();
+        $inv_prefix_value = [];
+        if(!$this->crud->getCurrentEntryId()){
+            $inv_prefix_value = [
+                'value' => $settings?->invoice_prefix,
+            ];
+        }
         // CRUD::setFromDb(); // set fields from db columns.
         CRUD::addField([
             'name' => 'invoice_number',
@@ -307,7 +315,8 @@ class InvoiceClientCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.invoice_client.field.invoice_number.placeholder'),
-            ]
+            ],
+            ...$inv_prefix_value,
         ]);
 
         CRUD::addField([   // date_picker
@@ -396,7 +405,7 @@ class InvoiceClientCrudController extends CrudController
             'name' => 'nominal_exclude_ppn',
             'label' => trans('backpack::crud.invoice_client.field.nominal_exclude_ppn.label'),
             'type' => 'text',
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -414,7 +423,7 @@ class InvoiceClientCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -443,7 +452,7 @@ class InvoiceClientCrudController extends CrudController
             'name' => 'nominal_include_ppn',
             'label' => trans('backpack::crud.invoice_client.field.nominal_include_ppn.label'),
             'type' => 'text',
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -541,7 +550,7 @@ class InvoiceClientCrudController extends CrudController
                         'wrapper' => [
                             'class' => 'form-group col-md-6',
                         ],
-                        'prefix' => 'Rp',
+                        'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                         'mask' => '000.000.000.000.000.000',
                         'mask_options' => [
                             'reverse' => true
@@ -572,7 +581,7 @@ class InvoiceClientCrudController extends CrudController
                         'mask_options' => [
                             'reverse' => true
                         ],
-                        'prefix' => 'Rp',
+                        'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                         'wrapper'   => [
                             'class' => 'form-group col-md-6'
                         ],

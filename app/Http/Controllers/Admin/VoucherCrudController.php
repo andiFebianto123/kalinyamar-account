@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Spk;
 use App\Models\User;
+use App\Models\Setting;
 use App\Models\Voucher;
 use App\Models\Approval;
 use App\Models\VoucherEdit;
+use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
-use App\Models\JournalEntry;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -57,9 +58,9 @@ class VoucherCrudController extends CrudController {
         ')->first();
 
         return response()->json([
-            'total_exclude_ppn' => CustomHelper::formatRupiah($data->jumlah_exclude_ppn),
-            'total_include_ppn' => CustomHelper::formatRupiah($data->jumlah_include_ppn),
-            'total_nilai_transfer' => CustomHelper::formatRupiah($data->jumlah_nilai_transfer),
+            'total_exclude_ppn' => CustomHelper::formatRupiahWithCurrency($data->jumlah_exclude_ppn),
+            'total_include_ppn' => CustomHelper::formatRupiahWithCurrency($data->jumlah_include_ppn),
+            'total_nilai_transfer' => CustomHelper::formatRupiahWithCurrency($data->jumlah_nilai_transfer),
         ]);
     }
 
@@ -305,6 +306,7 @@ class VoucherCrudController extends CrudController {
 
     protected function setupListOperation()
     {
+        $settings = Setting::first();
         $type = request()->tab;
         if($type == 'voucher'){
             CRUD::setModel(Voucher::class);
@@ -523,7 +525,7 @@ class VoucherCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'bill_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -532,7 +534,7 @@ class VoucherCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'total',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -541,7 +543,7 @@ class VoucherCrudController extends CrudController {
                 'label'  => '',
                 'name' => 'payment_transfer',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -827,6 +829,23 @@ class VoucherCrudController extends CrudController {
 
     protected function setupCreateOperation(){
         CRUD::setValidation($this->ruleValidation());
+        $settings = Setting::first();
+
+        $voucher_prefix_value = [];
+        $work_code_prefix_value = [];
+        $faktur_prefix_value = [];
+        if(!$this->crud->getCurrentEntryId()){
+            $voucher_prefix_value = [
+                'value' => $settings?->vouhcer_prefix,
+            ];
+            $work_code_prefix_value = [
+                'value' => $settings?->work_code_prefix,
+            ];
+            $faktur_prefix_value = [
+                'value' => $settings?->faktur_prefix,
+            ];
+        }
+
 
         CRUD::addField([
             'name' => 'no_payment',
@@ -865,7 +884,8 @@ class VoucherCrudController extends CrudController {
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.voucher.field.no_voucher.placeholder'),
-            ]
+            ],
+            ...$voucher_prefix_value,
         ]);
 
         CRUD::addField([
@@ -877,7 +897,8 @@ class VoucherCrudController extends CrudController {
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.voucher.field.work_code.placeholder'),
-            ]
+            ],
+            ...$work_code_prefix_value,
         ]);
 
         CRUD::addField([
@@ -1052,7 +1073,7 @@ class VoucherCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-4',
             ],
@@ -1082,7 +1103,7 @@ class VoucherCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-4',
             ],
@@ -1113,7 +1134,7 @@ class VoucherCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -1144,7 +1165,7 @@ class VoucherCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -1175,7 +1196,7 @@ class VoucherCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -1193,7 +1214,7 @@ class VoucherCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-12',
             ],
@@ -1241,7 +1262,8 @@ class VoucherCrudController extends CrudController {
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.voucher.field.no_factur.placeholder'),
-            ]
+            ],
+            ...$faktur_prefix_value,
         ]);
 
         CRUD::addField([   // date_picker

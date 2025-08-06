@@ -141,6 +141,7 @@
     <x-backpack::menu-dropdown-item title="Roles" icon="la la-circle-notch" :link="backpack_url('setting/role')" />
     <x-backpack::menu-dropdown-item title="Permissions" icon="la la-circle-notch" :link="backpack_url('setting/permission')" />
     <x-backpack::menu-dropdown-item title="Pengaturan Akun" icon="la la-circle-notch" :link="backpack_url('setting/account')" />
+    <x-backpack::menu-dropdown-item title="Pengaturan Sistem" icon="la la-circle-notch" :link="backpack_url('setting/system')" />
     {{-- <li class="nav-group" aria-expanded="false"><a class="nav-link nav-group-toggle" href="#">
         <i class="nav-icon la la-puzzle-piece"></i> Icons</a>
         <ul class="nav-group-items compact" style="height: 0px;">

@@ -99,7 +99,7 @@ class SubkonCrudController extends CrudController
         CRUD::disableResponsiveTable();
         $request = request();
 
-        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
+        // CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -148,6 +148,12 @@ class SubkonCrudController extends CrudController
         ]);
 
         CRUD::addColumn([
+            'name'  => 'account_holder_name',
+            'label' => trans('backpack::crud.subkon.column.account_holder_name'),
+            'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
             'name'     => 'list_po_number',
             'label'    => trans('backpack::crud.subkon.column.list_po'),
             'type'     => 'custom_html',
@@ -170,7 +176,7 @@ class SubkonCrudController extends CrudController
             'value' => function($entry) {
                 $count_data = $entry->purchase_orders->count();
                 if($count_data > 0){
-                    return $count_data;
+                    return "<a href='".url('admin/vendor/purchase-order')."'>".$count_data."</a>";
                 }
                 return '-';
             },
@@ -207,7 +213,7 @@ class SubkonCrudController extends CrudController
             'value' => function($entry) {
                 $count_data = $entry->spks->count();
                 if($count_data > 0){
-                    return $count_data;
+                    return "<a href='".url('admin/vendor/spk-trans')."'>".$count_data."</a>";
                 }
                 return '-';
             },
@@ -435,6 +441,15 @@ class SubkonCrudController extends CrudController
             ],
         ]);
 
+        CRUD::addField([
+            'name' => 'account_holder_name',
+            'label' => trans('backpack::crud.subkon.column.account_holder_name'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
     }
 
     /**
@@ -450,27 +465,152 @@ class SubkonCrudController extends CrudController
 
     protected function setupShowOperation()
     {
-        $this->setupCreateOperation();
-        $this->setupListOperation();
-        CRUD::column('row_number')->remove();
-        CRUD::column('list_po_count')->remove();
-        CRUD::column('list_spk_count')->remove();
+        // column
         CRUD::addField([
-            'name' => 'list_po_number',
-            'label' => trans('backpack::crud.subkon.column.list_po'),
+            'name' => 'name',
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12'
+            ],
+        ]);
+        CRUD::addField([
+            'name' => 'address',
+            'label' => trans('backpack::crud.subkon.column.address'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12'
+            ],
+        ]);
+        CRUD::addField([
+            'name' => 'npwp',
+            'label' => trans('backpack::crud.subkon.column.npwp'),
             'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
         ]);
         CRUD::addField([
-            'name' => 'list_spk_number',
-            'label' => trans('backpack::crud.subkon.column.list_spk'),
+            'name' => 'phone',
+            'label' => trans('backpack::crud.subkon.column.phone'),
             'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
         ]);
+        CRUD::field([  // Select2
+            'label'     => trans('backpack::crud.subkon.column.bank_name'),
+            'type'      => 'select2_array',
+            'name'      => 'bank_name',
+            'options'   => CustomHelper::getBanks(), // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+        CRUD::addField([
+            'name' => 'bank_account',
+            'label' => trans('backpack::crud.subkon.column.bank_account'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+        CRUD::addField([
+            'name' => 'account_holder_name',
+            'label' => trans('backpack::crud.subkon.column.account_holder_name'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'count_po',
+            'label' => trans('backpack::crud.subkon.column.count_po'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'count_spk',
+            'label' => trans('backpack::crud.subkon.column.count_spk'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        // column
+        CRUD::addColumn([
+            'name'  => 'name',
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'  => 'text',
+        ]);
+        CRUD::addColumn([
+            'name'  => 'address',
+            'label' => trans('backpack::crud.subkon.column.address'),
+            'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'npwp',
+            'label' => trans('backpack::crud.subkon.column.npwp'),
+            'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'phone',
+            'label' => trans('backpack::crud.subkon.column.phone'),
+            'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'bank_name',
+            'label' => trans('backpack::crud.subkon.column.bank_name'),
+            'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'bank_account',
+            'label' => trans('backpack::crud.subkon.column.bank_account'),
+            'type'  => 'text',
+        ]);
+
+         CRUD::addColumn([
+            'name'  => 'account_holder_name',
+            'label' => trans('backpack::crud.subkon.column.account_holder_name'),
+            'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po_count',
+            'label'    => trans('backpack::crud.subkon.column.count_po'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                $count_data = $entry->purchase_orders->count();
+                if($count_data > 0){
+                    return "<a href='".url('admin/vendor/purchase-order')."'>".$count_data."</a>";
+                }
+                return '-';
+            },
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_spk_count',
+            'label'    => trans('backpack::crud.subkon.column.count_spk'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                $count_data = $entry->spks->count();
+                if($count_data > 0){
+                    return "<a href='".url('admin/vendor/spk-trans')."'>".$count_data."</a>";
+                }
+                return '-';
+            },
+        ]);
+
+
     }
 
 

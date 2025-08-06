@@ -322,7 +322,7 @@
                                     <tr>
                                         <td>${(index+1)}</td>
                                         <td>${value.setup_client.name}</td>
-                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                        <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
                             });
@@ -330,7 +330,7 @@
                                 <tr class="bg-light-actual">
                                     <td></td>
                                     <td></td>
-                                    <td><strong>Rp${formatRupiah(result.list.invoice_1_total)}</strong></td>
+                                    <td><strong>${result.list.invoice_1_total_str}</strong></td>
                                 </tr>
                             `);
 
@@ -340,7 +340,7 @@
                                     <tr>
                                         <td>${index+1}</td>
                                         <td>${value.setup_client.name}</td>
-                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                        <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
                             });
@@ -348,7 +348,7 @@
                                 <tr class="bg-light-actual">
                                     <td></td>
                                     <td></td>
-                                    <td><strong>Rp${formatRupiah(result.list.invoice_2_total)}</strong></td>
+                                    <td><strong>${result.list.invoice_2_total_str}</strong></td>
                                 </tr>
                             `);
 
@@ -358,7 +358,7 @@
                                     <tr>
                                         <td>${index+1}</td>
                                         <td>${value.setup_client.name}</td>
-                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                        <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
                             });
@@ -366,7 +366,7 @@
                                 <tr class="bg-light-actual">
                                     <td></td>
                                     <td></td>
-                                    <td><strong>Rp${formatRupiah(result.list.invoice_3_total)}</strong></td>
+                                    <td><strong>${result.list.invoice_3_total_str}</strong></td>
                                 </tr>
                             `);
 
@@ -376,7 +376,7 @@
                                     <tr>
                                         <td>${index+1}</td>
                                         <td>${value.setup_client.name}</td>
-                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                        <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
                             });
@@ -384,7 +384,7 @@
                                 <tr class="bg-light-actual">
                                     <td></td>
                                     <td></td>
-                                    <td><strong>Rp${formatRupiah(result.list.invoice_4_total)}</strong></td>
+                                    <td><strong>${result.list.invoice_4_total_str}</strong></td>
                                 </tr>
                             `);
 
@@ -394,7 +394,7 @@
                                     <tr>
                                         <td>${index+1}</td>
                                         <td>${value.setup_client.name}</td>
-                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                        <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
                             });
@@ -402,7 +402,7 @@
                                 <tr class="bg-light-actual">
                                     <td></td>
                                     <td></td>
-                                    <td><strong>Rp${formatRupiah(result.list.invoice_5_total)}</strong></td>
+                                    <td><strong>${result.list.invoice_5_total_str}</strong></td>
                                 </tr>
                             `);
 
@@ -412,7 +412,7 @@
                                     <tr>
                                         <td>${index+1}</td>
                                         <td>${value.setup_client.name}</td>
-                                        <td>Rp${value.price_total_include_ppn_str}</td>
+                                        <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
                             });
@@ -420,11 +420,11 @@
                                 <tr class="bg-light-actual">
                                     <td></td>
                                     <td></td>
-                                    <td><strong>Rp${formatRupiah(result.list.invoice_6_total)}</strong></td>
+                                    <td><strong>${result.list.invoice_6_total_str}</strong></td>
                                 </tr>
                             `);
 
-                            $('#grand_total').html(`Rp${result.grand_total}`);
+                            $('#grand_total').html(`${result.grand_total}`);
 
                         },
                         error: function (xhr, status, error) {

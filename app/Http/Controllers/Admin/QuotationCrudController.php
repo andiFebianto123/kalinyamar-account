@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Setting;
 use App\Models\Quotation;
 use App\Models\SetupClient;
 use App\Models\SetupOffering;
@@ -282,6 +283,7 @@ class QuotationCrudController extends CrudController {
     }
 
     protected function setupCreateOperation(){
+        $settings = Setting::first();
         CRUD::setValidation($this->ruleValidation());
         CRUD::addField([
             'name' => 'no_rfq',
@@ -313,7 +315,7 @@ class QuotationCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -329,7 +331,7 @@ class QuotationCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -477,6 +479,7 @@ class QuotationCrudController extends CrudController {
     protected function setupListOperation()
     {
         $type = request()->tab;
+         $settings = Setting::first();
 
         if(!request()->has('tab')){
             $type = 'quotation';
@@ -514,7 +517,7 @@ class QuotationCrudController extends CrudController {
                                     'label' => trans('backpack::crud.quotation.column.rab.label'),
                 'name' => 'rab',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -523,7 +526,7 @@ class QuotationCrudController extends CrudController {
                                     'label' => trans('backpack::crud.quotation.column.rap.label'),
                 'name' => 'rap',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',

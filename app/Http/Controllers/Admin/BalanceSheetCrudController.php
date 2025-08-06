@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Account;
+use App\Models\Setting;
 use App\Models\JournalEntry;
 use Illuminate\Validation\Rule;
 use App\Models\ProjectProfitLost;
@@ -424,6 +425,7 @@ class BalanceSheetCrudController extends CrudController{
     }
 
     protected function setupCreateOperation(){
+        $settings = Setting::first();
         CRUD::setValidation($this->ruleAccount());
         CRUD::addField([   // select_from_array
             'name'        => 'type',
@@ -463,7 +465,7 @@ class BalanceSheetCrudController extends CrudController{
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-12',
             ],
@@ -764,9 +766,9 @@ class BalanceSheetCrudController extends CrudController{
 
         return response()->json([
             'status' => true,
-            'total_asset' => "Rp.".CustomHelper::formatRupiah($total_asset->first()->balance),
-            'total_liabilities' => "Rp.".CustomHelper::formatRupiah($total_liabilities->first()->balance),
-            'total_equity' => "Rp.".CustomHelper::formatRupiah($total_equity->first()->balance),
+            'total_asset' => CustomHelper::formatRupiahWithCurrency($total_asset->first()->balance),
+            'total_liabilities' => CustomHelper::formatRupiahWithCurrency($total_liabilities->first()->balance),
+            'total_equity' => CustomHelper::formatRupiahWithCurrency($total_equity->first()->balance),
         ]);
 
     }

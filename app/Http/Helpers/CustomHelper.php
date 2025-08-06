@@ -1,17 +1,27 @@
 <?php
 namespace App\Http\Helpers;
 
+use App\Models\Spk;
 use App\Models\Asset;
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\ClientPo;
 use App\Models\CastAccount;
+use App\Models\SetupClient;
 use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
 use App\Models\AccountTransaction;
-use App\Models\SetupClient;
 use Illuminate\Support\Facades\DB;
 
 class CustomHelper {
+
+    public static $settings;
+
+    static function init()
+    {
+        self::$settings = Setting::first();
+    }
+
     public static function getBanks(){
         return [
             'BCA' => 'Bank BCA',
@@ -31,6 +41,16 @@ class CustomHelper {
         $results = [];
 
         foreach($vendor_po as $po){
+            $results[] = $po->year;
+        }
+        return $results;
+    }
+
+    public static function getYearOptionsSpk(){
+        $spk = Spk::select(DB::raw("
+            YEAR(date_spk) as year
+        "))->distinct()->get();
+        foreach($spk as $po){
             $results[] = $po->year;
         }
         return $results;
@@ -107,6 +127,7 @@ class CustomHelper {
     }
 
     public static function formatRupiahWithCurrency($number, $decimal_digits = 0) {
+        self::init();
         $is_negative = $number < 0;
 
         $absolute = abs($number);
@@ -119,7 +140,7 @@ class CustomHelper {
         );
 
         $nominal = $is_negative ? '-' . $formatted : $formatted;
-        return "Rp.$nominal";
+        return (self::$settings?->currency_symbol) ? self::$settings->currency_symbol . ' ' . $nominal : 'Rp.'.$nominal;
     }
 
     // update or create journal_entry
@@ -169,6 +190,11 @@ class CustomHelper {
                 }
             }
         }
+    }
+
+    public static function getSettings(){
+        $setting = Setting::first();
+        return $setting;
     }
 
 }

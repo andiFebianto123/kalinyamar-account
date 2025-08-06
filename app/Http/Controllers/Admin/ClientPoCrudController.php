@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Setting;
+use App\Models\ClientPo;
+use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Requests\ClientPoRequest;
 use App\Http\Controllers\CrudController;
-use App\Http\Helpers\CustomHelper;
-use App\Models\ClientPo;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -209,13 +210,13 @@ class ClientPoCrudController extends CrudController
         ->get();
         if($client_po->count() > 0){
             return response()->json([
-                'total_job_value' => CustomHelper::formatRupiah($client_po[0]->total_job_value),
-                'total_job_value_ppn' => CustomHelper::formatRupiah($client_po[0]->total_job_value_ppn)
+                'total_job_value' => CustomHelper::formatRupiahWithCurrency($client_po[0]->total_job_value),
+                'total_job_value_ppn' => CustomHelper::formatRupiahWithCurrency($client_po[0]->total_job_value_ppn)
             ]);
         }
         return response()->json([
-            'total_job_value' => CustomHelper::formatRupiah(0),
-            'total_job_value_ppn' => CustomHelper::formatRupiah(0)
+            'total_job_value' => CustomHelper::formatRupiahWithCurrency(0),
+            'total_job_value_ppn' => CustomHelper::formatRupiahWithCurrency(0)
         ]);
     }
 
@@ -397,6 +398,8 @@ class ClientPoCrudController extends CrudController
 
         CRUD::disableResponsiveTable();
 
+        $settings = Setting::first();
+
         /**
          * Columns can be defined using the fluent syntax:
          * - CRUD::column('price')->type('number');
@@ -461,7 +464,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.rap_value'),
                 'name' => 'rap_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -473,7 +476,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
                 'name' => 'job_value_exclude_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -485,7 +488,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                 'name' => 'job_value_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -505,7 +508,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.price_after_year'),
                 'name' => 'price_after_year',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -517,7 +520,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.price_total'),
                 'name' => 'price_total',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -529,7 +532,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.profit_and_loss'),
                 'name' => 'profit_and_loss',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -541,7 +544,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.load_general_value'),
                 'name' => 'load_general_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -553,7 +556,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.profit_and_lost_final'),
                 'name' => 'profit_and_lost_final',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -586,6 +589,24 @@ class ClientPoCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(ClientPoRequest::class);
+        $settings = Setting::first();
+
+        $po_prefix = [];
+        $work_code_prefix = [];
+        if(!$this->crud->getCurrentEntryId()){
+            if($settings?->po_prefix){
+                $po_prefix = [
+                    'value' => $settings->po_prefix,
+                ];
+            }
+            if($settings?->work_code_prefix){
+                $work_code_prefix = [
+                    'value' => $settings->work_code_prefix,
+                ];
+            }
+        }
+
+
         // CRUD::setFromDb(); // set fields from db columns.
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.client_po.field.client_id.label'), // Table column heading
@@ -611,7 +632,8 @@ class ClientPoCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.client_po.field.work_code.placeholder'),
-            ]
+            ],
+            ...$work_code_prefix,
         ]);
 
         CRUD::addField([
@@ -624,7 +646,8 @@ class ClientPoCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.client_po.field.po_number.placeholder')
-            ]
+            ],
+            ...$po_prefix,
         ]);
 
         CRUD::addField([   // Hidden
@@ -660,7 +683,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -677,7 +700,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -740,7 +763,7 @@ class ClientPoCrudController extends CrudController
             'attributes' => [
                 'disabled' => true,
             ], // allow decimals
-            'prefix'     => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
@@ -783,7 +806,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -800,7 +823,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -817,7 +840,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -835,7 +858,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -852,7 +875,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -928,6 +951,8 @@ class ClientPoCrudController extends CrudController
 
     protected function setupShowOperation()
     {
+        $settings = Setting::first();
+
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.client_po.field.client_id.label'), // Table column heading
             'type'        => "select2_ajax_custom",
@@ -1196,7 +1221,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.rap_value'),
                 'name' => 'rap_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1207,7 +1232,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.rap_value'),
                 'name' => 'job_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1218,7 +1243,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                 'name' => 'job_value_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1243,7 +1268,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.price_after_year'),
                 'name' => 'price_after_year',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1254,7 +1279,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.price_total'),
                 'name' => 'price_total',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1265,7 +1290,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.profit_and_loss'),
                 'name' => 'profit_and_loss',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -1276,7 +1301,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.profit_and_lost_final'),
                 'name' => 'profit_and_lost_final',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',

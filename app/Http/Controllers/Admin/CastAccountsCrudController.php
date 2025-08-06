@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
+use App\Models\Setting;
 use App\Models\CastAccount;
+use App\Models\JournalEntry;
+use PhpParser\Node\Expr\Cast;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
-use App\Models\JournalEntry;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use PhpParser\Node\Expr\Cast;
 
 /**
  * Class CastAccountsCrudController
@@ -89,6 +90,7 @@ class CastAccountsCrudController extends CrudController
                 'params' => [
                     'name' => 'modal_transfer_balance',
                     'crud' => $this->crud,
+                    'settings' => Setting::first(),
                 ],
                 'buttons' => [
                     'footer' => [
@@ -252,6 +254,8 @@ class CastAccountsCrudController extends CrudController
 
     function createTransactionOperation($id = null){
 
+        $settings = Setting::first();
+
         CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationTransaction());
         CRUD::addField([
@@ -285,7 +289,7 @@ class CastAccountsCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -791,7 +795,7 @@ class CastAccountsCrudController extends CrudController
             $entry->no_invoice_str = ($entry->no_invoice) ? $entry->no_invoice : '-';
             $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
         }
-        $castAccount->total_saldo_str = 'Rp'.CustomHelper::formatRupiah($castAccount->total_saldo);
+        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($castAccount->total_saldo);
         return response()->json([
             'status' => true,
             'result'=> [

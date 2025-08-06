@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Setting;
 use App\Models\Quotation;
 use App\Models\SetupClient;
 use App\Models\SetupOffering;
@@ -426,6 +427,7 @@ class StatusQuotaionCrudController extends CrudController{
     protected function setupListOperation()
     {
         $type = request()->type;
+        $settings = Setting::first();
         CRUD::disableResponsiveTable();
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
@@ -457,7 +459,7 @@ class StatusQuotaionCrudController extends CrudController{
                                     'label' => trans('backpack::crud.quotation.column.rab.label'),
             'name' => 'rab',
             'type'  => 'number',
-            'prefix' => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -466,7 +468,7 @@ class StatusQuotaionCrudController extends CrudController{
                                     'label' => trans('backpack::crud.quotation.column.rap.label'),
             'name' => 'rap',
             'type'  => 'number',
-            'prefix' => "Rp.",
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',

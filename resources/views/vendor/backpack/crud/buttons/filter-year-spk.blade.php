@@ -4,7 +4,7 @@
   </button>
   <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
     @php
-        $get_all_year = \App\Http\Helpers\CustomHelper::getYearOptions();
+        $get_all_year = \App\Http\Helpers\CustomHelper::getYearOptionsSpk();
     @endphp
     <li><a class="dropdown-item active" href="javascript:void(0)" data-value="all">{{ trans('backpack::crud.filter.all_year') }}</a></li>
     @foreach ($get_all_year as $year)
@@ -23,16 +23,9 @@
                         $('#filterYear .dropdown-menu li a').removeClass('active');
                         let value = $(this).data('value');
                         $(this).addClass('active');
-                        // var route = "{!! url($crud->route.'/search') !!}";
-                        // route += "?filter_year="+value;
-                        // crud.table.ajax.url(route).load();
-                        forEachFlexible(SIAOPS.getAllAttributes(), function(key, item){
-                            if(key.includes("crudTable")){
-                                var url_route = item.route;
-                                url_route += "&filter_year="+value;
-                                item.table.ajax.url(url_route).load();
-                            }
-                        });
+                        var route = "{!! url($crud->route.'/search') !!}";
+                        route += "?filter_year="+value;
+                        crud.table.ajax.url(route).load();
                     });
                 });
             }

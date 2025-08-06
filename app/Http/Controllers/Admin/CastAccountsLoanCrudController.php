@@ -3,17 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
+use App\Models\Account;
+use App\Models\Setting;
 use App\Models\CastAccount;
+use App\Models\JournalEntry;
+use PhpParser\Node\Expr\Cast;
+use App\Imports\AccountImport;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
-use App\Imports\AccountImport;
-use App\Models\Account;
-use App\Models\JournalEntry;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use PhpParser\Node\Expr\Cast;
 
 /**
  * Class CastAccountsCrudController
@@ -258,6 +259,8 @@ class CastAccountsLoanCrudController extends CrudController
 
         CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationTransaction());
+        $settings = Setting::first();
+
         CRUD::addField([
             'name' => 'cast_account_id ',
             'type' => 'hidden',
@@ -298,7 +301,7 @@ class CastAccountsLoanCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -360,6 +363,8 @@ class CastAccountsLoanCrudController extends CrudController
     function createMoveTransactionOperation($id = null){
         CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationMoveTransfer());
+        $settings = Setting::first();
+
         CRUD::addField([
             'name' => 'cast_account_id ',
             'type' => 'hidden',
@@ -385,7 +390,7 @@ class CastAccountsLoanCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -429,6 +434,7 @@ class CastAccountsLoanCrudController extends CrudController
     {
         CRUD::setValidation($this->ruleValidation());
         // CRUD::setFromDb(); // set fields from db columns.
+        $settings = Setting::first();
 
         $request = request();
 
@@ -507,7 +513,7 @@ class CastAccountsLoanCrudController extends CrudController
                 'mask_options' => [
                     'reverse' => true
                 ],
-                'prefix' => 'Rp',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'wrapper'   => [
                     'class' => 'form-group col-md-6',
                 ],

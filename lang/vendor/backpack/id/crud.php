@@ -217,6 +217,7 @@ return [
         'quotation_status' => 'Status Penawaran',
         'account_setting' => 'Pengaturan Akun',
         'setting' => 'Pengaturan',
+        'setting_system' => 'Pengaturan Sistem',
     ],
     'user' => [
         'field' => [
@@ -231,16 +232,17 @@ return [
         'title_modal_create' => 'Data Vendor (Subkon)',
         'title_modal_edit' => 'Data Vendor (Subkon)',
         'column' => [
-            'name' => 'Nama Perusahaan',
+            'name' => 'Nama Badan Usaha',
             'address' => 'Alamat',
             'npwp' => 'NPWP',
             'phone' => 'Telepon',
             'bank_name' => 'Nama Bank',
-            'bank_account' => 'Rekening Bank',
+            'bank_account' => 'No. Rekening',
             'list_po' => 'List PO',
             'count_po' => 'Jumlah PO',
             'list_spk' => 'List SPK',
             'count_spk' => 'Jumlah SPK',
+            'account_holder_name' => 'A/N Rekening',
         ]
     ],
     'po' => [
@@ -266,6 +268,7 @@ return [
             'due_date' => 'Jatuh Tempo',
             'status' => 'Status PO',
             'document_path' => 'Dokumen PO',
+            'additional_info' => 'Keterangan',
         ],
         'field' => [
             'date_po' => [
@@ -284,6 +287,10 @@ return [
                 'placeholder' => '-STATUS',
                 'open' => 'OPEN',
                 'close' => 'CLOSE',
+            ],
+            'additional_info' => [
+                'label' => 'Keterangan',
+                'placeholder' => 'Tulis Keterangan',
             ]
         ],
         'export' => [
@@ -345,7 +352,8 @@ return [
             'name' => 'Nama Perusahaan',
             'address' => 'Alamat',
             'npwp' => 'No. NPWP',
-            'phone' => 'No. Telepon'
+            'phone' => 'No. Telepon',
+            'list_po_count' => 'Jumlah PO',
         ],
     ],
     'client_po' => [

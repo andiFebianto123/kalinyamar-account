@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Account;
+use App\Models\Setting;
 use App\Models\JournalEntry;
 use Illuminate\Validation\Rule;
 use App\Models\ProjectProfitLost;
@@ -337,7 +338,16 @@ class ProfitLostAccountCrudController extends CrudController{
 
     protected function setupCreateOperation(){
 
+
         $request = request();
+
+        $settings = Setting::first();
+        $job_code_prefix_value = [];
+        if(!$this->crud->getCurrentEntryId()){
+            $job_code_prefix_value = [
+                'value' => $settings?->work_code_prefix,
+            ];
+        }
 
         if($request->has('type')){
             if($request->type == 'project'){
@@ -367,6 +377,7 @@ class ProfitLostAccountCrudController extends CrudController{
                         'disabled' => true,
                     ],
                     'wrapper' => ['class' => 'form-group col-md-6'],
+                    ...$job_code_prefix_value,
                 ]);
                 CRUD::addField([
                     'name' => 'contract_value',
@@ -376,7 +387,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -392,7 +403,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -409,7 +420,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -426,7 +437,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -443,7 +454,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -460,7 +471,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -477,7 +488,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -494,7 +505,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -511,7 +522,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -528,7 +539,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'mask_options' => [
                         'reverse' => true
                     ],
-                    'prefix' => 'Rp',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -566,7 +577,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 'mask_options' => [
                     'reverse' => true
                 ],
-                'prefix' => 'Rp',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'wrapper'   => [
                     'class' => 'form-group col-md-6',
                 ],
@@ -893,6 +904,7 @@ class ProfitLostAccountCrudController extends CrudController{
     protected function setupListOperation()
     {
         // $this->crud->setFromDb(false);
+        $settings = Setting::first();
         CRUD::disableResponsiveTable();
 
         $request = request();
@@ -963,7 +975,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.contract_value'),
                     'name' => 'contract_value',
                     'type'  => 'number',
-                    'prefix' => "Rp.",
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
                     'thousands_sep' => '.',
@@ -973,7 +985,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.total_project'),
                     'name' => 'total_project',
                     'type'  => 'number',
-                    'prefix' => "Rp.",
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
                     'thousands_sep' => '.',
@@ -983,7 +995,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.price_profit_lost_project'),
                     'name' => 'price_profit_lost_project',
                     'type'  => 'number',
-                    'prefix' => "Rp.",
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
                     'thousands_sep' => '.',

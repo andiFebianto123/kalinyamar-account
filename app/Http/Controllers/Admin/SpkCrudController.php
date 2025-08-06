@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Setting;
 use App\Http\Requests\SpkRequest;
 use Illuminate\Support\Facades\DB;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -201,8 +202,21 @@ class SpkCrudController extends CrudController
     protected function setupListOperation()
     {
         // CRUD::setFromDb(); // set columns from db columns.
+        $settings = Setting::first();
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year-spk', 'beginning');
 
         CRUD::disableResponsiveTable();
+
+        $request = request();
+
+        if($request->has('filter_year')){
+            if($request->filter_year != 'all'){
+                $filterYear = $request->filter_year;
+                $this->crud->query = $this->crud->query
+                ->where(DB::raw("YEAR(date_spk)"), $filterYear);
+            }
+        }
+
         $this->crud->addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -262,7 +276,7 @@ class SpkCrudController extends CrudController
                 'label'  => trans('backpack::crud.spk.column.job_value'),
                 'name' => 'job_value',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -281,7 +295,7 @@ class SpkCrudController extends CrudController
                 'label'  => trans('backpack::crud.spk.column.total_value_with_tax'),
                 'name' => 'total_value_with_tax',
                 'type'  => 'number-custom',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -309,6 +323,19 @@ class SpkCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(SpkRequest::class);
+        $settings = Setting::first();
+
+        $spk_prefix = [];
+        if(!$this->crud->getCurrentEntryId()){
+            if($settings?->spk_prefix){
+                $spk_prefix = [
+                    'value' => $settings->spk_prefix,
+                ];
+            }
+        }
+
+
+
         // CRUD::setFromDb(); // set fields from db columns.
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.subkon.column.name'), // Table column heading
@@ -350,6 +377,7 @@ class SpkCrudController extends CrudController
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
+            ...$spk_prefix,
         ]);
 
         CRUD::addField([
@@ -414,7 +442,7 @@ class SpkCrudController extends CrudController
             'attributes' => [
                 'placeholder' => trans('backpack::crud.spk.field.job_value.placeholder'),
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],

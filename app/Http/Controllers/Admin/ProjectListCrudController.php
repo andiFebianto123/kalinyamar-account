@@ -5,6 +5,7 @@ use Carbon\Carbon;
 use App\Models\Spk;
 use App\Models\User;
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\SetupPpn;
 use App\Models\SetupClient;
 use App\Models\PurchaseOrder;
@@ -303,6 +304,7 @@ class ProjectListCrudController extends CrudController {
 
     protected function setupListOperation()
     {
+        $settings = Setting::first();
         $type = request()->tab;
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
@@ -363,7 +365,7 @@ class ProjectListCrudController extends CrudController {
                                     'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
                 'name' => 'price_total_exclude_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -372,7 +374,7 @@ class ProjectListCrudController extends CrudController {
                                     'label' => trans('backpack::crud.project.column.project.price_ppn.label'),
                 'name' => 'price_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -388,7 +390,7 @@ class ProjectListCrudController extends CrudController {
                                     'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'number',
-                'prefix' => "Rp.",
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -622,6 +624,15 @@ class ProjectListCrudController extends CrudController {
             ];
        }
 
+
+        $settings = Setting::first();
+        $po_prefix_value = [];
+        if(!$this->crud->getCurrentEntryId()){
+            $po_prefix_value = [
+                'value' => $settings?->po_prefix,
+            ];
+        }
+
         CRUD::addField([
             'name' => 'name',
             'label' => trans('backpack::crud.project.field.name.label'),
@@ -671,7 +682,8 @@ class ProjectListCrudController extends CrudController {
             'attributes' => [
                 ...$attributes_added,
                 'placeholder' => trans('backpack::crud.project.field.no_po_spk.placeholder'),
-            ]
+            ],
+            ...$po_prefix_value,
         ]);
 
         CRUD::addField([   // date_picker
@@ -725,7 +737,7 @@ class ProjectListCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -767,7 +779,7 @@ class ProjectListCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -785,7 +797,7 @@ class ProjectListCrudController extends CrudController {
             'mask_options' => [
                 'reverse' => true
             ],
-            'prefix' => 'Rp',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],

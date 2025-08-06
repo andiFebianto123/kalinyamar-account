@@ -142,6 +142,7 @@
             return {
                 id: $('#crudTable-{{$name}}'),
                 table: null,
+                route: "{!! url($route) !!}",
                 eventLoader: function(){
                     // event when create success
 
