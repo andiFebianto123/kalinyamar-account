@@ -526,7 +526,7 @@ class StatusProjectCrudController extends CrudController {
             $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
             $val2->client_name_str = $val2->setup_client->name;
         }
-        $grand_total += $total_invoice_1;
+        $grand_total += $total_invoice_2;
         $data['invoice_2_total'] = $total_invoice_2;
         $data['invoice_2_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_2);
 
