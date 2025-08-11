@@ -35,7 +35,7 @@
                             <button type="button" class="btn btn-primary" onclick="document.getElementById('upload-input').click()"><i class="la la-upload"></i> Upload File Here</button>
                             <span id="file-name" class=""></span>
                         </div>
-                        <input type="file" id="upload-input" class="d-none" onchange="updateFileName(this)">
+                        <input type="file" id="upload-input" name="profile_photo" class="d-none" onchange="updateFileName(this)">
                         <div class="mt-1">Please upload a valid image file. Size of image should not be more than 2MB.</div>
                     </div>
                     <div class="text-end">
@@ -143,6 +143,7 @@
             success: function (data) {
                 btnLoader('btn-update-personal');
                 if(data.success){
+                    window.location.href = location.href;
                     swal({
                         title: "Success",
                         text: "{!! trans('backpack::crud.update_success') !!}",

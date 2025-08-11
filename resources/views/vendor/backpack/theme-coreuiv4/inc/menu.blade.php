@@ -10,12 +10,22 @@
 
 </ul>
 
+@php
+    $user = backpack_auth()->user();
+@endphp
+
 <ul class="header-nav custom-flex">
     <li class="nav-item">
         <div class="dropdown">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" style="overflow:hidden; border-radius: 9px;" data-coreui-toggle="dropdown" aria-expanded="false">
                 <a class="nav-link p-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" style="position: relative;width: 35px;height: 35px; float:left;">
+
+                    @if ($user?->profile_photo)
+                    <img class="avatar-img" src="{{ asset('storage/logos/' . $user->profile_photo) }}" alt="{{ backpack_auth()->user()->name }}" onerror="this.style.display='none'" style="margin: 0;position: absolute;left: 0;z-index: 1;">
+                    @else
                     <img class="avatar-img" src="{{ backpack_avatar_url(backpack_auth()->user()) }}" alt="{{ backpack_auth()->user()->name }}" onerror="this.style.display='none'" style="margin: 0;position: absolute;left: 0;z-index: 1;">
+                    @endif
+
                     <span class="backpack-avatar-menu-container text-center" style="position: absolute;left: 0;width: 100%;background-color: #00a65a;border-radius: 50%;color: #FFF;line-height: 35px;font-size: 85%;font-weight: 300;">
                     {{backpack_user()->getAttribute('name') ? mb_substr(backpack_user()->name, 0, 1, 'UTF-8') : 'A'}}
                     </span>

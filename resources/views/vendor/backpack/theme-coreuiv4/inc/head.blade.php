@@ -1,10 +1,19 @@
+
+@php
+    $setting = App\Models\Setting::first();
+@endphp
+
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 @if (backpack_theme_config('meta_robots_content'))
 <meta name="robots" content="{{ backpack_theme_config('meta_robots_content', 'noindex, nofollow') }}">
 @endif
-
+@if ($setting?->favicon)
+<link rel="icon" type="image/png" href="{{ asset("storage/logos/".$setting->favicon) }}">
+@else
+<link rel="icon" type="image/png" href="{{ asset('kp-logo-login.png') }}">
+@endif
 @includeWhen(view()->exists('vendor.backpack.ui.inc.header_metas'), 'vendor.backpack.ui.inc.header_metas')
 
 <meta name="csrf-token" content="{{ csrf_token() }}"/> {{-- Encrypted CSRF token for Laravel, in order for Ajax requests to work --}}

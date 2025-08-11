@@ -13,6 +13,7 @@ use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -84,6 +85,18 @@ class AccountUserCrudController extends CrudController
             $user = User::find($user->id);
             $user->name = $request->name;
             $user->email = $request->email;
+
+            if ($request->hasFile('profile_photo')) {
+                if ($user->profile_photo && Storage::disk('public')->exists('logos/' . $user->profile_photo)) {
+                    Storage::disk('public')->delete('logos/' . $user->profile_photo);
+                }
+
+                $fileName = time() . '_user.' . $request->file('profile_photo')->getClientOriginalExtension();
+                $request->file('profile_photo')->storeAs('logos', $fileName, 'public'); // jangan pakai 'public/logos' di path
+
+                $user->profile_photo = $fileName;
+            }
+
             $user->save();
 
             $this->data['entry'] = $this->crud->entry = $user;
