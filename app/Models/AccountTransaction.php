@@ -12,6 +12,8 @@ class AccountTransaction extends Model
     use HasFactory;
 
     const BANK_LOAN = 'PINJAMAN BANK';
+    const ENTER = 'enter';
+    const OUT = 'out';
 
     /*
     |--------------------------------------------------------------------------

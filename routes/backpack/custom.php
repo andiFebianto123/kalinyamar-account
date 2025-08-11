@@ -86,6 +86,7 @@ Route::group([
         Route::get('cast-accounts-show', [CastAccountsCrudController::class, 'showTransaction']);
         Route::get('cast-accounts-select-to-account', [CastAccountsCrudController::class, 'getSelectToAccount']);
         Route::post('cast-accounts-move-transaction', [CastAccountsCrudController::class, 'storeMoveTransfer']);
+        Route::delete('cast-accounts/delete-transaction/{id}', [CastAccountsCrudController::class, 'destroyTransaction']);
 
         Route::crud('cast-account-loan', 'CastAccountsLoanCrudController');
         Route::post('cast-account-loan-transaction', [CastAccountsLoanCrudController::class, 'storeTransaction']);
@@ -112,6 +113,10 @@ Route::group([
         Route::crud('voucher-payment', 'VoucherPaymentCrudController');
         Route::post('voucher-payment/{id}/approve', [VoucherPaymentCrudController::class, 'approvedStore']);
         Route::get('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);
+        Route::post('voucher/select2-work-code', [VoucherCrudController::class, 'select2WorkCode']);
+        Route::post('voucher/select2-subkon', [VoucherCrudController::class, 'select2Subkon']);
+        Route::get('voucher/get_client_selected_ajax', [VoucherCrudController::class, 'clientSelectedAjax']);
+        Route::get('voucher/{id}/print', [VoucherCrudController::class, 'print']);
     });
 
     Route::prefix('monitoring')->group(function(){

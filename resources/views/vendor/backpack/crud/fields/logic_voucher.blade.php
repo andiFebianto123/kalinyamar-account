@@ -68,45 +68,44 @@
 
                     @endif
 
-                    $(form+ ' select[name="no_po_spk"]').off('select2:select').on('select2:select', function (e) {
+                    $(form+ ' select[name="client_po_id"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id;
+                        $.ajax({
+                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + id,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                var work_option = new Option(data.work_code, data.id, true, true);
+                                $(form+ ' select[name="reference_id"]').append(work_option).trigger('change');
+                                $(form+' input[name="job_name"]').val(data.job_name);
+                                setInputNumber(form+' #bill_value_masked', data.price_total);
+                            }
+                        })
+                    });
 
-                        var data = e.params.data.data;
+                    $(form+' select[name="reference_id"]').off('select2:select').on('select2:select', function (e) {
+                        var id = e.params.data.id;
+                        $.ajax({
+                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + id,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                var po_number_option = new Option(data.po_number, data.id, true, true);
+                                $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
+                                $(form+' input[name="job_name"]').val(data.job_name);
+                                setInputNumber(form+' #bill_value_masked', data.price_total);
+                            }
+                        })
+                    });
 
-                        $(form+ ' input[name="bussines_entity_name"]').val(data.name_company);
-                        $(form+ ' input[name="date_po_spk"]').val(data.date_po_spk_str);
-                        $(form+ ' input[name="bank_name"]').val(data.bank_name);
-                        $(form+' input[name="no_account"]').val(data.bank_account);
-                        $(form+' input[name="no_type"]').val(data.type);
-
-
-                        // $.ajax({
-                        //     url: '{!! backpack_url("invoice-client/get-client-po") !!}',
-                        //     method: 'GET',
-                        //     data: {
-                        //         id: id,
-                        //     },
-                        //     success: function(response) {
-                        //         var respon = response.result;
-                        //         if(form_type == 'create'){
-                        //             $('#form-create input[name="po_date"]').val(respon.date_invoice);
-                        //             $('#form-create input[name="client_name"]').val(respon.client_name);
-                        //             $('#form-create input[name="nominal_exclude_ppn"]').val(respon.job_value);
-                        //             $('#form-create input[name="dpp_other"]').val('');
-                        //             $('#form-create #dpp_other_masked').val('');
-                        //             $('#form-create input[name="tax_ppn"]').val('');
-                        //             $('#form-create input[name="nominal_include_ppn"]').val('');
-                        //         }else{
-                        //             $('#form-edit input[name="po_date"]').val(respon.date_invoice);
-                        //             $('#form-edit input[name="client_name"]').val(respon.client_name);
-                        //             $('#form-edit input[name="nominal_exclude_ppn"]').val(respon.job_value);
-                        //             $('#form-edit input[name="dpp_other"]').val('');
-                        //             $('#form-edit #dpp_other_masked').val('');
-                        //             $('#form-edit input[name="tax_ppn"]').val('');
-                        //             $('#form-edit input[name="nominal_include_ppn"]').val('');
-                        //         }
-                        //     }
-                        // });
+                    $(form+' select[name="factur_status"]').off('select2:select').on('select2:select', function (e) {
+                        if(e.params.data.id == 'TIDAK ADA' || e.params.data.id == "AKAN ADA"){
+                            $(form+' input[name="no_factur"]').attr('readonly', true);
+                            $(form+' #date_factur').attr('disabled', true);
+                        }else{
+                            $(form+' input[name="no_factur"]').removeAttr('readonly');
+                            $(form+' #date_factur').removeAttr('disabled');
+                        }
                     });
 
                     $(form+' #bill_value_masked').on('keyup', function(){

@@ -97,12 +97,17 @@
             return;
         }
 
+        var formCrud = "{{ $crud->getActionMethod() }}";
+
         var delay = parseInt(element.data('delay')) || 250;
         var method = element.data('method') || 'post';
         var includeAllFormFields = element.data('include-all-form-fields') === 'true';
         var dependencies = element.data('dependencies') ? element.data('dependencies').split(',') : [];
         var valueId = element.data('value-id');
         var valueName = element.data('value-name');
+
+        var form = (formCrud == 'create') ? '#modalCreate' : '#modalEdit';
+
 
         // Reset value when dependencies change
         dependencies.forEach(function(depName) {
@@ -113,10 +118,11 @@
                 });
             }
         });
+
         // element.select2();
         // element.select2('destroy');
         element.select2({
-            dropdownParent: $(".modal.show .modal-body"),
+            dropdownParent: $(form+" .modal-body"),
             ajax: {
                 url: element.data('data-source'),
                 dataType: 'json',

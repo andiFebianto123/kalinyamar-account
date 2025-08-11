@@ -396,14 +396,125 @@ class ClientPoCrudController extends CrudController
     {
         // CRUD::setFromDb(); // set columns from db columns.
 
+        $request = request();
         CRUD::disableResponsiveTable();
 
         $settings = Setting::first();
+
+
 
         /**
          * Columns can be defined using the fluent syntax:
          * - CRUD::column('price')->type('number');
          */
+
+
+        if($request->columns){
+            if(trim($request->columns[1]['search']['value']) != ''){
+                $search = $request->columns[1]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->WhereExists(function($q) use($search){
+                    $q->from('clients')
+                    ->whereColumn('clients.id', 'client_po.client_id')
+                    ->where('clients.name', 'like', '%'.$search.'%');
+                });
+            }
+
+            if(trim($request->columns[2]['search']['value']) != ''){
+                $search = $request->columns[2]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('reimburse_type', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[3]['search']['value']) != ''){
+                $search = $request->columns[3]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('work_code', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[4]['search']['value']) != ''){
+                $search = $request->columns[4]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('po_number', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[5]['search']['value']) != ''){
+                $search = $request->columns[5]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('job_name', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[6]['search']['value']) != ''){
+                $search = $request->columns[6]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('rap_value', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[7]['search']['value']) != ''){
+                $search = $request->columns[7]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('job_value_exclude_ppn', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[8]['search']['value']) != ''){
+                $search = $request->columns[8]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('job_value_include_ppn', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[9]['search']['value']) != ''){
+                $search = $request->columns[9]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where(function($query) use($search){
+                    $query->where('start_date', 'like', '%'.$search.'%')
+                    ->orWhere('end_date', 'like', '%'.$search.'%');
+                });
+            }
+
+            if(trim($request->columns[10]['search']['value']) != ''){
+                $search = $request->columns[10]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('price_after_year', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[11]['search']['value']) != ''){
+                $search = $request->columns[11]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('price_total', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[12]['search']['value']) != ''){
+                $search = $request->columns[12]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('profit_and_loss', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[13]['search']['value']) != ''){
+                $search = $request->columns[13]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('load_general_value', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[14]['search']['value']) != ''){
+                $search = $request->columns[14]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('profit_and_lost_final', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[15]['search']['value']) != ''){
+                $search = $request->columns[15]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('document_path', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[16]['search']['value']) != ''){
+                $search = $request->columns[16]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('category', 'like', '%'.$search.'%');
+            }
+        }
+
+
 
         $this->crud->addColumn([
             'name'      => 'row_number',

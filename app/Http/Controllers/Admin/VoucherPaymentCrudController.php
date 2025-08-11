@@ -1841,19 +1841,19 @@ class VoucherPaymentCrudController extends CrudController {
 
             if($request->action == Approval::APPROVED){
                 if($final_approval->no_apprv == $request->no_apprv){
-                    CustomHelper::updateOrCreateJournalEntry([
-                        'account_id' => $voucher->account_id,
-                        'reference_id' => $voucher_payment->id,
-                        'reference_type' => PaymentVoucher::class,
-                        'description' => 'FIRST BALANCE',
-                        'date' => Carbon::now(),
-                        'debit' => $voucher->payment_transfer,
-                        // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-                    ], [
-                        'account_id' => $voucher->account_id,
-                        'reference_id' => $voucher_payment->id,
-                        'reference_type' => PaymentVoucher::class,
-                    ]);
+                    // CustomHelper::updateOrCreateJournalEntry([
+                    //     'account_id' => $voucher->account_id,
+                    //     'reference_id' => $voucher_payment->id,
+                    //     'reference_type' => PaymentVoucher::class,
+                    //     'description' => 'FIRST BALANCE',
+                    //     'date' => Carbon::now(),
+                    //     'debit' => $voucher->payment_transfer,
+                    //     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                    // ], [
+                    //     'account_id' => $voucher->account_id,
+                    //     'reference_id' => $voucher_payment->id,
+                    //     'reference_type' => PaymentVoucher::class,
+                    // ]);
                 }
             }
 

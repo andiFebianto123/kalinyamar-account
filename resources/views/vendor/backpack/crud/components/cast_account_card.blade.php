@@ -8,6 +8,33 @@
             {{ trans('backpack::crud.card.cast_account_card.name_bank') }} : <b>{{ $detail->bank_name }}</b> | {{ trans("backpack::crud.card.cast_account_card.no_rekening") }} : <b>{{$detail->no_account}}</b>
         </div>
         <div class="right-buttons d-flex gap-2">
+            @if ($crud->hasAccess('create'))
+                <button
+                id="btn-{{$name}}-edit"
+                data-route="{{$route_edit}}"
+                data-bs-toggle="modal"
+                data-bs-target="#modalEdit"
+                data-title="Ubah Nama Rekening"
+                class="btn btn-sm btn-primary"><i class="la la-edit"></i> Edit Nama Rekening</button>
+                @push('after_scripts')
+                    <script>
+                        $(function(){
+                            $("#btn-{{$name}}-edit").unbind('click').on('click', function (e) {
+                                e.preventDefault();
+                                var route = "{!! $route_edit !!}";
+                                OpenEditFormModal({
+                                    route: route,
+                                    modal: {
+                                        id: '#modalEdit',
+                                        title: "Ubah Nama Rekening",
+                                        action: "{!! $route_update !!}",
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                @endpush
+            @endif
             @if ($detail->status != \App\Models\CastAccount::LOAN)
                 <button class="btn btn-sm btn-secondary"
                 id="btn-{{$name}}-info"

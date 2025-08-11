@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Notifications\Action;
 
 /**
  * Class CastAccountsCrudController
@@ -119,7 +120,9 @@ class CastAccountsCrudController extends CrudController
                         'access' => $l->informations,
                         'detail' => $l,
                         'crud' => $this->crud,
-                        'name' => 'card_cast_account'.$l->id
+                        'name' => 'card_cast_account'.$l->id,
+                        'route_edit' => url($this->crud->route."/".$l->id.'/edit?type=cast_account'),
+                        'route_update' => url($this->crud->route."/".$l->id.'?type=cast_account'),
                     ]
                 ]);
             }
@@ -202,33 +205,99 @@ class CastAccountsCrudController extends CrudController
             'name' => 'required|max:100|unique:cast_accounts,name,'.$id,
             'bank_name' => 'required|max:50',
             'no_account' => 'required|max:100',
-            'total_saldo' => 'required|numeric|min:1000',
+            'total_saldo' => 'required|numeric|min:0',
         ];
     }
 
     function ruleValidationTransaction(){
         $cast_account_id = request()->cast_account_id;
-        $status = request()->status;
-        return [
+        $has_access_primary = $this->accessAccount($cast_account_id);
+        $has_access_payment = $this->accessPaymentAccount($cast_account_id);
+
+        $rule = [
             'date_transaction' => 'required',
             'nominal_transaction' => [
                 'required',
                 'numeric',
+                'min:0'
+            ],
+            'kdp' => 'max:50',
+            'job_name' => 'max:100',
+            'no_invoice' => 'max:100',
+            'account_id' => 'required|exists:accounts,id',
+        ];
+
+        if($has_access_primary == 0){
+            $rule['nominal_transaction'] = [
+                'required',
+                'numeric',
                 'min:1000',
-                function ($attribute, $value, $fail) use ($cast_account_id, $status) {
-                    if($status == CastAccount::OUT){
+                function ($attribute, $value, $fail) use($cast_account_id, $has_access_payment){
+                    // total_balance_cast_account_edit
+                    if($has_access_payment > 0){
+                        // tidak ada validasi apapun
+                    }else{
                         $balance = CustomHelper::total_balance_cast_account($cast_account_id, CastAccount::CASH);
                         if ($value > $balance) {
                             $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
                         }
                     }
                 }
-            ],
+            ];
+        }
+
+        return $rule;
+    }
+
+    function ruleValidationEditTransactionAccountPrimary(){
+        return [
+            'date_transaction' => 'required',
             'kdp' => 'max:50',
             'job_name' => 'max:100',
             'no_invoice' => 'max:100',
             'account_id' => 'exists:accounts,id',
-            'status' => 'required|in:enter,out',
+        ];
+    }
+
+    function ruleValidationEditTransactionAccountSecondary(){
+        $cast_account_id = request()->cast_account_id;
+        $id = request()->id;
+        $has_access_payment = $this->accessPaymentAccount($cast_account_id);
+        return [
+            'date_transaction' => 'required',
+            'kdp' => 'max:50',
+            'job_name' => 'max:100',
+            'no_invoice' => 'max:100',
+            'account_id' => 'exists:accounts,id',
+            'nominal_transaction' => [
+                'required',
+                'numeric',
+                'min:1000',
+                function ($attribute, $value, $fail) use ($cast_account_id, $id, $has_access_payment) {
+                    if($has_access_payment > 0){
+                    }else{
+                        if($id){
+                            $balance = CustomHelper::total_balance_cast_account_edit($cast_account_id, $id, CastAccount::CASH);
+                        }else{
+                            $balance = CustomHelper::total_balance_cast_account($cast_account_id, CastAccount::CASH);
+                        }
+                        if ($value > $balance) {
+                            $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
+                        }
+                    }
+                }
+            ]
+        ];
+    }
+
+    function ruleValidationStoreTransactionAccountPrimary(){
+        return [
+            'date_transaction' => 'required',
+            'kdp' => 'max:50',
+            'job_name' => 'max:100',
+            'no_invoice' => 'max:100',
+            'account_id' => 'required|exists:accounts,id',
+            // 'status' => 'required|in:enter,out',
         ];
     }
 
@@ -252,12 +321,41 @@ class CastAccountsCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
+    function accessAccount($id_account){
+        $account = CastAccount::whereHas('informations', function($q){
+            $q->where('name', 'Jadikan rekening utama');
+        })->where('id', $id_account)->get();
+        return $account->count();
+    }
+
+    function accessPaymentAccount($id_account){
+        $account = CastAccount::whereHas('informations', function($q){
+            $q->where('name', 'Digunakan sebagai pembayaran langsung');
+        })->where('id', $id_account)->get();
+        return $account->count();
+    }
+
     function createTransactionOperation($id = null){
 
         $settings = Setting::first();
 
         CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationTransaction());
+
+        $attribute_form = [];
+
+        $has_access_primary = $this->accessAccount($id);
+
+        if(request()->has('type')){
+            // edit
+            if($has_access_primary > 0){
+                $attribute_form = [
+                    'disabled' => true,
+                ];
+            }
+        }
+
+
         CRUD::addField([
             'name' => 'cast_account_id ',
             'type' => 'hidden',
@@ -295,6 +393,7 @@ class CastAccountsCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => '000.000',
+                ...$attribute_form,
             ]
         ]);
 
@@ -364,21 +463,28 @@ class CastAccountsCrudController extends CrudController
             ]
         ]);
 
-        CRUD::addField([
-            'name'        => 'status',
-            'label'       => trans('backpack::crud.cash_account.field_transaction.status.label'),
-            'type'        => 'select_from_array',
-            'options'     => [
-                '' => trans('backpack::crud.cash_account.field_transaction.status.placeholder'),
-                'enter' => trans('backpack::crud.cash_account.field_transaction.status.enter'),
-                'out' => trans('backpack::crud.cash_account.field_transaction.status.out')
-            ],
-            'allows_null' => false,
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
-        ]);
+        if($has_access_primary == 0){
+            // CRUD::addField([
+            //     'name'        => 'status',
+            //     'label'       => trans('backpack::crud.cash_account.field_transaction.status.label'),
+            //     'type'        => 'select_from_array',
+            //     'options'     => [
+            //         '' => trans('backpack::crud.cash_account.field_transaction.status.placeholder'),
+            //         'enter' => trans('backpack::crud.cash_account.field_transaction.status.enter'),
+            //         'out' => trans('backpack::crud.cash_account.field_transaction.status.out')
+            //     ],
+            //     'allows_null' => false,
+            //     'wrapper'   => [
+            //         'class' => 'form-group col-md-6',
+            //     ],
+            //     'attributes' => [
+            //         ...$attribute_form,
+            //     ]
+            //     // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
+            // ]);
+        }
+
+
     }
 
     /**
@@ -389,16 +495,35 @@ class CastAccountsCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
-        CRUD::setValidation($this->ruleValidation());
         // CRUD::setFromDb(); // set fields from db columns.
 
         $request = request();
 
-        if($request->has('_id')){
+        // CRUD::setValidation($this->ruleValidation());
 
+        if($request->has('type')){
+
+            if($request->type == 'cast_account'){
+                $id = $request->id ?? '';
+                CRUD::setValidation([
+                    'name' => 'required|max:100|unique:cast_accounts,name,'.$id,
+                ]);
+                CRUD::addField([
+                    'name' => 'name',
+                    'label' => trans('backpack::crud.cash_account.field.name.label'),
+                    'type' => 'text',
+                    'attributes' => [
+                        'placeholder' => trans('backpack::crud.cash_account.field.name.placeholder'),
+                    ]
+                ]);
+            }else if($request->type == 'transaction'){
+                $this->createTransactionOperation($request->_id);
+                return;
+            }
+        }else if($request->has('_id')){
             $this->createTransactionOperation($request->_id);
-
         }else{
+            CRUD::setValidation($this->ruleValidation());
             CRUD::addField([
                 'name' => 'name',
                 'label' => trans('backpack::crud.cash_account.field.name.label'),
@@ -494,6 +619,13 @@ class CastAccountsCrudController extends CrudController
     public function edit($id)
     {
         $this->crud->hasAccessOrFail('update');
+        $request = request();
+
+        if($request->has('type')){
+            if($request->type == 'transaction'){
+                CRUD::setModel(AccountTransaction::class);
+            }
+        }
 
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
@@ -563,12 +695,187 @@ class CastAccountsCrudController extends CrudController
         }
     }
 
+    public function updateTransaction(){
+        $request = request();
+
+        CRUD::setModel(AccountTransaction::class);
+
+        $old_item = AccountTransaction::find($request->id);
+
+        $has_access_primary = $this->accessAccount($old_item->cast_account_id);
+        $status_account = AccountTransaction::OUT;
+        if(request()->has('type')){
+            // edit
+            if($has_access_primary > 0){
+                $request->validate($this->ruleValidationStoreTransactionAccountPrimary());
+            }else{
+                $has_payment_access = $this->accessPaymentAccount($request->cast_account_id);
+                $request->validate($this->ruleValidationEditTransactionAccountSecondary());
+                if($has_payment_access > 0){
+                    $status_account = AccountTransaction::ENTER;
+                }
+            }
+        }
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+
+        try {
+
+            $event = [];
+
+            $journal = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($request){
+                $q->where('id', $request->id);
+            })->first();
+
+            $item = AccountTransaction::find($request->id);
+            $item->date_transaction = $request->date_transaction;
+            $item->description = $request->description;
+            $item->account_id = $request->account_id;
+            $item->no_invoice = $request->no_invoice;
+            $item->nominal_transaction = $request->nominal_transaction;
+
+            $item->save();
+
+            $journal->description = $item->description;
+            $journal->account_id = $item->account_id;
+            $journal->date = $item->date_transaction;
+            if($status_account == AccountTransaction::OUT){
+                $journal->credit = $item->nominal_transaction;
+                $journal->debit = 0;
+            }else{
+                $journal->debit = $item->nominal_transaction;
+                $journal->credit = 0;
+            }
+            $journal->save();
+
+
+            $this->data['entry'] = $item;
+            $event['cast_account_store_success'] = true;
+
+            \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => $event
+            ]);
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+    }
+
+    public function update()
+    {
+        $this->crud->hasAccessOrFail('update');
+
+        if(request()->has('type')){
+            if(request()->type == 'transaction'){
+                return $this->updateTransaction();
+            }
+        }
+
+        CRUD::setValidation([
+            'name' => 'required|max:100|unique:cast_accounts,name,'.request('id'),
+        ]);
+
+        $request = $this->crud->validateRequest();
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try{
+
+            $event = [];
+
+            if($request->type == 'cast_account'){
+                $item = CastAccount::find($request->id);
+                $item->name = $request->name;
+                $item->save();
+                $event['cast_account_store_success'] = true;
+            }
+
+            // $type = $request->_type;
+            // if($type == 'category_project'){
+            //     $event['setup_category_project_create_success'] = true;
+            //     $item = CategoryProject::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'status_project'){
+            //     $event['setup_status_project_create_success'] = true;
+            //     $item = SetupStatusProject::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'status_offering'){
+            //     $event['setup_status_offering_create_success'] = true;
+            //     $item = SetupOffering::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'client'){
+            //     $event['setup_client_create_success'] = true;
+            //     $item = SetupClient::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'ppn'){
+            //     $event['setup_ppn_create_success'] = true;
+            //     $item = SetupPpn::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }
+
+            $this->data['entry'] = $item;
+
+            \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => $event
+            ]);
+            // return $this->crud->performSaveAction($item->getKey());
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function storeTransaction()
     {
         $this->crud->hasAccessOrFail('create');
-        CRUD::setValidation($this->ruleValidationTransaction());
+        $request = request();
+        $request->validate($this->ruleValidationTransaction());
 
-        $request = $this->crud->validateRequest();
+        $has_access_primary = $this->accessAccount($request->cast_account_id);
+
+        if($has_access_primary > 0){
+            $status_account = AccountTransaction::ENTER;
+        }else{
+            $has_payment_access = $this->accessPaymentAccount($request->cast_account_id);
+            if($has_payment_access > 0){
+                $status_account = AccountTransaction::ENTER;
+            }else{
+                $status_account = AccountTransaction::OUT;
+            }
+        }
 
         $this->crud->registerFieldEvents();
 
@@ -582,15 +889,17 @@ class CastAccountsCrudController extends CrudController
             $kdp = $request->kdp;
             $job_name = $request->job_name;
             $no_invoice = $request->no_invoice;
-            $status = $request->status;
+            $status = $status_account;
 
             $cast_account = CastAccount::where('id', $cast_account_id)->first();
             $before_saldo = $cast_account->total_saldo;
-            if($status == CastAccount::ENTER){
+
+            if($status == AccountTransaction::ENTER){
                 $new_saldo = $before_saldo + $nominal_transaction;
-            }else if($status == CastAccount::OUT){
+            }else{
                 $new_saldo = $before_saldo - $nominal_transaction;
             }
+
 
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $cast_account_id;
@@ -615,8 +924,8 @@ class CastAccountsCrudController extends CrudController
                     'reference_type' => AccountTransaction::class,
                     'description' => $description,
                     'date' => Carbon::now(),
-                    'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
-                    'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                    'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
+                    'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
                 ], [
                     'reference_id' => $newTransaction->id,
                     'reference_type' => AccountTransaction::class,
@@ -697,6 +1006,7 @@ class CastAccountsCrudController extends CrudController
         try{
             $old_saldo = $balance;
             $new_saldo = $balance - $request->nominal_transfer;
+            $description = $request->description;
 
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $request->cast_account_id;
@@ -706,6 +1016,7 @@ class CastAccountsCrudController extends CrudController
             $newTransaction->total_saldo_before = $old_saldo;
             $newTransaction->total_saldo_after = $new_saldo;
             $newTransaction->status = 'out';
+            $newTransaction->description = $description;
             $newTransaction->save();
 
             $castAccount->total_saldo = $new_saldo;
@@ -725,6 +1036,7 @@ class CastAccountsCrudController extends CrudController
             $newTransaction_2->total_saldo_before = $other_old_saldo;
             $newTransaction_2->total_saldo_after = $other_new_saldo;
             $newTransaction_2->status = 'enter';
+            $newTransaction_2->description = $description;
             $newTransaction_2->save();
 
             $otherAccount->total_saldo = $other_new_saldo;
@@ -735,7 +1047,7 @@ class CastAccountsCrudController extends CrudController
             $item = $newTransaction_2;
             $this->data['entry'] = $this->crud->entry = $item;
 
-            // \Alert::success(trans('backpack::crud.insert_success'))->flash();
+            \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
             $this->crud->setSaveAction();
 
@@ -744,6 +1056,7 @@ class CastAccountsCrudController extends CrudController
                 return response()->json([
                     'success' => true,
                     'events' => [
+                        'cast_account_store_success' => true,
                         'card_cast_account'.$newTransaction->cast_account_id.'_create_success' => $castAccount,
                         'card_cast_account'.$newTransaction_2->cast_account_id.'_create_success' => $otherAccount,
                     ]
@@ -779,21 +1092,58 @@ class CastAccountsCrudController extends CrudController
         return $this->crud->delete($id);
     }
 
+    public function destroyTransaction($id){
+        $this->crud->hasAccessOrFail('delete');
+        DB::beginTransaction();
+        try {
+            $event = [];
+            $request = request();
+
+            $at = AccountTransaction::find($request->id);
+            JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($id){
+                $q->where('id', $id);
+            })->delete();
+
+            $at->delete();
+
+            $event['cast_account_store_success'] = true;
+
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+            $messages['events'] = $event;
+
+            DB::commit();
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'type' => 'errors',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function showTransaction(){
         $id = request()->_id;
         $castAccount = CastAccount::where('id', $id)->first();
         $detail = AccountTransaction::where('cast_account_id', $id)
         ->where('is_first', 0)
         ->orderBy('date_transaction', 'ASC')->get();
+        $has_access_primary = $this->accessAccount($id);
+
         foreach($detail as $entry){
             $entry->date_transaction_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
             $entry->nominal_transaction_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
-            $entry->description_str = ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
+            $entry->description_str = $entry->description ?? '-';
             $entry->kdp_str = $entry->kdp ?? '-';
             $entry->job_name_str = $entry->job_name ?? '-';
             $entry->account_id_str = ($entry->account_id) ? $entry->account->code.' - '.$entry->account->name : '-';
             $entry->no_invoice_str = ($entry->no_invoice) ? $entry->no_invoice : '-';
             $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
+            $entry->url_edit = url($this->crud->route.'/'.$entry->id.'/edit?type=transaction&_id='.$entry->cast_account_id);
+            $entry->url_update = url($this->crud->route).'/'.$entry->id.'?type=transaction&_id='.$entry->cast_account_id;
+            $entry->url_delete = url($this->crud->route."/delete-transaction/".$entry->id);
+            $entry->is_primary = $has_access_primary;
+            $entry->is_transfer = $entry->cast_account_destination_id;
         }
         $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($castAccount->total_saldo);
         return response()->json([

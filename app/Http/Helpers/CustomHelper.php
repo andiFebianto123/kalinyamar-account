@@ -157,21 +157,62 @@ class CustomHelper {
     public static function total_balance_cast_account($id, $status){
         if($status == CastAccount::CASH){
             $listCashAccounts = CastAccount::leftJoin('account_transactions', function($q) use($id){
-                $q->on('account_transactions.cast_account_destination_id', '=', 'cast_accounts.id')
-                ->orOn('account_transactions.cast_account_id', '=', 'cast_accounts.id');
+                // $q->on('account_transactions.cast_account_destination_id', '=', 'cast_accounts.id')
+                $q->on('account_transactions.cast_account_id', '=', 'cast_accounts.id');
             })
             ->where('cast_accounts.status', CastAccount::CASH)
             ->where('cast_accounts.id', $id)
             ->groupBy('cast_accounts.id')
-            ->orderBy('cast_accounts.id', 'ASC')->select(DB::raw('
+            ->orderBy('cast_accounts.id', 'ASC')
+            ->select(DB::raw("
                 cast_accounts.id,
-                SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
-                SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
-            '
-            ))->get();
+                SUM(IF(account_transactions.status = 'enter', account_transactions.nominal_transaction, 0)) as total_saldo_enter,
+                SUM(IF(account_transactions.status = 'out', account_transactions.nominal_transaction, 0)) as total_saldo_out
+            "))
+            ->get();
             if($listCashAccounts){
                 foreach($listCashAccounts as $cash){
                     if($cash->id == $id){
+                        return ($cash->total_saldo_enter - $cash->total_saldo_out);
+                    }
+                }
+            }
+        }else if($status == CastAccount::LOAN){
+            $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($id){
+                $q->where('cast_account_id', $id);
+            })->orWhereHasMorph('reference', CastAccount::class, function($q) use($id){
+                $q->where('id', $id);
+            })
+            ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+            ->get();
+            if($journal_){
+                foreach($journal_ as $journal){
+                    return $journal->total;
+                }
+            }
+        }
+    }
+
+    public static function total_balance_cast_account_edit($id_cast_account, $id_transaction , $status){
+        if($status == CastAccount::CASH){
+            $listCashAccounts = CastAccount::leftJoin('account_transactions', function($q) use($id_cast_account){
+                // $q->on('account_transactions.cast_account_destination_id', '=', 'cast_accounts.id')
+                $q->on('account_transactions.cast_account_id', '=', 'cast_accounts.id');
+            })
+            ->where('cast_accounts.status', CastAccount::CASH)
+            ->where('cast_accounts.id', $id_cast_account)
+            ->where('account_transactions.id', '!=', $id_transaction)
+            ->groupBy('cast_accounts.id')
+            ->orderBy('cast_accounts.id', 'ASC')
+            ->select(DB::raw("
+                cast_accounts.id,
+                SUM(IF(account_transactions.status = 'enter', account_transactions.nominal_transaction, 0)) as total_saldo_enter,
+                SUM(IF(account_transactions.status = 'out', account_transactions.nominal_transaction, 0)) as total_saldo_out
+            "))
+            ->get();
+            if($listCashAccounts){
+                foreach($listCashAccounts as $cash){
+                    if($cash->id == $id_cast_account){
                         return ($cash->total_saldo_enter - $cash->total_saldo_out);
                     }
                 }

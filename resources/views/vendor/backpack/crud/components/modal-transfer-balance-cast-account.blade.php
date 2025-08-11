@@ -28,6 +28,12 @@
                     </div>
                     <input type="hidden" name="nominal_transfer" id="nominal_transaction" value="">
                 </div>
+                <div class="form-group col-md-6">
+                </div>
+                <div class="form-group col-md-6" element="div" bp-field-wrapper="true" bp-field-name="description" bp-field-type="textarea" bp-section="crud-field">
+                    <label>{{trans('backpack::crud.cash_account.field_transfer.description.label')}}</label>
+                    <textarea name="description" placeholder="{{trans('backpack::crud.cash_account.field_transfer.description.placeholder')}}" class="form-control"></textarea>
+                </div>
                 <script>
                     SIAOPS.loadScript([
                         "{{ asset('packages/jquery-mask-plugin-master/dist/jquery.mask.min.js') }}"

@@ -349,7 +349,7 @@ return [
     'client' => [
         'title_header' => 'Daftar Client',
         'column' => [
-            'name' => 'Nama Perusahaan',
+            'name' => 'Nama CLient',
             'address' => 'Alamat',
             'npwp' => 'No. NPWP',
             'phone' => 'No. Telepon',
@@ -629,6 +629,10 @@ return [
             'nominal_transfer' => [
                 'label' => 'Nominal Yang Ingin Dipindahkan',
 
+            ],
+            'description' => [
+                'label' => 'Deskripsi',
+                'placeholder' => 'Masukan deskripsi'
             ],
             'to_account' => [
                 'label' => 'Rekening Tujuan',
@@ -946,8 +950,11 @@ return [
                 'placeholder' => 'Masukan nomor voucher',
             ],
             'work_code' => [
-                'label' => 'Kode Kerja',
+                'label' => 'Kode Pekerjaan',
                 'placeholder' => 'Masukan kode kerja voucher',
+            ],
+            'account_source_id' => [
+                'label' => 'Sumber Rekening',
             ],
             'job_name' => [
                 'label' => 'Nama Pekerjaan',
@@ -1052,6 +1059,9 @@ return [
             'payment_status' => [
                 'label' => 'Status Bayar',
                 'placeholder' => '- STATUS BAYAR',
+            ],
+            'payment_date' => [
+                'label' => 'Tanggal Bayar',
             ],
             'priority' => [
                 'label' => 'Prioritas',

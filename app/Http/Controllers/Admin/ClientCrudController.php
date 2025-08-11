@@ -123,7 +123,7 @@ class ClientCrudController extends CrudController
          */
         $request = request();
 
-        CRUD::addButtonFromView('top', 'filter_year', 'filter-year-client', 'beginning');
+        // CRUD::addButtonFromView('top', 'filter_year', 'filter-year-client', 'beginning');
         CRUD::disableResponsiveTable();
         $this->crud->addColumn([
             'name'      => 'row_number',

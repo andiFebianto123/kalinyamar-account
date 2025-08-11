@@ -81,6 +81,8 @@ class CastAccountsLoanCrudController extends CrudController
                         'detail' => $l,
                         'crud' => $this->crud,
                         'name' => 'card_cast_account'.$l->id,
+                        'route_edit' => url($this->crud->route."/".$l->id."/edit?type=cast_account"),
+                        'route_update' => url($this->crud->route."/".$l->id."?type=cast_account"),
                     ]
                 ]);
             }
@@ -432,24 +434,40 @@ class CastAccountsLoanCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
-        CRUD::setValidation($this->ruleValidation());
         // CRUD::setFromDb(); // set fields from db columns.
         $settings = Setting::first();
 
         $request = request();
 
-        if($request->has('_id')){
+        if($request->has('_id') && $request?->type == null){
+            $this->createTransactionOperation($request->_id);
+            return;
+        }
 
-            if($request->has('type')){
+        if($request->has('type')){
+            if($request->has('_id')){
                 if($request->type == 'move'){
                     $this->createMoveTransactionOperation($request->_id);
                     return;
                 }
             }
-
-            $this->createTransactionOperation($request->_id);
-
+            if($request->type == 'cast_account'){
+                $id = $request->id ?? '';
+                CRUD::setValidation([
+                    'name' => 'required|max:100|unique:cast_accounts,name,'.$id,
+                ]);
+                CRUD::addField([
+                    'name' => 'name',
+                    'label' => trans('backpack::crud.cash_account.field.name.label'),
+                    'type' => 'text',
+                    'attributes' => [
+                        'placeholder' => trans('backpack::crud.cash_account.field.name.placeholder'),
+                    ]
+                ]);
+                return;
+            }
         }else{
+            CRUD::setValidation($this->ruleValidation());
             CRUD::addField([
                 'name' => 'name',
                 'label' => trans('backpack::crud.cash_account_loan.field.name.label'),
@@ -810,6 +828,78 @@ class CastAccountsLoanCrudController extends CrudController
         }
     }
 
+    public function update()
+    {
+        $this->crud->hasAccessOrFail('update');
+
+        $request = $this->crud->validateRequest();
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try{
+
+            $event = [];
+
+            if($request->type == 'cast_account'){
+                $item = CastAccount::find($request->id);
+                $item->name = $request->name;
+                $item->save();
+                $event['cast_account_store_success'] = true;
+            }
+
+            // $type = $request->_type;
+            // if($type == 'category_project'){
+            //     $event['setup_category_project_create_success'] = true;
+            //     $item = CategoryProject::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'status_project'){
+            //     $event['setup_status_project_create_success'] = true;
+            //     $item = SetupStatusProject::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'status_offering'){
+            //     $event['setup_status_offering_create_success'] = true;
+            //     $item = SetupOffering::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'client'){
+            //     $event['setup_client_create_success'] = true;
+            //     $item = SetupClient::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }else if($type == 'ppn'){
+            //     $event['setup_ppn_create_success'] = true;
+            //     $item = SetupPpn::find($request->id);
+            //     $item->name = $request->name;
+            //     $item->save();
+            // }
+
+            $this->data['entry'] = $item;
+
+            \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => $event
+            ]);
+            // return $this->crud->performSaveAction($item->getKey());
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function storeMoveTransaction()
     {
         $this->crud->hasAccessOrFail('create');
@@ -934,7 +1024,7 @@ class CastAccountsLoanCrudController extends CrudController
             $entry->no_invoice_str = ($entry->no_invoice) ? $entry->no_invoice : '-';
             $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
         }
-        $castAccount->total_saldo_str = 'Rp'.CustomHelper::formatRupiah($castAccount->total_saldo);
+        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($castAccount->total_saldo);
         return response()->json([
             'status' => true,
             'result'=> [
