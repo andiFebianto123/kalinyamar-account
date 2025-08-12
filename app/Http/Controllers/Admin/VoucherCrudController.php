@@ -574,7 +574,7 @@ class VoucherCrudController extends CrudController {
                     'name' => 'reference_id',
                     'type'  => 'closure',
                     'function' => function($entry){
-                        return $entry->client_po->work_code;
+                        return $entry?->client_po?->work_code;
                     }
                 ], // BELUM FILTER
             );

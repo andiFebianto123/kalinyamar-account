@@ -494,7 +494,12 @@ class StatusProjectCrudController extends CrudController {
         ->first();
 
         $data['invoice_old'] = $invoiceold;
-        $data['tgl_start_invoice'] = Carbon::parse($invoiceold->invoice_date)->locale(App::getLocale())->isoFormat('dddd, D MMMM Y');
+
+        if($invoiceold){
+            $data['tgl_start_invoice'] = Carbon::parse($invoiceold?->invoice_date)->locale(App::getLocale())->isoFormat('dddd, D MMMM Y');
+        }else{
+            $data['tgl_start_invoice'] = '';
+        }
 
         $invoice_1 = Project::where('status_po', 'UNPAID')
         ->where('status_po', '!=', "BELUM ADA PO")
