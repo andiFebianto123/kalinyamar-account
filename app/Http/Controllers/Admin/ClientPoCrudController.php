@@ -453,7 +453,7 @@ class ClientPoCrudController extends CrudController
             if(trim($request->columns[7]['search']['value']) != ''){
                 $search = $request->columns[7]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('job_value_exclude_ppn', 'like', '%'.$search.'%');
+                ->where('job_value', 'like', '%'.$search.'%');
             }
 
             if(trim($request->columns[8]['search']['value']) != ''){
@@ -585,7 +585,7 @@ class ClientPoCrudController extends CrudController
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
-                'name' => 'job_value_exclude_ppn',
+                'name' => 'job_value',
                 'type'  => 'number',
                 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
