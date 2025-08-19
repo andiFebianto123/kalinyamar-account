@@ -472,6 +472,13 @@ function getInputNumber(selected){
 }
 
 function setInputNumber(selected, value){
-    $(selected).val(value).trigger('input');
+    let str = value.toString();
+
+    str = str.replace(/\.00$/, "");
+
+    if (!isNaN(str) && str.trim() !== "") {
+        str = Number(str);
+    }
+    $(selected).val(str).trigger('input');
 }
 

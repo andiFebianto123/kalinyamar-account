@@ -25,11 +25,13 @@ class ClientPoRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+        $id = request('id');
+        $status = request('status');
+        $rule = [
             // 'name' => 'required|min:5|max:255'
             'client_id' => 'required|exists:clients,id',
-            'work_code' => 'required|max:30',
-            'po_number' => 'required|max:30|unique:client_po,po_number,'. request('id'),
+            'work_code' => 'required|max:30|unique:client_po,work_code,'. $id,
+            'po_number' => 'required|max:30|unique:client_po,po_number,'. $id,
             'job_name' => 'required|max:255',
             'job_value' => 'required|numeric',
             'start_date' => 'nullable|date',
@@ -43,6 +45,16 @@ class ClientPoRequest extends FormRequest
             'load_general_value' => 'nullable|numeric',
             'category' => 'required',
         ];
+
+        if($status == 'TANPA PO'){
+            $rule['po_number'] = 'nullable|max:30';
+        }
+
+        if($id){
+            $rule['work_code'] = 'nullable|max:30|unique:client_po,work_code,'.$id;
+        }
+
+        return $rule;
     }
 
     /**

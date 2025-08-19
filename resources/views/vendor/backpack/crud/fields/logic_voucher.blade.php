@@ -2,13 +2,14 @@
 	// if not otherwise specified, the hidden input should take up no space in the form
   $field['wrapper'] = $field['wrapper'] ?? $field['wrapperAttributes'] ?? [];
   $field['wrapper']['class'] = $field['wrapper']['class'] ?? "hidden";
-  $set_value = (isset($no_po_spk)) ? $no_po_spk : null;
+  $set_value = (isset($entry)) ? $entry?->reference : null;
 @endphp
 
 {{-- hidden input --}}
 @include('crud::fields.inc.wrapper_start')
   <input type="hidden" name="no_type" />
   <input type="hidden" name="bussines_entity_name" />
+  <input type="hidden" name="type" />
   <input
   	type="hidden"
     name="{{ $field['name'] }}"
@@ -54,13 +55,22 @@
 
                     @if ($set_value != null)
                         var data_po_spk = {!! json_encode($set_value) !!};
-                        var selectedOption = new Option(data_po_spk.no_po_spk, data_po_spk.id, true, true);
-                        $(form+ ' select[name="no_po_spk"]').append(selectedOption).trigger('change');
+                        var po_number_text = `${data_po_spk.po_number} (${data_po_spk.type})`;
+                        var work_code_text = `${data_po_spk.work_code} (${data_po_spk.type})`;
+
+                        var selectedOption = new Option(po_number_text, data_po_spk.id, true, true);
+                        // $(form+ ' select[name="client_po_id"]').val(null).trigger('change');
+                        $(form+ ' select[name="client_po_id"]').append(selectedOption).trigger('change');
+
+                        var selectedOptionw = new Option(work_code_text, data_po_spk.id, true, true);
+                        // $(form+' select[name="reference_id"]').val(null).trigger('change');
+                        $(form+' select[name="reference_id"]').append(selectedOptionw).trigger('change');
+
                         $(form+ ' input[name="bussines_entity_name"]').val(data_po_spk.name_company);
                         // $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
-                        $(form+ ' input[name="bank_name"]').val(data_po_spk.bank_name);
-                        $(form+' input[name="no_account"]').val(data_po_spk.bank_account);
-                        $(form+' input[name="no_type"]').val(data_po_spk.type);
+                        // $(form+ ' input[name="bank_name"]').val(data_po_spk.bank_name);
+                        // $(form+' input[name="no_account"]').val(data_po_spk.bank_account);
+                        // $(form+' input[name="no_type"]').val(data_po_spk.type);
 
                         setTimeout(() => {
                              $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
@@ -70,30 +80,54 @@
 
                     $(form+ ' select[name="client_po_id"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id;
+                        var type = e.params.data.type;
                         $.ajax({
-                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + id,
+                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + id + "&type=" + type,
                             type: 'GET',
                             dataType: 'json',
                             success: function (data) {
-                                var work_option = new Option(data.work_code, data.id, true, true);
+
+                                var po = data.po;
+                                var account = data.account;
+
+                                var account_text = `${account.code} - ${account.name}`;
+                                var account_option = new Option(account_text, account.id, true, true);
+                                $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
+
+                                var work_code_text = `${po.work_code} (${po.type})`;
+
+                                var work_option = new Option(work_code_text, po.id, true, true);
                                 $(form+ ' select[name="reference_id"]').append(work_option).trigger('change');
-                                $(form+' input[name="job_name"]').val(data.job_name);
-                                setInputNumber(form+' #bill_value_masked', data.price_total);
+                                $(form+' input[name="job_name"]').val(po.job_name);
+                                setInputNumber(form+' #bill_value_masked', po.price_total);
+                                $(form+' input[name="type"]').val(po.type);
                             }
                         })
                     });
 
                     $(form+' select[name="reference_id"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id;
+                        var type = e.params.data.type;
                         $.ajax({
-                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + id,
+                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + id + "&type=" + type,
                             type: 'GET',
                             dataType: 'json',
                             success: function (data) {
-                                var po_number_option = new Option(data.po_number, data.id, true, true);
+
+                                var po = data.po;
+                                var account = data.account;
+
+                                var account_text = `${account.code} - ${account.name}`;
+                                var account_option = new Option(account_text, account.id, true, true);
+                                $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
+
+                                var po_number_text = `${po.po_number} (${po.type})`;
+
+                                var po_number_option = new Option(po_number_text, po.id, true, true);
                                 $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
-                                $(form+' input[name="job_name"]').val(data.job_name);
-                                setInputNumber(form+' #bill_value_masked', data.price_total);
+                                $(form+' input[name="job_name"]').val(po.job_name);
+                                setInputNumber(form+' #bill_value_masked', po.price_total);
+                                $(form+' input[name="type"]').val(po.type);
                             }
                         })
                     });
@@ -106,6 +140,19 @@
                             $(form+' input[name="no_factur"]').removeAttr('readonly');
                             $(form+' #date_factur').removeAttr('disabled');
                         }
+                    });
+
+                    $(form+' select[name="subkon_id"]').off('select2:select').on('select2:select', function (e) {
+                        var id = e.params.data.id;
+                        $.ajax({
+                            url: "{{ url($crud->route) }}/get_account_source_selected_ajax?id=" + id,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                $(form+' input[name="bank_name"]').val(data.bank_name);
+                                $(form+' input[name="no_account"]').val(data.bank_account);
+                            }
+                        })
                     });
 
                     $(form+' #bill_value_masked').on('keyup', function(){

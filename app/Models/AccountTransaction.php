@@ -58,6 +58,11 @@ class AccountTransaction extends Model
         return $this->morphOne(JournalEntry::class, 'reference');
     }
 
+    public function reference()
+    {
+        return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES

@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Account;
 use App\Models\Setting;
+use App\Models\ClientPo;
 use App\Models\JournalEntry;
+use App\Models\PurchaseOrder;
 use Illuminate\Validation\Rule;
 use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Action;
 use App\Http\Controllers\CrudController;
+use App\Models\Voucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProfitLostAccountCrudController extends CrudController{
@@ -93,33 +96,87 @@ class ProfitLostAccountCrudController extends CrudController{
                         'orderable' => true,
                     ],
                     [
-                        'label' => trans('backpack::crud.profit_lost.column.job_code'),
-                        'type'      => 'select',
-                        'name'      => 'job_code',
-                        'orderable' => true,
-                    ],
-                    [
-                        'label' => trans('backpack::crud.profit_lost.column.no_po'),
+                        'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
                         'type'      => 'text',
-                        'name'      => 'no_po',
+                        'name'      => 'reimburse_type',
                         'orderable' => true,
                     ],
                     [
-                        'label' => trans('backpack::crud.profit_lost.column.contract_value'),
-                        'type'      => 'number',
-                        'name'      => 'contract_value',
+                        'label'  => trans('backpack::crud.client_po.column.work_code'),
+                        'type'      => 'text',
+                        'name'      => 'work_code',
                         'orderable' => true,
                     ],
                     [
-                        'label' => trans('backpack::crud.profit_lost.column.total_project'),
-                        'type'      => 'number',
-                        'name'      => 'total_project',
+                        'label'  => trans('backpack::crud.client_po.column.po_number'),
+                        'type'      => 'text',
+                        'name'      => 'po_number',
                         'orderable' => true,
                     ],
                     [
-                        'label' => trans('backpack::crud.profit_lost.column.price_profit_lost_project'),
-                        'type'      => 'number',
-                        'name'      => 'price_profit_lost_project',
+                        'label'  => trans('backpack::crud.client_po.column.job_name'),
+                        'type'      => 'text',
+                        'name'      => 'job_name',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
+                        'type'      => 'text',
+                        'name'      => 'job_value',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+                        'type'      => 'text',
+                        'name'      => 'job_value_include_ppn',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.client_po.column.price_after_year'),
+                        'type'      => 'text',
+                        'name'      => 'price_after_year',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
+                        'type'      => 'text',
+                        'name'      => 'price_voucher',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.price_small_cash'),
+                        'type'      => 'text',
+                        'name'      => 'price_small_cash',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.price_total'),
+                        'type'      => 'text',
+                        'name'      => 'price_total',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.profit_lost_po'),
+                        'type'      => 'text',
+                        'name'      => 'profit_lost_po',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
+                        'type'      => 'text',
+                        'name'      => 'load_general_value',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
+                        'type'      => 'text',
+                        'name'      => 'profit_lost_final',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.category'),
+                        'type'      => 'text',
+                        'name'      => 'category',
                         'orderable' => true,
                     ],
                     [
@@ -243,6 +300,33 @@ class ProfitLostAccountCrudController extends CrudController{
         ]);
     }
 
+    function select2Po(){
+        $q = request()->q;
+        // $po = ClientPo::select(DB::raw("id, po_number, 'client' as type"))->where('po_number', 'like', "%$q%");
+
+        // $po_subkon = PurchaseOrder::select(DB::raw("id, po_number, 'subkon' as type"))
+        // ->where('po_number', 'like', "%$q%");
+
+        // $union = $po->unionAll($po_subkon)
+        // ->paginate(20);
+        $union = Voucher::where('reference_type', ClientPo::class)
+        ->whereHasMorph('reference', '*', function($query) use($q){
+            $query->where('po_number', 'like', "%$q%");
+        })->get();
+
+        $results = [];
+        foreach ($union as $item) {
+            $results[] = [
+                'data' => $item,
+                'voucher_id' => $item->id,
+                'id' => $item->reference->id,
+                'text' => $item->reference->po_number,
+                'work_code' => $item->reference->work_code,
+            ];
+        }
+        return response()->json(['results' => $results]);
+    }
+
     private function ruleAccount(){
         $id = request()->id;
         $rule = [
@@ -332,7 +416,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
     function validationProject(){
         $rule = [];
-        $rule['client_po_id'] = 'required|exists:client_po,id';
+        $rule['client_po_id'] = 'required';
         return $rule;
     }
 
@@ -357,11 +441,11 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::addField([   // 1-n relationship
                     'label'       => trans('backpack::crud.invoice_client.field.client_po_id.label'), // Table column heading
-                    'type'        => "select2_ajax_invoice_client",
+                    'type'        => "select2_ajax_custom",
                     'name'        => 'client_po_id', // the column that contains the ID of that connected entity
                     'entity'      => 'clientPo', // the method that defines the relationship in your Model
                     'attribute'   => 'po_number', // foreign key attribute that is shown to user
-                    'data_source' => backpack_url('invoice-client/select2-client-po'), // url to controller search function (with /{id} should return a single entry)
+                    'data_source' => backpack_url('finance-report/profit-lost/select2-po'), // url to controller search function (with /{id} should return a single entry)
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
@@ -546,6 +630,11 @@ class ProfitLostAccountCrudController extends CrudController{
                     'attributes' => [
                         'placeholder' => '000.000',
                     ]
+                ]);
+
+                CRUD::addField([
+                    'name' => 'logic_profit_lost',
+                    'type' => 'logic_profit_lost'
                 ]);
 
             }
@@ -800,6 +889,7 @@ class ProfitLostAccountCrudController extends CrudController{
         DB::beginTransaction();
         try{
 
+            $voucher_id = $request->voucher_id;
             $client_po_id = $request->client_po_id;
             $contract_value = $request->contract_value;
             $total_project = $request->total_project;
@@ -813,6 +903,7 @@ class ProfitLostAccountCrudController extends CrudController{
             $price_profit_lost_project = $request->price_profit_lost_project;
 
             $item = new ProjectProfitLost;
+            $item->voucher_id = $voucher_id;
             $item->client_po_id = $client_po_id;
             $item->contract_value = $contract_value;
             $item->total_project = $total_project;
@@ -919,6 +1010,12 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::addButtonFromView('line', 'show-detail-project', "show-detail-project", 'beginning');
 
                 CRUD::setModel(ProjectProfitLost::class);
+                $this->crud->query = $this->crud->query
+                ->leftJoin('vouchers', function($join){
+                    $join->on('vouchers.reference_id', '=', 'project_profit_lost.client_po_id')
+                    ->where('vouchers.reference_type', 'App\\Models\\ClientPo');
+                })->leftJoin('client_po', 'client_po.id', '=', 'vouchers.reference_id');
+
                 $this->crud->addColumn([
                     'name'      => 'row_number',
                     'type'      => 'row_number',
@@ -931,7 +1028,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::column([
                     // 1-n relationship
-                    'label' => trans('backpack::crud.profit_lost.column.client_po_id'),
+                    'label' => '',
                     'type'      => 'closure',
                     'name'      => 'client_po_id',
                     'function' => function($entry) {
@@ -945,35 +1042,32 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::column([
-                    // 1-n relationship
-                    'label' => trans('backpack::crud.profit_lost.column.job_code'),
-                    'type'      => 'closure',
-                    'name'      => 'job_code',
-                    'function' => function($entry) {
-                        return $entry->clientPo->work_code;
-                    }, // the column that contains the ID of that connected entity;
-                    'searchLogic' => function($query, $column, $searchTerm){
-                        $query->orWhereHas('clientPo', function($q) use($searchTerm){
-                            $q->where('work_code', 'like', '%'.$searchTerm.'%');
-                        });
-                    }
+                    'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
+                    'name' => 'reimburse_type',
+                    'type' => 'text',
                 ]);
 
                 CRUD::column([
-                    // 1-n relationship
-                    'label' => trans('backpack::crud.profit_lost.column.no_po'),
-                    'type'      => 'closure',
-                    'name'      => 'no_po',
-                    'function' => function($entry) {
-                        return $entry->clientPo->po_number;
-                    } // the column that contains the ID of that connected entity;
-                    // OPTIONAL
-                    // 'limit' => 32, // Limit the number of characters shown
+                    'label'  => trans('backpack::crud.client_po.column.work_code'),
+                    'name' => 'work_code',
+                    'type' => 'text',
                 ]);
 
                 CRUD::column([
-                    'label'  => trans('backpack::crud.profit_lost.column.contract_value'),
-                    'name' => 'contract_value',
+                    'label'  => trans('backpack::crud.client_po.column.po_number'),
+                    'name' => 'po_number',
+                    'type' => 'text',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.job_name'),
+                    'name' => 'job_name',
+                    'type' => 'text',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
+                    'name' => 'job_value',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -982,8 +1076,8 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::column([
-                    'label'  => trans('backpack::crud.profit_lost.column.total_project'),
-                    'name' => 'total_project',
+                    'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+                    'name' => 'job_value_include_ppn',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -992,13 +1086,108 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::column([
-                    'label'  => trans('backpack::crud.profit_lost.column.price_profit_lost_project'),
-                    'name' => 'price_profit_lost_project',
+                    'label'  => trans('backpack::crud.client_po.column.price_after_year'),
+                    'name' => 'price_after_year',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
                     'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
+                    'name' => 'price_voucher',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.price_small_cash'),
+                    'name' => 'price_small_cash',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.price_total'),
+                    'name' => 'price_total',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.profit_lost_po'),
+                    'name' => 'profit_lost_po',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
+                    'name' => 'load_general_value',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
+                    'name' => 'profit_lost_final',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.category'),
+                    'type'      => 'text',
+                    'name'      => 'category',
+                ]);
+
+                // CRUD::column([
+                //     'label'  => trans('backpack::crud.profit_lost.column.contract_value'),
+                //     'name' => 'contract_value',
+                //     'type'  => 'number',
+                //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                //     'decimals'      => 2,
+                //     'dec_point'     => ',',
+                //     'thousands_sep' => '.',
+                // ]);
+
+                CRUD::addClause('select', [
+                    DB::raw("
+                        project_profit_lost.*,
+                        client_po.work_code as work_code,
+                        client_po.po_number as po_number,
+                        client_po.reimburse_type as reimburse_type,
+                        client_po.job_name as job_name,
+                        client_po.job_value as job_value,
+                        client_po.price_after_year as price_after_year,
+                        vouchers.payment_transfer as price_voucher,
+                        0 as price_small_cash,
+                        (client_po.price_after_year + vouchers.payment_transfer + 0) as price_total,
+                        (client_po.job_value - (client_po.price_after_year + vouchers.payment_transfer + 0)) as profit_lost_po,
+                        client_po.load_general_value as load_general_value,
+                        ((client_po.job_value - (client_po.price_after_year + vouchers.payment_transfer + 0)) - client_po.load_general_value) as profit_lost_final,
+                        client_po.category as category
+                   ")
                 ]);
 
             }

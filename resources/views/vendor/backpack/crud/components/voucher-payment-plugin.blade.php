@@ -5,7 +5,15 @@
                 background-color: #FCD72D !important;
             }
 
+            #crudTable-voucher_payment_plan_non_rutin_wrapper .dataTables_scrollHead table thead tr th {
+                background-color: #FCD72D !important;
+            }
+
             #crudTable-voucher_payment_rutin_wrapper .dataTables_scrollHead table thead tr th {
+                background-color: #FCD72D !important;
+            }
+
+            #crudTable-voucher_payment_plan_rutin_wrapper .dataTables_scrollHead table thead tr th {
                 background-color: #FCD72D !important;
             }
         </style>
@@ -35,25 +43,25 @@
                         success: function (result) {
                             $('#panel-voucher_payment_non_rutin').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : Rp${result.voucher_payment_non_rutin_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : ${result.voucher_payment_non_rutin_total}</strong></div>
                                 </div>
                             `);
 
                             $('#panel-voucher_payment_plan_non_rutin').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : Rp${result.voucher_payment_plan_non_rutin_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_non_rutin_total}</strong></div>
                                 </div>
                             `);
 
                             $('#panel-voucher_payment_rutin').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : Rp${result.voucher_payment_rutin_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : ${result.voucher_payment_rutin_total}</strong></div>
                                 </div>
                             `);
 
                             $('#panel-voucher_payment_plan_rutin').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : Rp${result.voucher_payment_plan_rutin_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_rutin_total}</strong></div>
                                 </div>
                             `);
                         },

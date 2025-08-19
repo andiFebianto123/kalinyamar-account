@@ -150,6 +150,10 @@ class CustomHelper {
         return $journal::where($reference)->first();
     }
 
+    public static function insertJournalEntry($payload){
+        return JournalEntry::create($payload);
+    }
+
     public static function deleteJournalEntry($reference){
         return JournalEntry::where($reference)->delete();
     }

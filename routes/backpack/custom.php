@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\VoucherPaymentCrudController;
 use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
 use App\Http\Controllers\Admin\ProjectListReportCrudController;
+use App\Http\Controllers\Admin\VoucherPaymentPlanCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -103,6 +104,7 @@ Route::group([
         Route::get('show-total-account', [BalanceSheetCrudController::class, 'showTotalAccount']);
         Route::crud('list-asset', 'AssetCrudController');
         Route::post('select2-account-id', [AssetCrudController::class, 'select2account']);
+        Route::post('profit-lost/select2-po', [ProfitLostAccountCrudController::class, 'select2Po']);
     });
 
     Route::prefix('fa')->group(function(){
@@ -110,13 +112,21 @@ Route::group([
         Route::post('voucher/select2-po-spk', [VoucherCrudController::class, 'select2_no_po_spk']);
         Route::post('voucher/{id}/approve', [VoucherCrudController::class, 'approvedStore']);
         Route::get('voucher/total', [VoucherCrudController::class, 'total_voucher']);
+        Route::post('voucher/export-pdf', [VoucherCrudController::class, 'exportPdf']);
+        Route::post('voucher/export-excel', [VoucherCrudController::class, 'exportExcel']);
         Route::crud('voucher-payment', 'VoucherPaymentCrudController');
         Route::post('voucher-payment/{id}/approve', [VoucherPaymentCrudController::class, 'approvedStore']);
         Route::get('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);
         Route::post('voucher/select2-work-code', [VoucherCrudController::class, 'select2WorkCode']);
         Route::post('voucher/select2-subkon', [VoucherCrudController::class, 'select2Subkon']);
         Route::get('voucher/get_client_selected_ajax', [VoucherCrudController::class, 'clientSelectedAjax']);
+        Route::get('voucher/get_account_source_selected_ajax', [VoucherCrudController::class, 'castAccountSelectedAjax']);
         Route::get('voucher/{id}/print', [VoucherCrudController::class, 'print']);
+        Route::crud('voucher-payment-plan', VoucherPaymentPlanCrudController::class);
+        Route::get('voucher-payment-plan/total', [VoucherPaymentPlanCrudController::class, 'total_voucher']);
+        Route::post('voucher-payment-plan/{id}/approve', [VoucherPaymentPlanCrudController::class, 'approvedStore']);
+        Route::post('voucher-payment-plan/export-pdf', [VoucherPaymentPlanCrudController::class, 'exportPdf']);
+        Route::post('voucher-payment-plan/export-excel', [VoucherPaymentPlanCrudController::class, 'exportExcel']);
     });
 
     Route::prefix('monitoring')->group(function(){

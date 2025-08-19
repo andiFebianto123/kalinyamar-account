@@ -41,7 +41,7 @@
         <td class="label">Akun Biaya</td><td class="value">{{$voucher?->account?->code ." - ".$voucher?->account?->name}}</td>
     </tr>
     <tr>
-        <td class="label">Kode Pekerjaan</td><td class="value">{{$voucher?->client_po?->work_code}}</td>
+        <td class="label">Kode Pekerjaan</td><td class="value">{{$voucher?->reference?->work_code}}</td>
         <td class="label">Sumber Rekening</td><td class="value">{{$voucher?->account_source?->name}}</td>
     </tr>
     <tr>
@@ -69,7 +69,7 @@
         <td class="label">Potongan PPh 23</td><td class="value">Rp.{{$voucher->discount_pph_23}}</td>
     </tr>
     <tr>
-        <td class="label">No. PO/SPK</td><td class="value">{{$voucher->client_po->po_number}}</td>
+        <td class="label">No. PO/SPK</td><td class="value">{{$voucher->reference->po_number}}</td>
         <td class="label">Potongan PPh 4</td><td class="value">Rp.{{$voucher->discount_pph_4}}</td>
     </tr>
     <tr>
@@ -86,7 +86,7 @@
     </tr>
     <tr>
         <td class="label">PPh 21</td><td class="value">{{$voucher->pph_21}}%</td>
-        <td class="label">No. Rekening</td><td class="value">-</td>
+        <td class="label">No. Rekening</td><td class="value">{{$voucher->no_account}}</td>
     </tr>
     <tr>
         <td class="label">Pembayaran (Nilai Transfer)</td><td class="value">Rp.{{$voucher->payment_transfer}}</td>
@@ -101,7 +101,7 @@
         <td></td><td></td>
     </tr>
     <tr>
-        <td class="label">Nama Bank</td><td class="value">-</td>
+        <td class="label">Nama Bank</td><td class="value">{{$voucher->bank_name}}</td>
         <td></td><td></td>
     </tr>
     <tr>

@@ -218,6 +218,7 @@ return [
         'account_setting' => 'Pengaturan Akun',
         'setting' => 'Pengaturan',
         'setting_system' => 'Pengaturan Sistem',
+        'voucher_payment_plan' => 'Rencana Pembayaran',
     ],
     'user' => [
         'field' => [
@@ -360,7 +361,7 @@ return [
         'title_header' => 'PO',
         'column' => [
             'client_id' => 'Nama Perusahaan',
-            'work_code' => 'Kode Kerja',
+            'work_code' => 'Kode Pekerjaan',
             'po_number' => 'No. PO',
             'job_name' => 'Nama Pekerjaan',
             'job_value' => 'Nilai Pekerjaan',
@@ -392,6 +393,10 @@ return [
             'work_code' => [
                 'label' => 'Kode Kerja',
                 'placeholder' => 'Masukan kode kerja perusahaan',
+            ],
+            'status' => [
+                'label' => 'Status PO',
+                'placeholder' => '-STATUS PO'
             ],
             'po_number' => [
                 'label' => 'No. PO',
@@ -771,15 +776,22 @@ return [
             ],
             'price_profit_lost_project' => [
                 'label' => 'Nilai Laba Rugi Proyek',
-            ]
+            ],
         ],
         'column' => [
-            'client_po_id' => 'Nama Client',
-            'job_code' => 'Kode Kerja',
+            'client_po_id' => 'Nama Perusahaan',
+            'job_code' => 'Kode Pekerjaan',
             'no_po' => 'No.PO',
             'contract_value' => 'Nilai Kontrak',
             'total_project' => 'Total Biaya Proyek',
-            'price_profit_lost_project' => 'Laba/Rugi Proyek'
+            'price_profit_lost_project' => 'Laba/Rugi Proyek',
+            'price_voucher' => 'Biaya (Vch)',
+            'price_small_cash' => 'Biaya (Kas Kecil)',
+            'price_total' => 'Total Biaya',
+            'profit_lost_po' => 'Laba/Rugi PO',
+            'load_general_value' => 'Beban Umum',
+            'profit_lost_final' => 'Laba/Rugi Akhir',
+            'category' => 'Kategori',
         ],
         'detail' => [
             'project_profit_and_loss_report' => 'Laporan Laba Rugi Proyek',
@@ -955,6 +967,7 @@ return [
             ],
             'account_source_id' => [
                 'label' => 'Sumber Rekening',
+                'placeholder' => '-PILIH SUMBER REKENING'
             ],
             'job_name' => [
                 'label' => 'Nama Pekerjaan',

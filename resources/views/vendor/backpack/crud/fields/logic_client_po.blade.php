@@ -3,6 +3,8 @@
   $field['wrapper'] = $field['wrapper'] ?? $field['wrapperAttributes'] ?? [];
   $field['wrapper']['class'] = $field['wrapper']['class'] ?? "hidden";
   $set_value = (isset($no_po_spk)) ? $no_po_spk : null;
+  $settings = \App\Models\Setting::first();
+  $entry_value = $crud?->entry;
 @endphp
 
 {{-- hidden input --}}
@@ -41,6 +43,39 @@
                 load: function(){
                     var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
+                    var settings = {!! json_encode($settings) !!};
+                    var entry = {!! json_encode($entry_value) !!};
+
+                    if(entry){
+                        // console.log(entry);
+                        if(entry.status == null || entry.status == 'ADA PO'){
+                            $(form+' input[name="po_number"]').removeAttr('disabled');
+                        }else{
+                            $(form+' input[name="po_number"]').attr('disabled', true);
+                        }
+                        $(form+' select[name="status"]').on('select2:select', function (e) {
+                            var data = $(this).val();
+                            if(data == 'TANPA PO'){
+                                $(form+' input[name="po_number"]').attr('disabled', true);
+                            }else{
+                                $(form+' input[name="po_number"]').removeAttr('disabled');
+                            }
+                        });
+                    }else{
+                        $(form+' select[name="status"]').on('select2:select', function (e) {
+                            var data = $(this).val();
+                            if(data == 'TANPA PO'){
+                                var kdp = "UMUM-";
+                                $(form+' input[name="po_number"]').attr('disabled', true);
+                                $(form+' input[name="work_code"]').val(kdp);
+                            }else{
+                                $(form+' input[name="po_number"]').removeAttr('disabled');
+                                $(form+' input[name="work_code"]').val(settings.work_code_prefix);
+                            }
+                        });
+                    }
+
+
 
                     $(form+' #job_value_masked').on('keyup', function(){
                         instance.logicFormula();

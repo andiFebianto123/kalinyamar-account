@@ -31,9 +31,9 @@
                             <td><input type="checkbox" name="voucher[]" class="form-check-input" value="{{$voucher->id}}"></td>
                             <td>{{$voucher->no_voucher}}</td>
                             <td>{{$voucher->date_voucher_str}}</td>
-                            <td>{{$voucher->bussines_entity_name}}</td>
+                            <td>{{$voucher?->subkon?->name}}</td>
                             <td>{{$voucher->bill_date_str}}</td>
-                            <td>{{$voucher->no_po_spk_str}}</td>
+                            <td>{{$voucher->reference->po_number}}</td>
                             <td>{{$voucher->payment_transfer_str}}</td>
                             <td>{{$voucher->due_date_str}}</td>
                             <td>{{$voucher->factur_status}}</td>

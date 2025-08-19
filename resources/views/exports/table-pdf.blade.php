@@ -33,8 +33,18 @@
         <tbody>
             @foreach($items as $item)
                 <tr>
-                    @foreach($columns as $column)
-                        <td>{{ $item->{$column['name']} }}</td>
+                    @php
+                        $index_array = 0;
+                    @endphp
+                    @foreach($columns as $key => $column)
+                        @if (is_object($item))
+                            <td>{{ $item->{$column['name']} }}</td>
+                        @else
+                            <td>{{ $item[$index_array] }}</td>
+                        @endif
+                        @php
+                            $index_array++;
+                        @endphp
                     @endforeach
                 </tr>
             @endforeach

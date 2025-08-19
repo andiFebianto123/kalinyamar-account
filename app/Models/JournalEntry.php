@@ -9,7 +9,15 @@ class JournalEntry extends Model{
     // protected $primaryKey = 'id';
     // public $timestamps = false;
     protected $guarded = ['id'];
-    // protected $fillable = [];
+    protected $fillable = [
+        'account_id',
+        'reference_type',
+        'reference_id',
+        'description',
+        'date',
+        'debit',
+        'credit'
+    ];
     // protected $hidden = [];
 
     public function account(){

@@ -112,6 +112,11 @@ class PurchaseOrderCrudController extends CrudController
                                     'type'  => 'date'
                                 ],
                                 [
+                                    'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                                    'name' => 'work_code',
+                                    'type'  => 'text'
+                                ],
+                                [
                                     'label'  => trans('backpack::crud.po.column.job_name'),
                                     'name' => 'job_name',
                                     'type'  => 'text'
@@ -201,6 +206,11 @@ class PurchaseOrderCrudController extends CrudController
                                     'type'  => 'date'
                                 ],
                                 [
+                                    'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                                    'name' => 'work_code',
+                                    'type'  => 'text'
+                                ],
+                                [
                                     'label'  => trans('backpack::crud.po.column.job_name'),
                                     'name' => 'job_name',
                                     'type'  => 'text'
@@ -284,6 +294,11 @@ class PurchaseOrderCrudController extends CrudController
                                     'label'  => trans('backpack::crud.po.column.date_po'),
                                     'name' => 'date_po',
                                     'type'  => 'date'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                                    'name' => 'work_code',
+                                    'type'  => 'text'
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.po.column.job_name'),
@@ -563,6 +578,14 @@ class PurchaseOrderCrudController extends CrudController
 
         $app->addColumn(
             [
+                'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                'name' => 'work_code',
+                'type'  => 'text'
+            ],
+        );
+
+        $app->addColumn(
+            [
                 'label'  => trans('backpack::crud.po.column.job_name'),
                 'name' => 'job_name',
                 'type'  => 'text'
@@ -684,14 +707,25 @@ class PurchaseOrderCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(PurchaseOrderRequest::class);
+        $settings = Setting::first();
         // CRUD::setFromDb(); // set fields from db columns.
 
         $settings = Setting::first();
         $po_prefix_value = [];
+        $work_code_prefix = [];
+        $work_code_disable = [
+            'disabled' => true,
+        ];
         if(!$this->crud->getCurrentEntryId()){
             $po_prefix_value = [
                 'value' => $settings?->po_prefix,
             ];
+            if($settings?->work_code_prefix){
+                $work_code_prefix = [
+                    'value' => $settings->work_code_prefix,
+                ];
+            }
+            $work_code_disable = [];
         }
 
         CRUD::field([   // 1-n relationship
@@ -738,6 +772,28 @@ class PurchaseOrderCrudController extends CrudController
             ],
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'work_code',
+            'label' => trans('backpack::crud.client_po.field.work_code.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                ...$work_code_disable,
+                'placeholder' => trans('backpack::crud.client_po.field.work_code.placeholder'),
+            ],
+            ...$work_code_prefix
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_2',
+            'type' => 'hidden',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
             ],
         ]);
 
@@ -907,6 +963,7 @@ class PurchaseOrderCrudController extends CrudController
         // update field hidden
         CRUD::field('space')->remove();
         CRUD::field('additional_info')->remove();
+        CRUD::field('space_2')->remove();
 
         // update subkon id
         CRUD::field('subkon_id')->remove();

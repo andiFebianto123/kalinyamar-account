@@ -62,6 +62,7 @@
 <x-backpack::menu-dropdown title="{{trans('backpack::crud.menu.fa')}}" icon="la la-group" :link="backpack_url('fa')" >
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.voucher')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher')" />
     <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.voucher_payment')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher-payment')" />
+    <x-backpack::menu-dropdown-item title="{{trans('backpack::crud.menu.voucher_payment_plan')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher-payment-plan')" />
 </x-backpack::menu-dropdown>
 @endif
 

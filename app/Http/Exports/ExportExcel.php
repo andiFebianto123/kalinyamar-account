@@ -27,12 +27,16 @@ class ExportExcel implements FromArray, WithHeadings, ShouldAutoSize, WithStyles
 
     public function array(): array
     {
-        return collect($this->rows)->map(function ($row) {
-            return collect($this->columns)->map(function ($col) use ($row) {
-                $field = $col['name'];
-                return $row->$field ?? null;
+        if(is_object($this->rows[0])){
+            return collect($this->rows)->map(function ($row) {
+                return collect($this->columns)->map(function ($col) use ($row) {
+                    $field = $col['name'];
+                    return $row->$field ?? null;
+                })->toArray();
             })->toArray();
-        })->toArray();
+        }
+
+        return collect($this->rows)->toArray();
     }
 
     public function styles(Worksheet $sheet)
