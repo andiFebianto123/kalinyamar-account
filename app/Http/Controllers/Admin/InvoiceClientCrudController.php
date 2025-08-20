@@ -102,6 +102,7 @@ class InvoiceClientCrudController extends CrudController
         ]);
     }
 
+
     public function index()
     {
         $this->crud->hasAccessOrFail('list');
@@ -537,6 +538,9 @@ class InvoiceClientCrudController extends CrudController
              'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
+            'attributes' => [
+                'disabled' => true,
+            ]
             // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
         ]);
 
@@ -676,9 +680,8 @@ class InvoiceClientCrudController extends CrudController
             $invoice->send_invoice_revision_date = $request->send_invoice_revision;
             $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
-            $invoice->status = $request->status;
+            // $invoice->status = 'Unpaid';
             $invoice->price_total = $total_price;
-            $invoice->save();
 
             foreach($items as $item){
                 $invoice_item = new InvoiceClientDetail();
@@ -690,9 +693,9 @@ class InvoiceClientCrudController extends CrudController
 
             $this->data['entry'] = $this->crud->entry = $invoice;
 
-            if($invoice->status == 'Paid'){
-                $this->applyInvoicePaymentToAccount($invoice);
-            }
+            $this->applyInvoicePaymentToAccount($invoice);
+
+            $invoice->save();
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
@@ -731,7 +734,7 @@ class InvoiceClientCrudController extends CrudController
         DB::beginTransaction();
         try{
 
-            $old_invoice = InvoiceClient::find($id);
+            // $old_invoice = InvoiceClient::find($id);
 
             $total_price = 0;
             if($request->dpp_other){
@@ -762,7 +765,6 @@ class InvoiceClientCrudController extends CrudController
             $invoice->send_invoice_revision_date = $request->send_invoice_revision;
             $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
-            $invoice->status = $request->status;
             $invoice->price_total = $total_price;
             $invoice->save();
 
@@ -778,11 +780,12 @@ class InvoiceClientCrudController extends CrudController
 
             $this->data['entry'] = $this->crud->entry = $invoice;
 
-            if($old_invoice->status != $invoice->status){
-                if($invoice->status == 'Paid'){
-                    $this->applyInvoicePaymentToAccount($invoice);
-                }
-            }
+            // if($old_invoice->status != $invoice->status){
+            //     if($invoice->status == 'Paid'){
+            //         $this->applyInvoicePaymentToAccount($invoice);
+            //     }
+            // }
+
 
             DB::commit();
             // show a success message
@@ -864,8 +867,12 @@ class InvoiceClientCrudController extends CrudController
 
                 $voucher->account_id = $account_pokok->id;
                 $voucher->save();
+                $invoice->status = 'Paid';
+            }else{
+                $invoice->status = 'Unpaid';
             }
-
+        }else{
+            $invoice->status = 'Unpaid';
         }
     }
 

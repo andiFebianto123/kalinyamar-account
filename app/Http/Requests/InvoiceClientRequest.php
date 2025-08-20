@@ -34,7 +34,7 @@ class InvoiceClientRequest extends FormRequest
             'invoice_number' => 'required|min:3|max:50|unique:invoice_clients,invoice_number,'.$id,
             'invoice_date' => 'required',
             'client_po_id' => 'required|exists:client_po,id',
-            'status' => 'required|in:Paid,Unpaid',
+            'status' => 'nullable|in:Paid,Unpaid',
         ];
 
         if($id){

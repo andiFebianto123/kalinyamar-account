@@ -1957,7 +1957,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'description' => "Transaksi tanpa PO ".$po->work_code,
                 'date' => Carbon::now(),
                 'debit' => $price_general_loan,
-                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
                 'account_id' => $account->id,
                 'reference_id' => $po->id,
@@ -2009,7 +2008,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
-                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
@@ -2043,7 +2041,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
-                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
@@ -2051,6 +2048,65 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 ]);
             }
         }
+
+        // masukan journal PPH 21
+        if($voucher->pph_21 > 0){
+            $nominal_trans = $voucher->discount_pph_21;
+            $account_pph_21 = Account::where('code', "50301")->first();
+            CustomHelper::insertJournalEntry([
+                'account_id' => $account_pph_21->id,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
+                'date' => Carbon::now(),
+                'debit' => $nominal_trans,
+                'credit' => 0,
+            ]);
+        }
+
+        // masukan journal PPH 23
+        if($voucher->pph_23 > 0){
+            $nominal_trans = $voucher->discount_pph_23;
+            $account_pph_23 = Account::where('code', "50306")->first();
+            CustomHelper::insertJournalEntry([
+                'account_id' => $account_pph_23->id,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
+                'date' => Carbon::now(),
+                'debit' => $nominal_trans,
+                'credit' => 0,
+            ]);
+        }
+
+        // masukan journal PPH 4
+        if($voucher->pph_4 > 0){
+            $nominal_trans = $voucher->discount_pph_4;
+            $account_pph_4 = Account::where('code', "50307")->first();
+            CustomHelper::insertJournalEntry([
+                'account_id' => $account_pph_4->id,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
+                'date' => Carbon::now(),
+                'debit' => $nominal_trans,
+                'credit' => 0,
+            ]);
+        }
+
+        // masukan PPN
+        if($voucher->tax_ppn > 0){
+            $account_ppn = Account::where('code', "50303")->first();
+            $bill_value = $voucher->bill_value;
+            $tax_ppn = $voucher->total;
+            $nominal_trans = $tax_ppn - $bill_value;
+             CustomHelper::insertJournalEntry([
+                'account_id' => $account_ppn->id,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
+                'date' => Carbon::now(),
+                'debit' => $nominal_trans,
+                'credit' => 0,
+            ]);
+        }
+
     }
 
     public function approvedStore($id){

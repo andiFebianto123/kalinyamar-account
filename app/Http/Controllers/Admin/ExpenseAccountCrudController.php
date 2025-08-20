@@ -45,8 +45,7 @@ class ExpenseAccountCrudController extends CrudController{
     }
 
     public function listCardComponents($type){
-        $dataset = Account::where('type', $type)
-        ->whereIn('level', [2])
+        $dataset = Account::whereIn('level', [2])
         ->where('is_active', 1)->orderBy('code', 'asc')->get();
 
         foreach($dataset as $account){
@@ -514,10 +513,10 @@ class ExpenseAccountCrudController extends CrudController{
             [
                 'name' => 'balance',
                 'label' => trans('backpack::crud.expense_account.column.balance'),
-                'type' => 'custom_html',
-                'value' => function($entry) {
-                    return CustomHelper::formatRupiahWithCurrency($entry->balance);
-                },
+                'type' => 'balance',
+                // 'value' => function($entry) {
+                //     return CustomHelper::formatRupiahWithCurrency($entry->balance);
+                // },
             ],
         );
 
@@ -526,17 +525,13 @@ class ExpenseAccountCrudController extends CrudController{
             $id = request()->_id;
             $code = Account::find($id);
 
-            $this->crud->query = $this->crud->query
-            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
-
             CRUD::addClause('select', [
                 DB::raw("
                     accounts.id as id,
                     accounts.id as id_,
-                    MAX(accounts.code) as code_,
-                    MAX(accounts.name) as name_,
-                    MAX(accounts.level) as level_,
-                    (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+                    accounts.code as code_,
+                    accounts.name as name_,
+                    accounts.level as level_
                 ")
             ]);
 
@@ -551,8 +546,7 @@ class ExpenseAccountCrudController extends CrudController{
 
 
             $this->crud->query = $this->crud->query
-            ->orderBy('code', 'asc')
-            ->groupBy('accounts.id');
+            ->orderBy('code', 'asc');
         }
 
     }

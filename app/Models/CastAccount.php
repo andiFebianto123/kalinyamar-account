@@ -20,6 +20,7 @@ class CastAccount extends Model
 
     const FIRST_BALANCE = 'FIRST_BALANCE';
 
+    const SMALL_CASH = "Kas Kecil"; // nama rekening kas kecil
     /*
     |--------------------------------------------------------------------------
     | GLOBAL VARIABLES
