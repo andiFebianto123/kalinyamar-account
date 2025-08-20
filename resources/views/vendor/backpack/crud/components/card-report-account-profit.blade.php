@@ -4,13 +4,73 @@
         <table id="table-account-{{$name}}" class="info-cast-account table">
             <thead class="text-left">
                 <tr>
-                <th style="width: 15%;">{{trans('backpack::crud.expense_account.column.code')}}</th>
-                <th style="width: 45%;">{{trans('backpack::crud.expense_account.column.name')}}</th>
-                <th style="width: ">{{trans('backpack::crud.expense_account.column.balance')}}</th>
-                <th>{{trans('backpack::crud.expense_account.column.action')}}</th>
+                <th style="width: 40%;">{{-- trans('backpack::crud.expense_account.column.code') --}}</th>
+                <th style="width: 10%;">{{-- trans('backpack::crud.expense_account.column.name') --}}</th>
+                <th style="width: 20%;">{{-- trans('backpack::crud.expense_account.column.balance') --}}</th>
+                <th>{{-- trans('backpack::crud.expense_account.column.action') --}}</th>
                 </tr>
             </thead>
             <tbody class="text-left">
+                <tr>
+                    <td><strong>Pendapatan Usaha</strong></td>
+                    <td></td>
+                    <td><strong id="str_tot_1">Rp. xxx</strong></td>
+                </tr>
+                <tr>
+                    <td>Pendapatan Kontrak</td>
+                    <td><div id="str_tot_2">Rp. xxx</div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Pendapatan Non-Kontrak</td>
+                    <td><div id="str_tot_3">Rp. xxx</div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Beban Usaha</strong></td>
+                    <td></td>
+                    <td><strong id="str_tot_4">Rp. xxx</strong></td>
+                </tr>
+                <tr>
+                    <td>Beban Proyek (Kontrak)</td>
+                    <td><div id="str_tot_5">Rp. xxx</div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Beban Operasional (Umum)</td>
+                    <td><div id="str_tot_6">Rp. xxx</div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Laba Usaha (Operating Profit)</strong></td>
+                    <td></td>
+                    <td><strong id="str_tot_7">Rp. xxx</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Pendapatan/Beban Lain-lain</strong></td>
+                    <td></td>
+                    <td><strong id="str_tot_8">Rp. xxx</strong></td>
+                </tr>
+                <tr>
+                    <td>Pendapatan Bunga Bank</td>
+                    <td><div id="str_tot_9">Rp. xxx</div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Laba Sebelum Pajak</strong></td>
+                    <td></td>
+                    <td><strong id="str_tot_10">Rp. xxx</strong></td>
+                </tr>
+                <tr>
+                    <td>Beban Pajak</td>
+                    <td><div id="str_tot_11">Rp. xxx</div></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>Laba Bersih</strong></td>
+                    <td></td>
+                    <td><strong id="str_tot_12">Rp. xxx</strong></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -105,20 +165,22 @@
                     return new Promise((resolve, reject) => {
                         $.ajax({
                             url: instance.url,
-                            type: 'POST',
+                            type: 'GET',
                             typeData: 'json',
                             success: function (result) {
-                                $('#'+instance.table+' tbody').empty();
-                                forEachFlexible(result.data, function(index, value){
-                                    $('#'+instance.table+' tbody').append(`
-                                        <tr>
-                                            <td>${value[0]}</td>
-                                            <td>${value[1]}</td>
-                                            <td>${value[2]}</td>
-                                            <td>${value[3]}</td>
-                                        </tr>
-                                    `);
-                                });
+                                // $('#'+instance.table+' tbody').empty();
+                                $('#str_tot_1').html(result.total_acct_1);
+                                $('#str_tot_2').html(result.total_acct_2);
+                                $('#str_tot_3').html(result.total_acct_3);
+                                $('#str_tot_4').html(result.total_acct_4);
+                                $('#str_tot_5').html(result.total_acct_5);
+                                $('#str_tot_6').html(result.total_acct_6);
+                                $('#str_tot_7').html(result.total_acct_7);
+                                $('#str_tot_8').html(result.total_acct_8);
+                                $('#str_tot_9').html(result.total_acct_9);
+                                $('#str_tot_10').html(result.total_acct_10);
+                                $('#str_tot_11').html(result.total_acct_11);
+                                $('#str_tot_12').html(result.total_acct_12);
                                 resolve(result);
                             },
                             error: function (xhr, status, error) {

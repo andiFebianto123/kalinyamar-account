@@ -46,24 +46,116 @@ class ProfitLostAccountCrudController extends CrudController{
         }
     }
 
+    public function total_report_account_profit_lost_ajax(){
+        $acct_1 = Account::where('accounts.code', 109)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_2 = Account::where('accounts.code', 401)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_3 = Account::where('accounts.code', 402)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_4 = Account::where('accounts.code', 110)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_5 = Account::where('accounts.code', 11001)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_6 = Account::where('accounts.code', 11002)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_7 = Account::where('accounts.code', 111)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_8 = Account::where('accounts.code', 112)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_9 = Account::where('accounts.code', 40201)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_10 = Account::where('accounts.code', 113)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_11 = Account::where('accounts.code', 11301)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_12 = Account::where('accounts.code', 108)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $total_acct_1 = $acct_1->balance + $acct_2->balance;
+        $total_acct_4 =  $acct_5->balance + $acct_6->balance;
+        $total_acct_8 = $acct_9->balance;
+        $total_acct_10 = $acct_11->balance;
+
+        return response()->json([
+            'total_acct_1' => CustomHelper::formatRupiahWithCurrency($total_acct_1),
+            'total_acct_2' => CustomHelper::formatRupiahWithCurrency($acct_2->balance),
+            'total_acct_3' => CustomHelper::formatRupiahWithCurrency($acct_3->balance),
+            'total_acct_4' => CustomHelper::formatRupiahWithCurrency($total_acct_4),
+            'total_acct_5' => CustomHelper::formatRupiahWithCurrency($acct_5->balance),
+            'total_acct_6' => CustomHelper::formatRupiahWithCurrency($acct_6->balance),
+            'total_acct_7' => CustomHelper::formatRupiahWithCurrency($acct_7->balance),
+            'total_acct_8' => CustomHelper::formatRupiahWithCurrency($total_acct_8),
+            'total_acct_9' => CustomHelper::formatRupiahWithCurrency($acct_9->balance),
+            'total_acct_10' => CustomHelper::formatRupiahWithCurrency($total_acct_10),
+            'total_acct_11' => CustomHelper::formatRupiahWithCurrency($acct_11->balance),
+            'total_acct_12' => CustomHelper::formatRupiahWithCurrency($acct_12->balance)
+        ]);
+    }
+
     public function listCardComponents($type){
         $dataset = Account::where('type', $type)
         ->whereIn('level', [2])
         ->where('is_active', 1)->orderBy('code', 'asc')->get();
 
+        $this->card->addCard([
+            'name' => 'report_profit_lost',
+            'line' => 'top',
+            'view' => 'crud::components.card-report-account-profit',
+            'params' => [
+                'crud' => $this->crud,
+                'route' => url($this->crud->route.'/report-total'),
+            ]
+        ]);
+
         if($dataset->count() > 0){
-            foreach($dataset as $account){
-                $this->card->addCard([
-                    'name' => 'account_'.$account->id,
-                    'line' => 'top',
-                    'view' => 'crud::components.card-account-profit',
-                    'params' => [
-                        'crud' => $this->crud,
-                        'account' => $account,
-                        'route' => url($this->crud->route.'/search?_id='.$account->id),
-                    ]
-                ]);
-            }
+            // foreach($dataset as $account){
+            //     $this->card->addCard([
+            //         'name' => 'account_'.$account->id,
+            //         'line' => 'top',
+            //         'view' => 'crud::components.card-account-profit',
+            //         'params' => [
+            //             'crud' => $this->crud,
+            //             'account' => $account,
+            //             'route' => url($this->crud->route.'/search?_id='.$account->id),
+            //         ]
+            //     ]);
+            // }
         }else{
             $this->card->addCard([
                 'name' => 'blank_account',

@@ -117,14 +117,22 @@
                                 var po = data.po;
                                 var account = data.account;
 
+
                                 var account_text = `${account.code} - ${account.name}`;
                                 var account_option = new Option(account_text, account.id, true, true);
                                 $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
 
                                 var po_number_text = `${po.po_number} (${po.type})`;
 
+                                if(po.status){
+                                    if(po.status == 'TANPA PO'){
+                                        po_number_text = "Tanpa PO";
+                                    }
+                                }
+
                                 var po_number_option = new Option(po_number_text, po.id, true, true);
                                 $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
+
                                 $(form+' input[name="job_name"]').val(po.job_name);
                                 setInputNumber(form+' #bill_value_masked', po.price_total);
                                 $(form+' input[name="type"]').val(po.type);

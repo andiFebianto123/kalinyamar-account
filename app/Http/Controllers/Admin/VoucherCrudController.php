@@ -1072,7 +1072,7 @@ class VoucherCrudController extends CrudController {
 
         if($type == 'client'){
             $client = ClientPo::where('id', $id)
-            ->select(DB::raw("id, po_number, job_name, job_value, price_total, work_code, 'Client' as type"))
+            ->select(DB::raw("id, po_number, job_name, job_value, price_total, work_code, 'Client' as type, status"))
             ->first();
             $invoice_exists = InvoiceClient::where('client_po_id', $id)->first();
         }else if($type == 'subkon'){
