@@ -1274,7 +1274,7 @@ class ProjectListCrudController extends CrudController {
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
             'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
-        ])){
+        ])->count() > 0){
             return $this->updateProgress();
         }
 
@@ -1287,7 +1287,7 @@ class ProjectListCrudController extends CrudController {
         try{
 
             $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
-            $item = Project::find($this->crud->getCurrentEntryId());
+            $item = Project::where('id', $this->crud->getCurrentEntryId())->first();
 
             $item->name = $request->name;
             if($old->name != $item->name){
