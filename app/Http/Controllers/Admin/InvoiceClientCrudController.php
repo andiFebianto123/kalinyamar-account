@@ -840,7 +840,7 @@ class InvoiceClientCrudController extends CrudController
                 ]);
 
                 // akun beban pokok
-                $account_pokok = Account::where('code', "501")->first();
+                $account_pokok = Account::where('code', $voucher->account_id)->first();
 
                 $transaksi = new AccountTransaction;
                 $transaksi->cast_account_id = $voucher->account_source_id;
@@ -865,7 +865,7 @@ class InvoiceClientCrudController extends CrudController
                     'credit' => 0,
                 ]);
 
-                $voucher->account_id = $account_pokok->id;
+                // $voucher->account_id = $account_pokok->id;
                 $voucher->save();
                 $invoice->status = 'Paid';
             }else{

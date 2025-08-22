@@ -1966,7 +1966,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
         // periksa jenis voucher
         if($voucher->reference_type == "App\Models\PurchaseOrder"){
-            $account = Account::where('code', "501")->first();
+            $account = Account::where('code', $voucher->account_id)->first();
             $payment_transfer = $voucher->payment_transfer;
             $transaksi = new AccountTransaction;
             $transaksi->cast_account_id = $voucher->account_source_id;
@@ -2014,7 +2014,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                     'reference_type' => Voucher::class,
                 ]);
             }else{
-                $account = Account::where('code', "501")->first();
+                $account = Account::where('code', $voucher->account_id)->first();
                 $payment_transfer = $voucher->payment_transfer;
 
                 $invoice->status = 'Paid';
