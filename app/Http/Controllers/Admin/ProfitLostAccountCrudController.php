@@ -4,16 +4,21 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Account;
 use App\Models\Setting;
+use App\Models\Voucher;
 use App\Models\ClientPo;
+use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
+use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Action;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Exports\ProfitLostExcel;
 use App\Http\Controllers\CrudController;
-use App\Models\Voucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProfitLostAccountCrudController extends CrudController{
@@ -310,10 +315,115 @@ class ProfitLostAccountCrudController extends CrudController{
         return view($list, $this->data);
     }
 
+    public function total_detail_project($id, $pure = 0){
+        $profitLost = ProjectProfitLost::where('id', $id)->first();
+        $po = $profitLost->clientPo;
+        $account_material = Account::where('code', 50101)->first();
+        $price_po_excl_ppn = $po->job_value; //
+        $material_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        })
+        ->where('journal_entries.account_id', $account_material->id)
+        ->where('account_transactions.kdp', $po->work_code)
+        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+        ->get()->sum('total_material'); //
+
+        $account_subkon = Account::whereIn('code', [50102, 50103])->get()
+        ->pluck('id')->toArray();
+
+        $subkon_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        })
+        ->whereIn('journal_entries.account_id', $account_subkon)
+        ->where('account_transactions.kdp', $po->work_code)
+        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_subkon")
+        ->get()->sum('total_subkon'); //
+
+
+        $account_btkl = Account::where('code', 50104)->first();
+        $btkl_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        })
+        ->where('journal_entries.account_id', $account_btkl->id)
+        ->where('account_transactions.kdp', $po->work_code)
+        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+        ->get()->sum('total_material'); //
+
+        $account_price_other = Account::whereNotIn('code', [50101, 50102, 50103, 50104])
+        ->where('code', 'LIKE', '501%')->get()
+        ->pluck('id')->toArray();
+        $price_other_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        })
+        ->whereIn('journal_entries.account_id', $account_price_other)
+        ->where('account_transactions.kdp', $po->work_code)
+        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+        ->get()->sum('total_material'); //
+
+        $price_profit_lost = $profitLost->price_after_year; //
+
+        $price_total = $material_data + $subkon_data + $btkl_data + $price_other_data + $price_profit_lost; //
+
+        $price_profit_lost_po = $po->profit_and_loss; //
+
+        $price_general = $profitLost->price_general; //
+
+        $price_profit_final = $po->profit_and_lost_final; //
+
+        // dd($price_po_excl_ppn,
+        //     $material_data,
+        //     $subkon_data,
+        //     $btkl_data,
+        //     $price_other_data,
+        //     $price_profit_lost,
+        //     $price_total,
+        //     $price_profit_lost_po,
+        //     $price_general,
+        //     $price_profit_final);
+
+        if($pure){
+            return [
+                'price_po_excl_ppn' => $price_po_excl_ppn,
+                'price_material' => $material_data,
+                'price_subkon' => $subkon_data,
+                'price_btkl' => $btkl_data,
+                'price_other' => $price_other_data,
+                'price_profit_lost_project' => $price_profit_lost,
+                'price_total' => $price_total,
+                'price_profit_lost_po' => $price_profit_lost_po,
+                'price_general' => $price_general,
+                'price_profit_final' => $price_profit_final
+            ];
+        }
+
+        return [
+            'price_po_excl_ppn' => CustomHelper::formatRupiah($price_po_excl_ppn),
+            'price_material' => CustomHelper::formatRupiah($material_data),
+            'price_subkon' => CustomHelper::formatRupiah($subkon_data),
+            'price_btkl' => CustomHelper::formatRupiah($btkl_data),
+            'price_other' => CustomHelper::formatRupiah($price_other_data),
+            'price_profit_lost_project' => CustomHelper::formatRupiah($price_profit_lost),
+            'price_total' => CustomHelper::formatRupiah($price_total),
+            'price_profit_lost_po' => CustomHelper::formatRupiah($price_profit_lost_po),
+            'price_general' => CustomHelper::formatRupiah($price_general),
+            'price_profit_final' => CustomHelper::formatRupiah($price_profit_final)
+        ];
+
+    }
+
     public function detail($id){
         $this->crud->hasAccessOrFail('list');
         $this->data['is_disabled_list'] = true;
         $profitLost = ProjectProfitLost::where('id', $id)->first();
+
+        $this->crud->id_profit_lost = $id;
+
+        CRUD::addButtonFromView('top', 'export-excel-profit-lost', 'export-excel-profit-lost', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-profit-lost', 'export-pdf-profit-lost', 'beginning');
 
         $breadcrumbs = [
             trans('backpack::crud.menu.finance_report') => backpack_url('cash-flow'),
@@ -332,13 +442,18 @@ class ProfitLostAccountCrudController extends CrudController{
             'view' => 'crud::components.detail-project-profit-lost',
             'params' => [
                 'data' => $profitLost,
+                'report' => $this->total_detail_project($id),
             ],
+            'wrapper' => [
+                'class' => 'col-md-6'
+            ]
         ]);
 
         $this->data['breadcrumbs'] = $breadcrumbs;
         $this->data['cards'] = $this->card;
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
+        $this->data['id_profit_lost'] = $id;
 
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
@@ -417,6 +532,39 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
         }
         return response()->json(['results' => $results]);
+    }
+
+    function get_client_selected_ajax(){
+        $id = request()->id;
+        $voucher = Voucher::where('reference_type', ClientPo::class)
+        ->where('reference_id', $id)->first();
+
+        $work_code = $voucher->reference->work_code;
+        $price_excl_ppn_po = $voucher->reference->job_value;
+
+        $cast_account = CastAccount::where('name', 'like', '%kas kecil%')->first();
+
+        $total_small_cash = 0;
+
+        if($cast_account){
+            $journal_small_cash = AccountTransaction::leftJoin('journal_entries', function($join) {
+                $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                    ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+            })
+            ->where('account_transactions.cast_account_id', $cast_account->id)
+            ->where('account_transactions.kdp', $work_code)
+            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_small_cash")
+            ->get();
+
+            $total_small_cash = $journal_small_cash->sum('total_small_cash');
+        }
+
+
+        return response()->json([
+            'price_voucher' => (int) $voucher->payment_transfer,
+            'price_small_cash' => $total_small_cash,
+            'price_excl_ppn_po' => (int) $price_excl_ppn_po,
+        ]);
     }
 
     private function ruleAccount(){
@@ -508,7 +656,8 @@ class ProfitLostAccountCrudController extends CrudController{
 
     function validationProject(){
         $rule = [];
-        $rule['client_po_id'] = 'required';
+        $rule['client_po_id'] = 'required|unique:project_profit_lost,client_po_id,'.request()->id;
+        $rule['category'] = 'required';
         return $rule;
     }
 
@@ -556,8 +705,8 @@ class ProfitLostAccountCrudController extends CrudController{
                     ...$job_code_prefix_value,
                 ]);
                 CRUD::addField([
-                    'name' => 'contract_value',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.contract_value.label'),
+                    'name' => 'price_after_year',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_after_year.label'),
                     'type' => 'mask',
                     'mask' => '000.000.000.000.000.000',
                     'mask_options' => [
@@ -572,25 +721,8 @@ class ProfitLostAccountCrudController extends CrudController{
                     ]
                 ]);
                 CRUD::addField([
-                    'name' => 'total_project',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.total_project.label'),
-                    'type' => 'mask',
-                    'mask' => '000.000.000.000.000.000',
-                    'mask_options' => [
-                        'reverse' => true
-                    ],
-                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
-                    'wrapper'   => [
-                        'class' => 'form-group col-md-6',
-                    ],
-                    'attributes' => [
-                        'placeholder' => '000.000',
-                    ]
-                ]);
-
-                CRUD::addField([
-                    'name' => 'price_material',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_material.label'),
+                    'name' => 'price_voucher',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_voucher.label'),
                     'type' => 'mask',
                     'mask' => '000.000.000.000.000.000',
                     'mask_options' => [
@@ -606,8 +738,8 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::addField([
-                    'name' => 'price_subkon',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_subkon.label'),
+                    'name' => 'price_small_cash',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_small_cash.label'),
                     'type' => 'mask',
                     'mask' => '000.000.000.000.000.000',
                     'mask_options' => [
@@ -623,8 +755,8 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::addField([
-                    'name' => 'price_btkl',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_btkl.label'),
+                    'name' => 'price_total',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_total.label'),
                     'type' => 'mask',
                     'mask' => '000.000.000.000.000.000',
                     'mask_options' => [
@@ -640,8 +772,25 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::addField([
-                    'name' => 'price_transport_project',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_transport_project.label'),
+                    'name' => 'price_profit_lost_po',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_profit_lost_po.label'),
+                    'type' => 'rupiah_price',
+                    'mask' => 'Z000.000.000.000.000.000',
+                    'mask_options' => [
+                        'reverse' => true,
+                    ],
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+                    'wrapper'   => [
+                        'class' => 'form-group col-md-6',
+                    ],
+                    'attributes' => [
+                        'placeholder' => '000.000',
+                    ]
+                ]);
+
+                CRUD::addField([
+                    'name' => 'price_general',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_general.label'),
                     'type' => 'mask',
                     'mask' => '000.000.000.000.000.000',
                     'mask_options' => [
@@ -657,10 +806,10 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::addField([
-                    'name' => 'price_worker_consumption',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_worker_consumption.label'),
-                    'type' => 'mask',
-                    'mask' => '000.000.000.000.000.000',
+                    'name' => 'price_prift_lost_final',
+                    'label' =>  trans('backpack::crud.profit_lost.fields.price_prift_lost_final.label'),
+                    'type' => 'rupiah_price',
+                    'mask' => 'Z000.000.000.000.000.000',
                     'mask_options' => [
                         'reverse' => true
                     ],
@@ -674,53 +823,16 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
                 CRUD::addField([
-                    'name' => 'price_project_equipment',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_project_equipment.label'),
-                    'type' => 'mask',
-                    'mask' => '000.000.000.000.000.000',
-                    'mask_options' => [
-                        'reverse' => true
+                    'label'     => trans('backpack::crud.client_po.column.category'),
+                    'type'      => 'select2_array',
+                    'name'      => 'category',
+                    'options'   => [
+                        '' => trans('backpack::crud.voucher.field.payment_type.placeholder'),
+                        'RUTIN' => 'RUTIN',
+                        'NON RUTIN' => 'NON RUTIN',
                     ],
-                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
-                    'wrapper'   => [
-                        'class' => 'form-group col-md-6',
-                    ],
-                    'attributes' => [
-                        'placeholder' => '000.000',
-                    ]
-                ]);
-
-                CRUD::addField([
-                    'name' => 'price_other',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_other.label'),
-                    'type' => 'mask',
-                    'mask' => '000.000.000.000.000.000',
-                    'mask_options' => [
-                        'reverse' => true
-                    ],
-                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
-                    'wrapper'   => [
-                        'class' => 'form-group col-md-6',
-                    ],
-                    'attributes' => [
-                        'placeholder' => '000.000',
-                    ]
-                ]);
-
-                CRUD::addField([
-                    'name' => 'price_profit_lost_project',
-                    'label' =>  trans('backpack::crud.profit_lost.fields.price_profit_lost_project.label'),
-                    'type' => 'mask',
-                    'mask' => '000.000.000.000.000.000',
-                    'mask_options' => [
-                        'reverse' => true
-                    ],
-                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
-                    'wrapper'   => [
-                        'class' => 'form-group col-md-6',
-                    ],
-                    'attributes' => [
-                        'placeholder' => '000.000',
+                    'wrapper' => [
+                        'class' => 'form-group col-md-6'
                     ]
                 ]);
 
@@ -970,7 +1082,7 @@ class ProfitLostAccountCrudController extends CrudController{
         }
     }
 
-    public function storeProject(){
+    public function storeProjectOld(){
         $this->crud->hasAccessOrFail('create');
         CRUD::setValidation($this->validationProject());
 
@@ -1007,6 +1119,57 @@ class ProfitLostAccountCrudController extends CrudController{
             $item->price_project_equipment = $price_project_equipment;
             $item->price_other = $price_other;
             $item->price_profit_lost_project = $price_profit_lost_project;
+            $item->save();
+
+            $this->data['entry'] = $this->crud->entry = $item;
+
+            \Alert::success(trans('backpack::crud.insert_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => [
+                    'project_create_success' => $item,
+                ]
+            ]);
+
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function storeProject(){
+        $this->crud->hasAccessOrFail('create');
+        CRUD::setValidation($this->validationProject());
+
+        $request = $this->crud->validateRequest();
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try{
+
+            $item = new ProjectProfitLost;
+            $item->voucher_id = $request->voucher_id;
+            $item->client_po_id = $request->client_po_id;
+            $item->price_after_year = $request->price_after_year;
+            $item->price_voucher = $request->price_voucher;
+            $item->price_small_cash = $request->price_small_cash;
+            $item->price_total = $request->price_total;
+            $item->price_profit_lost_po = $request->price_profit_lost_po;
+            $item->price_general = $request->price_general;
+            $item->price_prift_lost_final = $request->price_prift_lost_final;
+            $item->category = $request->category;
+            $item->contract_value = 0;
+            $item->total_project = 0;
             $item->save();
 
             $this->data['entry'] = $this->crud->entry = $item;
@@ -1219,7 +1382,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::column([
                     'label'  => trans('backpack::crud.profit_lost.column.profit_lost_po'),
-                    'name' => 'profit_lost_po',
+                    'name' => 'price_profit_lost_po',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -1229,7 +1392,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::column([
                     'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
-                    'name' => 'load_general_value',
+                    'name' => 'price_general',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -1239,7 +1402,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::column([
                     'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
-                    'name' => 'profit_lost_final',
+                    'name' => 'price_prift_lost_final',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -1271,14 +1434,7 @@ class ProfitLostAccountCrudController extends CrudController{
                         client_po.reimburse_type as reimburse_type,
                         client_po.job_name as job_name,
                         client_po.job_value as job_value,
-                        client_po.price_after_year as price_after_year,
-                        vouchers.payment_transfer as price_voucher,
-                        0 as price_small_cash,
-                        (client_po.price_after_year + vouchers.payment_transfer + 0) as price_total,
-                        (client_po.job_value - (client_po.price_after_year + vouchers.payment_transfer + 0)) as profit_lost_po,
-                        client_po.load_general_value as load_general_value,
-                        ((client_po.job_value - (client_po.price_after_year + vouchers.payment_transfer + 0)) - client_po.load_general_value) as profit_lost_final,
-                        client_po.category as category
+                        client_po.job_value_include_ppn as job_value_include_ppn
                    ")
                 ]);
 
@@ -1421,5 +1577,48 @@ class ProfitLostAccountCrudController extends CrudController{
 
         return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
+
+    public function exportDetailPdf(){
+
+        $id = request()->id;
+        $profitLost = ProjectProfitLost::where('id', $id)->first();
+
+        $pdf = Pdf::loadView('exports.profit-lost-detail', [
+            'profit_lost' => $profitLost,
+            'report' => $this->total_detail_project($id)
+        ])->setPaper('A4', 'portrait');
+
+        $fileName = 'laporan-laba-rugi_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportDetailExcel(){
+        $id = request()->id;
+        $profitLost = ProjectProfitLost::where('id', $id)->first();
+        $report = $this->total_detail_project($id, 1);
+
+        $name = "Laporan-laba-rugi.xlsx";
+
+        return response()->streamDownload(function () use($profitLost, $report, $name){
+            echo Excel::raw(new ProfitLostExcel(
+                $profitLost, $report), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+    }
+
+
 
 }

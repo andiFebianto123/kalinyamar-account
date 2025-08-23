@@ -740,6 +740,31 @@ return [
                 'label' => 'Kode Kerja',
                 'placeholder' => 'Kode Kerja',
             ],
+            'price_after_year' => [
+                'label' => 'Biaya Lewat Tahun',
+                'placeholder' => '000.000',
+            ],
+            'price_voucher' => [
+                'label' => 'Biaya (Vch)',
+            ],
+            'price_small_cash' => [
+                'label' => 'Biaya (Kas Kecil)',
+            ],
+            'price_total' => [
+                'label' => 'Total Biaya',
+            ],
+            'price_profit_lost_po' => [
+                'label' => 'Laba/Rugi PO',
+            ],
+            'price_general' => [
+                'label' => 'Beban Umum',
+            ],
+            'price_prift_lost_final' => [
+                'label' => 'Laba/Rugi Akhir',
+            ],
+            'category' => [
+                'label' => 'Kategori',
+            ],
             'contract_value' => [
                 'label' => 'Nilai Kontrak',
                 'placeholder' => '',

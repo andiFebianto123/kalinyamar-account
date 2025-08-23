@@ -16,7 +16,7 @@
             type="text"
             data-alt="{{ $field['attributes']['id'] }}"
             data-bs-maskoption="{{ json_encode($field['mask_options'] ?? []) }}"
-            data-init-function="bpFieldInitMaskElement"
+            data-init-function="bpFieldInitMaskRupiahElement"
             value="{{ $get_value }}"
             @include('crud::fields.inc.attributes')
         >
@@ -39,7 +39,7 @@
 @push('crud_fields_scripts')
 <script src="{{ asset('packages/jquery-mask-plugin-master/dist/jquery.mask.min.js') }}"></script>
 <script>
-        function bpFieldInitMaskElement(element){
+        function bpFieldInitMaskRupiahElement(element){
             var $maskedInput = $(element);
             var $hiddenInput = $maskedInput.parent().next();
             var mask_option = $maskedInput.data('bs-maskoption');
@@ -49,23 +49,34 @@
                 return val.replace(/[^\d-]/g, '');
             }
 
-            // $maskedInput.unmask();
+            function formatRupiah(angka) {
+                    if (!angka) return ''; // kalau kosong, langsung kosong
+                    angka = angka.toString();
 
-            mask_option = {
-                ...mask_option,
-                translation: {
-                    'Z': { pattern: /-?/, optional: true }
-                }
+                    let isNegative = angka.startsWith('-');
+                    angka = angka.replace(/[^\d]/g, ''); // buang semua kecuali digit
+
+                    if (angka.length === 0) return '';
+
+                    let sisa  = angka.length % 3,
+                        rupiah  = angka.substr(0, sisa),
+                        ribuan  = angka.substr(sisa).match(/\d{3}/gi);
+
+                    if (ribuan) {
+                        let separator = sisa ? '.' : '';
+                        rupiah += separator + ribuan.join('.');
+                    }
+
+                    return (isNegative ? '-' : '') + rupiah;
             }
 
-            setTimeout(() => {
-                $maskedInput.mask('{{ $field['mask'] }}', mask_option);
-            }, 100);
+            $maskedInput.val(formatRupiah($maskedInput.val()));
 
             $hiddenInput.val(getCleanValue($maskedInput.val()));
 
             $maskedInput.on('input change keyup', function () {
                 let raw = getCleanValue($(this).val());
+                $maskedInput.val(formatRupiah(raw));
                 $hiddenInput.val(raw);
             });
         }

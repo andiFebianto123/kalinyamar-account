@@ -105,7 +105,10 @@ Route::group([
         Route::crud('list-asset', 'AssetCrudController');
         Route::post('select2-account-id', [AssetCrudController::class, 'select2account']);
         Route::post('profit-lost/select2-po', [ProfitLostAccountCrudController::class, 'select2Po']);
+        Route::get('profit-lost/get_client_selected_ajax', [ProfitLostAccountCrudController::class, 'get_client_selected_ajax']);
         Route::get('profit-lost/report-total', [ProfitLostAccountCrudController::class, 'total_report_account_profit_lost_ajax']);
+        Route::post('profit-lost/export-detail-pdf', [ProfitLostAccountCrudController::class, 'exportDetailPdf']);
+        Route::post('profit-lost/export-detail-excel', [ProfitLostAccountCrudController::class, 'exportDetailExcel']);
     });
 
     Route::prefix('fa')->group(function(){
