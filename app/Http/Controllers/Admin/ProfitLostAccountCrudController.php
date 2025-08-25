@@ -162,14 +162,14 @@ class ProfitLostAccountCrudController extends CrudController{
             //     ]);
             // }
         }else{
-            $this->card->addCard([
-                'name' => 'blank_account',
-                'line' => 'top',
-                'view' => 'crud::components.blank_card-account-profit',
-                'params' => [
-                    'message' => 'selamat malam',
-                ],
-            ]);
+            // $this->card->addCard([
+            //     'name' => 'blank_account',
+            //     'line' => 'top',
+            //     'view' => 'crud::components.blank_card-account-profit',
+            //     'params' => [
+            //         'message' => 'selamat malam',
+            //     ],
+            // ]);
         }
 
         $this->card->addCard([
