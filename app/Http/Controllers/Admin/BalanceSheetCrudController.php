@@ -5,12 +5,15 @@ use Carbon\Carbon;
 use App\Models\Account;
 use App\Models\Setting;
 use App\Models\JournalEntry;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use App\Http\Exports\ExportExcel;
 use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Notifications\Action;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -158,8 +161,12 @@ class BalanceSheetCrudController extends CrudController{
         CRUD::addButtonFromView('line', 'delete', "delete-account", 'beginning');
         CRUD::addButtonFromView('line', 'update', "update-account", 'beginning');
         CRUD::addButtonFromView('top', 'print-all', 'print-all', 'end');
-        CRUD::addButtonFromView('top', 'download-pdf-account-balance', 'download-pdf-account-balance', 'end');
-        CRUD::addButtonFromView('top', 'download-excel-account-balance', 'download-excel-account-balance', 'end');
+
+        $this->crud->file_title_export_pdf = "Laporan_akun_neraca.pdf";
+        $this->crud->file_title_export_excel = "Laporan_akun_neraca.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+        CRUD::addButtonFromView('top', 'download-pdf-account-balance', 'export-pdf-table', 'end');
+        CRUD::addButtonFromView('top', 'download-excel-account-balance', 'export-excel-table', 'end');
 
 
         CRUD::column([
@@ -184,10 +191,10 @@ class BalanceSheetCrudController extends CrudController{
         CRUD::column([
             'name' => 'balance',
             'label' => trans('backpack::crud.expense_account.column.balance'),
-            'type' => 'custom_html',
-            'value' => function($entry) {
-                return CustomHelper::formatRupiahWithCurrency($entry->balance);
-            },
+            'type' => 'balance',
+            // 'value' => function($entry) {
+            //     return CustomHelper::formatRupiahWithCurrency($entry->balance);
+            // },
         ]);
 
         if(request()->has('_type')){
@@ -223,6 +230,142 @@ class BalanceSheetCrudController extends CrudController{
             ->groupBy('accounts.id');
         }
 
+    }
+
+    private function setupListExport(){
+        $this->crud->query = $this->crud->query
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->whereIn('accounts.type', ['Assets', 'Liabilities', 'Equity']);
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column([
+            'name' => 'code_',
+            'label' => trans('backpack::crud.expense_account.column.code'),
+            'type' => 'export',
+        ]);
+
+        CRUD::column([
+            'name' => 'name_',
+            'label' => trans('backpack::crud.expense_account.column.name'),
+            'type' => 'export',
+        ]);
+
+        CRUD::column(
+            [
+                'name' => 'balance',
+                'label' => trans('backpack::crud.expense_account.column.balance'),
+                'type' => 'closure',
+                'function' => function($entry) {
+                    return $entry->balance;
+                }
+            ],
+        );
+
+        CRUD::addClause('select', [
+            DB::raw("
+                accounts.id as id,
+                accounts.id as id_,
+                MAX(accounts.code) as code_,
+                MAX(accounts.name) as name_,
+                MAX(accounts.level) as level_,
+                (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+            ")
+        ]);
+
+        $this->crud->query = $this->crud->query
+        ->orderBy('code', 'asc')
+        ->groupBy('accounts.id');
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR AKUN NERACA";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR AKUN NERACA';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     public function search()

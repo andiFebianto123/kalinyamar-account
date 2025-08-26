@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Spk;
+use Dotenv\Parser\Entry;
+use App\Models\PurchaseOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\SubkonRequest;
-use App\Models\PurchaseOrder;
-use App\Models\Spk;
+use Maatwebsite\Excel\Facades\Excel;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Dotenv\Parser\Entry;
 
 /**
  * Class SubkonCrudController
@@ -98,6 +101,13 @@ class SubkonCrudController extends CrudController
 
         CRUD::disableResponsiveTable();
         $request = request();
+
+        $this->crud->file_title_export_pdf = "Laporan_daftar_subkon.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_subkon.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
 
         // CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
 
@@ -242,6 +252,216 @@ class SubkonCrudController extends CrudController
             }
         }
 
+    }
+
+    private function setupListExport(){
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::addColumn([
+            'name'  => 'name',
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'address',
+            'label' => trans('backpack::crud.subkon.column.address'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'npwp',
+            'label' => trans('backpack::crud.subkon.column.npwp'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'phone',
+            'label' => trans('backpack::crud.subkon.column.phone'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'bank_name',
+            'label' => trans('backpack::crud.subkon.column.bank_name'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'bank_account',
+            'label' => trans('backpack::crud.subkon.column.bank_account'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'  => 'account_holder_name',
+            'label' => trans('backpack::crud.subkon.column.account_holder_name'),
+            'type'  => 'export',
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po_number',
+            'label'    => trans('backpack::crud.subkon.column.list_po'),
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return "".$entry->purchase_orders->map(function($item, $key){
+                    return "-".$item->po_number;
+                })->implode("\n")."";
+            },
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
+                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
+                });
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po_count',
+            'label'    => trans('backpack::crud.subkon.column.count_po'),
+            'type'     => 'closure',
+            'function' => function($entry) {
+                $count_data = $entry->purchase_orders->count();
+                if($count_data > 0){
+                    return $count_data;
+                }
+                return '-';
+            },
+            'orderable'  => true,
+            'orderLogic' => function ($query, $column, $columnDirection) {
+                $po = PurchaseOrder::select(DB::raw('subkon_id, count(po_number) as total_po'))
+                ->groupBy('subkon_id');
+                return $query->leftJoinSub($po, 'po', function($join){
+                    $join->on('po.subkon_id', 'subkons.id');
+                })->select('subkons.*')->orderBy('po.total_po', $columnDirection);
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_spk_number',
+            'label'    => trans('backpack::crud.subkon.column.list_spk'),
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return "".$entry->spks->map(function($item, $key){
+                    return "-".$item->no_spk;
+                })->implode("\n")."";
+            },
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
+                    $q->where('no_spk', 'like', '%'.$searchTerm.'%');
+                });
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_spk_count',
+            'label'    => trans('backpack::crud.subkon.column.count_spk'),
+            'type'     => 'closure',
+            'function' => function($entry) {
+                $count_data = $entry->spks->count();
+                if($count_data > 0){
+                    return $count_data;
+                }
+                return '-';
+            },
+            'orderable'  => true,
+            'orderLogic' => function ($query, $column, $columnDirection) {
+                $spk = Spk::select(DB::raw('subkon_id, count(no_spk) as total_spk'))
+                ->groupBy('subkon_id');
+                return $query->leftJoinSub($spk, 'spk', function($join){
+                    $join->on('spk.subkon_id', 'subkons.id');
+                })->select('subkons.*')->orderBy('spk.total_spk', $columnDirection);
+            }
+        ]);
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR SUBKON";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR SUBKON';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     public function index()

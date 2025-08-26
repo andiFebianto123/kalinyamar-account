@@ -15,6 +15,9 @@
 
 @push('after_scripts')
     <script>
+        if(window.filter_tables == undefined){
+            window.filter_tables = {};
+        }
         if(typeof filterSelectYear != 'function'){
             function filterSelectYear(){
                 $('#filterYear .dropdown-menu li').each(function(){
@@ -31,6 +34,7 @@
                                 var url_route = item.route;
                                 url_route += "&filter_year="+value;
                                 item.table.ajax.url(url_route).load();
+                                window.filter_tables.filter_year = value;
                             }
                         });
                     });

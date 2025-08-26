@@ -9,10 +9,13 @@ use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use PhpParser\Node\Expr\Cast;
 use App\Imports\AccountImport;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -148,7 +151,293 @@ class CastAccountsLoanCrudController extends CrudController
     protected function setupListOperation()
     {
         // filter-cash-account-order
+        $this->crud->file_title_export_pdf = "Laporan_daftar_rekening_pinjaman.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_rekening_pinjaman.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
         CRUD::addButtonFromView('top', 'filter_cash_account_order', 'filter-cash-account-order', 'beginning');
+    }
+
+    private function setupListExport(){
+        $this->crud->query = $this->crud->query->leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
+        ->where('cast_accounts.status', CastAccount::LOAN)
+        ->groupBy('cast_accounts.id')
+        ->orderBy('id', 'ASC')->select(DB::raw('
+            cast_accounts.id,
+            MAX(cast_accounts.name) as name,
+            MAX(cast_accounts.bank_name) as bank_name,
+            MAX(cast_accounts.no_account) as no_account,
+            MAX(cast_accounts.status) as status,
+            MAX(cast_accounts.account_id) as account_id,
+            (SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) - SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0))) as saldo
+        '));
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field.name.label'),
+                'name' => 'name',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field.bank_name.label'),
+                'name' => 'bank_name',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field.no_account.label'),
+                'name' => 'no_account',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
+                'name' => 'saldo',
+                'type'  => 'export'
+            ],
+        );
+    }
+
+    private function setuplistExportTrans(){
+        $id = request()->id;
+        CRUD::setModel(AccountTransaction::class);
+
+        $castAccount = CastAccount::where('id', $id)->first();
+
+        $this->crud->query = $this->crud->query
+        ->where('cast_account_id', $id)
+        ->where('is_first', 0)
+        ->orderBy('date_transaction', 'ASC');
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field_transaction.date_transaction.label'),
+                'name' => 'date_transaction',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field_transaction.nominal_transaction.label'),
+                'name' => 'nominal_transaction',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label'),
+                'name' => 'cast_account_destination_id',
+                'type'  => 'closure',
+                'function' => function($entry) {
+                    return ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
+                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field_transaction.nominal_transaction.label'),
+                'name' => 'status',
+                'type'  => 'closure',
+                'function' => function($entry) {
+                    return ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
+                }
+            ],
+        );
+
+        return $castAccount;
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR REKENING PINJAMAN";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR SPK';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+    }
+
+     public function exportTransPdf(){
+        $cast = $this->setuplistExportTrans();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR TRANSAKSI REKENING PINJAMAN ".$cast?->name;
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportTransExcel(){
+        $this->setuplistExportTrans();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR SPK';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     function ruleValidation(){

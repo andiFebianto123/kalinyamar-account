@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\ClientPo;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Requests\ClientRequest;
+use Maatwebsite\Excel\Facades\Excel;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -123,6 +126,12 @@ class ClientCrudController extends CrudController
          */
         $request = request();
 
+        $this->crud->file_title_export_pdf = "Laporan_daftar_client.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_client.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+
         // CRUD::addButtonFromView('top', 'filter_year', 'filter-year-client', 'beginning');
         CRUD::disableResponsiveTable();
         $this->crud->addColumn([
@@ -218,6 +227,184 @@ class ClientCrudController extends CrudController
 
 
 
+    }
+
+    private function setupListExport(){
+
+        $request = request();
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client.column.name'),
+                'name' => 'name',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client.column.address'),
+                'name' => 'address',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client.column.npwp'),
+                'name' => 'npwp',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client.column.phone'),
+                'name' => 'phone',
+                'type'  => 'export'
+            ],
+        );
+
+        // CRUD::addColumn([
+        //     'name'     => 'list_po_number',
+        //     'label'    => trans('backpack::crud.subkon.column.list_po'),
+        //     'type'     => 'custom_html',
+        //     'value' => function($entry) {
+        //         return "".$entry->client_po->map(function($item, $key){
+        //             return "<li>".$item->po_number."</li>";
+        //         })->implode('')."";
+        //     },
+        //     'searchLogic' => function ($query, $column, $searchTerm) {
+        //         $query->orWhereHas('client_po', function ($q) use ($column, $searchTerm) {
+        //             $q->where('po_number', 'like', '%'.$searchTerm.'%');
+        //         });
+        //     }
+        // ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po_count',
+            'label'    => trans('backpack::crud.subkon.column.count_po'),
+            'type'     => 'closure',
+            'function' => function($entry) {
+                $count_data = $entry->client_po->count();
+                if($count_data > 0){
+                    return $count_data;
+                }
+                return '-';
+            },
+            'orderable'  => true,
+            'orderLogic' => function ($query, $column, $columnDirection) {
+                $po = ClientPo::select(DB::raw('client_id, count(po_number) as total_po'))
+                ->groupBy('client_id');
+                return $query->leftJoinSub($po, 'po', function($join){
+                    $join->on('po.client_id', 'clients.id');
+                })->select('clients.*')->orderBy('po.total_po', $columnDirection);
+            }
+        ]);
+
+        if($request->has('filter_year')){
+            if($request->filter_year != 'all'){
+                $filterYear = $request->filter_year;
+                $this->crud->query = $this->crud->query
+                ->where(function($query) use($filterYear){
+                    $query->whereHas('client_po', function($q) use($filterYear){
+                        $q->where(DB::raw("YEAR(end_date)"), $filterYear);
+                    });
+                });
+            }
+        }
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR CLIENT";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR CLIENT';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     /**

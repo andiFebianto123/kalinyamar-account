@@ -15,6 +15,9 @@
 
 @push('after_scripts')
     <script>
+        if(window.filter_tables == undefined){
+            window.filter_tables = {};
+        }
         if(typeof filterSelectPaid != 'function'){
             function filterSelectPaid(){
                 $('#filterPaidUnpaid .dropdown-menu li').each(function(){
@@ -26,6 +29,7 @@
                         var route = "{!! url($crud->route.'/search') !!}";
                         route += "?filter_paid_status="+value;
                         crud.table.ajax.url(route).load();
+                        window.filter_tables.filter_paid_status = value;
                     });
                 });
             }

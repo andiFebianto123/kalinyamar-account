@@ -7,10 +7,10 @@
         if(SIAOPS.getAttribute('export') == null){
             SIAOPS.setAttribute('export', function(){
                 return {
-                    url_pdf: "",
-                    title_pdf: "",
-                    url_excel: "",
-                    title_excel: "",
+                    url_pdf: "{{ url($crud->route.'/export-pdf') }}{{ $crud->param_uri_export ?? '' }}",
+                    title_pdf: "{{ $crud->file_title_export_pdf ?? 'report.pdf' }}",
+                    url_excel: "{{ url($crud->route.'/export-excel') }}{{ $crud->param_uri_export ?? '' }}",
+                    title_excel: "{{ $crud->file_title_export_excel ?? 'report.xlsx' }}",
                 }
             });
         }
@@ -21,7 +21,6 @@
 
             var get_url_export = SIAOPS.getAttribute('export').url_pdf;
             var get_title_export = SIAOPS.getAttribute('export').title_pdf;
-
             var params_url = MakeParamUrl(window.filter_tables || {});
 
             var url_export_with_params = get_url_export + params_url;

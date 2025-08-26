@@ -14,6 +14,7 @@ use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
 use App\Models\PaymentVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use App\Models\PaymentVoucherPlan;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\InvoiceClientDetail;
 use Illuminate\Support\Facades\App;
 use Illuminate\Validation\Rules\Can;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Requests\InvoiceClientRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -182,6 +184,12 @@ class InvoiceClientCrudController extends CrudController
         CRUD::disableResponsiveTable();
         CRUD::removeButtons(['delete', 'show', 'update'], 'line');
 
+        $this->crud->file_title_export_pdf = "Laporan_invoice.pdf";
+        $this->crud->file_title_export_excel = "Laporan_invoice.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
         CRUD::addButtonFromView('top', 'filter_paid_unpaid', 'filter-paid_unpaid', 'beginning');
         CRUD::addButtonFromView('line', 'show', 'show', 'end');
         CRUD::addButtonFromView('line', 'update', 'update', 'end');
@@ -295,6 +303,229 @@ class InvoiceClientCrudController extends CrudController
             }
         }
 
+    }
+
+    private function setupListExport()
+    {
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.invoice_number'),
+                'name' => 'invoice_number',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.name'),
+                'name' => 'name',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
+                'name' => 'invoice_date',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.invoice_client.column.client_po_id'),
+            'type'      => 'closure',
+            'name'      => 'client_po_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'client_po', // the method that defines the relationship in your Model
+            'attribute' => 'po_number', // foreign key attribute that is shown to user
+            'model'     => "App\Models\ClientPo", // foreign key model
+            'function' => function($entry) {
+                return $entry->client_po->po_number;
+            }
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.invoice_client.column.po_date'),
+                'name' => 'po_date',
+                'type' => 'export',
+            ]
+        );
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.invoice_client.column.client_id'),
+            'type'      => 'closure',
+            'name'      => 'client_name',
+            'function' => function($entry) {
+                return $entry->client_po->client->name;
+            } // the column that contains the ID of that connected entity;
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
+                'name' => 'price_total_include_ppn',
+                'type'  => 'export',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
+                'name' => 'price_total_exclude_ppn',
+                'type'  => 'export',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => 'Nama Item',
+                'name' => 'item_name',
+                'type' => 'export',
+                'function' => function($entry) {
+                    return $entry?->invoice_client_details?->name;
+                }
+            ]
+        );
+
+        CRUD::column(
+            [
+                'label' => 'Harga Item',
+                'name' => 'item_price',
+                'type' => 'export',
+                'function' => function($entry) {
+                    return $entry?->invoice_client_details?->price;
+                }
+            ]
+        );
+
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.invoice_client.column.status'),
+                'name' => 'status',
+                'type' => 'export',
+            ]
+        );
+
+        $this->crud->query = $this->crud->query
+        ->selectRaw("invoice_clients.*, invoice_client_details.name as item_name, invoice_client_details.price as item_price")
+        ->leftJoin('invoice_client_details', 'invoice_client_details.invoice_client_id', '=', 'invoice_clients.id');
+
+        $request = request();
+        if($request->has('filter_paid_status')){
+            if($request->filter_paid_status != 'all'){
+                $this->crud->query = $this->crud->query
+            ->where('invoice_clients.status', $request->filter_paid_status);
+            }
+        }
+
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR INVOICE";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR INVOICE';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     /**

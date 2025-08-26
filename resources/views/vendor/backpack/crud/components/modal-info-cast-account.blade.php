@@ -12,6 +12,15 @@
         <span class="total_saldo fs-4 fw-bold text-dark"></span>
     </p>
 
+    <div class="d-flex justify-content-end mb-2">
+        <button id="btn-export-kas-pdf" class="btn btn-sm btn-primary me-2">
+            <i class="la la-file-download"></i> PDF
+        </button>
+        <button id="btn-export-kas-excel" class="btn btn-sm btn-primary">
+            <i class="la la-file-download"></i> Excel
+        </button>
+    </div>
+
     <div class="table-responsive">
         <table class="detail-information table info-cast-account">
             <thead>
@@ -287,8 +296,14 @@
                     loadData: function(id){
                         var instance = this;
                         instance.loadingBdoy();
+                        var url = instance.route+'-show?_id='+id;
+                        var url_export_pdf = instance.route+'/export-trans-pdf?id='+id;
+                        var url_export_excel = instance.route+'/export-trans-excel?id='+id;
+
+                        $('#btn-export-kas-pdf').attr('data-url', url_export_pdf);
+                        $('#btn-export-kas-excel').attr('data-url', url_export_excel);
                         $.ajax({
-                            url: instance.route+'-show?_id='+id,
+                            url: url,
                             type: 'GET',
                             typeData: 'json',
                             success: function (response) {
@@ -389,6 +404,110 @@
                 }
             });
             SIAOPS.getAttribute("{{$name}}").load();
+        </script>
+        <script>
+            $(function(){
+               $('#btn-export-kas-pdf').click(async function (){
+                    setLoadingButton("#btn-export-kas-pdf", true);
+
+                    var get_url_export = $(this).attr('data-url');
+                    var get_title_export = "Laporan_kas_transaksi_rekening_"+ $("#{{$name}} .modal-title").html();
+                    var params_url = MakeParamUrl(window.filter_tables || {});
+
+                    var url_export_with_params = get_url_export + params_url;
+
+                    if(get_url_export == ''){
+                        setLoadingButton("#btn-export-kas-pdf", false);
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        return;
+                    }
+
+                    const {response, errors} = await API_REQUEST("DOWNLOAD", url_export_with_params);
+
+                    if(errors){
+                        var errorResponse = await errors;
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        setLoadingButton("#btn-export-kas-pdf", false);
+                    }else if(response){
+                        let result = await response;
+                        setLoadingButton("#btn-export-kas-pdf", false);
+
+                        const url = window.URL.createObjectURL(result);
+                        const a = document.createElement('a');
+                        a.href = url;
+
+                        a.download = get_title_export;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+
+                    }
+                });
+
+                $('#btn-export-kas-excel').click(async function (){
+                    setLoadingButton("#btn-export-kas-excel", true);
+
+                    var get_url_export = $(this).attr('data-url');
+                    var get_title_export = "Laporan_kas_transaksi_rekening_"+ $("#{{$name}} .modal-title").html();
+                    var params_url = MakeParamUrl(window.filter_tables || {});
+
+                    var url_export_with_params = get_url_export + params_url;
+
+                    if(get_url_export == ''){
+                        setLoadingButton("#btn-export-kas-excel", false);
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        return;
+                    }
+
+                    const {response, errors} = await API_REQUEST("DOWNLOAD", url_export_with_params);
+
+                    if(errors){
+                        var errorResponse = await errors;
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        setLoadingButton("#btn-export-kas-excel", false);
+                    }else if(response){
+                        let result = await response;
+                        setLoadingButton("#btn-export-kas-excel", false);
+
+                        const url = window.URL.createObjectURL(result);
+                        const a = document.createElement('a');
+                        a.href = url;
+
+                        a.download = get_title_export;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+
+                    }
+                });
+
+            });
         </script>
     @endonce
 @endpush

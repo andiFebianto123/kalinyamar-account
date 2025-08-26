@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Setting;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Http\Requests\SpkRequest;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -203,6 +206,13 @@ class SpkCrudController extends CrudController
     {
         // CRUD::setFromDb(); // set columns from db columns.
         $settings = Setting::first();
+
+        $this->crud->file_title_export_pdf = "Laporan_daftar_spk.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_spk.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
         CRUD::addButtonFromView('top', 'filter_year', 'filter-year-spk', 'beginning');
 
         CRUD::disableResponsiveTable();
@@ -312,6 +322,187 @@ class SpkCrudController extends CrudController
             'disk'   => 'public',
         ]);
 
+    }
+
+    private function setupListExport(){
+
+        $request = request();
+
+        if($request->has('filter_year')){
+            if($request->filter_year != 'all'){
+                $filterYear = $request->filter_year;
+                $this->crud->query = $this->crud->query
+                ->where(DB::raw("YEAR(date_spk)"), $filterYear);
+            }
+        }
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'closure',
+            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
+            'function' => function($entry){
+                return $entry->subkon->name;
+            }
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.spk.column.no_spk'),
+                'name' => 'no_spk',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.spk.column.date_spk'),
+                'name' => 'date_spk',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.spk.column.job_name'),
+                'name' => 'job_name',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.spk.column.job_description'),
+                'name' => 'job_description',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.spk.column.job_value'),
+                'name' => 'job_value',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.spk.column.tax_ppn'),
+            'name' => 'tax_ppn',
+            'type'  => 'export',
+            'suffix' => '%',
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.spk.column.total_value_with_tax'),
+                'name' => 'total_value_with_tax',
+                'type'  => 'closure',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+                'function' => function($entry){
+                    return $entry->job_value + ($entry->job_value * $entry->tax_ppn / 100);
+                }
+            ],
+        );
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR SPK";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR SPK';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     /**

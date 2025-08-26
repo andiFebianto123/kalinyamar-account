@@ -482,3 +482,9 @@ function setInputNumber(selected, value){
     $(selected).val(str).trigger('input');
 }
 
+function MakeParamUrl(obj, prefix = "&") {
+  return Object.entries(obj)
+    .map(([k, v]) => `${prefix}${k}=${encodeURIComponent(v)}`)
+    .join("");
+}
+

@@ -453,7 +453,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
             })
             ->where('payment_vouchers.payment_type', 'NON RUTIN');
-
             CRUD::addClause('select', [
                 DB::raw("
                     vouchers.*,
@@ -2049,6 +2048,8 @@ class VoucherPaymentPlanCrudController extends CrudController {
             }
         }
 
+        $voucher->payment_status = 'BAYAR';
+
         // masukan journal PPH 21
         if($voucher->pph_21 > 0){
             $nominal_trans = $voucher->discount_pph_21;
@@ -2107,6 +2108,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
             ]);
         }
 
+        $voucher->save();
     }
 
     public function approvedStore($id){

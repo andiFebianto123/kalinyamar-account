@@ -1,15 +1,18 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
-use App\Models\CategoryProject;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\CrudController;
+use App\Models\SetupPpn;
 use App\Models\SetupClient;
 use App\Models\SetupOffering;
-use App\Models\SetupPpn;
+use App\Models\CategoryProject;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use App\Models\SetupStatusProject;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\CrudController;
 use PhpOffice\PhpSpreadsheet\Calculation\Category;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProjectSystemSetupCrudController extends CrudController{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
@@ -584,6 +587,13 @@ class ProjectSystemSetupCrudController extends CrudController{
     {
         CRUD::removeButtons(['show', 'delete', 'update'], 'line');
         $type = request()->_type;
+        $this->crud->file_title_export_pdf = "Laporan_daftar_project_setup.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_project_setup.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+
         if($type == 'category_project'){
             CRUD::setModel(CategoryProject::class);
             CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
@@ -665,6 +675,168 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'ppn' as type
             "));
         }
+    }
+
+    protected function setupListExport()
+    {
+        // CRUD::removeButtons(['show', 'delete', 'update'], 'line');
+        CRUD::setModel(CategoryProject::class);
+        $this->crud->query = $this->crud->query
+        ->unionAll(
+            DB::table('setup_status_projects')
+            ->select(DB::raw("
+                setup_status_projects.name as name,
+                'status_project' as type
+            "))
+        )
+        ->unionAll(
+            DB::table('setup_offering')
+            ->select(DB::raw("
+                setup_offering.name as name,
+                'status_offering' as type
+            "))
+        )
+        ->unionAll(
+            DB::table('setup_clients')
+            ->select(DB::raw("
+                setup_clients.name as name,
+                'client' as type
+            "))
+        )
+        ->unionAll(
+            DB::table('setup_ppn')
+            ->select(DB::raw("
+                setup_ppn.name as name,
+                'ppn' as type
+            "))
+        );
+
+        CRUD::addClause('select', DB::raw("
+            cateogry_projects.name as name,
+            'category_project' as type
+        "));
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column([
+            'label'  => 'Nama Setup',
+            'name' => 'name',
+            'type'  => 'closure',
+            'function' => function($entry){
+                if($entry->type == 'ppn'){
+                    return number_format($entry->name, 0, '.', ',').' %';
+                }
+                return $entry->name;
+            }
+        ]);
+        CRUD::column([
+            'label'  => 'Kategori',
+            'name' => 'type',
+            'type'  => 'closure',
+            'function' => function($entry){
+                if($entry->type == 'category_project'){
+                    return "Setup Ketegori Proyek";
+                }else if($entry->type == 'status_project'){
+                    return "Setup Status Proyek";
+                }else if($entry->type == 'status_offering'){
+                    return "Setup Status Penawaran";
+                }else if($entry->type == 'client'){
+                    return "Setup Data Client";
+                }else if($entry->type == 'ppn'){
+                    return "Setup Tarif PPn";
+                }
+            }
+        ]);
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR PROJECT SETUP";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR SPK';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     public function store()

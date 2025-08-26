@@ -6,12 +6,15 @@ use App\Models\Asset;
 use App\Models\Account;
 use App\Models\Setting;
 use App\Models\JournalEntry;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use App\Http\Exports\ExportExcel;
 use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Notifications\Action;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -74,6 +77,11 @@ class AssetCrudController extends CrudController
     protected function setupListOperation(){
         CRUD::disableResponsiveTable();
 
+        $this->crud->file_title_export_pdf = "Laporan_daftar_asset.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_asset.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
         CRUD::addButtonFromView('top', 'filter-year-asset', 'filter-year-asset', 'beginning');
 
         $settings = Setting::first();
@@ -259,6 +267,279 @@ class AssetCrudController extends CrudController
             }
         }
 
+    }
+
+    private function setupListExport(){
+        CRUD::disableResponsiveTable();
+
+        CRUD::addButtonFromView('top', 'filter-year-asset', 'filter-year-asset', 'beginning');
+
+        $settings = Setting::first();
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.asset.column.account_id'),
+            'type'      => 'closure',
+            'name'      => 'account_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'account', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Account", // foreign key model
+            'function' => function ($entry) {
+                return $entry->account->name;
+            }
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.asset.column.depreciation_account_id'),
+            'type'      => 'closure',
+            'name'      => 'depreciation_account_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'account_depreciation', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Account", // foreign key model
+            'function' => function ($entry) {
+                return $entry->account_depreciation->name;
+            }
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.asset.column.expense_account_id'),
+            'type'      => 'closure',
+            'name'      => 'expense_account_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'account_expense', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Account", // foreign key model
+            'function' => function ($entry) {
+                return $entry->account_expense->name;
+            }
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.description'),
+                'name' => 'description',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.year_acquisition'),
+                'name' => 'year_acquisition',
+                'type'  => 'export',
+                'format' => 'MMM Y'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.price_acquisition'),
+                'name' => 'price_acquisition',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.economic_age'),
+                'name' => 'economic_age',
+                'type'  => 'export'
+            ],
+        );
+
+        CRUD::addColumn([
+            'label'  => trans('backpack::crud.asset.column.tarif'),
+            'name' => 'tarif',
+            'type'  => 'export',
+            'suffix' => '%',
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.price_rate_per_year'),
+                'name' => 'price_rate_per_year',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.price_rate_year_ago'),
+                'name' => 'price_rate_year_ago',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.accumulated_until_december_last_year'),
+                'name' => 'accumulated_until_december_last_year',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.book_value_last_december'),
+                'name' => 'book_value_last_december',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.this_year_depreciation_rate'),
+                'name' => 'this_year_depreciation_rate',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.accumulated_until_december_this_year'),
+                'name' => 'accumulated_until_december_this_year',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.asset.column.book_value_this_december'),
+                'name' => 'book_value_this_december',
+                'type'  => 'export',
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        if(request()->has('filter_year')){
+            $filter_year = request()->get('filter_year');
+            if($filter_year != 'all'){
+                $this->crud->query = $this->crud->query
+                ->where(DB::raw("YEAR(year_acquisition)"), $filter_year);
+            }
+        }
+
+    }
+
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR ASSET";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR ASSET';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
     function ruleAsset(){

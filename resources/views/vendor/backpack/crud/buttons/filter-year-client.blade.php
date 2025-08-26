@@ -15,6 +15,9 @@
 
 @push('after_scripts')
     <script>
+        if(window.filter_tables == undefined){
+            window.filter_tables = {};
+        }
         if(typeof filterSelectYear != 'function'){
             function filterSelectYear(){
                 $('#filterYear .dropdown-menu li').each(function(){
@@ -26,6 +29,7 @@
                         var route = "{!! url($crud->route.'/search') !!}";
                         route += "?filter_year="+value;
                         crud.table.ajax.url(route).load();
+                        window.filter_tables.filter_year = value;
                     });
                 });
             }

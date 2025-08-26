@@ -10,15 +10,19 @@ use App\Models\Setting;
 use App\Models\Voucher;
 use App\Models\Approval;
 use App\Models\CastAccount;
+use App\Models\SetupClient;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
 use App\Models\PaymentVoucher;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Exports\ExportExcel;
 use Faker\Provider\ar_EG\Payment;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use App\Models\PaymentVoucherPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -241,6 +245,10 @@ class VoucherPaymentCrudController extends CrudController {
                                 ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=NON RUTIN'),
+                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=voucher_payment_plan_all'),
+                            'title_export_pdf' => 'Laporan_voucher_payment.pdf',
+                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=voucher_payment_plan_all'),
+                            'title_export_excel' => 'Laporan_voucher_payment.xlsx',
                         ]
                     ],
                 ]
@@ -388,6 +396,14 @@ class VoucherPaymentCrudController extends CrudController {
 
         $settings = Setting::first();
 
+        // voucher_payment_plan_all
+        $this->crud->file_title_export_pdf = "Laporan_voucher_pembayaran.pdf";
+        $this->crud->file_title_export_excel = "Laporan_voucher_pembayaran.xlsx";
+        $this->crud->param_uri_export = "?export=1&tab=voucher_payment_plan_all";
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+
+
         if($tab == 'voucher_payment' && $type == 'NON RUTIN'){
             CRUD::setModel(PaymentVoucher::class);
             CRUD::disableResponsiveTable();
@@ -437,7 +453,8 @@ class VoucherPaymentCrudController extends CrudController {
                 $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
                 ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
             })
-            ->where('payment_vouchers.payment_type', 'NON RUTIN');
+            ->where('payment_vouchers.payment_type', 'NON RUTIN')
+            ->where('vouchers.payment_status', 'BAYAR');
 
             CRUD::addClause('select', [
                 DB::raw("
@@ -993,7 +1010,8 @@ class VoucherPaymentCrudController extends CrudController {
                 $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
                 ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
             })
-            ->where('payment_vouchers.payment_type', 'SUBKON');
+            ->where('payment_vouchers.payment_type', 'SUBKON')
+            ->where('vouchers.payment_status', 'BAYAR');
 
 
             CRUD::addClause('select', [
@@ -1501,6 +1519,202 @@ class VoucherPaymentCrudController extends CrudController {
                     'type'  => 'approval-voucher',
                 ],
             );
+        }else if($tab == 'voucher_payment_plan_all'){
+            CRUD::setModel(PaymentVoucher::class);
+            CRUD::disableResponsiveTable();
+            CRUD::addButtonFromView('line', 'approve_payment', 'approve_payment', 'end');
+
+            $user_id = backpack_user()->id;
+            $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
+            ->where('id', $user_id)
+            ->get();
+
+            $p_v_p = DB::table('payment_voucher_plan')
+            ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
+            ->groupBy('payment_voucher_id');
+
+            $this->crud->query = $this->crud->query
+            ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
+            ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
+                $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
+            })
+            ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id');
+
+            $a_p = DB::table('approvals')
+            ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+            ->groupBy('model_type', 'model_id');
+
+            $this->crud->query = $this->crud->query
+            ->leftJoinSub($a_p, 'a_p', function ($join) {
+                $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
+                ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
+            })
+            ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
+
+            $this->crud->query = $this->crud->query
+            ->leftJoin('spk', function($join){
+                $join->on('spk.id', '=', 'vouchers.reference_id')
+                ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\Spk"'));
+            })
+            ->leftJoin('purchase_orders', function($join){
+                $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
+                ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
+            })
+            ->where('vouchers.payment_status', 'BAYAR');
+            // ->where('payment_vouchers.payment_type', 'SUBKON');
+
+            CRUD::addClause('select', [
+                DB::raw("
+                    vouchers.*,
+                    spk.no_spk as spk_no,
+                    purchase_orders.po_number as po_no,
+                    approvals.approved_at as approval_approved_at,
+                    approvals.status as approval_status,
+                    approvals.user_id as approval_user_id,
+                    approvals.no_apprv as approval_no_apprv,
+                    payment_voucher_plan.id as voucer_edit_id,
+                    payment_vouchers.voucher_id
+                ")
+            ]);
+
+            CRUD::addColumn([
+                'name'      => 'row_number',
+                'type'      => 'row_number',
+                'label'     => 'No',
+                'orderable' => false,
+                'wrapper' => [
+                    'element' => 'strong',
+                ]
+            ])->makeFirstColumn();
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
+                'name' => 'no_voucher',
+                'type'  => 'text',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.no_voucher', $order);
+                }
+            ]);
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.date_voucher.label'),
+                'name' => 'date_voucher',
+                'type'  => 'date',
+                'format' => 'D MMM Y',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.date_voucher', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_name.label'),
+                    'name' => 'subkon_id',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return $entry?->voucher?->subkon?->name;
+                    },
+                    'orderLogic' => function ($query, $column, $order) {
+                        return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
+                        ->orderBy('subkons.name', $order);
+                    }
+                ], // BELUM FILTER
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.bill_date.label'),
+                'name' => 'bill_date',
+                'type'  => 'date',
+                'format' => 'D MMM Y',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.bill_date', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.no_po_spk.label'),
+                    'name' => 'reference_id',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return $entry?->voucher?->reference?->po_number;
+                    }
+                ], // BELUM FILTER
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
+                'name' => 'payment_transfer',
+                'type'  => 'number',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.payment_transfer', $order);
+                }
+            ]);
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.due_date.label_2'),
+                'name' => 'due_date',
+                'type'  => 'date',
+                'format' => 'D MMM Y',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.due_date', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.factur_status.label'),
+                    'name' => 'factur_status',
+                    'type'  => 'text',
+                    'orderLogic' => function ($query, $column, $order) {
+                        return $query->orderBy('vouchers.factur_status', $order);
+                    }
+                ],
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.due_date.label'),
+                'name' => 'payment_date',
+                'type'  => 'date',
+                'format' => 'D MMM Y',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.payment_date', $order);
+                }
+            ]);
+
+           CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.payment_status.label'),
+                    'name' => 'payment_status',
+                    'type'  => 'text',
+                    'orderLogic' => function ($query, $column, $order) {
+                        return $query->orderBy('vouchers.payment_status', $order);
+                    }
+                ],
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.approved_at.label'),
+                'name' => 'approval_approved_at',
+                'type'  => 'date',
+                'format' => 'D MMM Y',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('approvals.approved_at', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.status.label'),
+                    'name' => 'approval_status',
+                    'type'  => 'approval-voucher',
+                ],
+            );
+
         }
 
     }
@@ -1920,4 +2134,103 @@ class VoucherPaymentCrudController extends CrudController {
         }
     }
 
+    public function exportPdf(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+
+        CRUD::removeColumn('document_path');
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'user_id'){
+                    $item->user_id = User::find($item->user_id)->name;
+                }
+                if($column['name'] == 'subkon_id'){
+                    $item->subkon_id = $item?->voucher?->subkon?->name;
+                }
+                if($column['name'] == 'reference_id'){
+                    $item->reference_id = $item?->voucher?->reference?->po_number;
+                }
+            }
+        }
+
+        $title = "VOUCHER PEMBAYARAN";
+
+        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+        CRUD::removeColumn('document_path');
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+        foreach($items as $item){
+            foreach($columns as $column){
+                if($column['name'] == 'row_number'){
+                    $row_number++;
+                    $item->{$column['name']} = $row_number;
+                }
+                if($column['name'] == 'client_id'){
+                    $item->client_id = SetupClient::find($item->client_id)->name;
+                }
+                if($column['name'] == 'start_date,end_date'){
+                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'user_id'){
+                    $item->user_id = User::find($item->user_id)->name;
+                }
+                if($column['name'] == 'subkon_id'){
+                    $item->subkon_id = $item?->voucher?->subkon?->name;
+                }
+                if($column['name'] == 'reference_id'){
+                    $item->reference_id = $item?->voucher?->reference?->po_number;
+                }
+            }
+        }
+
+        $name = 'VOUCHER PEMBAYARAN';
+
+        return response()->streamDownload(function () use($type, $columns, $items){
+            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+
+    }
 }

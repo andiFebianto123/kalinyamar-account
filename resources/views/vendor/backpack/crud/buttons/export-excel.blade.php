@@ -23,6 +23,10 @@
             var get_url_export = SIAOPS.getAttribute('export').url_excel;
             var get_title_export = SIAOPS.getAttribute('export').title_excel;
 
+            var params_url = MakeParamUrl(window.filter_tables || {});
+            var url_export_with_params = get_url_export + params_url;
+
+
             if(get_url_export == ''){
                 setLoadingButton("#btn-export-excel", false);
                 swal({
@@ -35,7 +39,7 @@
                 return;
             }
 
-            const {response, errors} = await API_REQUEST("DOWNLOAD", get_url_export);
+            const {response, errors} = await API_REQUEST("DOWNLOAD", url_export_with_params);
             if(errors){
                 var errorResponse = await errors;
                 swal({
