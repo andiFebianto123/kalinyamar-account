@@ -90,6 +90,27 @@
                                 var po = data.po;
                                 var account = data.account;
 
+                                if(data.company){
+                                    var subkon_option = new Option(data.company.name, data.company.id, true, true);
+                                    $(form+' select[name="subkon_id"]').append(subkon_option).trigger('change');
+                                    if(data.company.bank_name){
+                                        $(form+' input[name="bank_name"]').val(data.company.bank_name);
+                                    }
+                                    if(data.company.bank_account){
+                                        $(form+' input[name="no_account"]').val(data.company.bank_account);
+                                    }
+                                }else{
+                                    $(form+' select[name="subkon_id"]').val(null).trigger('change');
+                                    $(form+' input[name="bank_name"]').val(null);
+                                    $(form+' input[name="no_account"]').val(null);
+                                }
+
+                                if(data.date_po){
+                                    $(form+' input[name="date_po_spk"]').val(data.date_po);
+                                }else{
+                                    $(form+' input[name="date_po_spk"]').val(null);
+                                }
+
                                 var account_text = `${account.code} - ${account.name}`;
                                 var account_option = new Option(account_text, account.id, true, true);
                                 $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
@@ -101,6 +122,7 @@
                                 $(form+' input[name="job_name"]').val(po.job_name);
                                 setInputNumber(form+' #bill_value_masked', po.price_total);
                                 $(form+' input[name="type"]').val(po.type);
+                                instance.logicFormula();
                             }
                         })
                     });
@@ -130,12 +152,34 @@
                                     }
                                 }
 
+                                if(data.company){
+                                    var subkon_option = new Option(data.company.name, data.company.id, true, true);
+                                    $(form+' select[name="subkon_id"]').append(subkon_option).trigger('change');
+                                    if(data.company.bank_name){
+                                        $(form+' input[name="bank_name"]').val(data.company.bank_name);
+                                    }
+                                    if(data.company.bank_account){
+                                        $(form+' input[name="no_account"]').val(data.company.bank_account);
+                                    }
+                                }else{
+                                    $(form+' select[name="subkon_id"]').val(null).trigger('change');
+                                    $(form+' input[name="bank_name"]').val(null);
+                                    $(form+' input[name="no_account"]').val(null);
+                                }
+
+                                if(data.date_po){
+                                    $(form+' input[name="date_po_spk"]').val(data.date_po);
+                                }else{
+                                    $(form+' input[name="date_po_spk"]').val(null);
+                                }
+
                                 var po_number_option = new Option(po_number_text, po.id, true, true);
                                 $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
 
                                 $(form+' input[name="job_name"]').val(po.job_name);
                                 setInputNumber(form+' #bill_value_masked', po.price_total);
                                 $(form+' input[name="type"]').val(po.type);
+                                instance.logicFormula();
                             }
                         })
                     });
@@ -152,6 +196,7 @@
 
                     $(form+' select[name="subkon_id"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id;
+                        console.log('selected');
                         $.ajax({
                             url: "{{ url($crud->route) }}/get_account_source_selected_ajax?id=" + id,
                             type: 'GET',

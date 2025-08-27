@@ -43,12 +43,12 @@ class DashboardController extends CrudController
 
     public function totalProjects(){
         $project_status = [
-            'Close' => 0,
-            'Retensi' => 0,
-            'Belum_Selesai' => 0,
-            'Tertunda' => 0,
-            'Unpaid' => 0,
-            'Belum_ada_PO' => 0,
+            'CLOSE' => 0,
+            'RETENSI' => 0,
+            'BELUM_SELESAI' => 0,
+            'TERTUNDA' => 0,
+            'UNPAID' => 0,
+            'BELUM_ADA_PO' => 0,
         ];
         $projects = Project::groupBy('status_po')->select(DB::raw('
             SUM(price_total_include_ppn) as total,

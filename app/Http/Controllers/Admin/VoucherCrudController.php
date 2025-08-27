@@ -1072,13 +1072,15 @@ class VoucherCrudController extends CrudController {
 
         if($type == 'client'){
             $client = ClientPo::where('id', $id)
-            ->select(DB::raw("id, po_number, job_name, job_value, price_total, work_code, 'Client' as type, status"))
+            ->select(DB::raw("id, po_number, job_name, job_value, price_total, work_code, 'Client' as type, status, client_id, '' as date_po"))
             ->first();
             $invoice_exists = InvoiceClient::where('client_po_id', $id)->first();
+            $company = null;
         }else if($type == 'subkon'){
             $client = PurchaseOrder::where('id', $id)
-            ->select(DB::raw("id, po_number, job_name, job_value, total_value_with_tax as price_total, work_code, 'Subkon' as type"))
+            ->select(DB::raw("id, po_number, job_name, job_value, total_value_with_tax as price_total, work_code, 'Subkon' as type, subkon_id, date_po"))
             ->first();
+            $company = $client->subkon;
             $invoice_exists = null;
         }
 
@@ -1089,7 +1091,9 @@ class VoucherCrudController extends CrudController {
         $data = [
             'invoice_exists' => $invoice_exists,
             'po' => $client,
-            'account' => $account_selected
+            'date_po' => ($client->date_po != '') ? Carbon::parse($client->date_po)->format('d/m/Y') : '',
+            'account' => $account_selected,
+            'company' => $company,
         ];
 
         return response()->json($data);

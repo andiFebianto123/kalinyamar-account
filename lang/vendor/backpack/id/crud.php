@@ -1125,6 +1125,12 @@ return [
                 'bussines_entity_name' => [
                     'label' => 'Nama BU',
                 ],
+                'bank' => [
+                    'label' => 'Bank',
+                ],
+                'number_account' => [
+                    'label' => 'No. Rekening',
+                ],
                 'bill_number' => [
                     'label' => 'No. Tagihan',
                 ],

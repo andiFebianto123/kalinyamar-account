@@ -360,12 +360,12 @@
                             $('#omzet_all_total').html('Rp'+result.total_omzet_all.total_omzet);
 
                             var total_project = result.total_projects.list_projects;
-                            $('#Unpaid_total').html('Rp'+total_project.Unpaid);
-                            $('#Tertunda_total').html('Rp'+total_project.Tertunda);
-                            $('#Belum_Selesai_total').html('Rp'+total_project.Belum_Selesai);
-                            $('#Retensi_total').html('Rp'+total_project.Retensi);
-                            $('#Belum_ada_PO_total').html('Rp'+total_project.Belum_ada_PO);
-                            $('#Close').html('Rp'+total_project.Close);
+                            $('#Unpaid_total').html('Rp'+total_project.UNPAID);
+                            $('#Tertunda_total').html('Rp'+total_project.TERTUNDA);
+                            $('#Belum_Selesai_total').html('Rp'+total_project.BELUM_SELESAI);
+                            $('#Retensi_total').html('Rp'+total_project.RETENSI);
+                            $('#Belum_ada_PO_total').html('Rp'+total_project.BELUM_ADA_PO);
+                            $('#Close').html('Rp'+total_project.CLOSE);
 
                             $('#Unpaid_rutin_total').html('Rp'+result.total_projects.total_unpaid_rutin);
                             $('#Unpaid_non_rutin_total').html('Rp'+result.total_projects.total_unpaid_non_rutin);
