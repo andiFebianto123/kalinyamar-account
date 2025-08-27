@@ -11,6 +11,7 @@ use App\Models\JournalEntry;
 use App\Models\PurchaseOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use App\Http\Exports\ExportExcel;
 use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
@@ -19,6 +20,7 @@ use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Exports\ProfitLostExcel;
 use App\Http\Controllers\CrudController;
+use App\Http\Exports\ExportProfitLostConsolidation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProfitLostAccountCrudController extends CrudController{
@@ -1254,6 +1256,12 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::disableResponsiveTable();
 
         $request = request();
+        $this->crud->file_title_export_pdf = "Laporan_daftar_laba_rugi_proyek.pdf";
+        $this->crud->file_title_export_excel = "Laporan_daftar_laba_rugi_proyek.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
 
         if($request->has('type')){
             if($request->type == 'project'){
@@ -1518,6 +1526,163 @@ class ProfitLostAccountCrudController extends CrudController{
 
     }
 
+    private function setupListExport(){
+        CRUD::setModel(ProjectProfitLost::class);
+        $this->crud->query = $this->crud->query
+        ->leftJoin('vouchers', function($join){
+            $join->on('vouchers.reference_id', '=', 'project_profit_lost.client_po_id')
+            ->where('vouchers.reference_type', 'App\\Models\\ClientPo');
+        })->leftJoin('client_po', 'client_po.id', '=', 'vouchers.reference_id');
+
+        $this->crud->addColumn([
+            'name'      => 'row_number',
+            'type'      => 'export',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => '',
+            'type'      => 'closure',
+            'name'      => 'client_po_id',
+            'function' => function($entry) {
+                return $entry->clientPo->client->name;
+            }, // the column that contains the ID of that connected entity;
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
+                    $q->where('name', 'like', '%'.$searchTerm.'%');
+                });
+            }
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
+            'name' => 'reimburse_type',
+            'type' => 'export',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.work_code'),
+            'name' => 'work_code',
+            'type' => 'export',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.po_number'),
+            'name' => 'po_number',
+            'type' => 'export',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.job_name'),
+            'name' => 'job_name',
+            'type' => 'export',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
+            'name' => 'job_value',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+            'name' => 'job_value_include_ppn',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.price_after_year'),
+            'name' => 'price_after_year',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
+            'name' => 'price_voucher',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.price_small_cash'),
+            'name' => 'price_small_cash',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.price_total'),
+            'name' => 'price_total',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.profit_lost_po'),
+            'name' => 'price_profit_lost_po',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
+            'name' => 'price_general',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
+            'name' => 'price_prift_lost_final',
+            'type'  => 'export',
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.profit_lost.column.category'),
+            'type'      => 'export',
+            'name'      => 'category',
+        ]);
+
+        CRUD::addClause('select', [
+            DB::raw("
+                project_profit_lost.*,
+                client_po.work_code as work_code,
+                client_po.po_number as po_number,
+                client_po.reimburse_type as reimburse_type,
+                client_po.job_name as job_name,
+                client_po.job_value as job_value,
+                client_po.job_value_include_ppn as job_value_include_ppn
+            ")
+        ]);
+    }
+
     public function search()
     {
         $this->crud->hasAccessOrFail('list');
@@ -1578,6 +1743,88 @@ class ProfitLostAccountCrudController extends CrudController{
         return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
 
+    public function exportPdf(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $title = "DAFTAR LAPORAN LABA RUGI PROYEK";
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportExcel(){
+
+        $this->setupListExport();
+
+        $columns = $this->crud->columns();
+        $items =  $this->crud->getEntries();
+
+        $row_number = 0;
+
+        $all_items = [];
+
+        foreach($items as $item){
+            $row_items = [];
+            $row_number++;
+            foreach($columns as $column){
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $row_items[] = trim($item_value);
+            }
+            $all_items[] = $row_items;
+        }
+
+        $name = 'DAFTAR SPK';
+
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+    }
+
     public function exportDetailPdf(){
 
         $id = request()->id;
@@ -1608,6 +1855,122 @@ class ProfitLostAccountCrudController extends CrudController{
         return response()->streamDownload(function () use($profitLost, $report, $name){
             echo Excel::raw(new ProfitLostExcel(
                 $profitLost, $report), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
+    }
+
+    public function total_report_account_profit_lost(){
+        $acct_1 = Account::where('accounts.code', 109)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_2 = Account::where('accounts.code', 401)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_3 = Account::where('accounts.code', 402)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_4 = Account::where('accounts.code', 110)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_5 = Account::where('accounts.code', 11001)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_6 = Account::where('accounts.code', 11002)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_7 = Account::where('accounts.code', 111)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_8 = Account::where('accounts.code', 112)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_9 = Account::where('accounts.code', 40201)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_10 = Account::where('accounts.code', 113)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_11 = Account::where('accounts.code', 11301)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $acct_12 = Account::where('accounts.code', 108)
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+        ->first();
+
+        $total_acct_1 = $acct_1->balance + $acct_2->balance;
+        $total_acct_4 =  $acct_5->balance + $acct_6->balance;
+        $total_acct_8 = $acct_9->balance;
+        $total_acct_10 = $acct_11->balance;
+
+        return [
+            'total_acct_1' => ($total_acct_1 > 0) ? $total_acct_1 : 0,
+            'total_acct_2' => ($acct_2->balance > 0) ? $acct_2->balance : 0,
+            'total_acct_3' => ($acct_3->balance > 0) ? $acct_3->balance : 0,
+            'total_acct_4' => ($total_acct_4 > 0) ? $total_acct_4 : 0,
+            'total_acct_5' => ($acct_5->balance > 0) ? $acct_5->balance : 0,
+            'total_acct_6' => ($acct_6->balance > 0) ? $acct_6->balance : 0,
+            'total_acct_7' => ($acct_7->balance > 0) ? $acct_7->balance : 0,
+            'total_acct_8' => ($total_acct_8 > 0) ? $total_acct_8 : 0,
+            'total_acct_9' => ($acct_9->balance > 0) ? $acct_9->balance : 0,
+            'total_acct_10' => ($total_acct_10 > 0) ? $total_acct_10 : 0,
+            'total_acct_11' => ($acct_11->balance > 0) ? $acct_11->balance : 0,
+            'total_acct_12' => ($acct_12->balance > 0) ? $acct_12->balance : 0,
+        ];
+    }
+
+    public function exportConsolidationPdf(){
+
+        $pdf = Pdf::loadView('exports.profit-lost-consolidation-pdf', [
+            'data' => $this->total_report_account_profit_lost(),
+        ])->setPaper('A4', 'portrait');
+
+        $fileName = 'laporan-laba-rugi_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportConsolidationExcel(){
+        $data = $this->total_report_account_profit_lost();
+
+        $name = "Laporan-laba-rugi.xlsx";
+
+        return response()->streamDownload(function () use($data, $name){
+            echo Excel::raw(new ExportProfitLostConsolidation($data), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',

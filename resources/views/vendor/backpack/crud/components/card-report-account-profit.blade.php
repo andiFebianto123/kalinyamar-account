@@ -1,5 +1,15 @@
 <div>
-    <h5>{{trans('backpack::crud.profit_lost.consolidation_income_statement')}}</h5>
+    <div class="d-flex justify-content-between">
+        <h5>{{trans('backpack::crud.profit_lost.consolidation_income_statement')}}</h5>
+        <div>
+            <button id="btn-export-consolidation-pdf" class="btn btn-sm btn-primary">
+                <i class="la la-file-download"></i> PDF
+            </button>
+            <button id="btn-export-consolidation-excel" class="btn btn-sm btn-primary">
+                <i class="la la-file-download"></i> Excel
+            </button>
+        </div>
+    </div>
     <div class="table-responsive">
         <table id="table-account-{{$name}}" class="info-cast-account table">
             <thead class="text-left">
@@ -211,6 +221,103 @@
         <script>
             $(function(){
                 SIAOPS.getAttribute('accounts').load();
+
+                $('#btn-export-consolidation-pdf').click(async function(){
+                    setLoadingButton("#btn-export-consolidation-pdf", true);
+                    var get_url_export = "{{url($crud->route)}}/export-consolidation-pdf?export=1";
+                    var get_title_export = "Laporan_laba_rugi_konsolidasi.pdf";
+                    var params_url = MakeParamUrl(window.filter_tables || {});
+
+                    var url_export_with_params = get_url_export + params_url;
+
+                    if(get_url_export == ''){
+                        setLoadingButton("#btn-export-consolidation-pdf", false);
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        return;
+                    }
+
+                    const {response, errors} = await API_REQUEST("DOWNLOAD", url_export_with_params);
+
+                    if(errors){
+                        var errorResponse = await errors;
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        setLoadingButton("#btn-export-consolidation-pdf", false);
+                    }else if(response){
+                        let result = await response;
+                        setLoadingButton("#btn-export-consolidation-pdf", false);
+
+                        const url = window.URL.createObjectURL(result);
+                        const a = document.createElement('a');
+                        a.href = url;
+
+                        a.download = get_title_export;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    }
+                });
+
+                $('#btn-export-consolidation-excel').click(async function(){
+                    setLoadingButton("#btn-export-consolidation-excel", true);
+                    var get_url_export = "{{url($crud->route)}}/export-consolidation-excel?export=1";
+                    var get_title_export = "Laporan_laba_rugi_konsolidasi.xlsx";
+                    var params_url = MakeParamUrl(window.filter_tables || {});
+
+                    var url_export_with_params = get_url_export + params_url;
+
+                    if(get_url_export == ''){
+                        setLoadingButton("#btn-export-consolidation-excel", false);
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        return;
+                    }
+
+                    const {response, errors} = await API_REQUEST("DOWNLOAD", url_export_with_params);
+                    if(errors){
+                        var errorResponse = await errors;
+                        swal({
+                            title: "Error",
+                            text: "Internet server error",
+                            icon: "error",
+                            timer: 4000,
+                            buttons: false,
+                        });
+                        setLoadingButton("#btn-export-consolidation-excel", false);
+                    }else if(response){
+                        let result = await response;
+                        setLoadingButton("#btn-export-consolidation-excel", false);
+
+                        const url = window.URL.createObjectURL(result);
+                        const a = document.createElement('a');
+                        a.href = url;
+
+                        // Nama file default - kamu bisa set manual atau ambil dari response header (opsional)
+                        a.download = get_title_export;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+
+                    }
+                });
             });
         </script>
     @endonce
