@@ -3,10 +3,10 @@
     <div>
       <strong class="fs-6" id="date-invoice">PER: Rabu, 28 Mei 2025</strong><br>
     </div>
-    <div class="text-end">
+    {{-- <div class="text-end">
       <strong class="fs-6" id="duration-invoice">Invoice Terlama 642 Hari</strong><br>
       <strong class="fs-6" id="name-invoice">Nama Pekerjaan</strong>
-    </div>
+    </div> --}}
   </div>
 
   {{-- <div class="table-responsive mb-1">
@@ -312,8 +312,8 @@
                             // console.log(result);
 
                             $('#date-invoice').html(`PER: ${result.list.tgl_start_invoice || ''}`);
-                            $('#duration-invoice').html(`Invoice Terlama ${result.list.invoice_old.duration || ''} Hari`);
-                            $('#name-invoice').html(`${result.list.invoice_old.name || ''}`);
+                            // $('#duration-invoice').html(`Invoice Terlama ${result.list.invoice_old.duration || ''} Hari`);
+                            // $('#name-invoice').html(`${result.list.invoice_old.name || ''}`);
 
                             $('#invoice_1 tbody').html('');
                             // console.log(result.list.invoice_1);

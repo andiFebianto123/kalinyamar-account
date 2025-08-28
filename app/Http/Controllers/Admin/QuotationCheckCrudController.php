@@ -275,7 +275,17 @@ class QuotationCheckCrudController extends CrudController {
             ->join('setup_clients', 'setup_clients.id', '=', 'quotations.client_id');
             CRUD::addClause('select', [
                 DB::raw("
-                    quotations.*
+                    quotation_checks.id,
+                    quotations.client_id,
+                    quotations.no_rfq,
+                    quotations.name_project,
+                    quotations.rab,
+                    quotations.rap,
+                    setup_clients.name,
+                    quotations.pic,
+                    quotations.user,
+                    quotations.closing_date,
+                    quotations.status
                 ")
             ]);
             if(request()->has('search')){
@@ -558,18 +568,30 @@ class QuotationCheckCrudController extends CrudController {
     public function destroy($id)
     {
         $this->crud->hasAccessOrFail('delete');
+        DB::beginTransaction();
+        try {
 
-        // get entry ID from Request (makes sure its the last ID for nested resources)
-        $id = $this->crud->getCurrentEntryId() ?? $id;
+            // get entry ID from Request (makes sure its the last ID for nested resources)
+            $id = $this->crud->getCurrentEntryId() ?? $id;
 
-        $this->crud->delete($id);
+            QuotationCheck::where('id', $id)->delete();
 
-        $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
-        $messages['events'] = [
-            'crudTable-quotation_create_success' => true,
-            'crudTable-quotation_check_create_success' => true,
-        ];
-        return response()->json($messages);
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+            $messages['events'] = [
+                'crudTable-quotation_create_success' => true,
+                'crudTable-quotation_check_create_success' => true,
+            ];
+
+            DB::commit();
+            return response()->json($messages);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'type' => 'errors',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function exportPdf(){

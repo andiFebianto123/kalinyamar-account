@@ -423,7 +423,11 @@ class ProjectListCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.project.column.project.duration.label'),
                     'name' => 'duration',
-                    'type'  => 'text'
+                    'type'  => 'closure',
+                    'value' => function ($row) {
+                        $total_day = $this->hitungDurasiHari($row->actual_end_date);
+                        return ($row->actual_end_date) ? $total_day : '-';
+                    }
                 ],
             );
             CRUD::column([
@@ -1742,6 +1746,10 @@ class ProjectListCrudController extends CrudController {
                 if($column['name'] == 'user_id'){
                     $item->user_id = User::find($item->user_id)->name;
                 }
+                if($column['name'] == 'duration'){
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->duration = ($item->actual_end_date) ? $total_day : '-';
+                }
             }
         }
 
@@ -1783,6 +1791,10 @@ class ProjectListCrudController extends CrudController {
                 }
                 if($column['name'] == 'user_id'){
                     $item->user_id = User::find($item->user_id)->name;
+                }
+                if($column['name'] == 'duration'){
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->duration = ($item->actual_end_date) ? $total_day : '-';
                 }
             }
         }

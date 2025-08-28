@@ -46,6 +46,7 @@ class StatusProjectCrudController extends CrudController {
         }
     }
 
+
     public function projectTab(){
         $setupProject = SetupStatusProject::orderBy('id', 'DESC')->get();
         $tabSetup = [];
@@ -691,7 +692,11 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.total_progress_day.label'),
                     'name' => 'total_progress_day',
-                    'type'  => 'text'
+                    'type'  => 'closure',
+                    'value' => function ($row) {
+                        $total_day = $this->hitungDurasiHari($row->invoice_date);
+                        return ($total_day) ? $total_day : "-";
+                    }
                 ],
             );
             CRUD::column(
@@ -1199,19 +1204,19 @@ class StatusProjectCrudController extends CrudController {
                 ],
             ]);
 
-            CRUD::addField([
-                'name' => 'total_progress_day',
-                'label' => trans('backpack::crud.project.column.project.total_progress_day.label'),
-                'type' => 'number',
-                // optionals
-                'attributes' => [
-                    "step" => "any",
-                ], // allow decimals
-                // 'suffix'     => ".00",
-                'wrapper'   => [
-                    'class' => 'form-group col-md-6'
-                ],
-            ]);
+            // CRUD::addField([
+            //     'name' => 'total_progress_day',
+            //     'label' => trans('backpack::crud.project.column.project.total_progress_day.label'),
+            //     'type' => 'number',
+            //     // optionals
+            //     'attributes' => [
+            //         "step" => "any",
+            //     ], // allow decimals
+            //     // 'suffix'     => ".00",
+            //     'wrapper'   => [
+            //         'class' => 'form-group col-md-6'
+            //     ],
+            // ]);
         }else if($po_status == 'CLOSE'){
             CRUD::addField([   // date_picker
                 'name'  => 'invoice_date',
@@ -1264,6 +1269,14 @@ class StatusProjectCrudController extends CrudController {
 
     }
 
+    function hitungDurasiHari($actualEndDate)
+    {
+        $today = Carbon::today();
+        $endDate = Carbon::parse($actualEndDate);
+
+        return $endDate->diffInDays($today);
+    }
+
     public function update()
     {
         $this->crud->hasAccessOrFail('update');
@@ -1297,7 +1310,8 @@ class StatusProjectCrudController extends CrudController {
                 if($old->total_progress_day != $request->total_progress_day){
                     $flag_update = 1;
                 }
-                $item->total_progress_day = $request->total_progress_day;
+                // $item->total_progress_day = $request->total_progress_day;
+                $item->total_progress_day = $this->hitungDurasiHari($request->invoice_date);
             }else if($item->status_po == 'CLOSE'){
                 if($old->invoice_date != $request->invoice_date){
                     $flag_update = 1;
@@ -1375,6 +1389,10 @@ class StatusProjectCrudController extends CrudController {
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
+                if($column['name'] == 'total_progress_day'){
+                    $total_day = $this->hitungDurasiHari($item->invoice_date);
+                    $item->total_progress_day = ($total_day) ? $total_day : "-";
+                }
             }
         }
 
@@ -1411,6 +1429,10 @@ class StatusProjectCrudController extends CrudController {
                 }
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'total_progress_day'){
+                    $total_day = $this->hitungDurasiHari($item->invoice_date);
+                    $item->total_progress_day = ($total_day) ? $total_day : "-";
                 }
             }
         }
