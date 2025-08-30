@@ -554,7 +554,7 @@ class ProjectSystemSetupCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         $request = request();
-        $type = $request->_type;;
+        $type = $request->_type;
         if($type == 'category_project'){
             $item = CategoryProject::find($id);
         }else if($type == 'status_project'){
