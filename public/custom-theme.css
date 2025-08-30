@@ -158,7 +158,7 @@ body {
 .nav-group-toggle:hover i,
 .nav-dropdown-items .nav-item:hover .nav-link .nav-icon{
     color: #145388 !important;
-    font-weight: bold !important;
+    font-weight: 600 !important;
 }
 
 .nav-dropdown-items .nav-icon {
@@ -436,3 +436,39 @@ div.dataTables_wrapper div.dataTables_paginate ul.pagination li.next a{
 .dropdown-item.active:hover {
     color: #fff !important;
 }
+
+.menu_hover_custom
+.sidebar {
+    width: 95px !important;
+}
+
+.menu_hover_custom .sidebar .nav-root.show .nav-dropdown-items {
+    display: none !important;
+}
+
+.menu_hover_custom .sidebar .dash-micon + span,
+.menu_hover_custom .sidebar .nav-icon + span {
+    display: none !important;
+}
+
+.menu_hover_custom .sidebar .dash-micon {
+    height: 24px !important;
+    width: 50px !important;
+    margin-right: 0px !important;
+    border-radius: 11px !important;
+}
+
+.menu_hover_custom .simplebar-content {
+    padding-right: 7px !important;
+}
+.menu_hover_custom .sidebar .nav-link {
+    padding: 10px !important;
+}
+.menu_hover_custom .sidebar .sidebar-nav .nav-group-toggle::after {
+    display: none !important;
+}
+
+.menu_hover_custom .wrapper {
+    padding-left: 6rem !important;
+}
+

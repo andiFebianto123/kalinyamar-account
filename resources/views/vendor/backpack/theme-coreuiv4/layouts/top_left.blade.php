@@ -54,5 +54,39 @@
 
   @yield('after_scripts')
   @stack('after_scripts')
+  <script>
+    $(document).ready(function () {
+
+    function checkMobile() {
+        // cek ukuran layar mobile (contoh: <= 768px)
+        return $(window).width() <= 768;
+    }
+
+      $('.sidebar').on('mouseenter', function () {
+        if(!checkMobile()){
+            $('body').removeClass('menu_hover_custom');
+        }
+      });
+
+      $('.sidebar').on('mouseleave', function () {
+        if (!checkMobile()) {
+            $('body').addClass('menu_hover_custom');
+        }
+      });
+
+      $(window).on('resize', function () {
+        if (checkMobile()) {
+          $('body').removeClass('menu_hover_custom');
+        }else{
+          $('body').addClass('menu_hover_custom');
+        }
+      });
+
+      if (checkMobile()) {
+        $('body').removeClass('menu_hover_custom');
+      }
+
+    });
+  </script>
 </body>
 </html>
