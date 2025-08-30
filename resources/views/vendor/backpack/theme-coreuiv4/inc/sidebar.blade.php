@@ -7,9 +7,9 @@
         <a class="navbar-brand fs-6 text-decoration-none text-uppercase" href="{{ url(backpack_theme_config('home_link')) }}" title="{{ backpack_theme_config('project_name') }}">
             {{-- {!! backpack_theme_config('project_logo') !!} --}}
             @if ($settings?->logo_light != null)
-            <img src="{{ asset("storage/logos/".$settings->logo_light) }}" width="50" class="sidebar-brand-full" />
+            <img src="{{ asset("storage/logos/".$settings->logo_light) }}" width="200" height="100" class="sidebar-brand-full" />
             @else
-            <img src="{{ asset('kp-logo.png') }}" width="50" class="sidebar-brand-full" />
+            <img src="{{ asset('kp-logo.png') }}" width="200" height="100" class="sidebar-brand-full" />
             @endif
             {{-- Accounting App --}}
         </a>
