@@ -575,7 +575,10 @@ class QuotationCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.quotation.column.status.label'),
                     'name' => 'status',
-                    'type'  => 'text'
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        return strtoupper($entry->status);
+                    }
                 ],
             );
             CRUD::column(
@@ -921,6 +924,9 @@ class QuotationCrudController extends CrudController {
                 if($column['name'] == 'user_id'){
                     $item->user_id = User::find($item->user_id)->name;
                 }
+                if($column['name'] == 'status'){
+                    $item->status = strtoupper($item->status);
+                }
             }
         }
 
@@ -966,6 +972,9 @@ class QuotationCrudController extends CrudController {
                 }
                 if($column['name'] == 'user_id'){
                     $item->user_id = User::find($item->user_id)->name;
+                }
+                if($column['name'] == 'status'){
+                    $item->status = strtoupper($item->status);
                 }
             }
         }

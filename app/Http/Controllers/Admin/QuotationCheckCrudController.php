@@ -318,20 +318,20 @@ class QuotationCheckCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
                     'name' => 'no_rfq',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
                     'name' => 'name_project',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
+                'label' => trans('backpack::crud.quotation.column.rab.label'),
                 'name' => 'rab',
                 'type'  => 'number',
                 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -340,7 +340,7 @@ class QuotationCheckCrudController extends CrudController {
                 'thousands_sep' => '.',
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
+                'label' => trans('backpack::crud.quotation.column.rap.label'),
                 'name' => 'rap',
                 'type'  => 'number',
                 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -361,34 +361,37 @@ class QuotationCheckCrudController extends CrudController {
             ]);
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
+                    'label' => trans('backpack::crud.quotation.column.pic.label'),
                     'name' => 'pic',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.user.label'),
+                    'label' => trans('backpack::crud.quotation.column.user.label'),
                     'name' => 'user',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+                'label' => trans('backpack::crud.quotation.column.closing_date.label'),
                 'name' => 'closing_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.status.label'),
+                    'label' => trans('backpack::crud.quotation.column.status.label'),
                     'name' => 'status',
-                    'type'  => 'text'
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        return strtoupper($entry->status);
+                    }
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.information.label'),
+                    'label' => trans('backpack::crud.quotation.column.information.label'),
                     'name' => 'information',
                     'type'  => 'text'
                 ],
@@ -614,6 +617,9 @@ class QuotationCheckCrudController extends CrudController {
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
+                if($column['name'] == 'status'){
+                    $item->status = strtoupper($item->status);
+                }
             }
         }
 
@@ -650,6 +656,9 @@ class QuotationCheckCrudController extends CrudController {
                 }
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'status'){
+                    $item->status = strtoupper($item->status);
                 }
             }
         }

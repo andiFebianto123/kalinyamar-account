@@ -150,7 +150,7 @@ class StatusQuotaionCrudController extends CrudController{
                 'tabs' => [
                     [
                         'name' => 'hps',
-                        'label' => 'HPS',
+                        'label' => strtoupper('hps'),
                         // 'class' => '',
                         'active' => true,
                         'view' => 'crud::components.datatable',
@@ -233,7 +233,7 @@ class StatusQuotaionCrudController extends CrudController{
                     ],
                     [
                         'name' => 'quotation',
-                        'label' => 'Quotation',
+                        'label' => strtoupper('Quotation'),
                         'view' => 'crud::components.datatable',
                         'params' => [
                             'crud_custom' => $this->crud,
@@ -314,7 +314,7 @@ class StatusQuotaionCrudController extends CrudController{
                     ],
                     [
                         'name' => 'close',
-                        'label' => 'Close',
+                        'label' => strtoupper('Close'),
                         'view' => 'crud::components.datatable',
                         'params' => [
                             'crud_custom' => $this->crud,
@@ -508,12 +508,15 @@ class StatusQuotaionCrudController extends CrudController{
             [
                                     'label' => trans('backpack::crud.quotation.column.status.label'),
                 'name' => 'status',
-                'type'  => 'text'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return strtoupper($entry->status);
+                }
             ],
         );
         CRUD::column(
             [
-                                    'label' => trans('backpack::crud.quotation.column.information.label'),
+                'label' => trans('backpack::crud.quotation.column.information.label'),
                 'name' => 'information',
                 'type'  => 'text'
             ],
@@ -539,6 +542,9 @@ class StatusQuotaionCrudController extends CrudController{
                 }
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'status'){
+                    $item->status = strtoupper($item->status);
                 }
             }
         }
@@ -576,6 +582,9 @@ class StatusQuotaionCrudController extends CrudController{
                 }
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'status'){
+                    $item->status = strtoupper($item->status);
                 }
             }
         }

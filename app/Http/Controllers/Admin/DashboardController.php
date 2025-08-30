@@ -96,15 +96,23 @@ class DashboardController extends CrudController
         $quotations = Quotation::groupBy('status')
         ->select(DB::raw("SUM(rab) as total, status"))->get();
 
+        $quotation_type = Quotation::select(DB::raw("status"))
+        ->groupBy('status')->get();
+
         $quotation_total = [
-            'HPS' => 0,
-            'Quotation' => 0,
-            'Close' => 0,
+            strtoupper('HPS') => 0,
+            strtoupper('QUOTATION') => 0,
+            strtoupper('CLOSE') => 0,
         ];
 
-        foreach($quotations as $quotation){
-            $quotation_total[str_replace(' ', '_', $quotation->status)] = CustomHelper::formatRupiah($quotation->total);
+        foreach($quotation_type as $quotation_status){
+            $quotation_total[strtoupper($quotation_status->status)] = 0;
         }
+
+        foreach($quotations as $quotation){
+            $quotation_total[strtoupper(str_replace(' ', '_', $quotation->status))] = CustomHelper::formatRupiah($quotation->total);
+        }
+
         return [
             'list_quotations' => $quotation_total,
         ];

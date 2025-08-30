@@ -859,7 +859,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $val = explode(',', $request->name);
                 foreach($val as $v){
                     $item = new CategoryProject;
-                    $item->name = trim($v);
+                    $item->name = strtoupper(trim($v));
                     $item->save();
                 }
             }else if($type == 'status_project'){
@@ -867,7 +867,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $val = explode(',', $request->name);
                 foreach($val as $v){
                     $item = new SetupStatusProject;
-                    $item->name = trim($v);
+                    $item->name = strtoupper(trim($v));
                     $item->save();
                 }
             }else if($type == 'status_offering'){
@@ -875,7 +875,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $val = explode(',', $request->name);
                 foreach($val as $v){
                     $item = new SetupOffering;
-                    $item->name = trim($v);
+                    $item->name = strtoupper(trim($v));
                     $item->save();
                 }
             }else if($type == 'client'){
@@ -883,7 +883,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $val = explode(',', $request->name);
                 foreach($val as $v){
                     $item = new SetupClient;
-                    $item->name = trim($v);
+                    $item->name = strtoupper(trim($v));
                     $item->save();
                 }
             }else if($type == 'ppn'){
@@ -891,7 +891,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $val = explode(',', $request->name);
                 foreach($val as $v){
                     $item = new SetupPpn;
-                    $item->name = trim($v);
+                    $item->name = strtoupper(trim($v));
                     $item->save();
                 }
             }

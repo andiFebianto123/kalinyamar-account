@@ -374,8 +374,8 @@
 
                             var quotation = result.total_quotations.list_quotations;
                             $('#HPS_total').html('Rp'+quotation.HPS);
-                            $('#Quotation_total').html('Rp'+quotation.Quotation);
-                            $('#Close_total').html('Rp'+quotation.Close);
+                            $('#Quotation_total').html('Rp'+quotation.QUOTATION);
+                            $('#Close_total').html('Rp'+quotation.CLOSE);
                         },
                         error: function (xhr, status, error) {
                             console.error(xhr);
