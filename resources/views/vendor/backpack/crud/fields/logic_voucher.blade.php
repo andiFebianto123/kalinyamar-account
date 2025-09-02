@@ -121,6 +121,7 @@
                                 $(form+ ' select[name="reference_id"]').append(work_option).trigger('change');
                                 $(form+' input[name="job_name"]').val(po.job_name);
                                 setInputNumber(form+' #bill_value_masked', po.price_total);
+                                setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
                                 $(form+' input[name="type"]').val(po.type);
                                 instance.logicFormula();
                             }
@@ -178,6 +179,7 @@
 
                                 $(form+' input[name="job_name"]').val(po.job_name);
                                 setInputNumber(form+' #bill_value_masked', po.price_total);
+                                setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
                                 $(form+' input[name="type"]').val(po.type);
                                 instance.logicFormula();
                             }

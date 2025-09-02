@@ -4,12 +4,11 @@
 
 <head>
   @include(backpack_view('inc.head'))
-
 </head>
 
 <body class="{{ backpack_theme_config('classes.body') }}">
 
-  @include(backpack_view('inc.sidebar'))
+    @include(backpack_view('inc.sidebar'))
 
   <div class="wrapper d-flex flex-column min-vh-100 bg-light">
 

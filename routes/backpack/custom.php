@@ -85,6 +85,7 @@ Route::group([
         Route::post('client-list/export-excel', [ClientCrudController::class, 'exportExcel']);
         Route::post('select2-client', 'ClientPoCrudController@select2Client');
         Route::crud('po', 'ClientPoCrudController');
+        Route::get('po/total-without-po', [ClientPoCrudController::class, 'select_count_without_po']);
         Route::post('po/export-pdf', [ClientPoCrudController::class, 'exportPdf']);
         Route::post('po/export-excel', [ClientPoCrudController::class, 'exportExcel']);
         Route::get('po/total', [ClientPoCrudController::class, 'countAllPPn']);
@@ -192,6 +193,8 @@ Route::group([
         Route::get('project-status/resume-total', [StatusProjectCrudController::class, 'resumeTotal']);
         Route::post('project-status/export-pdf', [StatusProjectCrudController::class, 'exportPdf']);
         Route::post('project-status/export-excel', [StatusProjectCrudController::class, 'exportExcel']);
+        Route::post('project-status/export-resume-pdf', [StatusProjectCrudController::class, 'exportResumePdf']);
+        Route::post('project-status/export-resume-excel', [StatusProjectCrudController::class, 'exportResumeExcel']);
     });
 
 

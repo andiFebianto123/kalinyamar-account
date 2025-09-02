@@ -258,7 +258,7 @@ body {
 }
 
 .header {
-    margin: 0px 12px 12px 12px !important;
+    margin: 12px 12px 12px 12px !important;
     border-radius: 20px !important;
     box-shadow: -2.61824px 26px 49px rgba(182, 186, 203, 0.3);
 }

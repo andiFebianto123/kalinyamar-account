@@ -126,6 +126,21 @@ class CustomHelper {
         return $is_negative ? '-' . $formatted : $formatted;
     }
 
+    public static function formatRupiahExcel($number, $decimal_digits = 0) {
+        $is_negative = $number < 0;
+
+        $absolute = abs($number);
+
+        $formatted = number_format(
+            $absolute,
+            $decimal_digits,
+            '',
+            ''
+        );
+
+        return $is_negative ? '-' . $formatted : $formatted;
+    }
+
     public static function formatRupiahWithCurrency($number, $decimal_digits = 0) {
         self::init();
         $is_negative = $number < 0;

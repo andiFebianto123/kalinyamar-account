@@ -1072,13 +1072,19 @@ class VoucherCrudController extends CrudController {
 
         if($type == 'client'){
             $client = ClientPo::where('id', $id)
-            ->select(DB::raw("id, po_number, job_name, job_value, price_total, work_code, 'Client' as type, status, client_id, '' as date_po"))
+            ->select(DB::raw("id, po_number, job_name,
+                IF(job_value > 0, job_value, 0) as price_total,
+                IF(tax_ppn > 0, tax_ppn, 0) as ppn,
+                IF(job_value_include_ppn > 0, job_value_include_ppn, 0) as price_total_include_ppn, work_code, 'Client' as type, status, client_id, '' as date_po"))
             ->first();
             $invoice_exists = InvoiceClient::where('client_po_id', $id)->first();
             $company = null;
         }else if($type == 'subkon'){
             $client = PurchaseOrder::where('id', $id)
-            ->select(DB::raw("id, po_number, job_name, job_value, total_value_with_tax as price_total, work_code, 'Subkon' as type, subkon_id, date_po"))
+            ->select(DB::raw("id, po_number, job_name,
+                IF(job_value > 0, job_value, 0) as price_total,
+                IF(tax_ppn > 0, tax_ppn, 0) as ppn,
+                IF(total_value_with_tax > 0, total_value_with_tax, 0) as price_total_include_ppn, work_code, 'Subkon' as type, subkon_id, date_po"))
             ->first();
             $company = $client->subkon;
             $invoice_exists = null;
@@ -1183,6 +1189,8 @@ class VoucherCrudController extends CrudController {
         }else{
             $rule['payment_date'] = 'nullable|date';
         }
+
+        $rule['job_name'] = 'required';
 
         if(request()->has('id')){
 
@@ -2009,6 +2017,15 @@ class VoucherCrudController extends CrudController {
 
             $this->data['entry'] = $this->crud->entry = $item;
 
+            $voucher = $item;
+            if($voucher->reference_type == ClientPo::class){
+                if($voucher->reference->status == 'TANPA PO'){
+                    $client = ClientPo::find($voucher->reference_id);
+                    $client->job_name = $voucher->job_name;
+                    $client->load_general_value = $voucher->payment_transfer;
+                    $client->save();
+                }
+            }
 
             \Alert::success(trans('backpack::crud.update_success'))->flash();
 
@@ -2235,6 +2252,16 @@ class VoucherCrudController extends CrudController {
                 $approval->position = '';
                 $approval->status = Approval::PENDING;
                 $approval->save();
+            }
+
+            $voucher = $item;
+            if($voucher->reference_type == ClientPo::class){
+                if($voucher->reference->status == 'TANPA PO'){
+                    $client = ClientPo::find($voucher->reference_id);
+                    $client->job_name = $voucher->job_name;
+                    $client->load_general_value = $voucher->payment_transfer;
+                    $client->save();
+                }
             }
 
             $event['crudTable-voucher_create_success'] = $item;

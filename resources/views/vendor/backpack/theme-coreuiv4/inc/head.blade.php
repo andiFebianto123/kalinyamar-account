@@ -28,7 +28,7 @@
 @yield('after_styles')
 @stack('after_styles')
 
-@loadScriptOnce(asset('sia.plugin.js'));
+@loadScriptOnce(asset('sia.plugin.js'))
 
 @stack('inline_scripts')
 

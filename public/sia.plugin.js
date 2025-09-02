@@ -472,6 +472,9 @@ function getInputNumber(selected){
 }
 
 function setInputNumber(selected, value){
+    if(value === null){
+        return;
+    }
     let str = value.toString();
 
     str = str.replace(/\.00$/, "");

@@ -421,7 +421,7 @@ class ProjectListCrudController extends CrudController {
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.duration.label'),
+                    'label' => trans('backpack::crud.project.column.project.duration.label'),
                     'name' => 'duration',
                     'type'  => 'closure',
                     'value' => function ($row) {

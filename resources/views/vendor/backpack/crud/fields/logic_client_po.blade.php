@@ -40,6 +40,20 @@
                     setInputNumber(form+' #profit_and_lost_final_masked', laba_rugi_akhir);
 
                 },
+                setupWithoutPoCount: function(form){
+                    $.ajax({
+                        url: "{{ url($crud->route.'/total-without-po') }}",
+                        type: 'GET',
+                        success: function(response){
+                            // console.log(response);
+                            $(form+' input[name="work_code"]').val(`UMUM-${response.count}`);
+
+                        },
+                        error: function(error){
+                            alert(error);
+                        }
+                    })
+                },
                 load: function(){
                     var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
@@ -56,6 +70,7 @@
                         $(form+' select[name="status"]').on('select2:select', function (e) {
                             var data = $(this).val();
                             if(data == 'TANPA PO'){
+                                // instance.setupWithoutPoCount();
                                 $(form+' input[name="po_number"]').attr('disabled', true);
                             }else{
                                 $(form+' input[name="po_number"]').removeAttr('disabled');
@@ -65,9 +80,10 @@
                         $(form+' select[name="status"]').on('select2:select', function (e) {
                             var data = $(this).val();
                             if(data == 'TANPA PO'){
+                                instance.setupWithoutPoCount(form);
                                 var kdp = "UMUM-";
                                 $(form+' input[name="po_number"]').attr('disabled', true);
-                                $(form+' input[name="work_code"]').val(kdp);
+                                // $(form+' input[name="work_code"]').val(kdp);
                             }else{
                                 $(form+' input[name="po_number"]').removeAttr('disabled');
                                 $(form+' input[name="work_code"]').val(settings.work_code_prefix);

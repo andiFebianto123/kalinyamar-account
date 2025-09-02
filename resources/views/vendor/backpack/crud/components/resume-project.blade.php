@@ -1,98 +1,4 @@
 <div class="mt-2">
-    <div class="d-flex justify-content-between align-items-start mb-2">
-    <div>
-      <strong class="fs-6" id="date-invoice">PER: Rabu, 28 Mei 2025</strong><br>
-    </div>
-    {{-- <div class="text-end">
-      <strong class="fs-6" id="duration-invoice">Invoice Terlama 642 Hari</strong><br>
-      <strong class="fs-6" id="name-invoice">Nama Pekerjaan</strong>
-    </div> --}}
-  </div>
-
-  {{-- <div class="table-responsive mb-1">
-    <table class="table table-borderless">
-        <thead class="bg-navy">
-            <tr>
-                <th colspan="2" style="width:30%;">TOTAL OMSET INCLUDE PPN</th>
-                <th style="width:40%;"><strong>2022</strong></th>
-                <th style="width:30%;"><strong>28 Mei 2025</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="2">Bedasarkan Faktur keluaran</td>
-            <td>Rp.4000.000.000</td>
-            <td>Rp.4000.000.000</td>
-          </tr>
-        </tbody>
-    </table>
-  </div> --}}
-
-  {{-- <div class="table-responsive mb-1">
-    <table class="table table-borderless">
-        <thead class="bg-navy">
-            <tr>
-                <th style="width:30%;"><strong>TOTAL INVOICE FAKTUR</strong></th>
-                <th colspan="2" style="width:70%;"><strong>Per 1 Januari 2023 sampai dengan 28 Mei 2025</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="bg-navy"><strong>2023 - TERBAYAR INCLUDE PPN</strong></td>
-            <td>Rp.4000.000.000</td>
-          </tr>
-        </tbody>
-    </table>
-  </div> --}}
-
-  {{-- <div class="table-responsive mb-1">
-    <table class="table table-borderless">
-        <thead class="bg-light-actual">
-            <tr>
-                <th style="width:4%;"><strong>No.</strong></th>
-                <th style="width:26%;"><strong>Estimasi Pembayaran PPN Masa</strong></th>
-                <th style="width:40%;"><strong>Oktober 2023</strong></th>
-                <th style="width:30%;"><strong>November 2023</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1.</td>
-            <td>Pajak Keluaran (Dipungut Sendiri)</td>
-            <td>Rp.4000.000.000</td>
-            <td>Rp.4000.000.000</td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>Pajak Masukan</td>
-            <td>Rp.4000.000.000</td>
-            <td>Rp.4000.000.000</td>
-          </tr>
-          <tr>
-            <td></td>
-            <td><strong>Total Bayar</strong></td>
-            <td><strong>Rp.4000.000.000</strong></td>
-            <td><strong>Rp.4000.000.000</strong></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td rowspan="2"><strong><i>Nilai dapat berubah jika ada faktur<br>masukan dan faktur keluaran Tambahan</i></strong></td>
-            <td><strong class="text-danger">JATUH TEMPO</strong></td>
-            <td><strong class="text-danger">JATUH TEMPO</strong></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td><strong class="text-danger">25 NOVEMBER 2023</strong></td>
-            <td><strong class="text-danger">25 DESEMBER 2023</strong></td>
-          </tr>
-          <tr>
-            <td colspan="2"><strong>STATUS PEMBAYARAN PPN MASA</strong></td>
-            <td class="bg-danger">KURANG BAYAR</td>
-            <td class="bg-navy">SUDAH BAYAR</td>
-          </tr>
-        </tbody>
-    </table>
-  </div> --}}
 
   <div class="fs-6"><strong>KATEGORI TAGIHAN</strong></div>
   <div><strong>1. TAGIHAN YANG BELUM DIBAYAR</strong></div>
@@ -311,7 +217,7 @@
                         success: function (result) {
                             // console.log(result);
 
-                            $('#date-invoice').html(`PER: ${result.list.tgl_start_invoice || ''}`);
+                            // $('#date-invoice').html(`PER: ${result.list.tgl_start_invoice || ''}`);
                             // $('#duration-invoice').html(`Invoice Terlama ${result.list.invoice_old.duration || ''} Hari`);
                             // $('#name-invoice').html(`${result.list.invoice_old.name || ''}`);
 

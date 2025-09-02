@@ -520,7 +520,8 @@ class ProfitLostAccountCrudController extends CrudController{
         // ->paginate(20);
         $union = Voucher::where('reference_type', ClientPo::class)
         ->whereHasMorph('reference', '*', function($query) use($q){
-            $query->where('po_number', 'like', "%$q%");
+            $query->where('po_number', 'like', "%$q%")
+            ->where('status', 'ADA PO');
         })->get();
 
         $results = [];
@@ -1173,6 +1174,15 @@ class ProfitLostAccountCrudController extends CrudController{
             $item->contract_value = 0;
             $item->total_project = 0;
             $item->save();
+
+            $po = ClientPo::find($request->client_po_id);
+            $po->price_after_year = $item->price_after_year;
+            $po->price_total = $item->price_total;
+            $po->profit_and_loss = $item->price_profit_lost_po;
+            $po->load_general_value = $item->price_general;
+            $po->profit_and_lost_final = $item->price_prift_lost_final;
+            $po->category = $item->category;
+            $po->save();
 
             $this->data['entry'] = $this->crud->entry = $item;
 

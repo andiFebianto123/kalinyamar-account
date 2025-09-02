@@ -27,7 +27,7 @@ class ClientPoRequest extends FormRequest
     {
         $id = request('id');
         $status = request('status');
-        $rule = [
+        $rule_origin = [
             // 'name' => 'required|min:5|max:255'
             'client_id' => 'required|exists:clients,id',
             'work_code' => 'required|max:30|unique:client_po,work_code,'. $id,
@@ -37,17 +37,37 @@ class ClientPoRequest extends FormRequest
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'reimburse_type' => 'required|max:50',
-            'price_total' => 'required|numeric',
+            // 'price_total' => 'required|numeric',
             'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
             'date_invoice' => 'nullable|date',
             'rap_value' => 'required|numeric',
-            'price_after_year' => 'required|numeric',
+            // 'price_after_year' => 'required|numeric',
             'load_general_value' => 'nullable|numeric',
             'category' => 'required',
         ];
 
+        $rule_no_po = [
+            'work_code' => 'required|max:30|unique:client_po,work_code,'. $id,
+            // 'po_number' => 'required|max:30|unique:client_po,po_number,'. $id,
+            'client_id' => 'nullable|exists:clients,id',
+            'job_name' => 'nullable|max:255',
+            'rap_value' => 'nullable|numeric',
+            'job_value' => 'nullable|numeric',
+            'tax_ppn' => 'nullable|numeric',
+            'reimburse_type' => 'nullable|max:50',
+            'load_general_value' => 'nullable|numeric',
+            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
+            'category' => 'required',
+        ];
+
+        // rule defautl
+        $rule = $rule_no_po;
+
         if($status == 'TANPA PO'){
+            $rule = $rule_no_po;
             $rule['po_number'] = 'nullable|max:30';
+        }else if($status == 'ADA PO'){
+            $rule = $rule_origin;
         }
 
         if($id){

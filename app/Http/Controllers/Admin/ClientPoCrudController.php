@@ -78,6 +78,12 @@ class ClientPoCrudController extends CrudController
                         'orderable' => false,
                     ],
                     [
+                        'name'      => 'work_code',
+                        'type'      => 'text',
+                        'label'     => trans('backpack::crud.client_po.column.work_code'),
+                        'orderable' => true,
+                    ],
+                    [
                         'label' => trans('backpack::crud.client_po.column.client_id'),
                         'type'      => 'text',
                         'name'      => 'client_id',
@@ -87,12 +93,6 @@ class ClientPoCrudController extends CrudController
                         'name'      => 'reimburse_type',
                         'type'      => 'text',
                         'label'     => trans('backpack::crud.client_po.column.reimburse_type'),
-                        'orderable' => true,
-                    ],
-                    [
-                        'name'      => 'work_code',
-                        'type'      => 'text',
-                        'label'     => trans('backpack::crud.client_po.column.work_code'),
                         'orderable' => true,
                     ],
                     [
@@ -256,6 +256,14 @@ class ClientPoCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
+    public function select_count_without_po(){
+        $po = ClientPo::select(DB::raw("COUNT(id) as count"))
+        ->where('status', 'TANPA PO')->first();
+        return response()->json([
+            'count' => $po->count + 1,
+        ]);
+    }
+
     public function calculateClientPo($request)
     {
         $nilaiPekerjaan = floatval(str_replace(',', '', $request->input('job_value')));
@@ -272,9 +280,12 @@ class ClientPoCrudController extends CrudController
 
         // Simpan ke database atau kirim balik ke view
         return [
+            'price_after_year' => 0,
+            'price_total' => 0,
+            'load_general_value' => 0,
             'job_value_include_ppn' => $total,
-            'profit_and_loss' => $labaRugiPo,
-            'profit_and_loss_final' => $labaRugiAkhir,
+            'profit_and_loss' => 0,
+            'profit_and_loss_final' => 0,
         ];
     }
 
@@ -429,8 +440,15 @@ class ClientPoCrudController extends CrudController
 
 
         if($request->columns){
+
             if(trim($request->columns[1]['search']['value']) != ''){
                 $search = $request->columns[1]['search']['value'];
+                $this->crud->query = $this->crud->query
+                ->where('work_code', 'like', '%'.$search.'%');
+            }
+
+            if(trim($request->columns[2]['search']['value']) != ''){
+                $search = $request->columns[2]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->WhereExists(function($q) use($search){
                     $q->from('clients')
@@ -439,16 +457,10 @@ class ClientPoCrudController extends CrudController
                 });
             }
 
-            if(trim($request->columns[2]['search']['value']) != ''){
-                $search = $request->columns[2]['search']['value'];
-                $this->crud->query = $this->crud->query
-                ->where('reimburse_type', 'like', '%'.$search.'%');
-            }
-
             if(trim($request->columns[3]['search']['value']) != ''){
                 $search = $request->columns[3]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('work_code', 'like', '%'.$search.'%');
+                ->where('reimburse_type', 'like', '%'.$search.'%');
             }
 
             if(trim($request->columns[4]['search']['value']) != ''){
@@ -545,6 +557,14 @@ class ClientPoCrudController extends CrudController
             ]
         ])->makeFirstColumn();
 
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.work_code'),
+                'name' => 'work_code',
+                'type'  => 'text'
+            ],
+        );
+
         CRUD::column([
             // 1-n relationship
             'label' => trans('backpack::crud.client_po.column.client_id'),
@@ -561,14 +581,6 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
                 'name' => 'reimburse_type',
-                'type'  => 'text'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.client_po.column.work_code'),
-                'name' => 'work_code',
                 'type'  => 'text'
             ],
         );
@@ -721,6 +733,14 @@ class ClientPoCrudController extends CrudController
             ]
         ])->makeFirstColumn();
 
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.column.work_code'),
+                'name' => 'work_code',
+                'type'  => 'export'
+            ],
+        );
+
         CRUD::column([
             // 1-n relationship
             'label' => trans('backpack::crud.client_po.column.client_id'),
@@ -730,23 +750,14 @@ class ClientPoCrudController extends CrudController
             'attribute' => 'name', // foreign key attribute that is shown to user
             'model'     => "App\Models\Client", // foreign key model
             'function' => function ($client_id) {
-                return $client_id->client->name;
+                return $client_id?->client?->name;
             }
-
         ]);
 
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
                 'name' => 'reimburse_type',
-                'type'  => 'export'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.client_po.column.work_code'),
-                'name' => 'work_code',
                 'type'  => 'export'
             ],
         );
@@ -1006,18 +1017,18 @@ class ClientPoCrudController extends CrudController
             ...$po_prefix,
         ]);
 
-        CRUD::addField([   // Hidden
-            'name'  => 'space',
-            'type'  => 'hidden',
-            'value' => 'active',
-            'wrapper'   => [
-                'class' => 'form-group col-md-6'
-            ],
-            'attributes' => [
-                'disabled'  => 'disabled',
-                // 'placeholder' => trans('backpack::crud.spk.field.')
-            ]
-        ]);
+        // CRUD::addField([   // Hidden
+        //     'name'  => 'space',
+        //     'type'  => 'hidden',
+        //     'value' => 'active',
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        //     'attributes' => [
+        //         'disabled'  => 'disabled',
+        //         // 'placeholder' => trans('backpack::crud.spk.field.')
+        //     ]
+        // ]);
 
          CRUD::addField([
             'name' => 'job_name',
@@ -1154,92 +1165,92 @@ class ClientPoCrudController extends CrudController
             // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
         ]);
 
-        CRUD::addField([
-            'name' => 'price_after_year',
-            'label' => trans('backpack::crud.client_po.column.price_after_year'),
-            'type' => 'mask',
-            'mask' => '000.000.000.000.000.000',
-            'mask_options' => [
-                'reverse' => true
-            ],
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'attributes' => [
-                'placeholder' => '000.000',
-            ]
-        ]);
+        // CRUD::addField([
+        //     'name' => 'price_after_year',
+        //     'label' => trans('backpack::crud.client_po.column.price_after_year'),
+        //     'type' => 'mask',
+        //     'mask' => '000.000.000.000.000.000',
+        //     'mask_options' => [
+        //         'reverse' => true
+        //     ],
+        //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => '000.000',
+        //     ]
+        // ]);
 
-        CRUD::addField([
-            'name' => 'price_total',
-            'label' => trans('backpack::crud.client_po.field.price_total.label'),
-            'type' => 'mask',
-            'mask' => '000.000.000.000.000.000',
-            'mask_options' => [
-                'reverse' => true
-            ],
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'attributes' => [
-                'placeholder' => '000.000',
-            ]
-        ]);
+        // CRUD::addField([
+        //     'name' => 'price_total',
+        //     'label' => trans('backpack::crud.client_po.field.price_total.label'),
+        //     'type' => 'mask',
+        //     'mask' => '000.000.000.000.000.000',
+        //     'mask_options' => [
+        //         'reverse' => true
+        //     ],
+        //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => '000.000',
+        //     ]
+        // ]);
 
-        CRUD::addField([
-            'name' => 'profit_and_loss',
-            'label' => trans('backpack::crud.client_po.column.profit_and_loss'),
-            'type' => 'mask',
-            'mask' => '000.000.000.000.000.000',
-            'mask_options' => [
-                'reverse' => true
-            ],
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'attributes' => [
-                'placeholder' => '000.000',
-                'disabled' => true,
-            ]
-        ]);
+        // CRUD::addField([
+        //     'name' => 'profit_and_loss',
+        //     'label' => trans('backpack::crud.client_po.column.profit_and_loss'),
+        //     'type' => 'mask',
+        //     'mask' => '000.000.000.000.000.000',
+        //     'mask_options' => [
+        //         'reverse' => true
+        //     ],
+        //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => '000.000',
+        //         'disabled' => true,
+        //     ]
+        // ]);
 
-        CRUD::addField([
-            'name' => 'load_general_value',
-            'label' => trans('backpack::crud.client_po.column.load_general_value'),
-            'type' => 'mask',
-            'mask' => '000.000.000.000.000.000',
-            'mask_options' => [
-                'reverse' => true
-            ],
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'attributes' => [
-                'placeholder' => '000.000',
-            ]
-        ]);
+        // CRUD::addField([
+        //     'name' => 'load_general_value',
+        //     'label' => trans('backpack::crud.client_po.column.load_general_value'),
+        //     'type' => 'mask',
+        //     'mask' => '000.000.000.000.000.000',
+        //     'mask_options' => [
+        //         'reverse' => true
+        //     ],
+        //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6 .load_general_value_wrapper',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => '000.000',
+        //     ]
+        // ]);
 
-        CRUD::addField([
-            'name' => 'profit_and_lost_final',
-            'label' => trans('backpack::crud.client_po.column.profit_and_lost_final'),
-            'type' => 'mask',
-            'mask' => '000.000.000.000.000.000',
-            'mask_options' => [
-                'reverse' => true
-            ],
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
-            'wrapper'   => [
-                'class' => 'form-group col-md-6',
-            ],
-            'attributes' => [
-                'placeholder' => '000.000',
-                'disabled' => true,
-            ]
-        ]);
+        // CRUD::addField([
+        //     'name' => 'profit_and_lost_final',
+        //     'label' => trans('backpack::crud.client_po.column.profit_and_lost_final'),
+        //     'type' => 'mask',
+        //     'mask' => '000.000.000.000.000.000',
+        //     'mask_options' => [
+        //         'reverse' => true
+        //     ],
+        //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp",
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => '000.000',
+        //         'disabled' => true,
+        //     ]
+        // ]);
 
         CRUD::addField([
             'name' => 'document_path',

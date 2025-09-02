@@ -9,6 +9,7 @@ use App\Models\SetupClient;
 use App\Models\ProjectHistory;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
+use App\Http\Exports\ExportResume;
 use App\Http\Helpers\CustomHelper;
 use App\Models\SetupStatusProject;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,12 @@ class StatusProjectCrudController extends CrudController {
             'label' => 'RESUME',
             'view' => 'crud::components.resume-project',
             'active' => true,
-            'params' => []
+            'params' => [
+                'route_export_pdf' => url($this->crud->route.'/export-resume-pdf?tab=resume'),
+                'title_export_pdf' => "Resume_status_proyek.pdf",
+                'route_export_excel' => url($this->crud->route.'/export-resume-excel?tab=resume'),
+                'title_export_excel' => "Resume_status_proyek.xlsx",
+            ]
         ];
         foreach($setupProject as $key => $status){
             $tab = [
@@ -488,7 +494,8 @@ class StatusProjectCrudController extends CrudController {
         return view($list, $this->data);
     }
 
-    public function resumeTotal(){
+
+    public function resumeTotal($is_output = 'json'){
         $invoiceold = Project::where('status_po', 'UNPAID')
         ->where('status_po', '!=', "BELUM ADA PO")
         ->orderBy('total_progress_day', 'DESC')
@@ -600,10 +607,142 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_6_total'] = $total_invoice_6;
         $data['invoice_6_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_6);
 
-        return response()->json([
+        if($is_output == 'json'){
+            return response()->json([
+                'list' => $data,
+                'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
+            ]);
+        }
+
+        return [
             'list' => $data,
-            'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
-        ]);
+            'grand_total' => CustomHelper::formatRupiah($grand_total),
+        ];
+    }
+
+    public function resumeTotalExport($is_output = 'json'){
+        $invoiceold = Project::where('status_po', 'UNPAID')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->orderBy('total_progress_day', 'DESC')
+        ->first();
+
+        $data['invoice_old'] = $invoiceold;
+
+        if($invoiceold){
+            $data['tgl_start_invoice'] = Carbon::parse($invoiceold?->invoice_date)->locale(App::getLocale())->isoFormat('dddd, D MMMM Y');
+        }else{
+            $data['tgl_start_invoice'] = '';
+        }
+
+        $invoice_1 = Project::where('status_po', 'UNPAID')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->orderBy('id', 'DESC')
+        ->get();
+        $data['invoice_1'] = $invoice_1;
+
+        $grand_total = 0;
+
+        $total_invoice_1 = 0;
+        foreach($invoice_1 as $val1){
+            $total_invoice_1 += $val1->price_total_include_ppn;
+            $val1->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val1->price_total_include_ppn);
+            $val1->client_name_str = $val1->setup_client->name;
+        }
+        $grand_total += $total_invoice_1;
+        $data['invoice_1_total'] = $total_invoice_1;
+        $data['invoice_1_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_1);
+
+        $invoice_2 = Project::where('status_po', 'TERTUNDA')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->where('category', 'RUTIN')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_2'] = $invoice_2;
+
+        $total_invoice_2 = 0;
+        foreach($invoice_2 as $val2){
+            $total_invoice_2 += $val2->price_total_include_ppn;
+            $val2->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val2->price_total_include_ppn);
+            $val2->client_name_str = $val2->setup_client->name;
+        }
+        $grand_total += $total_invoice_2;
+        $data['invoice_2_total'] = $total_invoice_2;
+        $data['invoice_2_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_2);
+
+
+        $invoice_3 = Project::where('status_po', 'TERTUNDA')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->where('category', 'NON RUTIN')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_3'] = $invoice_3;
+
+        $total_invoice_3 = 0;
+        foreach($invoice_3 as $val3){
+            $total_invoice_3 += $val3->price_total_include_ppn;
+            $val3->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val3->price_total_include_ppn);
+            $val3->client_name_str = $val3->setup_client->name;
+        }
+        $grand_total += $total_invoice_3;
+        $data['invoice_3_total'] = $total_invoice_3;
+        $data['invoice_3_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_3);
+
+        $invoice_4 = Project::where('status_po', 'RETENSI')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_4'] = $invoice_4;
+
+        $total_invoice_4 = 0;
+        foreach($invoice_4 as $val4){
+            $total_invoice_4 += $val4->price_total_include_ppn;
+            $val4->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val4->price_total_include_ppn);
+            $val4->client_name_str = $val4->setup_client->name;
+        }
+        $grand_total += $total_invoice_4;
+        $data['invoice_4_total'] = $total_invoice_4;
+        $data['invoice_4_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_4);
+
+        $invoice_5 = Project::where('status_po', 'BELUM SELESAI')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->where('category', 'RUTIN')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_5'] = $invoice_5;
+
+        $total_invoice_5 = 0;
+        foreach($invoice_5 as $val5){
+            $total_invoice_5 += $val5->price_total_include_ppn;
+            $val5->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val5->price_total_include_ppn);
+            $val5->client_name_str = $val5->setup_client->name;
+        }
+        $grand_total += $total_invoice_5;
+        $data['invoice_5_total'] = $total_invoice_5;
+        $data['invoice_5_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_5);
+
+        $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
+        ->where('status_po', '!=', "BELUM ADA PO")
+        ->where('category', 'NON RUTIN')
+        ->orderBy('id', 'DESC')->get();
+        $data['invoice_6'] = $invoice_6;
+
+        $total_invoice_6 = 0;
+        foreach($invoice_6 as $val6){
+            $total_invoice_6 += $val6->price_total_include_ppn;
+            $val6->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val6->price_total_include_ppn);
+            $val6->client_name_str = $val6->setup_client->name;
+        }
+        $grand_total += $total_invoice_6;
+        $data['invoice_6_total'] = $total_invoice_6;
+        $data['invoice_6_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_6);
+
+        if($is_output == 'json'){
+            return response()->json([
+                'list' => $data,
+                'grand_total' => CustomHelper::formatRupiahExcel($grand_total),
+            ]);
+        }
+
+        return [
+            'list' => $data,
+            'grand_total' => CustomHelper::formatRupiahExcel($grand_total),
+        ];
     }
 
     protected function setupListOperation()
@@ -1451,6 +1590,51 @@ class StatusProjectCrudController extends CrudController {
             'message' => 'Download Failure',
         ], 400);
 
+    }
+
+    public function exportResumePdf(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->resumeTotalExport('array');
+
+        $title = 'RESUME STATUS PROYEK';
+
+        // dd($items['list']['invoice_1']);
+
+        $pdf = Pdf::loadView('exports.resume', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+
+        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
+    }
+
+    public function exportResumeExcel(){
+        $type = request()->tab;
+
+        $this->setupListOperation();
+        $columns = $this->crud->columns();
+        $items =  $this->resumeTotalExport('array');
+
+        $name = 'Status Project - '.$type;
+
+        return response()->streamDownload(function () use($type, $columns, $items){
+            echo Excel::raw(new ExportResume($items), \Maatwebsite\Excel\Excel::XLSX);
+        }, $name, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Download Failure',
+        ], 400);
     }
 
 

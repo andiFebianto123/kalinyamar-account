@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\SetupPpn;
@@ -72,6 +73,15 @@ class ProjectListReportCrudController extends CrudController {
         $this->data['breadcrumbs'] = $breadcrumbs;
         $list = "crud::list-custom" ?? $this->crud->getListView();
         return view($list, $this->data);
+    }
+
+    function hitungDurasiHari($actualEndDate)
+    {
+        $today = Carbon::today();
+        $endDate = Carbon::parse($actualEndDate);
+
+        // Selisih termasuk hari ini
+        return $endDate->diffInDays($today);
     }
 
     protected function setupListOperation()
@@ -155,7 +165,11 @@ class ProjectListReportCrudController extends CrudController {
             [
                 'label'  => trans('backpack::crud.project_report.column.duration.label'),
                 'name' => 'duration',
-                'type'  => 'text'
+                'type'  => 'closure',
+                'function' => function ($row) {
+                    $total_day = $this->hitungDurasiHari($row->actual_end_date);
+                    return ($row->actual_end_date) ? $total_day : '-';
+                }
             ],
         );
         CRUD::column([
@@ -726,6 +740,10 @@ class ProjectListReportCrudController extends CrudController {
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
+                if($column['name'] == 'duration'){
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->duration = ($item->actual_end_date) ? $total_day : '-';
+                }
             }
         }
 
@@ -762,6 +780,10 @@ class ProjectListReportCrudController extends CrudController {
                 }
                 if($column['name'] == 'start_date,end_date'){
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
+                }
+                if($column['name'] == 'duration'){
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->duration = ($item->actual_end_date) ? $total_day : '-';
                 }
             }
         }
