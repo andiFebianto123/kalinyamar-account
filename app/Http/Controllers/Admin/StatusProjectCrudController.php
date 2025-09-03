@@ -841,8 +841,8 @@ class StatusProjectCrudController extends CrudController {
                     'name' => 'total_progress_day',
                     'type'  => 'closure',
                     'value' => function ($row) {
-                        $total_day = $this->hitungDurasiHari($row->end_date);
-                        return ($row->end_date) ? $total_day : "-";
+                        $total_day = $this->hitungDurasiHari($row->actual_end_date);
+                        return ($row->actual_end_date) ? $total_day : "-";
                     }
                 ],
             );
@@ -988,8 +988,8 @@ class StatusProjectCrudController extends CrudController {
                     'name' => 'duration',
                     'type'  => 'closure',
                     'value' => function ($row) {
-                        $total_day = $this->hitungDurasiHari($row->end_date);
-                        return ($row->end_date) ? $total_day : "-";
+                        $total_day = $this->hitungDurasiHari($row->actual_end_date);
+                        return ($row->actual_end_date) ? $total_day : "-";
                     }
                 ],
             );
@@ -1534,12 +1534,12 @@ class StatusProjectCrudController extends CrudController {
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
                 if($column['name'] == 'total_progress_day'){
-                    $total_day = $this->hitungDurasiHari($item->end_date);
-                    $item->total_progress_day = ($item->end_date) ? $total_day : "-";
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->total_progress_day = ($item->actual_end_date) ? $total_day : "-";
                 }
                 if($column['name'] == 'duration'){
-                    $total_day = $this->hitungDurasiHari($item->end_date);
-                    $item->duration = ($item->end_date) ? $total_day : "-";
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->duration = ($item->actual_end_date) ? $total_day : "-";
                 }
             }
         }
@@ -1579,12 +1579,12 @@ class StatusProjectCrudController extends CrudController {
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
                 if($column['name'] == 'total_progress_day'){
-                    $total_day = $this->hitungDurasiHari($item->invoice_date);
-                    $item->total_progress_day = ($item->invoice_date) ? $total_day : "-";
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->total_progress_day = ($item->actual_end_date) ? $total_day : "-";
                 }
                 if($column['name'] == 'duration'){
-                    $total_day = $this->hitungDurasiHari($item->invoice_date);
-                    $item->duration = ($item->invoice_date) ? $total_day : "-";
+                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                    $item->duration = ($item->actual_end_date) ? $total_day : "-";
                 }
             }
         }
