@@ -745,6 +745,14 @@ class StatusProjectCrudController extends CrudController {
         ];
     }
 
+    function hitungDurasiHari($actualEndDate)
+    {
+        $today = Carbon::today();
+        $endDate = Carbon::parse($actualEndDate);
+
+        return $endDate->diffInDays($today);
+    }
+
     protected function setupListOperation()
     {
         CRUD::disableResponsiveTable();
@@ -834,7 +842,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'closure',
                     'value' => function ($row) {
                         $total_day = $this->hitungDurasiHari($row->invoice_date);
-                        return ($total_day) ? $total_day : "-";
+                        return ($row->invoice_date) ? $total_day : "-";
                     }
                 ],
             );
@@ -978,7 +986,11 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.duration.label'),
                     'name' => 'duration',
-                    'type'  => 'text'
+                    'type'  => 'closure',
+                    'value' => function ($row) {
+                        $total_day = $this->hitungDurasiHari($row->invoice_date);
+                        return ($row->invoice_date) ? $total_day : "-";
+                    }
                 ],
             );
             CRUD::column([
@@ -1408,13 +1420,6 @@ class StatusProjectCrudController extends CrudController {
 
     }
 
-    function hitungDurasiHari($actualEndDate)
-    {
-        $today = Carbon::today();
-        $endDate = Carbon::parse($actualEndDate);
-
-        return $endDate->diffInDays($today);
-    }
 
     public function update()
     {
@@ -1530,7 +1535,11 @@ class StatusProjectCrudController extends CrudController {
                 }
                 if($column['name'] == 'total_progress_day'){
                     $total_day = $this->hitungDurasiHari($item->invoice_date);
-                    $item->total_progress_day = ($total_day) ? $total_day : "-";
+                    $item->total_progress_day = ($item->invoice_date) ? $total_day : "-";
+                }
+                if($column['name'] == 'duration'){
+                    $total_day = $this->hitungDurasiHari($item->invoice_date);
+                    $item->duration = ($item->invoice_date) ? $total_day : "-";
                 }
             }
         }
@@ -1571,7 +1580,11 @@ class StatusProjectCrudController extends CrudController {
                 }
                 if($column['name'] == 'total_progress_day'){
                     $total_day = $this->hitungDurasiHari($item->invoice_date);
-                    $item->total_progress_day = ($total_day) ? $total_day : "-";
+                    $item->total_progress_day = ($item->invoice_date) ? $total_day : "-";
+                }
+                if($column['name'] == 'duration'){
+                    $total_day = $this->hitungDurasiHari($item->invoice_date);
+                    $item->duration = ($item->invoice_date) ? $total_day : "-";
                 }
             }
         }

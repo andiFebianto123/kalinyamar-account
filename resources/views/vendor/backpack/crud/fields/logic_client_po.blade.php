@@ -22,6 +22,31 @@
         SIAOPS.setAttribute('logic_client_po', function(){
             return {
                 form_type : "{{ $crud->getActionMethod() }}",
+                withoutPo: function(){
+                    var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
+                    var status_po = $(form+' select[name="status"]').val();
+                    if(status_po == 'TANPA PO'){
+                        $(form+' select[name="client_id"]').attr('disabled', true);
+                        $(form+' input[name="job_name"]').attr('disabled', true);
+                        $(form+' #rap_value_masked').attr('disabled', true);
+                        $(form+' #job_value_masked').attr('disabled', true);
+                        $(form+' input[name="tax_ppn"]').attr('disabled', true);
+                        $(form+' #start_date_end_date').attr('disabled', true);
+                        $(form+' select[name="reimburse_type"]').attr('disabled', true);
+                        $(form+' input[name="document_path"]').attr('disabled', true);
+                        $(form+' select[name="category"]').attr('disabled', true);
+                    }else{
+                        $(form+' select[name="client_id"]').removeAttr('disabled');
+                        $(form+' input[name="job_name"]').removeAttr('disabled');
+                        $(form+' #rap_value_masked').removeAttr('disabled');
+                        $(form+' #job_value_masked').removeAttr('disabled');
+                        $(form+' input[name="tax_ppn"]').removeAttr('disabled');
+                        $(form+' #start_date_end_date').removeAttr('disabled');
+                        $(form+' select[name="reimburse_type"]').removeAttr('disabled');
+                        $(form+' input[name="document_path"]').removeAttr('disabled');
+                        $(form+' select[name="category"]').removeAttr('disabled');
+                    }
+                },
                 logicFormula: function(){
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
                     var nilai_pekerjaan = getInputNumber(form+' #job_value');
@@ -67,8 +92,10 @@
                         }else{
                             $(form+' input[name="po_number"]').attr('disabled', true);
                         }
+                        instance.withoutPo();
                         $(form+' select[name="status"]').on('select2:select', function (e) {
                             var data = $(this).val();
+                            instance.withoutPo();
                             if(data == 'TANPA PO'){
                                 // instance.setupWithoutPoCount();
                                 $(form+' input[name="po_number"]').attr('disabled', true);
@@ -79,6 +106,7 @@
                     }else{
                         $(form+' select[name="status"]').on('select2:select', function (e) {
                             var data = $(this).val();
+                            instance.withoutPo();
                             if(data == 'TANPA PO'){
                                 instance.setupWithoutPoCount(form);
                                 var kdp = "UMUM-";

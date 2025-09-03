@@ -57,7 +57,7 @@ class ClientPoRequest extends FormRequest
             'reimburse_type' => 'nullable|max:50',
             'load_general_value' => 'nullable|numeric',
             'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
-            'category' => 'required',
+            'category' => 'nullable',
         ];
 
         // rule defautl

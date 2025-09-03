@@ -305,6 +305,7 @@ class ClientPoCrudController extends CrudController
         if($request->status == 'TANPA PO'){
             $request->merge([
                 'po_number' => $setting->work_code_prefix,
+                'category' => 'RUTIN',
             ]);
         }
 
