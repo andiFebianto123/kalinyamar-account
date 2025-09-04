@@ -167,8 +167,14 @@ class ProjectListReportCrudController extends CrudController {
                 'name' => 'duration',
                 'type'  => 'closure',
                 'function' => function ($row) {
+                    if(strtoupper($row->status_po) == 'UNPAID'){
+                        $total_day = $this->hitungDurasiHari($row->invoice_date);
+                        $day = ($row->invoice_date) ? $total_day : '0';
+                        return $day.' Hari';
+                    }
                     $total_day = $this->hitungDurasiHari($row->actual_end_date);
-                    return ($row->actual_end_date) ? $total_day : '-';
+                    $day = ($row->actual_end_date) ? $total_day : '0';
+                    return $day.' Hari';
                 }
             ],
         );
@@ -741,8 +747,14 @@ class ProjectListReportCrudController extends CrudController {
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
                 if($column['name'] == 'duration'){
-                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                    $item->duration = ($item->actual_end_date) ? $total_day : '-';
+                    if(strtoupper($item->status_po) == 'UNPAID'){
+                        $total_day = $this->hitungDurasiHari($item->invoice_date);
+                        $item->duration = ($item->invoice_date) ? $total_day : '0';
+                    }else{
+                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                        $item->duration = ($item->actual_end_date) ? $total_day : '0';
+                    }
+                    $item->duration = $item->duration.' Hari';
                 }
             }
         }
@@ -782,8 +794,14 @@ class ProjectListReportCrudController extends CrudController {
                     $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
                 }
                 if($column['name'] == 'duration'){
-                    $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                    $item->duration = ($item->actual_end_date) ? $total_day : '-';
+                    if(strtoupper($item->status_po) == 'UNPAID'){
+                        $total_day = $this->hitungDurasiHari($item->invoice_date);
+                        $item->duration = ($item->invoice_date) ? $total_day : '-';
+                    }else{
+                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
+                        $item->duration = ($item->actual_end_date) ? $total_day : '-';
+                    }
+                    $item->duration = $item->duration.' Hari';
                 }
             }
         }
