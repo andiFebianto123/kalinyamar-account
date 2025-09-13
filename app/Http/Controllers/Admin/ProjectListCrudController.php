@@ -1737,37 +1737,28 @@ class ProjectListCrudController extends CrudController {
         $items =  $this->crud->getEntries();
 
         $row_number = 0;
+        $all_items = [];
         foreach($items as $item){
+            $row_items = [];
+            $row_number++;
             foreach($columns as $column){
-                if($column['name'] == 'row_number'){
-                    $row_number++;
-                    $item->{$column['name']} = $row_number;
-                }
-                if($column['name'] == 'client_id'){
-                    $item->client_id = SetupClient::find($item->client_id)->name;
-                }
-                if($column['name'] == 'start_date,end_date'){
-                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
-                }
-                if($column['name'] == 'user_id'){
-                    $item->user_id = User::find($item->user_id)->name;
-                }
-                if($column['name'] == 'duration'){
-                    if(strtoupper($item->status_po) == 'UNPAID'){
-                        $total_day = $this->hitungDurasiHari($item->invoice_date);
-                        $item->duration = ($item->invoice_date) ? $total_day : '0';
-                    }else{
-                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                        $item->duration = ($item->actual_end_date) ? $total_day : '0';
-                    }
-                    $item->duration = $item->duration.' Hari';
-                }
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+                $row_items[] = trim($item_value);
             }
+            $all_items[] = $row_items;
         }
 
         $title = 'Daftar Project - '.$type;
 
-        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
 
         $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
 
@@ -1789,38 +1780,26 @@ class ProjectListCrudController extends CrudController {
         $items =  $this->crud->getEntries();
 
         $row_number = 0;
+        $all_items = [];
         foreach($items as $item){
+            $row_items = [];
+            $row_number++;
             foreach($columns as $column){
-                if($column['name'] == 'row_number'){
-                    $row_number++;
-                    $item->{$column['name']} = $row_number;
-                }
-                if($column['name'] == 'client_id'){
-                    $item->client_id = SetupClient::find($item->client_id)->name;
-                }
-                if($column['name'] == 'start_date,end_date'){
-                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
-                }
-                if($column['name'] == 'user_id'){
-                    $item->user_id = User::find($item->user_id)->name;
-                }
-                if($column['name'] == 'duration'){
-                    if(strtoupper($item->status_po) == 'UNPAID'){
-                        $total_day = $this->hitungDurasiHari($item->invoice_date);
-                        $item->duration = ($item->invoice_date) ? $total_day : '-';
-                    }else{
-                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                        $item->duration = ($item->actual_end_date) ? $total_day : '-';
-                    }
-                    $item->duration = $item->duration.' Hari';
-                }
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+                $row_items[] = trim($item_value);
             }
+            $all_items[] = $row_items;
         }
 
         $name = 'Status Project - '.$type;
 
-        return response()->streamDownload(function () use($type, $columns, $items){
-            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        return response()->streamDownload(function () use($type, $columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',

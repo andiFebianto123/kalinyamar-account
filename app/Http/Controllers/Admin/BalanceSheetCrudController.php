@@ -233,6 +233,7 @@ class BalanceSheetCrudController extends CrudController{
     }
 
     private function setupListExport(){
+        $settings = Setting::first();
         $this->crud->query = $this->crud->query
             ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
             ->whereIn('accounts.type', ['Assets', 'Liabilities', 'Equity']);
@@ -259,16 +260,15 @@ class BalanceSheetCrudController extends CrudController{
             'type' => 'export',
         ]);
 
-        CRUD::column(
-            [
-                'name' => 'balance',
+        CRUD::column([
                 'label' => trans('backpack::crud.expense_account.column.balance'),
-                'type' => 'closure',
-                'function' => function($entry) {
-                    return $entry->balance;
-                }
-            ],
-        );
+            'name' => 'balance',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
 
         CRUD::addClause('select', [
             DB::raw("
@@ -305,6 +305,7 @@ class BalanceSheetCrudController extends CrudController{
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -347,6 +348,7 @@ class BalanceSheetCrudController extends CrudController{
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;

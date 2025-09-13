@@ -70,6 +70,28 @@ class PurchaseOrderCrudController extends CrudController
         }
     }
 
+    public function total_price(){
+        $filter_year = request()->filter_year;
+        $total_open = PurchaseOrder::where('status', PurchaseOrder::OPEN);
+        if($filter_year != null && $filter_year != 'all'){
+            $total_open = $total_open->where(DB::raw("YEAR(date_po)"), $filter_year);
+        }
+        $total_open = $total_open->sum('total_value_with_tax');
+
+        $total_closed = PurchaseOrder::where('status', PurchaseOrder::CLOSE);
+        if($filter_year != null && $filter_year != 'all'){
+            $total_closed = $total_closed->where(DB::raw("YEAR(date_po)"), $filter_year);
+        }
+        $total_closed = $total_closed->sum('total_value_with_tax');
+
+        $price_total_open = CustomHelper::formatRupiahWithCurrency($total_open);
+        $price_total_closed = CustomHelper::formatRupiahWithCurrency($total_closed);
+        return [
+            'total_open' => $price_total_open,
+            'total_closed' => $price_total_closed
+        ];
+    }
+
     public function index()
     {
         $this->crud->hasAccessOrFail('list');
@@ -358,6 +380,14 @@ class PurchaseOrderCrudController extends CrudController
             ]
         ]);
 
+        $this->card->addCard([
+            'name' => 'voucher-plugin',
+            'line' => 'top',
+            'view' => 'crud::components.purchase-order-plugin',
+            'parent_view' => 'crud::components.filter-parent',
+            'params' => [],
+        ]);
+
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "PO vendor (Subkon)";
@@ -423,8 +453,9 @@ class PurchaseOrderCrudController extends CrudController
             //     $events['crudTable-list_close_create_success'] = $item;
             // }
             $events['crudTable-list_all_po_create_success'] = $item;
-             $events['crudTable-list_open_create_success'] = $item;
+            $events['crudTable-list_open_create_success'] = $item;
             $events['crudTable-list_close_create_success'] = $item;
+            $events['crudTable-filter-purchase_order_plugin_load'] = $item;
             $this->crud->setSaveAction();
 
             DB::commit();
@@ -510,6 +541,7 @@ class PurchaseOrderCrudController extends CrudController
             $events['crudTable-list_all_po_updated_success'] = $item;
             $events['crudTable-list_open_updated_success'] = $item;
             $events['crudTable-list_close_updated_success'] = $item;
+            $events['crudTable-filter-purchase_order_plugin_load'] = $item;
             $this->crud->setSaveAction();
 
             DB::commit();
@@ -1184,6 +1216,37 @@ class PurchaseOrderCrudController extends CrudController
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+
+        DB::beginTransaction();
+        try {
+
+            $id = $this->crud->getCurrentEntryId() ?? $id;
+
+            $this->crud->delete($id);
+
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+            $messages['events'] = [
+                'crudTable-list_all_po_create_success' => true,
+                'crudTable-list_open_create_success' => true,
+                'crudTable-list_close_create_success' => true,
+                'crudTable-filter-purchase_order_plugin_load' => true
+            ];
+
+            DB::commit();
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'type' => 'errors',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+
     }
 
 }

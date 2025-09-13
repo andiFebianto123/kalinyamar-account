@@ -163,21 +163,21 @@ class SubkonCrudController extends CrudController
             'type'  => 'text',
         ]);
 
-        CRUD::addColumn([
-            'name'     => 'list_po_number',
-            'label'    => trans('backpack::crud.subkon.column.list_po'),
-            'type'     => 'custom_html',
-            'value' => function($entry) {
-                return "".$entry->purchase_orders->map(function($item, $key){
-                    return "<li>".$item->po_number."</li>";
-                })->implode('')."";
-            },
-            'searchLogic' => function ($query, $column, $searchTerm) {
-                $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
-                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
-                });
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_po_number',
+        //     'label'    => trans('backpack::crud.subkon.column.list_po'),
+        //     'type'     => 'custom_html',
+        //     'value' => function($entry) {
+        //         return "".$entry->purchase_orders->map(function($item, $key){
+        //             return "<li>".$item->po_number."</li>";
+        //         })->implode('')."";
+        //     },
+        //     'searchLogic' => function ($query, $column, $searchTerm) {
+        //         $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
+        //             $q->where('po_number', 'like', '%'.$searchTerm.'%');
+        //         });
+        //     }
+        // ]);
 
         CRUD::addColumn([
             'name'     => 'list_po_count',
@@ -200,21 +200,21 @@ class SubkonCrudController extends CrudController
             }
         ]);
 
-        CRUD::addColumn([
-            'name'     => 'list_spk_number',
-            'label'    => trans('backpack::crud.subkon.column.list_spk'),
-            'type'     => 'custom_html',
-            'value' => function($entry) {
-                return "".$entry->spks->map(function($item, $key){
-                    return "<li>".$item->no_spk."</li>";
-                })->implode('')."";
-            },
-            'searchLogic' => function ($query, $column, $searchTerm) {
-                $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
-                    $q->where('no_spk', 'like', '%'.$searchTerm.'%');
-                });
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_spk_number',
+        //     'label'    => trans('backpack::crud.subkon.column.list_spk'),
+        //     'type'     => 'custom_html',
+        //     'value' => function($entry) {
+        //         return "".$entry->spks->map(function($item, $key){
+        //             return "<li>".$item->no_spk."</li>";
+        //         })->implode('')."";
+        //     },
+        //     'searchLogic' => function ($query, $column, $searchTerm) {
+        //         $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
+        //             $q->where('no_spk', 'like', '%'.$searchTerm.'%');
+        //         });
+        //     }
+        // ]);
 
         CRUD::addColumn([
             'name'     => 'list_spk_count',
@@ -255,131 +255,132 @@ class SubkonCrudController extends CrudController
     }
 
     private function setupListExport(){
-        $this->crud->addColumn([
-            'name'      => 'row_number',
-            'type'      => 'export',
-            'label'     => 'No',
-            'orderable' => false,
-            'wrapper' => [
-                'element' => 'strong',
-            ]
-        ])->makeFirstColumn();
+        $this->setupListOperation();
+        // $this->crud->addColumn([
+        //     'name'      => 'row_number',
+        //     'type'      => 'export',
+        //     'label'     => 'No',
+        //     'orderable' => false,
+        //     'wrapper' => [
+        //         'element' => 'strong',
+        //     ]
+        // ])->makeFirstColumn();
 
-        CRUD::addColumn([
-            'name'  => 'name',
-            'label' => trans('backpack::crud.subkon.column.name'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'name',
+        //     'label' => trans('backpack::crud.subkon.column.name'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'  => 'address',
-            'label' => trans('backpack::crud.subkon.column.address'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'address',
+        //     'label' => trans('backpack::crud.subkon.column.address'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'  => 'npwp',
-            'label' => trans('backpack::crud.subkon.column.npwp'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'npwp',
+        //     'label' => trans('backpack::crud.subkon.column.npwp'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'  => 'phone',
-            'label' => trans('backpack::crud.subkon.column.phone'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'phone',
+        //     'label' => trans('backpack::crud.subkon.column.phone'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'  => 'bank_name',
-            'label' => trans('backpack::crud.subkon.column.bank_name'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'bank_name',
+        //     'label' => trans('backpack::crud.subkon.column.bank_name'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'  => 'bank_account',
-            'label' => trans('backpack::crud.subkon.column.bank_account'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'bank_account',
+        //     'label' => trans('backpack::crud.subkon.column.bank_account'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'  => 'account_holder_name',
-            'label' => trans('backpack::crud.subkon.column.account_holder_name'),
-            'type'  => 'export',
-        ]);
+        // CRUD::addColumn([
+        //     'name'  => 'account_holder_name',
+        //     'label' => trans('backpack::crud.subkon.column.account_holder_name'),
+        //     'type'  => 'export',
+        // ]);
 
-        CRUD::addColumn([
-            'name'     => 'list_po_number',
-            'label'    => trans('backpack::crud.subkon.column.list_po'),
-            'type'     => 'closure',
-            'function' => function($entry) {
-                return "".$entry->purchase_orders->map(function($item, $key){
-                    return "-".$item->po_number;
-                })->implode("\n")."";
-            },
-            'searchLogic' => function ($query, $column, $searchTerm) {
-                $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
-                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
-                });
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_po_number',
+        //     'label'    => trans('backpack::crud.subkon.column.list_po'),
+        //     'type'     => 'closure',
+        //     'function' => function($entry) {
+        //         return "".$entry->purchase_orders->map(function($item, $key){
+        //             return "-".$item->po_number;
+        //         })->implode("\n")."";
+        //     },
+        //     'searchLogic' => function ($query, $column, $searchTerm) {
+        //         $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
+        //             $q->where('po_number', 'like', '%'.$searchTerm.'%');
+        //         });
+        //     }
+        // ]);
 
-        CRUD::addColumn([
-            'name'     => 'list_po_count',
-            'label'    => trans('backpack::crud.subkon.column.count_po'),
-            'type'     => 'closure',
-            'function' => function($entry) {
-                $count_data = $entry->purchase_orders->count();
-                if($count_data > 0){
-                    return $count_data;
-                }
-                return '-';
-            },
-            'orderable'  => true,
-            'orderLogic' => function ($query, $column, $columnDirection) {
-                $po = PurchaseOrder::select(DB::raw('subkon_id, count(po_number) as total_po'))
-                ->groupBy('subkon_id');
-                return $query->leftJoinSub($po, 'po', function($join){
-                    $join->on('po.subkon_id', 'subkons.id');
-                })->select('subkons.*')->orderBy('po.total_po', $columnDirection);
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_po_count',
+        //     'label'    => trans('backpack::crud.subkon.column.count_po'),
+        //     'type'     => 'closure',
+        //     'function' => function($entry) {
+        //         $count_data = $entry->purchase_orders->count();
+        //         if($count_data > 0){
+        //             return $count_data;
+        //         }
+        //         return '-';
+        //     },
+        //     'orderable'  => true,
+        //     'orderLogic' => function ($query, $column, $columnDirection) {
+        //         $po = PurchaseOrder::select(DB::raw('subkon_id, count(po_number) as total_po'))
+        //         ->groupBy('subkon_id');
+        //         return $query->leftJoinSub($po, 'po', function($join){
+        //             $join->on('po.subkon_id', 'subkons.id');
+        //         })->select('subkons.*')->orderBy('po.total_po', $columnDirection);
+        //     }
+        // ]);
 
-        CRUD::addColumn([
-            'name'     => 'list_spk_number',
-            'label'    => trans('backpack::crud.subkon.column.list_spk'),
-            'type'     => 'closure',
-            'function' => function($entry) {
-                return "".$entry->spks->map(function($item, $key){
-                    return "-".$item->no_spk;
-                })->implode("\n")."";
-            },
-            'searchLogic' => function ($query, $column, $searchTerm) {
-                $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
-                    $q->where('no_spk', 'like', '%'.$searchTerm.'%');
-                });
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_spk_number',
+        //     'label'    => trans('backpack::crud.subkon.column.list_spk'),
+        //     'type'     => 'closure',
+        //     'function' => function($entry) {
+        //         return "".$entry->spks->map(function($item, $key){
+        //             return "-".$item->no_spk;
+        //         })->implode("\n")."";
+        //     },
+        //     'searchLogic' => function ($query, $column, $searchTerm) {
+        //         $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
+        //             $q->where('no_spk', 'like', '%'.$searchTerm.'%');
+        //         });
+        //     }
+        // ]);
 
-        CRUD::addColumn([
-            'name'     => 'list_spk_count',
-            'label'    => trans('backpack::crud.subkon.column.count_spk'),
-            'type'     => 'closure',
-            'function' => function($entry) {
-                $count_data = $entry->spks->count();
-                if($count_data > 0){
-                    return $count_data;
-                }
-                return '-';
-            },
-            'orderable'  => true,
-            'orderLogic' => function ($query, $column, $columnDirection) {
-                $spk = Spk::select(DB::raw('subkon_id, count(no_spk) as total_spk'))
-                ->groupBy('subkon_id');
-                return $query->leftJoinSub($spk, 'spk', function($join){
-                    $join->on('spk.subkon_id', 'subkons.id');
-                })->select('subkons.*')->orderBy('spk.total_spk', $columnDirection);
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'list_spk_count',
+        //     'label'    => trans('backpack::crud.subkon.column.count_spk'),
+        //     'type'     => 'closure',
+        //     'function' => function($entry) {
+        //         $count_data = $entry->spks->count();
+        //         if($count_data > 0){
+        //             return $count_data;
+        //         }
+        //         return '-';
+        //     },
+        //     'orderable'  => true,
+        //     'orderLogic' => function ($query, $column, $columnDirection) {
+        //         $spk = Spk::select(DB::raw('subkon_id, count(no_spk) as total_spk'))
+        //         ->groupBy('subkon_id');
+        //         return $query->leftJoinSub($spk, 'spk', function($join){
+        //             $join->on('spk.subkon_id', 'subkons.id');
+        //         })->select('subkons.*')->orderBy('spk.total_spk', $columnDirection);
+        //     }
+        // ]);
     }
 
     public function exportPdf(){
@@ -401,6 +402,7 @@ class SubkonCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -443,6 +445,7 @@ class SubkonCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -745,6 +748,24 @@ class SubkonCrudController extends CrudController
         ]);
 
         CRUD::addField([
+            'name' => 'list_po',
+            'label' => trans('backpack::crud.subkon.column.list_po'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'list_spk',
+            'label' => trans('backpack::crud.subkon.column.list_spk'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
             'name' => 'count_po',
             'label' => trans('backpack::crud.subkon.column.count_po'),
             'type' => 'text',
@@ -802,6 +823,38 @@ class SubkonCrudController extends CrudController
             'name'  => 'account_holder_name',
             'label' => trans('backpack::crud.subkon.column.account_holder_name'),
             'type'  => 'text',
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_po',
+            'label'    => trans('backpack::crud.subkon.column.list_po'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                return "".$entry->purchase_orders->map(function($item, $key){
+                    return "<li>".$item->po_number."</li>";
+                })->implode('')."";
+            },
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
+                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
+                });
+            }
+        ]);
+
+        CRUD::addColumn([
+            'name'     => 'list_spk',
+            'label'    => trans('backpack::crud.subkon.column.list_spk'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                return "".$entry->spks->map(function($item, $key){
+                    return "<li>".$item->no_spk."</li>";
+                })->implode('')."";
+            },
+            'searchLogic' => function ($query, $column, $searchTerm) {
+                $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
+                    $q->where('no_spk', 'like', '%'.$searchTerm.'%');
+                });
+            }
         ]);
 
         CRUD::addColumn([

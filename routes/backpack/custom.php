@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ProjectListCrudController;
 use App\Http\Controllers\Admin\BalanceSheetCrudController;
 use App\Http\Controllers\Admin\CastAccountsCrudController;
 use App\Http\Controllers\Admin\InvoiceClientCrudController;
+use App\Http\Controllers\Admin\PurchaseOrderCrudController;
 use App\Http\Controllers\Admin\SettingSystemCrudController;
 use App\Http\Controllers\Admin\StatusProjectCrudController;
 use App\Http\Controllers\Admin\ExpenseAccountCrudController;
@@ -71,6 +72,7 @@ Route::group([
         Route::post('subkon/export-excel', [SubkonCrudController::class, 'exportExcel']);
         Route::post('select2-subkon-id', 'PurchaseOrderCrudController@select2SubkonId')->name('select2-subkon-id');
         Route::crud('purchase-order', 'PurchaseOrderCrudController');
+        Route::get('purchase-order/total', [PurchaseOrderCrudController::class, 'total_price']);
         Route::crud('purchase-order-tab', 'PurchaseOrderTabController');
         Route::crud('spk-trans', 'SpkCrudController');
         ROute::post('spk-trans/export-pdf', [SpkCrudController::class, 'exportPdf']);

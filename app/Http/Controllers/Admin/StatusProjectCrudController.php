@@ -645,12 +645,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_1 = 0;
         foreach($invoice_1 as $val1){
             $total_invoice_1 += $val1->price_total_include_ppn;
-            $val1->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val1->price_total_include_ppn);
+            $val1->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val1->price_total_include_ppn);
             $val1->client_name_str = $val1->setup_client->name;
         }
         $grand_total += $total_invoice_1;
         $data['invoice_1_total'] = $total_invoice_1;
-        $data['invoice_1_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_1);
+        $data['invoice_1_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_1);
 
         $invoice_2 = Project::where('status_po', 'TERTUNDA')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -661,12 +661,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_2 = 0;
         foreach($invoice_2 as $val2){
             $total_invoice_2 += $val2->price_total_include_ppn;
-            $val2->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val2->price_total_include_ppn);
+            $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
             $val2->client_name_str = $val2->setup_client->name;
         }
         $grand_total += $total_invoice_2;
         $data['invoice_2_total'] = $total_invoice_2;
-        $data['invoice_2_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_2);
+        $data['invoice_2_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_2);
 
 
         $invoice_3 = Project::where('status_po', 'TERTUNDA')
@@ -678,12 +678,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_3 = 0;
         foreach($invoice_3 as $val3){
             $total_invoice_3 += $val3->price_total_include_ppn;
-            $val3->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val3->price_total_include_ppn);
+            $val3->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val3->price_total_include_ppn);
             $val3->client_name_str = $val3->setup_client->name;
         }
         $grand_total += $total_invoice_3;
         $data['invoice_3_total'] = $total_invoice_3;
-        $data['invoice_3_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_3);
+        $data['invoice_3_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_3);
 
         $invoice_4 = Project::where('status_po', 'RETENSI')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -693,12 +693,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_4 = 0;
         foreach($invoice_4 as $val4){
             $total_invoice_4 += $val4->price_total_include_ppn;
-            $val4->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val4->price_total_include_ppn);
+            $val4->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val4->price_total_include_ppn);
             $val4->client_name_str = $val4->setup_client->name;
         }
         $grand_total += $total_invoice_4;
         $data['invoice_4_total'] = $total_invoice_4;
-        $data['invoice_4_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_4);
+        $data['invoice_4_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_4);
 
         $invoice_5 = Project::where('status_po', 'BELUM SELESAI')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -709,12 +709,12 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_5 = 0;
         foreach($invoice_5 as $val5){
             $total_invoice_5 += $val5->price_total_include_ppn;
-            $val5->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val5->price_total_include_ppn);
+            $val5->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val5->price_total_include_ppn);
             $val5->client_name_str = $val5->setup_client->name;
         }
         $grand_total += $total_invoice_5;
         $data['invoice_5_total'] = $total_invoice_5;
-        $data['invoice_5_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_5);
+        $data['invoice_5_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_5);
 
         $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
         ->where('status_po', '!=', "BELUM ADA PO")
@@ -725,23 +725,23 @@ class StatusProjectCrudController extends CrudController {
         $total_invoice_6 = 0;
         foreach($invoice_6 as $val6){
             $total_invoice_6 += $val6->price_total_include_ppn;
-            $val6->price_total_include_ppn_str = CustomHelper::formatRupiahExcel($val6->price_total_include_ppn);
+            $val6->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val6->price_total_include_ppn);
             $val6->client_name_str = $val6->setup_client->name;
         }
         $grand_total += $total_invoice_6;
         $data['invoice_6_total'] = $total_invoice_6;
-        $data['invoice_6_total_str'] = CustomHelper::formatRupiahExcel($total_invoice_6);
+        $data['invoice_6_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_6);
 
         if($is_output == 'json'){
             return response()->json([
                 'list' => $data,
-                'grand_total' => CustomHelper::formatRupiahExcel($grand_total),
+                'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
             ]);
         }
 
         return [
             'list' => $data,
-            'grand_total' => CustomHelper::formatRupiahExcel($grand_total),
+            'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
         ];
     }
 
@@ -1523,44 +1523,28 @@ class StatusProjectCrudController extends CrudController {
         $items =  $this->crud->getEntries();
 
         $row_number = 0;
+        $all_items = [];
         foreach($items as $item){
+            $row_items = [];
+            $row_number++;
             foreach($columns as $column){
-                if($column['name'] == 'row_number'){
-                    $row_number++;
-                    $item->{$column['name']} = $row_number;
-                }
-                if($column['name'] == 'client_id'){
-                    $item->client_id = SetupClient::find($item->client_id)->name;
-                }
-                if($column['name'] == 'start_date,end_date'){
-                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
-                }
-                if($column['name'] == 'total_progress_day'){
-                    if($item->status_po == 'UNPAID'){
-                        $total_day = $this->hitungDurasiHari($item->invoice_date);
-                        $item->duration = ($item->invoice_date) ? $total_day : "0";
-                    }else{
-                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                        $item->duration = ($item->actual_end_date) ? $total_day : "0";
-                    }
-                    $item->duration = $item->duration.' Hari';
-                }
-                if($column['name'] == 'duration'){
-                    if($item->status_po == 'UNPAID'){
-                        $total_day = $this->hitungDurasiHari($item->invoice_date);
-                        $item->duration = ($item->invoice_date) ? $total_day : "0";
-                    }else{
-                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                        $item->duration = ($item->actual_end_date) ? $total_day : "0";
-                    }
-                    $item->duration = $item->duration.' Hari';
-                }
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+                $row_items[] = trim($item_value);
             }
+            $all_items[] = $row_items;
         }
 
         $title = 'Status Project - '.$type;
 
-        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
 
         $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
 
@@ -1580,45 +1564,26 @@ class StatusProjectCrudController extends CrudController {
         $items =  $this->crud->getEntries();
 
         $row_number = 0;
+        $all_items = [];
         foreach($items as $item){
+            $row_items = [];
+            $row_number++;
             foreach($columns as $column){
-                if($column['name'] == 'row_number'){
-                    $row_number++;
-                    $item->{$column['name']} = $row_number;
-                }
-                if($column['name'] == 'client_id'){
-                    $item->client_id = SetupClient::find($item->client_id)->name;
-                }
-                if($column['name'] == 'start_date,end_date'){
-                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
-                }
-                if($column['name'] == 'total_progress_day'){
-                    if(strtoupper($item->status_po) == 'UNPAID'){
-                        $total_day = $this->hitungDurasiHari($item->invoice_date);
-                        $item->duration = ($item->invoice_date) ? $total_day : "-";
-                    }else{
-                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                        $item->duration = ($item->actual_end_date) ? $total_day : "-";
-                    }
-                    $item->duration = $item->duration.' Hari';
-                }
-                if($column['name'] == 'duration'){
-                    if(strtoupper($item->status_po) == 'UNPAID'){
-                        $total_day = $this->hitungDurasiHari($item->invoice_date);
-                        $item->duration = ($item->invoice_date) ? $total_day : "-";
-                    }else{
-                        $total_day = $this->hitungDurasiHari($item->actual_end_date);
-                        $item->duration = ($item->actual_end_date) ? $total_day : "-";
-                    }
-                    $item->duration = $item->duration.' Hari';
-                }
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+                $row_items[] = trim($item_value);
             }
+            $all_items[] = $row_items;
         }
 
         $name = 'Status Project - '.$type;
 
-        return response()->streamDownload(function () use($type, $columns, $items){
-            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        return response()->streamDownload(function () use($columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',

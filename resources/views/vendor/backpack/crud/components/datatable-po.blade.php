@@ -3,7 +3,7 @@
 <div class="pt-3 pb-2">
     <div class="row">
         <div class="col-md-4">
-            <strong><span style="font-size: 20px;">{{trans('backpack::crud.po.tab.title_total_incl_ppn')}}: Rp. {{$total_include_ppn ?? 0}}</span></strong>
+            <strong><span id="str_{{$name}}" style="font-size: 20px;">{{trans('backpack::crud.po.tab.title_total_incl_ppn')}}: Rp. {{$total_include_ppn ?? 0}}</span></strong>
         </div>
     </div>
     <div class="row" bp-section="crud-operation-list">

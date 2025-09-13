@@ -7,6 +7,7 @@ use App\Models\SetupOffering;
 use App\Models\CategoryProject;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
+use App\Http\Helpers\CustomHelper;
 use App\Models\SetupStatusProject;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -776,6 +777,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -818,6 +820,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;

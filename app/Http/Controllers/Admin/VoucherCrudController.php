@@ -738,6 +738,7 @@ class VoucherCrudController extends CrudController {
     }
 
     private function setupListExport($tab){
+        $settings = Setting::first();
         if($tab == 'voucher'){
             CRUD::setModel(Voucher::class);
             $user_id = backpack_user()->id;
@@ -792,7 +793,7 @@ class VoucherCrudController extends CrudController {
             ]);
             CRUD::addColumn([
                 'name'      => 'row_number',
-                'type'      => 'export',
+                'type'      => 'row_number',
                 'label'     => 'No',
                 'orderable' => false,
                 'wrapper' => [
@@ -802,16 +803,23 @@ class VoucherCrudController extends CrudController {
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
                 'name' => 'no_voucher',
-                'type'  => 'export',
+                'type'  => 'text',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    // $query->orWhereHas('client_po', function ($q) use ($column, $searchTerm) {
+                    //     $q->where('po_number', 'like', '%'.$searchTerm.'%');
+                    // });
+                }
             ]);
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.date_voucher.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.date_voucher.label'),
                 'name' => 'date_voucher',
-                'type'  => 'export',
+                'type'  => 'date',
+                'format' => 'D MMM Y'
             ]);
+
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_name.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_name.label'),
                     'name' => 'subkon_id',
                     'type'  => 'closure',
                     'function' => function($entry){
@@ -821,65 +829,78 @@ class VoucherCrudController extends CrudController {
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.bill_number.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.bill_number.label'),
                     'name' => 'bill_number',
-                    'type'  => 'export'
+                    'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.bill_date.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.bill_date.label'),
                 'name' => 'bill_date',
-                'type'  => 'export',
+                'type'  => 'date',
+                'format' => 'D MMM Y'
             ]);
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.payment_description.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.payment_description.label'),
                     'name' => 'payment_description',
-                    'type'  => 'export'
+                    'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.bill_value.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.bill_value.label'),
                 'name' => 'bill_value',
-                'type'  => 'export',
+                'type'  => 'number',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
             ]);
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.total.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.total.label'),
                 'name' => 'total',
-                'type'  => 'export',
+                'type'  => 'number',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
             ]);
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label'),
                 'name' => 'payment_transfer',
-                'type'  => 'export',
+                'type'  => 'number',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
             ]);
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.factur_status.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.factur_status.label'),
                     'name' => 'factur_status',
-                    'type'  => 'export'
+                    'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_code.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_code.label'),
                     'name' => 'reference_id',
                     'type'  => 'closure',
                     'function' => function($entry){
                         return $entry?->reference?->work_code;
                     }
-                ],
+                ], // BELUM FILTER
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
                     'name' => 'job_name',
-                    'type'  => 'export'
+                    'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.account_id.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.account_id.label'),
                     'name' => 'account_id',
                     'type'  => 'closure',
                     'function' => function($entry){
@@ -889,39 +910,40 @@ class VoucherCrudController extends CrudController {
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.no_account.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.no_account.label'),
                     'name' => 'account_source_id',
                     'type'  => 'closure',
                     'function' => function($entry){
                         return $entry?->cast_account_name;
                     }
-                ],
+                ], // BELUM FILTER
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.payment_type.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.payment_type.label'),
                     'name' => 'payment_type',
-                    'type'  => 'export'
+                    'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.status.label'),
-                    'name' => 'approval_status',
-                    'type'  => 'export',
+                                    'label' => trans('backpack::crud.voucher.column.voucher.status.label'),
+                    'name' => 'status',
+                    'type'  => 'approval-voucher',
                 ],
             );
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher.payment_status.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.payment_status.label'),
                     'name' => 'payment_status',
                     'type'  => 'text'
                 ],
             );
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.due_date.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.due_date.label'),
                 'name' => 'due_date',
-                'type'  => 'export',
+                'type'  => 'date',
+                'format' => 'D MMM Y'
             ]);
         }else if($tab == 'voucher_edit'){
             CRUD::setModel(VoucherEdit::class);
@@ -951,7 +973,7 @@ class VoucherCrudController extends CrudController {
 
             CRUD::addColumn([
                 'name'      => 'row_number',
-                'type'      => 'export',
+                'type'      => 'row_number',
                 'label'     => 'No',
                 'orderable' => false,
                 'wrapper' => [
@@ -960,13 +982,13 @@ class VoucherCrudController extends CrudController {
             ])->makeFirstColumn();
 
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
                 'name' => 'no_voucher',
-                'type'  => 'export',
+                'type'  => 'text',
             ]);
 
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher_edit.user_id.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher_edit.user_id.label'),
                 'name' => 'user_id',
                 'type'  => 'closure',
                 'function' => function($entry){
@@ -975,19 +997,20 @@ class VoucherCrudController extends CrudController {
             ]);
 
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher_edit.date_update.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher_edit.date_update.label'),
                 'name' => 'date_update',
-                'type'  => 'export',
+                'type'  => 'date',
+                'format' => 'DD MMM YYYY HH:mm'
             ]);
 
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher_edit.history_update.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher_edit.history_update.label'),
                 'name' => 'history_update',
-                'type'  => 'export',
+                'type'  => 'text',
             ]);
 
             CRUD::column([
-                'label' => trans('backpack::crud.voucher.column.voucher_edit.no_apprv.label'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher_edit.no_apprv.label'),
                 'name' => 'no_apprv',
                 'type'  => 'closure',
                 'function' => function($entry){
@@ -997,9 +1020,9 @@ class VoucherCrudController extends CrudController {
 
             CRUD::column(
                 [
-                    'label' => trans('backpack::crud.voucher.column.voucher_edit.status.label'),
-                    'name' => 'approval_status',
-                    'type'  => 'export',
+                                    'label' => trans('backpack::crud.voucher.column.voucher_edit.status.label'),
+                    'name' => 'status',
+                    'type'  => 'approval-voucher',
                 ],
             );
 
@@ -3309,6 +3332,7 @@ class VoucherCrudController extends CrudController {
         $type = request()->tab;
 
         $this->setupListExport($type);
+        // $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -3325,6 +3349,7 @@ class VoucherCrudController extends CrudController {
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -3355,6 +3380,7 @@ class VoucherCrudController extends CrudController {
         $type = request()->tab;
 
         $this->setupListExport($type);
+        // $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -3371,6 +3397,7 @@ class VoucherCrudController extends CrudController {
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;

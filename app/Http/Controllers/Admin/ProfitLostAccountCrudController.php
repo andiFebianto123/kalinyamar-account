@@ -389,16 +389,16 @@ class ProfitLostAccountCrudController extends CrudController{
 
         if($pure){
             return [
-                'price_po_excl_ppn' => $price_po_excl_ppn,
-                'price_material' => $material_data,
-                'price_subkon' => $subkon_data,
-                'price_btkl' => $btkl_data,
-                'price_other' => $price_other_data,
-                'price_profit_lost_project' => $price_profit_lost,
-                'price_total' => $price_total,
-                'price_profit_lost_po' => $price_profit_lost_po,
-                'price_general' => $price_general,
-                'price_profit_final' => $price_profit_final
+                'price_po_excl_ppn' => CustomHelper::formatRupiahWithCurrency($price_po_excl_ppn),
+                'price_material' => CustomHelper::formatRupiahWithCurrency($material_data),
+                'price_subkon' => CustomHelper::formatRupiahWithCurrency($subkon_data),
+                'price_btkl' => CustomHelper::formatRupiahWithCurrency($btkl_data),
+                'price_other' => CustomHelper::formatRupiahWithCurrency($price_other_data),
+                'price_profit_lost_project' => CustomHelper::formatRupiahWithCurrency($price_profit_lost),
+                'price_total' => CustomHelper::formatRupiahWithCurrency($price_total),
+                'price_profit_lost_po' => CustomHelper::formatRupiahWithCurrency($price_profit_lost_po),
+                'price_general' => CustomHelper::formatRupiahWithCurrency($price_general),
+                'price_profit_final' => CustomHelper::formatRupiahWithCurrency($price_profit_final)
             ];
         }
 
@@ -1537,6 +1537,7 @@ class ProfitLostAccountCrudController extends CrudController{
     }
 
     private function setupListExport(){
+        $settings = Setting::first();
         CRUD::setModel(ProjectProfitLost::class);
         $this->crud->query = $this->crud->query
         ->leftJoin('vouchers', function($join){
@@ -1546,7 +1547,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $this->crud->addColumn([
             'name'      => 'row_number',
-            'type'      => 'export',
+            'type'      => 'row_number',
             'label'     => 'No',
             'orderable' => false,
             'wrapper' => [
@@ -1556,7 +1557,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         CRUD::column([
             // 1-n relationship
-            'label' => '',
+            'label' => trans('backpack::crud.profit_lost.column.client_po_id'),
             'type'      => 'closure',
             'name'      => 'client_po_id',
             'function' => function($entry) {
@@ -1572,31 +1573,32 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
             'name' => 'reimburse_type',
-            'type' => 'export',
+            'type' => 'text',
         ]);
 
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.work_code'),
             'name' => 'work_code',
-            'type' => 'export',
+            'type' => 'text',
         ]);
 
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.po_number'),
             'name' => 'po_number',
-            'type' => 'export',
+            'type' => 'text',
         ]);
 
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.job_name'),
             'name' => 'job_name',
-            'type' => 'export',
+            'type' => 'text',
         ]);
 
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
             'name' => 'job_value',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1605,7 +1607,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
             'name' => 'job_value_include_ppn',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1614,7 +1617,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.price_after_year'),
             'name' => 'price_after_year',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1623,7 +1627,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
             'name' => 'price_voucher',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1632,7 +1637,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.price_small_cash'),
             'name' => 'price_small_cash',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1641,7 +1647,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.price_total'),
             'name' => 'price_total',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1650,7 +1657,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.profit_lost_po'),
             'name' => 'price_profit_lost_po',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1659,7 +1667,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
             'name' => 'price_general',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1668,7 +1677,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
             'name' => 'price_prift_lost_final',
-            'type'  => 'export',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
@@ -1676,7 +1686,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         CRUD::column([
             'label'  => trans('backpack::crud.profit_lost.column.category'),
-            'type'      => 'export',
+            'type'      => 'text',
             'name'      => 'category',
         ]);
 
@@ -1772,6 +1782,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -1814,6 +1825,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -1943,18 +1955,18 @@ class ProfitLostAccountCrudController extends CrudController{
         $total_acct_10 = $acct_11->balance;
 
         return [
-            'total_acct_1' => ($total_acct_1 > 0) ? $total_acct_1 : 0,
-            'total_acct_2' => ($acct_2->balance > 0) ? $acct_2->balance : 0,
-            'total_acct_3' => ($acct_3->balance > 0) ? $acct_3->balance : 0,
-            'total_acct_4' => ($total_acct_4 > 0) ? $total_acct_4 : 0,
-            'total_acct_5' => ($acct_5->balance > 0) ? $acct_5->balance : 0,
-            'total_acct_6' => ($acct_6->balance > 0) ? $acct_6->balance : 0,
-            'total_acct_7' => ($acct_7->balance > 0) ? $acct_7->balance : 0,
-            'total_acct_8' => ($total_acct_8 > 0) ? $total_acct_8 : 0,
-            'total_acct_9' => ($acct_9->balance > 0) ? $acct_9->balance : 0,
-            'total_acct_10' => ($total_acct_10 > 0) ? $total_acct_10 : 0,
-            'total_acct_11' => ($acct_11->balance > 0) ? $acct_11->balance : 0,
-            'total_acct_12' => ($acct_12->balance > 0) ? $acct_12->balance : 0,
+            'total_acct_1' => ($total_acct_1 > 0) ? CustomHelper::formatRupiahWithCurrency($total_acct_1) : 0,
+            'total_acct_2' => ($acct_2->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_2->balance) : 0,
+            'total_acct_3' => ($acct_3->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_3->balance) : 0,
+            'total_acct_4' => ($total_acct_4 > 0) ? CustomHelper::formatRupiahWithCurrency($total_acct_4) : 0,
+            'total_acct_5' => ($acct_5->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_5->balance) : 0,
+            'total_acct_6' => ($acct_6->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_6->balance) : 0,
+            'total_acct_7' => ($acct_7->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_7->balance) : 0,
+            'total_acct_8' => ($total_acct_8 > 0) ? CustomHelper::formatRupiahWithCurrency($total_acct_8) : 0,
+            'total_acct_9' => ($acct_9->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_9->balance) : 0,
+            'total_acct_10' => ($total_acct_10 > 0) ? CustomHelper::formatRupiahWithCurrency($total_acct_10) : 0,
+            'total_acct_11' => ($acct_11->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_11->balance) : 0,
+            'total_acct_12' => ($acct_12->balance > 0) ? CustomHelper::formatRupiahWithCurrency($acct_12->balance) : 0,
         ];
     }
 

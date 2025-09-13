@@ -2468,7 +2468,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
     public function exportPdf(){
         $type = request()->tab;
 
-        $this->setupListExport();
+        $this->setupListOperation();
 
         CRUD::removeColumn('document_path');
 
@@ -2476,43 +2476,29 @@ class VoucherPaymentPlanCrudController extends CrudController {
         $items =  $this->crud->getEntries();
 
         $row_number = 0;
+        $all_items = [];
 
         foreach($items as $item){
+            $row_items = [];
+            $row_number++;
             foreach($columns as $column){
-                if($column['name'] == 'row_number'){
-                    $row_number++;
-                    $item->{$column['name']} = $row_number;
-                }
-                if($column['name'] == 'client_id'){
-                    $item->client_id = SetupClient::find($item->client_id)->name;
-                }
-                if($column['name'] == 'start_date,end_date'){
-                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
-                }
-                if($column['name'] == 'user_id'){
-                    $item->user_id = User::find($item->user_id)->name;
-                }
-                if($column['name'] == 'subkon_id'){
-                    $item->subkon_id = $item?->voucher?->subkon?->name;
-                }
-                if($column['name'] == 'reference_id'){
-                    $item->reference_id = $item?->voucher?->reference?->po_number;
-                }
-                if($column['name'] == 'bank_name'){
-                    $item->bank_name = $item?->voucher?->subkon?->bank_name;
-                }
-                if($column['name'] == 'bank_account'){
-                    $item->bank_account = $item?->voucher?->subkon?->bank_account;
-                }
-                if($column['name'] == 'job_name'){
-                    $item->job_name = $item?->voucher?->reference?->job_name;
-                }
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+                $row_items[] = trim($item_value);
             }
+            $all_items[] = $row_items;
         }
 
         $title = "VOUCHER RENCANA PEMBAYARAN";
 
-        $pdf = Pdf::loadView('exports.table-pdf', compact('columns', 'items', 'title'))->setPaper('A4', 'landscape');
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $all_items,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
 
         $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
 
@@ -2527,50 +2513,33 @@ class VoucherPaymentPlanCrudController extends CrudController {
     public function exportExcel(){
         $type = request()->tab;
 
-        $this->setupListExport();
+        $this->setupListOperation();
         CRUD::removeColumn('document_path');
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
 
         $row_number = 0;
+        $all_items = [];
         foreach($items as $item){
+            $row_items = [];
+            $row_number++;
             foreach($columns as $column){
-                if($column['name'] == 'row_number'){
-                    $row_number++;
-                    $item->{$column['name']} = $row_number;
-                }
-                if($column['name'] == 'client_id'){
-                    $item->client_id = SetupClient::find($item->client_id)->name;
-                }
-                if($column['name'] == 'start_date,end_date'){
-                    $item->{"start_date,end_date"} = $item->start_date.' - '.$item->end_date;
-                }
-                if($column['name'] == 'user_id'){
-                    $item->user_id = User::find($item->user_id)->name;
-                }
-                if($column['name'] == 'subkon_id'){
-                    $item->subkon_id = $item?->voucher?->subkon?->name;
-                }
-                if($column['name'] == 'reference_id'){
-                    $item->reference_id = $item?->voucher?->reference?->po_number;
-                }
-                if($column['name'] == 'bank_name'){
-                    $item->bank_name = $item?->voucher?->subkon?->bank_name;
-                }
-                if($column['name'] == 'bank_account'){
-                    $item->bank_account = $item?->voucher?->subkon?->bank_account;
-                }
-                if($column['name'] == 'job_name'){
-                    $item->job_name = $item?->voucher?->reference?->job_name;
-                }
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                $item_value = str_replace('<span>', '', $item_value);
+                $item_value = str_replace('</span>', '', $item_value);
+                $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+                $row_items[] = trim($item_value);
             }
+            $all_items[] = $row_items;
         }
 
         $name = 'VOUCHER RENCANA PEMBAYARAN';
 
-        return response()->streamDownload(function () use($type, $columns, $items){
-            echo Excel::raw(new ExportExcel($columns, $items), \Maatwebsite\Excel\Excel::XLSX);
+        return response()->streamDownload(function () use($type, $columns, $items, $all_items){
+            echo Excel::raw(new ExportExcel(
+                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',

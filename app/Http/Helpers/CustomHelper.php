@@ -257,4 +257,11 @@ class CustomHelper {
         return $setting;
     }
 
+    public static function clean_html($string) {
+        $string = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $string);
+        $string = preg_replace('#<style(.*?)>(.*?)</style>#is', '', $string);
+
+        return strip_tags($string);
+    }
+
 }

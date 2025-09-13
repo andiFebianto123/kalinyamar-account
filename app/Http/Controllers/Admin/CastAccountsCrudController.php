@@ -208,6 +208,7 @@ class CastAccountsCrudController extends CrudController
     }
 
     private function setupListExport(){
+        $settings = Setting::first();
         $this->crud->query = $this->crud->query->leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
         ->where('cast_accounts.status', CastAccount::CASH)
         ->groupBy('cast_accounts.id')
@@ -255,18 +256,28 @@ class CastAccountsCrudController extends CrudController
             ],
         );
 
-        CRUD::column(
-            [
+        // CRUD::column(
+        //     [
+        //         'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
+        //         'name' => 'saldo',
+        //         'type'  => ''
+        //     ],
+        // );
+        CRUD::column([
                 'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
                 'name' => 'saldo',
-                'type'  => 'export'
-            ],
-        );
+                'type'  => 'number',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ]);
 
     }
 
     private function setuplistExportTrans(){
         $id = request()->id;
+        $settings = Setting::first();
         CRUD::setModel(AccountTransaction::class);
         $castAccount = CastAccount::where('id', $id)->first();
         // $detail = AccountTransaction::where('cast_account_id', $id)
@@ -287,21 +298,30 @@ class CastAccountsCrudController extends CrudController
             ]
         ])->makeFirstColumn();
 
-        CRUD::column(
-            [
+        CRUD::column([
                 'label'  => trans('backpack::crud.cash_account.field_transaction.date_transaction.label'),
-                'name' => 'date_transaction',
-                'type'  => 'export'
-            ],
-        );
+            'name' => 'date_transaction',
+            'type'  => 'date',
+            'format' => 'D MMM Y'
+        ]);
 
-        CRUD::column(
-            [
+        // CRUD::column(
+        //     [
+        //         'label'  => trans('backpack::crud.cash_account.field_transaction.nominal.label'),
+        //         'name' => 'nominal_transaction',
+        //         'type'  => 'export'
+        //     ],
+        // );
+
+        CRUD::column([
                 'label'  => trans('backpack::crud.cash_account.field_transaction.nominal.label'),
-                'name' => 'nominal_transaction',
-                'type'  => 'export'
-            ],
-        );
+            'name' => 'nominal_transaction',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
 
         CRUD::column(
             [
@@ -382,6 +402,7 @@ class CastAccountsCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -424,6 +445,7 @@ class CastAccountsCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -463,6 +485,7 @@ class CastAccountsCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -504,6 +527,7 @@ class CastAccountsCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;

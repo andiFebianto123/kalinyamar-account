@@ -448,7 +448,8 @@ class InvoiceClientCrudController extends CrudController
 
     public function exportPdf(){
 
-        $this->setupListExport();
+        // $this->setupListExport();
+        $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -465,6 +466,7 @@ class InvoiceClientCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -490,7 +492,8 @@ class InvoiceClientCrudController extends CrudController
 
     public function exportExcel(){
 
-        $this->setupListExport();
+        // $this->setupListExport();
+        $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -507,6 +510,7 @@ class InvoiceClientCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;

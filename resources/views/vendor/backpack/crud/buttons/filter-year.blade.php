@@ -37,6 +37,12 @@
                                 window.filter_tables.filter_year = value;
                             }
                         });
+
+                        forEachFlexible(eventEmitter.events, function(key, data){
+                            if(key.includes("crudTable-filter")){
+                                eventEmitter.emit(key, true);
+                            }
+                        });
                     });
                 });
             }

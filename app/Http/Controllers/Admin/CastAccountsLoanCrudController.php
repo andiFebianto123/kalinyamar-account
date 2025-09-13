@@ -161,6 +161,7 @@ class CastAccountsLoanCrudController extends CrudController
     }
 
     private function setupListExport(){
+        $settings = Setting::first();
         $this->crud->query = $this->crud->query->leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
         ->where('cast_accounts.status', CastAccount::LOAN)
         ->groupBy('cast_accounts.id')
@@ -208,13 +209,15 @@ class CastAccountsLoanCrudController extends CrudController
             ],
         );
 
-        CRUD::column(
-            [
+        CRUD::column([
                 'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
-                'name' => 'saldo',
-                'type'  => 'export'
-            ],
-        );
+            'name' => 'saldo',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
     }
 
     private function setuplistExportTrans(){
@@ -298,6 +301,7 @@ class CastAccountsLoanCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -340,6 +344,7 @@ class CastAccountsLoanCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;

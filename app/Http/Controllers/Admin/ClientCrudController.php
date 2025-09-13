@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\ClientPo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
+use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Requests\ClientRequest;
@@ -327,7 +328,8 @@ class ClientCrudController extends CrudController
 
     public function exportPdf(){
 
-        $this->setupListExport();
+        // $this->setupListExport();
+        $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -344,6 +346,7 @@ class ClientCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
@@ -369,7 +372,8 @@ class ClientCrudController extends CrudController
 
     public function exportExcel(){
 
-        $this->setupListExport();
+        // $this->setupListExport();
+        $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -386,6 +390,7 @@ class ClientCrudController extends CrudController
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
                 $row_items[] = trim($item_value);
             }
             $all_items[] = $row_items;
