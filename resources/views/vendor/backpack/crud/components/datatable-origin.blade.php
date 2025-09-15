@@ -384,7 +384,7 @@
 
 @push('after_scripts')
     <script>
-        var filterValues = [];
+        window.filterValues = [];
         function setupFilterInputs(tableId) {
             const $table = $(tableId);
             const totalColumns = $(tableId+' thead tr th').length;
@@ -557,6 +557,7 @@
                     // });
 
                     $('#crudTable-{{$name}}').on( 'draw.dt',   function () {
+                        var $table = $('#crudTable-{{$name}}');
                        @if (isset($filter))
                             setupFilterInputs('#crudTable-{{$name}}');
                             bindFilterEvents(SIAOPS.getAttribute('crudTable-{{$name}}').table, '#crudTable-{{$name}}');
@@ -577,6 +578,12 @@
                         //     $('.dtr-control').addClass('d-inline');
                         //     $("#crudTable-{{$name}}").removeClass('has-hidden-columns').addClass('has-hidden-columns');
                         // }
+
+                        forEachFlexible(eventEmitter.events, function(key, data){
+                            if(key.includes("crudTable-filter")){
+                                eventEmitter.emit(key, true);
+                            }
+                        });
 
                     }).dataTable();
 

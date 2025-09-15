@@ -7,16 +7,17 @@
                 accounts_compact:[],
                 eventLoader: async function(){
                     var instance = this;
-                    eventEmitter.on("crudTable-client_po_plugin_load", function(data){
-                        instance.load();
+                    eventEmitter.on("crudTable-filter_client_po_plugin_load", function(data){
+                        instance.refresh();
                     });
                 },
-                load: function(){
-                    var instance = this;
-                    instance.eventLoader();
+                refresh: function(){
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
+                        data: {
+                            search: window.filterValues,
+                        },
                         typeData: 'json',
                         success: function (result) {
                             $('#panel-client_po').html(`
@@ -32,6 +33,11 @@
                             alert('An error occurred while loading the create form.');
                         }
                     });
+                },
+                load: function(){
+                    var instance = this;
+                    instance.eventLoader()
+                    instance.refresh();
                 }
             }
         });

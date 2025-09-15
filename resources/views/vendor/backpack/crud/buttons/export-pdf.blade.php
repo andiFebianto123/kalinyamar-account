@@ -23,8 +23,12 @@
             var get_title_export = SIAOPS.getAttribute('export').title_pdf;
 
             var params_url = MakeParamUrl(window.filter_tables || {});
-
-            var url_export_with_params = get_url_export + params_url;
+            if(window.filterValues){
+                var filter_params_url = generateDataTableParams(window.filterValues || {});
+            }else{
+                var filter_params_url = '';
+            }
+            var url_export_with_params = get_url_export + params_url + '&' + filter_params_url;
 
             if(get_url_export == ''){
                 setLoadingButton("#btn-export-pdf", false);

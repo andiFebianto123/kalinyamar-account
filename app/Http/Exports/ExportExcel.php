@@ -27,6 +27,10 @@ class ExportExcel implements FromArray, WithHeadings, ShouldAutoSize, WithStyles
 
     public function array(): array
     {
+        if(count($this->rows) == 0){
+            return [];
+        }
+
         if(is_object($this->rows[0])){
             return collect($this->rows)->map(function ($row) {
                 return collect($this->columns)->map(function ($col) use ($row) {

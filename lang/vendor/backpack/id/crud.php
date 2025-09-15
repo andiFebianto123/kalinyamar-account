@@ -538,6 +538,9 @@ return [
                 'label' => 'Status',
                 'placeholder' => '-STATUS',
             ],
+            'nominal_information' => [
+                'label' => 'Total Sisa Pembayaran',
+            ],
             'item' => [
                 'label' => 'Invoice Item',
                 'new_item_label' => 'Tambah Item',

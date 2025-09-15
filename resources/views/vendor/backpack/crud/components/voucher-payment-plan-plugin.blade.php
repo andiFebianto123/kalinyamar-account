@@ -39,8 +39,7 @@
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'POST',
                         data: {
-                            non_rutin: SIAOPS.getAttribute('crudTable-voucher_payment_non_rutin').table.ajax.params(),
-                            rutin: SIAOPS.getAttribute('crudTable-voucher_payment_rutin').table.ajax.params(),
+                            search: window.filterValues,
                         },
                         typeData: 'json',
                         success: function (result) {

@@ -491,3 +491,17 @@ function MakeParamUrl(obj, prefix = "&") {
     .join("");
 }
 
+function generateDataTableParams(values) {
+    const params = new URLSearchParams();
+
+    if(values == undefined){
+        return '';
+    }
+
+    values.forEach((val, i) => {
+        params.append(`columns[${i}][search][value]`, val || "");
+    });
+
+    return params.toString();
+}
+

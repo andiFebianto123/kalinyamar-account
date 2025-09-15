@@ -17,16 +17,18 @@
                 accounts_compact:[],
                 eventLoader: async function(){
                     var instance = this;
-                    eventEmitter.on("crudTable-voucher_plugin_load", function(data){
-                        instance.load();
+                    eventEmitter.on("crudTable-filter_voucher_plugin_load", function(data){
+                        instance.refresh();
                     });
                 },
-                load: function(){
+                refresh: function(){
                     var instance = this;
-                    instance.eventLoader();
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
+                        data: {
+                            search: window.filterValues,
+                        },
                         typeData: 'json',
                         success: function (result) {
                             $('#panel-voucher').html(`
@@ -42,6 +44,11 @@
                             alert('An error occurred while loading the create form.');
                         }
                     });
+                },
+                load: function(){
+                    var instance = this;
+                    instance.eventLoader();
+                    instance.refresh();
                 }
             }
         });

@@ -551,6 +551,12 @@
                         //     $("#crudTable-{{$name}}").removeClass('has-hidden-columns').addClass('has-hidden-columns');
                         // }
 
+                        forEachFlexible(eventEmitter.events, function(key, data){
+                            if(key.includes("crudTable-filter")){
+                                eventEmitter.emit(key, true);
+                            }
+                        });
+
                     }).dataTable();
 
                     $('#crudTable-{{$name}}').on( 'column-visibility.dt',   function (event) {

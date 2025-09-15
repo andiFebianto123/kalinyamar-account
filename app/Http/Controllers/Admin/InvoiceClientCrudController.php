@@ -149,8 +149,8 @@ class InvoiceClientCrudController extends CrudController
         $entry = $this->crud->getEntryWithLocale($id);
         $entry->po_date = Carbon::createFromFormat('Y-m-d', $entry->po_date)->format('d/m/Y');
         // $entry->client_name = $entry->client->name;
-        $entry->price_total_exclude_ppn = CustomHelper::formatRupiah($entry->price_total_exclude_ppn);
-        $entry->price_total_include_ppn = CustomHelper::formatRupiah($entry->price_total_include_ppn);
+        $entry->price_total_exclude_ppn = $entry->price_total_exclude_ppn;
+        $entry->price_total_include_ppn = $entry->price_total_include_ppn;
 
         $entry->invoice_client_details_edit = $entry->invoice_client_details;
         $entry->client_name = $entry->client_po->client->name;
@@ -779,6 +779,38 @@ class InvoiceClientCrudController extends CrudController
             // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
         ]);
 
+        CRUD::addField([
+            'name' => 'space_2',
+            'label' => '',
+            'type' => 'hidden',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'nominal_information',
+            'label' => trans('backpack::crud.invoice_client.field.nominal_information.label'),
+            'type' => 'text',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+                'readonly' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_3',
+            'label' => '',
+            'type' => 'hidden',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+        ]);
+
 
         $id = request()->segment(3);
 
@@ -915,8 +947,9 @@ class InvoiceClientCrudController extends CrudController
             $invoice->send_invoice_revision_date = $request->send_invoice_revision;
             $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
-            // $invoice->status = 'Unpaid';
+            $invoice->status = 'Unpaid';
             $invoice->price_total = $total_price;
+            $invoice->save();
 
             foreach($items as $item){
                 $invoice_item = new InvoiceClientDetail();
@@ -929,8 +962,6 @@ class InvoiceClientCrudController extends CrudController
             $this->data['entry'] = $this->crud->entry = $invoice;
 
             $this->applyInvoicePaymentToAccount($invoice);
-
-            $invoice->save();
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
@@ -1059,7 +1090,6 @@ class InvoiceClientCrudController extends CrudController
         })->orderBy('id', 'desc')->first();
         if($approval_voucher){
             if($approval_voucher->status == 'Approved'){
-
                 $voucher = Voucher::where('reference_type', 'App\\Models\\ClientPo')
                 ->where('reference_id', $invoice->client_po_id)->first();
                 $account_beban = Account::where('code', "504")->first();
@@ -1109,6 +1139,7 @@ class InvoiceClientCrudController extends CrudController
         }else{
             $invoice->status = 'Unpaid';
         }
+        $invoice->save();
     }
 
     protected function setupShowOperation(){

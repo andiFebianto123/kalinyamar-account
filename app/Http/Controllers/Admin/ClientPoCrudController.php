@@ -210,8 +210,73 @@ class ClientPoCrudController extends CrudController
     }
 
     public function countAllPPn(){
-        $client_po = ClientPo::select(DB::raw("SUM(job_value) as total_job_value, SUM(job_value_include_ppn) as total_job_value_ppn"))
-        ->get();
+        $request = request();
+        $client_po = ClientPo::select(DB::raw("SUM(job_value) as total_job_value, SUM(job_value_include_ppn) as total_job_value_ppn"));
+
+        if($request->has('search')){
+            if(isset($request->search[1])){
+                $search = trim($request->search[1]);
+                $client_po = $client_po
+                ->where('work_code', 'like', '%'.$search.'%');
+            }
+
+            if(isset($request->search[2])){
+                $search = $request->search[2];
+                $client_po = $client_po
+                ->WhereExists(function($q) use($search){
+                    $q->from('clients')
+                    ->whereColumn('clients.id', 'client_po.client_id')
+                    ->where('clients.name', 'like', '%'.$search.'%');
+                });
+            }
+
+            if (isset($request->search[3])) {
+                $search = $request->search[3];
+                $client_po = $client_po->where('reimburse_type', 'like', $search.'%');
+            }
+
+            // filter po_number (kolom 4)
+            if (isset($request->search[4])) {
+                $search = $request->search[4];
+                $client_po = $client_po->where('po_number', 'like', '%'.$search.'%');
+            }
+
+            // filter job_name (kolom 5)
+            if (isset($request->search[5])) {
+                $search = $request->search[5];
+                $client_po = $client_po->where('job_name', 'like', '%'.$search.'%');
+            }
+
+            // filter rap_value (kolom 6)
+            if (isset($request->search[6])) {
+                $search = $request->search[6];
+                $client_po = $client_po->where('rap_value', 'like', '%'.$search.'%');
+            }
+
+            // filter job_value (kolom 7)
+            if (isset($request?->search[7])) {
+                $search = $request->search[7];
+                $client_po = $client_po->where('job_value', 'like', '%'.$search.'%');
+            }
+
+            // filter job_value_include_ppn (kolom 8)
+            if (isset($request?->search[8])) {
+                $search = $request->search[8];
+                $client_po = $client_po->where('job_value_include_ppn', 'like', '%'.$search.'%');
+            }
+
+            // filter start_date / end_date (kolom 9)
+            if (isset($request?->search[9])) {
+                $search = $request->search[9];
+                $client_po = $client_po->where(function($query) use ($search) {
+                    $query->where('start_date', 'like', '%'.$search.'%')
+                        ->orWhere('end_date', 'like', '%'.$search.'%');
+                });
+            }
+        }
+
+
+        $client_po = $client_po->get();
         if($client_po->count() > 0){
             return response()->json([
                 'total_job_value' => CustomHelper::formatRupiahWithCurrency($client_po[0]->total_job_value),
@@ -325,7 +390,7 @@ class ClientPoCrudController extends CrudController
                     'success' => true,
                     'data' => $item,
                     'events' => [
-                        'crudTable-client_po_plugin_load' => true,
+                        'crudTable-filter_client_po_plugin_load' => true,
                         'crudTable-client_po_create_success' => true
                     ],
                 ]);
@@ -394,7 +459,7 @@ class ClientPoCrudController extends CrudController
                 'success' => true,
                 'data' => $item,
                 'events' => [
-                    'crudTable-client_po_plugin_load' => true,
+                    'crudTable-filter_client_po_plugin_load' => true,
                     'crudTable-client_po_updated_success' => true
                 ]
             ]);
@@ -442,13 +507,13 @@ class ClientPoCrudController extends CrudController
 
         if($request->columns){
 
-            if(trim($request->columns[1]['search']['value']) != ''){
+            if(isset($request->columns[1]['search']['value'])){
                 $search = $request->columns[1]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('work_code', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[2]['search']['value']) != ''){
+            if(isset($request->columns[2]['search']['value'])){
                 $search = $request->columns[2]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->WhereExists(function($q) use($search){
@@ -458,43 +523,43 @@ class ClientPoCrudController extends CrudController
                 });
             }
 
-            if(trim($request->columns[3]['search']['value']) != ''){
+            if(isset($request->columns[3]['search']['value'])){
                 $search = $request->columns[3]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('reimburse_type', 'like', '%'.$search.'%');
+                ->where('reimburse_type', 'like', $search.'%');
             }
 
-            if(trim($request->columns[4]['search']['value']) != ''){
+            if(isset($request->columns[4]['search']['value'])){
                 $search = $request->columns[4]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('po_number', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[5]['search']['value']) != ''){
+            if(isset($request->columns[5]['search']['value'])){
                 $search = $request->columns[5]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('job_name', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[6]['search']['value']) != ''){
+            if(isset($request->columns[6]['search']['value'])){
                 $search = $request->columns[6]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('rap_value', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[7]['search']['value']) != ''){
+            if(isset($request->columns[7]['search']['value'])){
                 $search = $request->columns[7]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('job_value', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[8]['search']['value']) != ''){
+            if(isset($request->columns[8]['search']['value'])){
                 $search = $request->columns[8]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('job_value_include_ppn', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[9]['search']['value']) != ''){
+            if(isset($request->columns[9]['search']['value'])){
                 $search = $request->columns[9]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where(function($query) use($search){
@@ -533,13 +598,13 @@ class ClientPoCrudController extends CrudController
             //     ->where('profit_and_lost_final', 'like', '%'.$search.'%');
             // }
 
-            if(trim($request->columns[10]['search']['value']) != ''){
+            if(isset($request->columns[10]['search']['value'])){
                 $search = $request->columns[15]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('document_path', 'like', '%'.$search.'%');
             }
 
-            if(trim($request->columns[11]['search']['value']) != ''){
+            if(isset($request->columns[11]['search']['value'])){
                 $search = $request->columns[16]['search']['value'];
                 $this->crud->query = $this->crud->query
                 ->where('category', 'like', '%'.$search.'%');
@@ -1743,7 +1808,7 @@ class ClientPoCrudController extends CrudController
 
         $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
         $messages['events'] = [
-            'crudTable-client_po_plugin_load' => true,
+            'crudTable-filter_client_po_plugin_load' => true,
             'crudTable-client_po_create_success' => true,
         ];
         return response()->json($messages);

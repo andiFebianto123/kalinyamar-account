@@ -4,6 +4,7 @@
     $get_value = old_empty_or_null($field['name'], '') ??  $field['value'] ?? $field['default'] ?? '';
     $get_value = preg_replace('/\.00$/', '', $get_value);
     $hidden_input_id = $field['name'];
+    $field['attributes']['id'] = $field['attributes']['id'] ?? $field['name'] . '_masked';
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
@@ -14,6 +15,7 @@
         @if(isset($field['prefix'])) <span class="input-group-text">{!! $field['prefix'] !!}</span> @endif
         <input
             type="text"
+            data-alt="{{ $field['attributes']['id'] }}"
             data-bs-maskoption="{{ json_encode($field['mask_options'] ?? []) }}"
             value="{{ $get_value }}"
             data-init-function="bpFieldInitMaskElement"
