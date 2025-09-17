@@ -2,7 +2,7 @@
     $user_id = backpack_user()->id;
     // {{ $entry->getKey() }}, {{ $entry->approval_no_apprv }}, {{ $entry->voucer_edit_id }}
 ?>
-@if ($user_id == $entry->approval_user_id && $entry->approval_status == 'Pending')
+@if ($user_id == $entry->user_live_user_id && $entry->user_live_status == 'Pending')
     <button
             type="button"
             class="btn btn-sm btn-primary"
@@ -11,7 +11,7 @@
             data-toggle="tooltip"
             data-bs-toggle="modal"
             data-bs-target="#modalApproval"
-            data-no_apprv=" {{ $entry->approval_no_apprv }}"
+            data-no_apprv=" {{ $entry->user_live_no_apprv }}"
             data-title-approval="{{ trans('backpack::crud.voucher.confirm.title') }}"
             data-body="{{ trans('backpack::crud.voucher.confirm.confirm_approved_statement') }}"
             title="Approve"
@@ -90,13 +90,20 @@
                     btn.find('.btn-text').html("{{ trans('backpack::crud.approve_submit') }}");
                     btn.find('.btn-spinner').addClass('d-none');
                     hideModal('modalApproval');
-                    swal("{{trans('backpack::crud.voucher.confirm.alert_success')}}", "{{trans('backpack::crud.voucher.confirm.confirm_after_success')}}", "success").then(() => {
-                        if(response.events){
-                            forEachFlexible(response.events, function(eventname, data){
-                                eventEmitter.emit(eventname, data);
-                            });
-                        }
-                    });
+                    if(response.status == false){
+                        swal("", response.error, "error").then(() => {
+
+                        });
+                    }else{
+                        swal("{{trans('backpack::crud.voucher.confirm.alert_success')}}", "{{trans('backpack::crud.voucher.confirm.confirm_after_success')}}", "success").then(() => {
+                            if(response.events){
+                                forEachFlexible(response.events, function(eventname, data){
+                                    eventEmitter.emit(eventname, data);
+                                });
+                            }
+                        });
+                    }
+
                 },
                 error: function () {
                     swal("Gagal!", "Terjadi kesalahan saat memproses.", "error");

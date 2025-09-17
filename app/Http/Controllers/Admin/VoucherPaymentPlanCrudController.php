@@ -69,10 +69,10 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
         $request = request();
 
-        $user_id = backpack_user()->id;
-            $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
-            ->where('id', $user_id)
-            ->get();
+        // $user_id = backpack_user()->id;
+            // $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
+            // ->where('id', $user_id)
+            // ->get();
 
         $total_voucher_data_non_rutin = Voucher::leftJoin('payment_vouchers', 'payment_vouchers.voucher_id', '=', 'vouchers.id')
         ->where('payment_vouchers.payment_type', 'NON RUTIN')
@@ -93,15 +93,18 @@ class VoucherPaymentPlanCrudController extends CrudController {
             $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
         })
         ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id');
-        if($user_approval->count() > 0){
-            $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-            ->leftJoin('approvals', function ($join) use($user_id){
-                $join->on('approvals.model_id', '=', 'payment_voucher_plan.id')
-                    ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
-                    ->where('approvals.user_id', $user_id);
-            });
-        }else{
-            $a_p = DB::table('approvals')
+        // if($user_approval->count() > 0){
+        //     $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
+        //     ->leftJoin('approvals', function ($join) use($user_id){
+        //         $join->on('approvals.model_id', '=', 'payment_voucher_plan.id')
+        //             ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+        //             ->where('approvals.user_id', $user_id);
+        //     });
+        // }else{
+
+        // }
+
+        $a_p = DB::table('approvals')
             ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
             ->groupBy('model_type', 'model_id');
 
@@ -111,7 +114,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
             })
             ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
-        }
 
         $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
         ->leftJoin('spk', function($join){
@@ -121,7 +123,8 @@ class VoucherPaymentPlanCrudController extends CrudController {
         ->leftJoin('purchase_orders', function($join){
             $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
             ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
-        });
+        })
+        ->where('approvals.status', Approval::APPROVED);
 
         if($request->has('search')){
             if (isset($request->search[1]) && trim($request->search[1]) !== '') {
@@ -804,10 +807,10 @@ class VoucherPaymentPlanCrudController extends CrudController {
             CRUD::disableResponsiveTable();
             CRUD::addButtonFromView('line', 'approve_payment', 'approve_payment', 'end');
 
-            $user_id = backpack_user()->id;
-            $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
-            ->where('id', $user_id)
-            ->get();
+            // $user_id = backpack_user()->id;
+            // $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
+            // ->where('id', $user_id)
+            // ->get();
 
             $p_v_p = DB::table('payment_voucher_plan')
             ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
@@ -820,25 +823,25 @@ class VoucherPaymentPlanCrudController extends CrudController {
             })
             ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id');
 
-            if($user_approval->count() > 0){
-                $this->crud->query = $this->crud->query
-                ->leftJoin('approvals', function ($join) use($user_id){
-                    $join->on('approvals.model_id', '=', 'payment_voucher_plan.id')
-                        ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
-                        ->where('approvals.user_id', $user_id);
-                });
-            }else{
-                $a_p = DB::table('approvals')
-                ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
-                ->groupBy('model_type', 'model_id');
+            // if($user_approval->count() > 0){
+            //     $this->crud->query = $this->crud->query
+            //     ->leftJoin('approvals', function ($join) use($user_id){
+            //         $join->on('approvals.model_id', '=', 'payment_voucher_plan.id')
+            //             ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+            //             ->where('approvals.user_id', $user_id);
+            //     });
+            // }
 
-                $this->crud->query = $this->crud->query
-                ->leftJoinSub($a_p, 'a_p', function ($join) {
-                    $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
-                    ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
-                })
-                ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
-            }
+            $a_p = DB::table('approvals')
+            ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+            ->groupBy('model_type', 'model_id');
+
+            $this->crud->query = $this->crud->query
+            ->leftJoinSub($a_p, 'a_p', function ($join) {
+                $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
+                ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
+            })
+            ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
 
             $this->crud->query = $this->crud->query
             ->leftJoin('spk', function($join){
@@ -848,8 +851,9 @@ class VoucherPaymentPlanCrudController extends CrudController {
             ->leftJoin('purchase_orders', function($join){
                 $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
                 ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
-            });
+            })
             // ->where('payment_vouchers.payment_type', 'NON RUTIN');
+            ->where('approvals.status', Approval::APPROVED);
 
             CRUD::addClause('select', [
                 DB::raw("
@@ -1661,10 +1665,10 @@ class VoucherPaymentPlanCrudController extends CrudController {
             CRUD::disableResponsiveTable();
             CRUD::addButtonFromView('line', 'approve_payment', 'approve_payment', 'end');
 
-            $user_id = backpack_user()->id;
-            $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
-            ->where('id', $user_id)
-            ->get();
+            // $user_id = backpack_user()->id;
+            // $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
+            // ->where('id', $user_id)
+            // ->get();
 
             $p_v_p = DB::table('payment_voucher_plan')
             ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
@@ -1696,8 +1700,8 @@ class VoucherPaymentPlanCrudController extends CrudController {
             ->leftJoin('purchase_orders', function($join){
                 $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
                 ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
-            });
-            // ->where('payment_vouchers.payment_type', 'SUBKON');
+            })
+            ->where('approvals.status', Approval::APPROVED);
 
             if($request->has('columns')){
                 if(isset($request->columns[1]['search']['value'])){
@@ -2386,9 +2390,10 @@ class VoucherPaymentPlanCrudController extends CrudController {
         $voucher = Voucher::find($voucher_id);
         $po = $voucher->reference;
         $po_type = $voucher->reference_type;
-        $invoice = InvoiceClient::where('client_po_id', $po->id)->first();
+        $invoice = InvoiceClient::where('client_po_id', $voucher->client_po_id)->first();
+        $client_po = $voucher->client_po;
 
-        if($po->status == 'TANPA PO'){
+        if($client_po->status == 'TANPA PO'){
             // ada po
             $account = Account::where('code', "50222")->first();
             $price_general_loan = $po->load_general_value;
@@ -2399,6 +2404,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'description' => "Transaksi tanpa PO ".$po->work_code,
                 'date' => Carbon::now(),
                 'debit' => $price_general_loan,
+                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
                 'account_id' => $account->id,
                 'reference_id' => $po->id,
@@ -2408,35 +2414,58 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
         // periksa jenis voucher
         if($voucher->reference_type == "App\Models\PurchaseOrder"){
-            $account = Account::where('code', $voucher->account_id)->first();
-            $payment_transfer = $voucher->payment_transfer;
-            $transaksi = new AccountTransaction;
-            $transaksi->cast_account_id = $voucher->account_source_id;
-            $transaksi->reference_type = Voucher::class;
-            $transaksi->reference_id = $voucher_id;
-            $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
-            $transaksi->nominal_transaction = $payment_transfer;
-            $transaksi->total_saldo_before = 0;
-            $transaksi->total_saldo_after = 0;
-            $transaksi->status = CastAccount::ENTER;
-            $transaksi->kdp = $po?->work_code;
-            $transaksi->job_name = $po?->job_name;
-            $transaksi->save();
+            if($invoice == null){
+                $account = Account::where('code', "504")->first();
+                $payment_transfer = $voucher->payment_transfer;
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                ]);
+            }else{
+                $account = Account::where('code', "501")->first();
+                $payment_transfer = $voucher->payment_transfer;
 
-            CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $account->id,
-                'reference_id' => $transaksi->id,
-                'reference_type' => AccountTransaction::class,
-                'description' => $transaksi->kdp,
-                'date' => Carbon::now(),
-                'debit' => $payment_transfer,
-                'credit' => 0,
-                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-            ], [
-                'account_id' => $account->id,
-                'reference_id' => $voucher_id,
-                'reference_type' => AccountTransaction::class,
-            ]);
+                $invoice->status = 'Paid';
+                $invoice->save();
+
+                $transaksi = new AccountTransaction;
+                $transaksi->cast_account_id = $voucher->account_source_id;
+                $transaksi->reference_type = Voucher::class;
+                $transaksi->reference_id = $voucher_id;
+                $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
+                $transaksi->nominal_transaction = $payment_transfer;
+                $transaksi->total_saldo_before = 0;
+                $transaksi->total_saldo_after = 0;
+                $transaksi->status = CastAccount::ENTER;
+                $transaksi->kdp = $client_po?->work_code;
+                $transaksi->job_name = $voucher?->job_name;
+                $transaksi->save();
+
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account->id,
+                    'reference_id' => $transaksi->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $transaksi->kdp,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
+            }
         }else if($voucher->reference_type == "App\Models\ClientPo"){
             if($invoice == null){
                 // jika tidak ada invoice di PO
@@ -2450,13 +2479,14 @@ class VoucherPaymentPlanCrudController extends CrudController {
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
                 ]);
             }else{
-                $account = Account::where('code', $voucher->account_id)->first();
+                $account = Account::where('code', "501")->first();
                 $payment_transfer = $voucher->payment_transfer;
 
                 $invoice->status = 'Paid';
@@ -2483,6 +2513,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
@@ -2490,68 +2521,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 ]);
             }
         }
-
-        $voucher->payment_status = 'BAYAR';
-
-        // masukan journal PPH 21
-        if($voucher->pph_21 > 0){
-            $nominal_trans = $voucher->discount_pph_21;
-            $account_pph_21 = Account::where('code', "50301")->first();
-            CustomHelper::insertJournalEntry([
-                'account_id' => $account_pph_21->id,
-                'reference_id' => $voucher_id,
-                'reference_type' => Voucher::class,
-                'date' => Carbon::now(),
-                'debit' => $nominal_trans,
-                'credit' => 0,
-            ]);
-        }
-
-        // masukan journal PPH 23
-        if($voucher->pph_23 > 0){
-            $nominal_trans = $voucher->discount_pph_23;
-            $account_pph_23 = Account::where('code', "50306")->first();
-            CustomHelper::insertJournalEntry([
-                'account_id' => $account_pph_23->id,
-                'reference_id' => $voucher_id,
-                'reference_type' => Voucher::class,
-                'date' => Carbon::now(),
-                'debit' => $nominal_trans,
-                'credit' => 0,
-            ]);
-        }
-
-        // masukan journal PPH 4
-        if($voucher->pph_4 > 0){
-            $nominal_trans = $voucher->discount_pph_4;
-            $account_pph_4 = Account::where('code', "50307")->first();
-            CustomHelper::insertJournalEntry([
-                'account_id' => $account_pph_4->id,
-                'reference_id' => $voucher_id,
-                'reference_type' => Voucher::class,
-                'date' => Carbon::now(),
-                'debit' => $nominal_trans,
-                'credit' => 0,
-            ]);
-        }
-
-        // masukan PPN
-        if($voucher->tax_ppn > 0){
-            $account_ppn = Account::where('code', "50303")->first();
-            $bill_value = $voucher->bill_value;
-            $tax_ppn = $voucher->total;
-            $nominal_trans = $tax_ppn - $bill_value;
-             CustomHelper::insertJournalEntry([
-                'account_id' => $account_ppn->id,
-                'reference_id' => $voucher_id,
-                'reference_type' => Voucher::class,
-                'date' => Carbon::now(),
-                'debit' => $nominal_trans,
-                'credit' => 0,
-            ]);
-        }
-
-        $voucher->save();
     }
 
     public function approvedStore($id){

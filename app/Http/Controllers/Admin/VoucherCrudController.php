@@ -62,10 +62,10 @@ class VoucherCrudController extends CrudController {
     function total_voucher(){
 
         $request = request();
-        $user_id = backpack_user()->id;
-        $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
-        ->where('id', $user_id)
-        ->get();
+        // $user_id = backpack_user()->id;
+        // $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
+        // ->where('id', $user_id)
+        // ->get();
 
         $data = Voucher::selectRaw('
             SUM(bill_value) as jumlah_exclude_ppn,
@@ -84,25 +84,28 @@ class VoucherCrudController extends CrudController {
         })
         ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
 
-        if($user_approval->count() > 0){
-            $data = $data
-            ->leftJoin('approvals', function ($join) use($user_id){
-                $join->on('approvals.model_id', '=', 'voucher_edit.id')
-                    ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
-                    ->where('approvals.user_id', $user_id);
-            });
-        }else{
-            $a_p = DB::table('approvals')
-            ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
-            ->groupBy('model_type', 'model_id');
+        // if($user_approval->count() > 0){
+        //     $data = $data
+        //     ->leftJoin('approvals', function ($join) use($user_id){
+        //         $join->on('approvals.model_id', '=', 'voucher_edit.id')
+        //             ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
+        //             ->where('approvals.user_id', $user_id);
+        //     });
+        // }
+        // else{
 
-            $data = $data
-            ->leftJoinSub($a_p, 'a_p', function ($join) {
-                $join->on('a_p.model_id', '=', 'voucher_edit.id')
-                ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
-            })
-            ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
-        }
+        // }
+
+        $a_p = DB::table('approvals')
+        ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+        ->groupBy('model_type', 'model_id');
+
+        $data = $data
+        ->leftJoinSub($a_p, 'a_p', function ($join) {
+            $join->on('a_p.model_id', '=', 'voucher_edit.id')
+            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+        })
+        ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
 
         $data = $data->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
@@ -209,9 +212,26 @@ class VoucherCrudController extends CrudController {
                 $data = $data->where('approvals.status', 'like', '%'.$search.'%');
             }
 
-            // kolom 17
-            if (isset($request->search[17])) {
+            if(isset($request->search[17])){
                 $search = trim($request->search[17]);
+                $data = $data
+                ->whereExists(function($query) use($search){
+                    $query->select(DB::raw(1))
+                    ->from('approvals')
+                    ->whereColumn('approvals.model_id', 'voucher_edit.id')
+                    ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
+                    ->whereExists(function($q) use($search){
+                        $q->select(DB::raw(1))
+                        ->from('users')
+                        ->whereColumn('users.id', 'approvals.user_id')
+                        ->where('users.name', 'like', '%'.$search.'%');
+                    });
+                });
+            }
+
+            // kolom 17
+            if (isset($request->search[18])) {
+                $search = trim($request->search[18]);
                 $data = $data->where('payment_status', 'like', '%'.$search.'%');
             }
         }
@@ -349,6 +369,12 @@ class VoucherCrudController extends CrudController {
                                     'type' => 'text',
                                     'name' => 'status',
                                     'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.voucher.column.voucher.user_approval.label'),
+                                    'type' => 'text',
+                                    'name' => 'user_approval',
+                                    'orderable' => false,
                                 ],
                                 [
                                     'label' => trans('backpack::crud.voucher.column.voucher.payment_status.label'),
@@ -511,24 +537,55 @@ class VoucherCrudController extends CrudController {
             })
             ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
 
+            $a_p = DB::table('approvals')
+            ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+            ->groupBy('model_type', 'model_id');
+
+            $this->crud->query = $this->crud->query
+            ->leftJoinSub($a_p, 'a_p', function ($join) {
+                $join->on('a_p.model_id', '=', 'voucher_edit.id')
+                ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+            })
+            ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
+
             if($user_approval->count() > 0){
                 $this->crud->query = $this->crud->query
-                ->leftJoin('approvals', function ($join) use($user_id){
-                    $join->on('approvals.model_id', '=', 'voucher_edit.id')
-                        ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
-                        ->where('approvals.user_id', $user_id);
+                ->leftJoin('approvals as user_live_approvals', function ($join) use($user_id){
+                    $join->on('user_live_approvals.model_id', '=', 'voucher_edit.id')
+                        ->where('user_live_approvals.model_type', 'App\\Models\\VoucherEdit')
+                        ->where('user_live_approvals.user_id', $user_id);
                 });
+                CRUD::addClause('select', [
+                    DB::raw("
+                            vouchers.*,
+                            accounts.name as account_name,
+                            accounts.code as account_code,
+                            voucher_edit.id as voucer_edit_id,
+                            approvals.status as approval_status,
+                            approvals.user_id as approval_user_id,
+                            approvals.no_apprv as approval_no_apprv,
+                            cast_accounts.name as cast_account_name,
+                            user_live_approvals.no_apprv as user_live_no_apprv,
+                            user_live_approvals.status as user_live_status,
+                            user_live_approvals.user_id as user_live_user_id
+                    ")
+                ]);
             }else{
-                $a_p = DB::table('approvals')
-                ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
-                ->groupBy('model_type', 'model_id');
-
-                $this->crud->query = $this->crud->query
-                ->leftJoinSub($a_p, 'a_p', function ($join) {
-                    $join->on('a_p.model_id', '=', 'voucher_edit.id')
-                    ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
-                })
-                ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
+                CRUD::addClause('select', [
+                    DB::raw("
+                            vouchers.*,
+                            accounts.name as account_name,
+                            accounts.code as account_code,
+                            voucher_edit.id as voucer_edit_id,
+                            approvals.status as approval_status,
+                            approvals.user_id as approval_user_id,
+                            approvals.no_apprv as approval_no_apprv,
+                            cast_accounts.name as cast_account_name,
+                            '' as user_live_no_apprv,
+                            '' as user_live_status,
+                            '' as user_live_user_id
+                    ")
+                ]);
             }
 
 
@@ -592,8 +649,8 @@ class VoucherCrudController extends CrudController {
             if(trim($request->columns[11]['search']['value']) != ''){
                 $search = trim($request->columns[11]['search']['value']);
                 $this->crud->query = $this->crud->query
-                ->whereHasMorph('reference', '*', function ($query) use($search){
-                    $query->where('work_code', 'like', '%'.$search.'%');
+                ->whereHas('client_po', function($q) use($search){
+                    $q->where('work_code', 'like', '%'.$search.'%');
                 });
             }
 
@@ -628,30 +685,34 @@ class VoucherCrudController extends CrudController {
             }
 
             if(trim($request->columns[17]['search']['value']) != ''){
+                $status_search = trim($request->columns[17]['search']['value']);
                 $this->crud->query = $this->crud->query
-                ->where('payment_status', 'like', '%'.$request->columns[17]['search']['value'].'%');
+                ->whereExists(function($query) use($status_search){
+                    $query->select(DB::raw(1))
+                    ->from('approvals')
+                    ->whereColumn('approvals.model_id', 'voucher_edit.id')
+                    ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
+                    ->whereExists(function($q) use($status_search){
+                        $q->select(DB::raw(1))
+                        ->from('users')
+                        ->whereColumn('users.id', 'approvals.user_id')
+                        ->where('users.name', 'like', '%'.$status_search.'%');
+                    });
+                });
             }
 
             if(trim($request->columns[18]['search']['value']) != ''){
-                // $this->crud->query = $this->crud->query
-                // ->orWhere('payment_status', 'like', '%'.$request->columns[1]['search']['value'].'%');
+                $this->crud->query = $this->crud->query
+                ->where('payment_status', 'like', '%'.$request->columns[18]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[19]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('payment_date', 'like', '%'.$request->columns[19]['search']['value'].'%');
             }
 
             $this->crud->query =
             $this->crud->query->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
-
-            CRUD::addClause('select', [
-                DB::raw("
-                    vouchers.*,
-                    accounts.name as account_name,
-                    accounts.code as account_code,
-                    voucher_edit.id as voucer_edit_id,
-                    approvals.status as approval_status,
-                    approvals.user_id as approval_user_id,
-                    approvals.no_apprv as approval_no_apprv,
-                    cast_accounts.name as cast_account_name
-                ")
-            ]);
 
 
             CRUD::addColumn([
@@ -747,10 +808,10 @@ class VoucherCrudController extends CrudController {
             CRUD::column(
                 [
                     'label'  => '',
-                    'name' => 'reference_id',
+                    'name' => 'client_po_id',
                     'type'  => 'closure',
                     'function' => function($entry){
-                        return $entry?->reference?->work_code;
+                        return $entry?->client_po?->work_code;
                     }
                 ], // BELUM FILTER
             );
@@ -795,6 +856,28 @@ class VoucherCrudController extends CrudController {
                     'type'  => 'approval-voucher',
                 ],
             );
+            CRUD::addColumn([
+                'name'     => 'user_approval',
+                'label'    => trans('backpack::crud.voucher.column.voucher.user_approval.label'),
+                'type'     => 'custom_html',
+                'value' => function($entry) {
+                    $approvals = Approval::where('model_type', VoucherEdit::class)
+                    ->where('model_id', $entry->voucer_edit_id)
+                    ->orderBy('no_apprv', 'ASC')
+                    ->get();
+                    return "<ul>".$approvals->map(function($item, $key){
+                        if($item->status == Approval::APPROVED){
+                            return "<li class='text-success'>".$item->user->name."</li>";
+                        }
+                        return "<li>".$item->user->name."</li>";
+                    })->implode('')."</ul>";
+                },
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    // $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
+                    //     $q->where('po_number', 'like', '%'.$searchTerm.'%');
+                    // });
+                }
+            ]);
             CRUD::column(
                 [
                     'label'  => '',
@@ -804,7 +887,7 @@ class VoucherCrudController extends CrudController {
             );
             CRUD::column([
                 'label'  => '',
-                'name' => 'due_date',
+                'name' => 'payment_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
@@ -896,10 +979,10 @@ class VoucherCrudController extends CrudController {
         $settings = Setting::first();
         if($tab == 'voucher'){
             CRUD::setModel(Voucher::class);
-            $user_id = backpack_user()->id;
-            $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
-            ->where('id', $user_id)
-            ->get();
+            // $user_id = backpack_user()->id;
+            // $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
+            // ->where('id', $user_id)
+            // ->get();
 
             // voucher_edit_terbaru
             $v_e = DB::table('voucher_edit')
@@ -913,25 +996,25 @@ class VoucherCrudController extends CrudController {
             })
             ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
 
-            if($user_approval->count() > 0){
-                $this->crud->query = $this->crud->query
-                ->leftJoin('approvals', function ($join) use($user_id){
-                    $join->on('approvals.model_id', '=', 'voucher_edit.id')
-                        ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
-                        ->where('approvals.user_id', $user_id);
-                });
-            }else{
-                $a_p = DB::table('approvals')
-                ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
-                ->groupBy('model_type', 'model_id');
+            // if($user_approval->count() > 0){
+            //     $this->crud->query = $this->crud->query
+            //     ->leftJoin('approvals', function ($join) use($user_id){
+            //         $join->on('approvals.model_id', '=', 'voucher_edit.id')
+            //             ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
+            //             ->where('approvals.user_id', $user_id);
+            //     });
+            // }else{
+            // }
+            $a_p = DB::table('approvals')
+            ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+            ->groupBy('model_type', 'model_id');
 
-                $this->crud->query = $this->crud->query
-                ->leftJoinSub($a_p, 'a_p', function ($join) {
-                    $join->on('a_p.model_id', '=', 'voucher_edit.id')
-                    ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
-                })
-                ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
-            }
+            $this->crud->query = $this->crud->query
+            ->leftJoinSub($a_p, 'a_p', function ($join) {
+                $join->on('a_p.model_id', '=', 'voucher_edit.id')
+                ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+            })
+            ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
             $this->crud->query =
             $this->crud->query->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
@@ -1002,8 +1085,8 @@ class VoucherCrudController extends CrudController {
             if (isset($request->columns[11]['search']['value'])) {
                 $search = trim($request->columns[11]['search']['value']);
                 $this->crud->query = $this->crud->query
-                    ->whereHasMorph('reference', '*', function ($query) use($search) {
-                        $query->where('work_code', 'like', '%'.$search.'%');
+                    ->whereHas('client_po', function($q) use($search){
+                        $q->where('work_code', 'like', '%'.$search.'%');
                     });
             }
 
@@ -1040,10 +1123,33 @@ class VoucherCrudController extends CrudController {
                     ->where('approvals.status', 'like', '%'.$search.'%');
             }
 
-            if (isset($request->columns[17]['search']['value'])) {
+            if(isset($request->columns[17]['search']['value'])) {
                 $search = trim($request->columns[17]['search']['value']);
                 $this->crud->query = $this->crud->query
+                ->whereExists(function($query) use($search){
+                    $query->select(DB::raw(1))
+                    ->from('approvals')
+                    ->whereColumn('approvals.model_id', 'voucher_edit.id')
+                    ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
+                    ->whereExists(function($q) use($search){
+                        $q->select(DB::raw(1))
+                        ->from('users')
+                        ->whereColumn('users.id', 'approvals.user_id')
+                        ->where('users.name', 'like', '%'.$search.'%');
+                    });
+                });
+            }
+
+            if (isset($request->columns[18]['search']['value'])) {
+                $search = trim($request->columns[18]['search']['value']);
+                $this->crud->query = $this->crud->query
                     ->where('payment_status', 'like', '%'.$search.'%');
+            }
+
+            if (isset($request->columns[19]['search']['value'])) {
+                $search = trim($request->columns[19]['search']['value']);
+                $this->crud->query = $this->crud->query
+                    ->where('payment_date', 'like', '%'.$search.'%');
             }
 
             CRUD::addClause('select', [
@@ -1150,11 +1256,11 @@ class VoucherCrudController extends CrudController {
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_code.label'),
-                    'name' => 'reference_id',
+                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_code.label'),
+                    'name' => 'client_po_id',
                     'type'  => 'closure',
                     'function' => function($entry){
-                        return $entry?->reference?->work_code;
+                        return $entry?->client_po?->work_code;
                     }
                 ], // BELUM FILTER
             );
@@ -1208,7 +1314,7 @@ class VoucherCrudController extends CrudController {
             );
             CRUD::column([
                                     'label' => trans('backpack::crud.voucher.column.voucher.due_date.label'),
-                'name' => 'due_date',
+                'name' => 'payment_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
@@ -1403,7 +1509,7 @@ class VoucherCrudController extends CrudController {
 
     public function select2_no_po_spk(){
         $q = request()->q;
-        $po = ClientPo::select(DB::raw("id, po_number, 'client' as type"))->where('po_number', 'like', "%$q%");
+        // $po = ClientPo::select(DB::raw("id, po_number, 'client' as type"))->where('po_number', 'like', "%$q%");
 
         // $spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
         // ->select(DB::raw("
@@ -1419,7 +1525,7 @@ class VoucherCrudController extends CrudController {
         $po_subkon = PurchaseOrder::select(DB::raw("id, po_number, 'subkon' as type"))
         ->where('po_number', 'like', "%$q%");
 
-        $union = $po->unionAll($po_subkon)
+        $union = $po_subkon
         ->paginate(20);
 
         $results = [];
@@ -1566,7 +1672,8 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'label'       => trans('backpack::crud.voucher.field.work_code.label'), // Table column heading
             'type'        => "select2_ajax_custom",
-            'name'        => 'reference_id',
+            // 'name'        => 'reference_id',
+            'name'        => 'client_po_id',
             'entity'      => 'client_po',
             'model'       => 'App\Models\ClientPo',
             'attribute'   => "work_code",
@@ -1740,9 +1847,10 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'label'       => trans('backpack::crud.voucher.field.no_po_spk.label'), // Table column heading
             'type'        => "select2_ajax_custom",
-            'name'        => 'client_po_id',
-            'entity'      => 'client_po',
-            'model'       => 'App\Models\CLientPo',
+            // 'name'        => 'client_po_id',
+            'name'        => 'reference_id',
+            'entity'      => 'purchase_order',
+            'model'       => 'App\Models\PurchaseOrder',
             'attribute'   => "po_number",
             'data_source' => backpack_url('fa/voucher/select2-po-spk'),
             'wrapper'   => [
@@ -1753,23 +1861,32 @@ class VoucherCrudController extends CrudController {
             ]
         ]);
 
-        CRUD::addField([   // date_picker
-            'name'  => 'date_po_spk',
-            'type'  => 'text',
-            'label' => trans('backpack::crud.voucher.field.date_po_spk.label'),
-
-            // optional:
-            'date_picker_options' => [
-                'language' => App::getLocale(),
-            ],
-            'wrapper'   => [
+        CRUD::addField([
+            'name' => 'space_1',
+            'type' => 'hidden',
+            'label' => '',
+            'wrapper' => [
                 'class' => 'form-group col-md-6'
-            ],
-            'suffix' => '<span class="la la-calendar"></span>',
-            'attributes' => [
-                'disabled' => true,
             ]
         ]);
+
+        // CRUD::addField([   // date_picker
+        //     'name'  => 'date_po_spk',
+        //     'type'  => 'text',
+        //     'label' => trans('backpack::crud.voucher.field.date_po_spk.label'),
+
+        //     // optional:
+        //     'date_picker_options' => [
+        //         'language' => App::getLocale(),
+        //     ],
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        //     'suffix' => '<span class="la la-calendar"></span>',
+        //     'attributes' => [
+        //         'disabled' => true,
+        //     ]
+        // ]);
 
         CRUD::addField([
             'name' => 'bill_value',
@@ -2362,6 +2479,8 @@ class VoucherCrudController extends CrudController {
             $voucher->reference->type = 'subkon';
         }
 
+        $voucher->client_po = ClientPo::find($voucher->client_po_id);
+
         $this->data['entry'] = $voucher;
 
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
@@ -2417,10 +2536,10 @@ class VoucherCrudController extends CrudController {
         $po_client = ClientPo::select(DB::raw("id, work_code, 'client' as type"))
             ->where('work_code', 'LIKE', "%$search%");
 
-        $po_subkon = PurchaseOrder::select(DB::raw("id, work_code, 'subkon' as type"))
-        ->where('work_code', 'LIKE', "%$search%");
+        // $po_subkon = PurchaseOrder::select(DB::raw("id, work_code, 'subkon' as type"))
+        // ->where('work_code', 'LIKE', "%$search%");
 
-        $dataset = $po_client->union($po_subkon)->paginate(20);
+        $dataset = $po_client->paginate(20);
 
         $results = [];
         foreach ($dataset as $item) {
@@ -2635,6 +2754,16 @@ class VoucherCrudController extends CrudController {
 
             $event = [];
 
+            $approval_before = Approval::where('model_type', VoucherEdit::class)
+            ->where('model_id', $voucher_edit->id)
+            ->where('no_apprv', '<', $request->no_apprv)->first();
+
+            if($approval_before){
+                if($approval_before->status != Approval::APPROVED){
+                    throw new \Exception('Approval sebelumnya belum disetujui');
+                }
+            }
+
             $approval = Approval::where('model_type', VoucherEdit::class)
             ->where('model_id', $voucher_edit->id)
             ->where('user_id', $user_id)
@@ -2727,7 +2856,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'label'       => trans('backpack::crud.voucher.field.work_code.label'), // Table column heading
             'type'        => "select2_ajax_custom",
-            'name'        => 'reference_id',
+            'name'        => 'client_po_id',
             'entity'      => 'client_po',
             'model'       => 'App\Models\ClientPo',
             'attribute'   => "work_code",
@@ -2864,7 +2993,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'label'       => trans('backpack::crud.voucher.field.no_po_spk.label'), // Table column heading
             'type'        => "select2_ajax_custom",
-            'name'        => 'client_po_id',
+            'name'        => 'reference_id',
             'entity'      => 'client_po',
             'model'       => 'App\Models\CLientPo',
             'attribute'   => "po_number",
@@ -2877,23 +3006,32 @@ class VoucherCrudController extends CrudController {
             ]
         ]);
 
-        CRUD::addField([   // date_picker
-            'name'  => 'date_po_spk',
-            'type'  => 'text',
-            'label' => trans('backpack::crud.voucher.field.date_po_spk.label'),
-
-            // optional:
-            'date_picker_options' => [
-                'language' => App::getLocale(),
-            ],
-            'wrapper'   => [
+        CRUD::addField([
+            'name' => 'space_1',
+            'type' => 'hidden',
+            'label' => '',
+            'wrapper' => [
                 'class' => 'form-group col-md-6'
-            ],
-            'suffix' => '<span class="la la-calendar"></span>',
-            'attributes' => [
-                'disabled' => true,
             ]
         ]);
+
+        // CRUD::addField([   // date_picker
+        //     'name'  => 'date_po_spk',
+        //     'type'  => 'text',
+        //     'label' => trans('backpack::crud.voucher.field.date_po_spk.label'),
+
+        //     // optional:
+        //     'date_picker_options' => [
+        //         'language' => App::getLocale(),
+        //     ],
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        //     'suffix' => '<span class="la la-calendar"></span>',
+        //     'attributes' => [
+        //         'disabled' => true,
+        //     ]
+        // ]);
 
         CRUD::addField([
             'name' => 'bill_value',

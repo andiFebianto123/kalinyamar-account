@@ -1083,15 +1083,14 @@ class InvoiceClientCrudController extends CrudController
                     $query->select(DB::raw(1))
                     ->from('vouchers')
                     ->whereColumn('vouchers.id', 'payment_vouchers.voucher_id')
-                    ->where('vouchers.reference_type', '=', 'App\\Models\\ClientPo')
-                    ->where('vouchers.reference_id', '=', $invoice->client_po_id);
+                    // ->where('vouchers.reference_type', '=', 'App\\Models\\ClientPo')
+                    ->where('vouchers.client_po_id', '=', $invoice->client_po_id);
                 });
             });
         })->orderBy('id', 'desc')->first();
         if($approval_voucher){
             if($approval_voucher->status == 'Approved'){
-                $voucher = Voucher::where('reference_type', 'App\\Models\\ClientPo')
-                ->where('reference_id', $invoice->client_po_id)->first();
+                $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
                 $account_beban = Account::where('code', "504")->first();
                 $payment_transfer = $voucher->payment_transfer;
                 CustomHelper::insertJournalEntry([
@@ -1116,7 +1115,7 @@ class InvoiceClientCrudController extends CrudController
                 $transaksi->total_saldo_before = 0;
                 $transaksi->total_saldo_after = 0;
                 $transaksi->status = CastAccount::ENTER;
-                $transaksi->kdp = $voucher?->reference?->work_code;
+                $transaksi->kdp = $voucher?->client_po?->work_code;
                 $transaksi->job_name = $voucher?->reference->job_name;
                 $transaksi->save();
 

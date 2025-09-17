@@ -5,14 +5,6 @@
     $user_id = backpack_user()->id;
     $set_status = $entry->approval_status;
 
-    if($set_status == null){
-        $voucer_edit_last = \App\Models\VoucherEdit::where('voucher_id', $entry->id)->orderBy('id', 'DESC')->first();
-        $approvals = \App\Models\Approval::where('model_type', \App\Models\VoucherEdit::class)
-        ->where('model_id', $voucer_edit_last->id)
-        ->orderBy('no_apprv', 'DESC')->first();
-        $set_status = $approvals->status ?? 'NONE';
-    }
-
     $set_status = strtoupper($set_status);
 
 
@@ -34,6 +26,14 @@
     if(!empty($column['value'])) {
         $column['text'] = $column['prefix'].Str::limit($column['value'], $column['limit'], '…').$column['suffix'];
     }
+
+    // $class = "";
+    // if($set_status == 'PENDING' || $set_status == 'REJECTED'){
+    //     $class = "bg-danger";
+    // } else if ($set_status == 'APPROVED') {
+    //     $class = "bg-success";
+    // }
+
 @endphp
 
 

@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Subkon;
 use App\Models\ClientPo;
 use App\Models\CastAccount;
+use App\Models\VoucherEdit;
+use App\Models\PurchaseOrder;
 use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -56,10 +58,18 @@ class Voucher extends Model
         return $this->belongsTo(CastAccount::class, 'account_source_id', 'id');
     }
 
+    function purchase_order(){
+        return $this->belongsTo(PurchaseOrder::class, 'reference_id', 'id');
+    }
+
 
     public function reference()
     {
         return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
+    }
+
+    public function voucher_edit(){
+        return $this->hasMany(VoucherEdit::class, 'voucher_id');
     }
 
     /*

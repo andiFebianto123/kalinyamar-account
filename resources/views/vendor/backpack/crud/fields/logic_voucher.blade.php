@@ -55,14 +55,15 @@
 
                     @if ($set_value != null)
                         var data_po_spk = {!! json_encode($set_value) !!};
-                        var po_number_text = `${data_po_spk.po_number} (${data_po_spk.type})`;
-                        var work_code_text = `${data_po_spk.work_code} (${data_po_spk.type})`;
+                        var data_entry = {!! json_encode($entry) !!};
 
-                        var selectedOption = new Option(po_number_text, data_po_spk.id, true, true);
+                        var po_number_text = `${data_entry.client_po.work_code}`;
+
+                        var selectedOption = new Option(po_number_text, data_entry.client_po.id, true, true);
                         // $(form+ ' select[name="client_po_id"]').val(null).trigger('change');
                         $(form+ ' select[name="client_po_id"]').append(selectedOption).trigger('change');
 
-                        var selectedOptionw = new Option(work_code_text, data_po_spk.id, true, true);
+                        var selectedOptionw = new Option(data_entry.reference.po_number, data_entry.reference.id, true, true);
                         // $(form+' select[name="reference_id"]').val(null).trigger('change');
                         $(form+' select[name="reference_id"]').append(selectedOptionw).trigger('change');
 
@@ -78,7 +79,7 @@
 
                     @endif
 
-                    $(form+ ' select[name="client_po_id"]').off('select2:select').on('select2:select', function (e) {
+                    $(form+ ' select[name="reference_id"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id;
                         var type = e.params.data.type;
                         $.ajax({
@@ -117,8 +118,8 @@
 
                                 var work_code_text = `${po.work_code} (${po.type})`;
 
-                                var work_option = new Option(work_code_text, po.id, true, true);
-                                $(form+ ' select[name="reference_id"]').append(work_option).trigger('change');
+                                // var work_option = new Option(work_code_text, po.id, true, true);
+                                // $(form+ ' select[name="reference_id"]').append(work_option).trigger('change');
                                 $(form+' input[name="job_name"]').val(po.job_name);
                                 setInputNumber(form+' #bill_value_masked', po.price_total);
                                 setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
@@ -128,7 +129,7 @@
                         })
                     });
 
-                    $(form+' select[name="reference_id"]').off('select2:select').on('select2:select', function (e) {
+                    $(form+' select[name="client_po_id"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id;
                         var type = e.params.data.type;
                         $.ajax({
@@ -154,34 +155,34 @@
                                 }
 
                                 if(data.company){
-                                    var subkon_option = new Option(data.company.name, data.company.id, true, true);
-                                    $(form+' select[name="subkon_id"]').append(subkon_option).trigger('change');
-                                    if(data.company.bank_name){
-                                        $(form+' input[name="bank_name"]').val(data.company.bank_name);
-                                    }
-                                    if(data.company.bank_account){
-                                        $(form+' input[name="no_account"]').val(data.company.bank_account);
-                                    }
+                                    // var subkon_option = new Option(data.company.name, data.company.id, true, true);
+                                    // $(form+' select[name="subkon_id"]').append(subkon_option).trigger('change');
+                                    // if(data.company.bank_name){
+                                    //     $(form+' input[name="bank_name"]').val(data.company.bank_name);
+                                    // }
+                                    // if(data.company.bank_account){
+                                    //     $(form+' input[name="no_account"]').val(data.company.bank_account);
+                                    // }
                                 }else{
-                                    $(form+' select[name="subkon_id"]').val(null).trigger('change');
-                                    $(form+' input[name="bank_name"]').val(null);
-                                    $(form+' input[name="no_account"]').val(null);
+                                    // $(form+' select[name="subkon_id"]').val(null).trigger('change');
+                                    // $(form+' input[name="bank_name"]').val(null);
+                                    // $(form+' input[name="no_account"]').val(null);
                                 }
 
-                                if(data.date_po){
-                                    $(form+' input[name="date_po_spk"]').val(data.date_po);
-                                }else{
-                                    $(form+' input[name="date_po_spk"]').val(null);
-                                }
+                                // if(data.date_po){
+                                //     $(form+' input[name="date_po_spk"]').val(data.date_po);
+                                // }else{
+                                //     $(form+' input[name="date_po_spk"]').val(null);
+                                // }
 
-                                var po_number_option = new Option(po_number_text, po.id, true, true);
-                                $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
+                                // var po_number_option = new Option(po_number_text, po.id, true, true);
+                                // $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
 
-                                $(form+' input[name="job_name"]').val(po.job_name);
-                                setInputNumber(form+' #bill_value_masked', po.price_total);
-                                setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
-                                $(form+' input[name="type"]').val(po.type);
-                                instance.logicFormula();
+                                // $(form+' input[name="job_name"]').val(po.job_name);
+                                // setInputNumber(form+' #bill_value_masked', po.price_total);
+                                // setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
+                                // $(form+' input[name="type"]').val(po.type);
+                                // instance.logicFormula();
                             }
                         })
                     });

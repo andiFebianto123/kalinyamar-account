@@ -1186,6 +1186,9 @@ return [
                 ],
                 'status' => [
                     'label' => 'Status Approve',
+                ],
+                'user_approval' => [
+                    'label' => 'User Approval',
                 ]
             ],
             'voucher_edit' => [
