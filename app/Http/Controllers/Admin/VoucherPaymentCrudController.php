@@ -2549,6 +2549,8 @@ class VoucherPaymentCrudController extends CrudController {
                     $approval->status = Approval::PENDING;
                     $approval->save();
                 }
+                $voucher->payment_status = 'BAYAR';
+                $voucher->save();
             }
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();

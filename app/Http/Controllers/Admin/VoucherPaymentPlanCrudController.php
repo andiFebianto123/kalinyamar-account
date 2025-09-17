@@ -68,52 +68,33 @@ class VoucherPaymentPlanCrudController extends CrudController {
     function total_voucher(){
 
         $request = request();
-
-        // $user_id = backpack_user()->id;
-            // $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
-            // ->where('id', $user_id)
-            // ->get();
-
-        $total_voucher_data_non_rutin = Voucher::leftJoin('payment_vouchers', 'payment_vouchers.voucher_id', '=', 'vouchers.id')
-        ->where('payment_vouchers.payment_type', 'NON RUTIN')
-        ->groupBy('payment_vouchers.payment_type')
-        ->select(DB::raw('SUM(payment_transfer) as jumlah_nilai_transfer'))
-        ->first();
-
         // pisah
-
         $p_v_p = DB::table('payment_voucher_plan')
             ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
             ->groupBy('payment_voucher_id');
 
-        $total_voucher_plan_data_non_rutin = PaymentVoucher::select(DB::raw('SUM(vouchers.payment_transfer) as jumlah_nilai_transfer'));
-        $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-        ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
-        ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
-            $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
-        })
-        ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id');
-        // if($user_approval->count() > 0){
-        //     $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-        //     ->leftJoin('approvals', function ($join) use($user_id){
-        //         $join->on('approvals.model_id', '=', 'payment_voucher_plan.id')
-        //             ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
-        //             ->where('approvals.user_id', $user_id);
-        //     });
-        // }else{
+        $total_voucher_plan_data_non_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as jumlah_nilai_transfer'));
+        $v_e = DB::table('voucher_edit')
+        ->select(DB::raw('MAX(id) as id'), 'voucher_id')
+        ->groupBy('voucher_id');
 
-        // }
+        $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
+        ->leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
+        ->leftJoinSub($v_e, 'v_e', function ($join) {
+            $join->on('v_e.voucher_id', '=', 'vouchers.id');
+        })
+        ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
 
         $a_p = DB::table('approvals')
-            ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
-            ->groupBy('model_type', 'model_id');
+        ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+        ->groupBy('model_type', 'model_id');
 
-            $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-            ->leftJoinSub($a_p, 'a_p', function ($join) {
-                $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
-                ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
-            })
-            ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
+        $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
+        ->leftJoinSub($a_p, 'a_p', function ($join) {
+            $join->on('a_p.model_id', '=', 'voucher_edit.id')
+            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+        })
+        ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
 
         $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
         ->leftJoin('spk', function($join){
@@ -124,94 +105,105 @@ class VoucherPaymentPlanCrudController extends CrudController {
             $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
             ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
         })
+        ->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id')
+        ->where('vouchers.payment_status', 'BELUM BAYAR')
         ->where('approvals.status', Approval::APPROVED);
 
         if($request->has('search')){
+            // Kolom 1 - no_voucher
             if (isset($request->search[1]) && trim($request->search[1]) !== '') {
                 $search = trim($request->search[1]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.no_voucher', 'like', '%'.$search.'%');
+                    ->where('vouchers.no_voucher', 'like', "%{$search}%");
             }
 
+            // Kolom 2 - subkon.name
             if (isset($request->search[2]) && trim($request->search[2]) !== '') {
                 $search = trim($request->search[2]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->whereHas('voucher.subkon', function($q) use ($search) {
-                        $q->where('name', 'like', '%'.$search.'%');
+                    ->whereHas('voucher.subkon', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
                     });
             }
 
+            // Kolom 3 - subkon.bank_name
             if (isset($request->search[3]) && trim($request->search[3]) !== '') {
                 $search = trim($request->search[3]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->whereHas('voucher.subkon', function($q) use ($search) {
-                        $q->where('bank_name', 'like', '%'.$search.'%');
+                    ->whereHas('voucher.subkon', function ($q) use ($search) {
+                        $q->where('bank_name', 'like', "%{$search}%");
                     });
             }
 
+            // Kolom 4 - subkon.bank_account
             if (isset($request->search[4]) && trim($request->search[4]) !== '') {
                 $search = trim($request->search[4]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->whereHas('voucher.subkon', function($q) use ($search) {
-                        $q->where('bank_account', 'like', '%'.$search.'%');
+                    ->whereHas('voucher.subkon', function ($q) use ($search) {
+                        $q->where('bank_account', 'like', "%{$search}%");
                     });
             }
 
+            // Kolom 5 - bill_number
             if (isset($request->search[5]) && trim($request->search[5]) !== '') {
                 $search = trim($request->search[5]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.bill_number', 'like', '%'.$search.'%');
+                    ->where('vouchers.bill_number', 'like', "%{$search}%");
             }
 
+            // Kolom 6 - payment_description
             if (isset($request->search[6]) && trim($request->search[6]) !== '') {
                 $search = trim($request->search[6]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.payment_description', 'like', '%'.$search.'%');
+                    ->where('vouchers.payment_description', 'like', "%{$search}%");
             }
 
+            // Kolom 7 - reference.po_number
             if (isset($request->search[7]) && trim($request->search[7]) !== '') {
                 $search = trim($request->search[7]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->whereHas('voucher', function($q) use ($search) {
-                        $q->whereHasMorph('reference', '*', function($query) use ($search) {
-                            $query->where('po_number', 'like', '%'.$search.'%');
-                        });
+                    ->whereHasMorph('reference', '*', function ($query) use ($search) {
+                        $query->where('po_number', 'like', "%{$search}%");
                     });
             }
 
+            // Kolom 8 - payment_transfer
             if (isset($request->search[8]) && trim($request->search[8]) !== '') {
                 $search = trim($request->search[8]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.payment_transfer', 'like', '%'.$search.'%');
+                    ->where('vouchers.payment_transfer', 'like', "%{$search}%");
             }
 
+            // Kolom 9 - factur_status
             if (isset($request->search[9]) && trim($request->search[9]) !== '') {
                 $search = trim($request->search[9]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.factur_status', 'like', '%'.$search.'%');
+                    ->where('vouchers.factur_status', 'like', "%{$search}%");
             }
 
+            // Kolom 10 - reference.job_name
             if (isset($request->search[10]) && trim($request->search[10]) !== '') {
                 $search = trim($request->search[10]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->whereHas('voucher', function($q) use ($search) {
-                        $q->whereHasMorph('reference', '*', function($query) use ($search) {
-                            $query->where('job_name', 'like', '%'.$search.'%');
-                        });
+                    ->whereHasMorph('reference', '*', function ($query) use ($search) {
+                        $query->where('job_name', 'like', "%{$search}%");
                     });
             }
 
+            // Kolom 11 - due_date
             if (isset($request->search[11]) && trim($request->search[11]) !== '') {
                 $search = trim($request->search[11]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.due_date', 'like', '%'.$search.'%');
+                    ->where('vouchers.due_date', 'like', "%{$search}%");
             }
 
+            // Kolom 12 - payment_type
             if (isset($request->search[12]) && trim($request->search[12]) !== '') {
                 $search = trim($request->search[12]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.payment_type', 'like', '%'.$search.'%');
+                    ->where('vouchers.payment_type', 'like', "%{$search}%");
             }
+
         }
 
         $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
@@ -250,7 +242,6 @@ class VoucherPaymentPlanCrudController extends CrudController {
         ->first();
 
         return response()->json([
-            'voucher_payment_non_rutin_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_data_non_rutin != null) ? $total_voucher_data_non_rutin->jumlah_nilai_transfer : 0),
             'voucher_payment_plan_non_rutin_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_plan_data_non_rutin != null) ? $total_voucher_plan_data_non_rutin->jumlah_nilai_transfer : 0),
             'voucher_payment_rutin_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_data_rutin != null) ? $total_voucher_data_rutin->jumlah_nilai_transfer : 0),
             'voucher_payment_plan_rutin_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_plan_data_rutin != null) ? $total_voucher_plan_data_rutin->jumlah_nilai_transfer : 0),
@@ -507,7 +498,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
     }
 
-    protected function setupListOperation()
+    protected function setupListOperationOld()
     {
         $tab = request()->tab;
         $type = request()->type;
@@ -1941,6 +1932,299 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 ],
             );
 
+        }
+
+    }
+
+    protected function setupListOperation(){
+        CRUD::setModel(Voucher::class);
+        $request = request();
+        $tab = $request->tab;
+        $type = $request->type;
+        $settings = Setting::first();
+        CRUD::removeButton('delete');
+        CRUD::removeButton('create');
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        // CRUD::addButtonFromView('line', 'delete-payment-plan', 'delete-payment-plan', 'beginning');
+        $v_e = DB::table('voucher_edit')
+        ->select(DB::raw('MAX(id) as id'), 'voucher_id')
+        ->groupBy('voucher_id');
+
+        $this->crud->query = $this->crud->query
+        ->leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
+        ->leftJoinSub($v_e, 'v_e', function ($join) {
+            $join->on('v_e.voucher_id', '=', 'vouchers.id');
+        })
+        ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
+
+        $a_p = DB::table('approvals')
+        ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+        ->groupBy('model_type', 'model_id');
+
+        $this->crud->query = $this->crud->query
+        ->leftJoinSub($a_p, 'a_p', function ($join) {
+            $join->on('a_p.model_id', '=', 'voucher_edit.id')
+            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+        })
+        ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
+
+        $this->crud->query = $this->crud->query
+        ->leftJoin('spk', function($join){
+            $join->on('spk.id', '=', 'vouchers.reference_id')
+            ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\Spk"'));
+        })
+        ->leftJoin('purchase_orders', function($join){
+            $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
+            ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
+        })
+        ->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id')
+        ->where('vouchers.payment_status', 'BELUM BAYAR')
+        ->where('approvals.status', Approval::APPROVED);
+
+        if($request->has('columns')){
+            if(trim($request->columns[1]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.no_voucher', 'like', '%'.$request->columns[1]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[2]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->whereHas('voucher.subkon', function($q)use($request){
+                    $q->where('name', 'like', '%'.$request->columns[2]['search']['value'].'%');
+                });
+            }
+
+            if(trim($request->columns[3]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->whereHas('voucher.subkon', function($q)use($request){
+                    $q->where('bank_name', 'like', '%'.$request->columns[3]['search']['value'].'%');
+                });
+            }
+
+            if(trim($request->columns[4]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->whereHas('voucher.subkon', function($q)use($request){
+                    $q->where('bank_account', 'like', '%'.$request->columns[4]['search']['value'].'%');
+                });
+            }
+
+            if(trim($request->columns[5]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.bill_number', 'like', '%'.$request->columns[5]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[6]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.payment_description', 'like', '%'.$request->columns[6]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[7]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->whereHasMorph('reference', '*', function($query) use($request){
+                    $query->where('po_number', 'like', '%'.$request->columns[7]['search']['value'].'%');
+                });
+            }
+
+            if(trim($request->columns[8]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.payment_transfer', 'like', '%'.$request->columns[8]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[9]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.factur_status', 'like', '%'.$request->columns[9]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[10]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->whereHasMorph('reference', '*', function($query) use($request){
+                    $query->where('job_name', 'like', '%'.$request->columns[10]['search']['value'].'%');
+                });
+            }
+
+            if(trim($request->columns[11]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.due_date', 'like', '%'.$request->columns[11]['search']['value'].'%');
+            }
+
+            if(trim($request->columns[12]['search']['value']) != ''){
+                $this->crud->query = $this->crud->query
+                ->where('vouchers.payment_type', 'like', '%'.$request->columns[12]['search']['value'].'%');
+            }
+        }
+
+        CRUD::addClause('select', [
+            DB::raw("
+                vouchers.*,
+                spk.no_spk as spk_no,
+                purchase_orders.po_number as po_no,
+                approvals.approved_at as approval_approved_at,
+                approvals.status as approval_status,
+                approvals.user_id as approval_user_id,
+                approvals.no_apprv as approval_no_apprv,
+                cast_accounts.name as cast_account_name
+            ")
+        ]);
+
+        CRUD::addColumn([
+            'name'      => 'row_number',
+            'type'      => 'row_number',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+
+        CRUD::column([
+            'label'  => '',
+            'name' => 'no_voucher',
+            'type'  => 'text',
+            'orderLogic' => function ($query, $column, $order) {
+                return $query->orderBy('vouchers.no_voucher', $order);
+            }
+        ]);
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_name.label'),
+                'name' => 'subkon_id',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return $entry?->subkon?->name;
+                },
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
+                    ->orderBy('subkons.name', $order);
+                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.bank.label'),
+                'name' => 'bank_name',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return $entry?->subkon?->bank_name;
+                },
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
+                    ->orderBy('subkons.bank_name', $order);
+                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.number_account.label'),
+                'name' => 'bank_account',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return $entry?->subkon?->bank_account;
+                },
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
+                    ->orderBy('subkons.bank_account', $order);
+                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.bill_number.label'),
+                'name' => 'bill_number',
+                'type'  => 'text',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.payment_description.label'),
+                'name' => 'payment_description',
+                'type'  => 'text',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.no_po_spk.label'),
+                'name' => 'reference_id',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return $entry?->reference?->po_number;
+                },
+            ], // BELUM FILTER
+        );
+
+        CRUD::column([
+            'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
+            'name' => 'payment_transfer',
+            'type'  => 'number',
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+            'orderLogic' => function ($query, $column, $order) {
+                return $query->orderBy('vouchers.payment_transfer', $order);
+            }
+        ]);
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.factur_status.label'),
+                'name' => 'factur_status',
+                'type'  => 'text',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.factur_status', $order);
+                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
+                'name' => 'job_name',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return $entry?->reference?->job_name;
+                },
+            ], // BELUM FILTER
+        );
+
+        CRUD::column([
+            'label' => trans('backpack::crud.voucher.column.voucher.due_date.label_2'),
+            'name' => 'due_date',
+            'type'  => 'date',
+            'format' => 'D MMM Y',
+            'orderLogic' => function ($query, $column, $order) {
+                return $query->orderBy('vouchers.due_date', $order);
+            }
+        ]);
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.voucher.column.voucher.payment_type.label'),
+                'name' => 'payment_type',
+                'type'  => 'text',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.payment_type', $order);
+                }
+            ],
+        );
+
+        if($request->has('tab')){
+            if($request->tab != 'voucher_payment_plan_all'){
+                CRUD::column([
+                    'label'  => '',
+                    'name' => 'action',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return '';
+                    }
+                ]);
+            }
         }
 
     }
