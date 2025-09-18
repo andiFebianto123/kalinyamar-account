@@ -8,7 +8,7 @@
     <a href="javascript:void(0)"
         onclick="deleteEntry(this)"
         bp-button="delete"
-        data-route="{{ url($crud->route.'/'.$entry->payment_voucher_id) }}"
+        data-route="{{ url($crud->route.'/'.$entry->voucer_edit_id) }}"
         class="btn btn-sm btn-danger"
         data-button-type="delete"
         data-bs-toggle="modal"

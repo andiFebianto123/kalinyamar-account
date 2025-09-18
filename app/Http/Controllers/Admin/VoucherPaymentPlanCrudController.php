@@ -318,7 +318,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                                     'orderable' => false,
                                 ],
                                 [
-                                    'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
+                                    'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label'),
                                     'type'      => 'text',
                                     'name'      => 'payment_transfer',
                                     'orderable' => true,
@@ -346,6 +346,18 @@ class VoucherPaymentPlanCrudController extends CrudController {
                                     'type'      => 'text',
                                     'name'      => 'payment_type',
                                     'orderable' => true,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.voucher.column.voucher.status.label'),
+                                    'type'      => 'text',
+                                    'name'      => 'status',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.voucher.column.voucher.user_approval.label'),
+                                    'type' => 'text',
+                                    'name' => 'user_approval',
+                                    'orderable' => false,
                                 ],
                                 [
                                     'name' => 'action',
@@ -1830,26 +1842,76 @@ class VoucherPaymentPlanCrudController extends CrudController {
     }
 
     protected function setupListOperation(){
-        CRUD::setModel(Voucher::class);
+        CRUD::setModel(PaymentVoucher::class);
         $request = request();
         $tab = $request->tab;
         $type = $request->type;
         $settings = Setting::first();
         CRUD::removeButton('delete');
-        CRUD::removeButton('create');
+        // CRUD::removeButton('create');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
-        // CRUD::addButtonFromView('line', 'delete-payment-plan', 'delete-payment-plan', 'beginning');
-        $v_e = DB::table('voucher_edit')
-        ->select(DB::raw('MAX(id) as id'), 'voucher_id')
-        ->groupBy('voucher_id');
+        CRUD::addButtonFromView('line', 'delete-payment-plan', 'delete-payment-plan', 'beginning');
+        CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
+
+
+        $user_id = backpack_user()->id;
+        $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
+        ->where('id', $user_id)
+        ->get();
+
+        $p_v_p = DB::table('payment_voucher_plan')
+            ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
+            ->groupBy('payment_voucher_id');
 
         $this->crud->query = $this->crud->query
-        ->leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
-        ->leftJoinSub($v_e, 'v_e', function ($join) {
-            $join->on('v_e.voucher_id', '=', 'vouchers.id');
+        ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
+        ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
+            $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
         })
-        ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
+        ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id');
+
+        if($user_approval->count() > 0){
+            $this->crud->query = $this->crud->query
+            ->leftJoin('approvals as user_live_approvals', function ($join) use($user_id){
+                $join->on('user_live_approvals.model_id', '=', 'payment_voucher_plan.id')
+                    ->where('user_live_approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+                    ->where('user_live_approvals.user_id', $user_id);
+            });
+            CRUD::addClause('select', [
+                DB::raw("
+                    vouchers.*,
+                    spk.no_spk as spk_no,
+                    purchase_orders.po_number as po_no,
+                    approvals.approved_at as approval_approved_at,
+                    approvals.status as approval_status,
+                    approvals.user_id as approval_user_id,
+                    approvals.no_apprv as approval_no_apprv,
+                    payment_voucher_plan.id as voucer_edit_id,
+                    payment_vouchers.voucher_id,
+                    user_live_approvals.no_apprv as user_live_no_apprv,
+                    user_live_approvals.status as user_live_status,
+                    user_live_approvals.user_id as user_live_user_id
+                ")
+            ]);
+        }else{
+            CRUD::addClause('select', [
+                DB::raw("
+                    vouchers.*,
+                    spk.no_spk as spk_no,
+                    purchase_orders.po_number as po_no,
+                    approvals.approved_at as approval_approved_at,
+                    approvals.status as approval_status,
+                    approvals.user_id as approval_user_id,
+                    approvals.no_apprv as approval_no_apprv,
+                    payment_voucher_plan.id as voucer_edit_id,
+                    payment_vouchers.voucher_id,
+                    '' as user_live_no_apprv,
+                    '' as user_live_status,
+                    '' as user_live_user_id
+                ")
+            ]);
+        }
 
         $a_p = DB::table('approvals')
         ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
@@ -1857,8 +1919,8 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
         $this->crud->query = $this->crud->query
         ->leftJoinSub($a_p, 'a_p', function ($join) {
-            $join->on('a_p.model_id', '=', 'voucher_edit.id')
-            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+            $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
+            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
         })
         ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
 
@@ -1872,8 +1934,8 @@ class VoucherPaymentPlanCrudController extends CrudController {
             ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
         })
         ->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id')
-        ->where('vouchers.payment_status', 'BELUM BAYAR')
-        ->where('approvals.status', Approval::APPROVED);
+        ->where('vouchers.payment_status', 'BELUM BAYAR');
+        // ->where('approvals.status', Approval::APPROVED);
 
         if($request->has('columns')){
             if(trim($request->columns[1]['search']['value']) != ''){
@@ -1913,9 +1975,12 @@ class VoucherPaymentPlanCrudController extends CrudController {
             }
 
             if(trim($request->columns[7]['search']['value']) != ''){
+                $search = $request->columns[7]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->whereHasMorph('reference', '*', function($query) use($request){
-                    $query->where('po_number', 'like', '%'.$request->columns[7]['search']['value'].'%');
+                ->whereHas('voucher', function($q)use($search){
+                    $q->whereHasMorph('reference', '*', function ($query) use($search){
+                        $query->where('po_number', 'like', '%'.$search.'%');
+                    });
                 });
             }
 
@@ -1930,9 +1995,12 @@ class VoucherPaymentPlanCrudController extends CrudController {
             }
 
             if(trim($request->columns[10]['search']['value']) != ''){
+                $search = $request->columns[10]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->whereHasMorph('reference', '*', function($query) use($request){
-                    $query->where('job_name', 'like', '%'.$request->columns[10]['search']['value'].'%');
+                ->whereHas('voucher', function($q)use($search){
+                    $q->whereHasMorph('reference', '*', function ($query) use($search){
+                        $query->where('job_name', 'like', '%'.$search.'%');
+                    });
                 });
             }
 
@@ -1947,18 +2015,18 @@ class VoucherPaymentPlanCrudController extends CrudController {
             }
         }
 
-        CRUD::addClause('select', [
-            DB::raw("
-                vouchers.*,
-                spk.no_spk as spk_no,
-                purchase_orders.po_number as po_no,
-                approvals.approved_at as approval_approved_at,
-                approvals.status as approval_status,
-                approvals.user_id as approval_user_id,
-                approvals.no_apprv as approval_no_apprv,
-                cast_accounts.name as cast_account_name
-            ")
-        ]);
+        // CRUD::addClause('select', [
+        //     DB::raw("
+        //         vouchers.*,
+        //         spk.no_spk as spk_no,
+        //         purchase_orders.po_number as po_no,
+        //         approvals.approved_at as approval_approved_at,
+        //         approvals.status as approval_status,
+        //         approvals.user_id as approval_user_id,
+        //         approvals.no_apprv as approval_no_apprv,
+        //         cast_accounts.name as cast_account_name
+        //     ")
+        // ]);
 
         CRUD::addColumn([
             'name'      => 'row_number',
@@ -1985,7 +2053,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'name' => 'subkon_id',
                 'type'  => 'closure',
                 'function' => function($entry){
-                    return $entry?->subkon?->name;
+                    return $entry?->voucher?->subkon?->name;
                 },
                 'orderLogic' => function ($query, $column, $order) {
                     return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
@@ -2000,7 +2068,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'name' => 'bank_name',
                 'type'  => 'closure',
                 'function' => function($entry){
-                    return $entry?->subkon?->bank_name;
+                    return $entry?->voucher?->subkon?->bank_name;
                 },
                 'orderLogic' => function ($query, $column, $order) {
                     return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
@@ -2015,7 +2083,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'name' => 'bank_account',
                 'type'  => 'closure',
                 'function' => function($entry){
-                    return $entry?->subkon?->bank_account;
+                    return $entry?->voucher?->subkon?->bank_account;
                 },
                 'orderLogic' => function ($query, $column, $order) {
                     return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
@@ -2046,13 +2114,13 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'name' => 'reference_id',
                 'type'  => 'closure',
                 'function' => function($entry){
-                    return $entry?->reference?->po_number;
+                    return $entry?->voucher?->reference?->po_number;
                 },
             ], // BELUM FILTER
         );
 
         CRUD::column([
-            'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
+            'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label'),
             'name' => 'payment_transfer',
             'type'  => 'number',
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -2081,7 +2149,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
                 'name' => 'job_name',
                 'type'  => 'closure',
                 'function' => function($entry){
-                    return $entry?->reference?->job_name;
+                    return $entry?->voucher?->reference?->job_name;
                 },
             ], // BELUM FILTER
         );
@@ -2107,16 +2175,42 @@ class VoucherPaymentPlanCrudController extends CrudController {
             ],
         );
 
+         CRUD::column(
+            [
+                'label'  => '',
+                'name' => 'status',
+                'type'  => 'approval-voucher',
+            ],
+        );
+
+        CRUD::addColumn([
+            'name'     => 'user_approval',
+            'label'    => trans('backpack::crud.voucher.column.voucher.user_approval.label'),
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                $approvals = Approval::where('model_type', PaymentVoucherPlan::class)
+                ->where('model_id', $entry->voucer_edit_id)
+                ->orderBy('no_apprv', 'ASC')
+                ->get();
+                return "<ul>".$approvals->map(function($item, $key){
+                    if($item->status == Approval::APPROVED){
+                        return "<li class='text-success'>".$item->user->name."</li>";
+                    }
+                    return "<li>".$item->user->name."</li>";
+                })->implode('')."</ul>";
+            },
+        ]);
+
         if($request->has('tab')){
             if($request->tab != 'voucher_payment_plan_all'){
-                CRUD::column([
-                    'label'  => '',
-                    'name' => 'action',
-                    'type'  => 'closure',
-                    'function' => function($entry){
-                        return '';
-                    }
-                ]);
+                // CRUD::column([
+                //     'label'  => '',
+                //     'name' => 'action',
+                //     'type'  => 'closure',
+                //     'function' => function($entry){
+                //         return '';
+                //     }
+                // ]);
             }
         }
 
@@ -2502,20 +2596,21 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
             $event = [];
             $event['crudTable-filter_voucher_payment_plugin_load'] = true;
+            $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
 
             $voucher = $request->voucher;
             foreach($voucher as $id_v){
                 $voucher = Voucher::find($id_v);
                 $type = '';
-                if($voucher->payment_type == 'NON RUTIN'){
-                    $type = 'NON RUTIN';
-                    $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
-                    $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
-                }else{
-                    $type = 'SUBKON';
-                    $event['crudTable-voucher_payment_rutin_create_success'] = true;
-                    $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
-                }
+                // if($voucher->payment_type == 'NON RUTIN'){
+                //     $type = 'NON RUTIN';
+                //     $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
+                //     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+                // }else{
+                //     $type = 'SUBKON';
+                //     $event['crudTable-voucher_payment_rutin_create_success'] = true;
+                //     $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
+                // }
                 $payment_voucher = new PaymentVoucher();
                 $payment_voucher->voucher_id = $id_v;
                 $payment_voucher->payment_type = $type;
@@ -2562,6 +2657,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
             ]);
         }
     }
+
 
     public function addTransaction($voucher_id){
         $voucher = Voucher::find($voucher_id);
@@ -2718,13 +2814,13 @@ class VoucherPaymentPlanCrudController extends CrudController {
             $voucher_payment_plan = PaymentVoucherPlan::find($id);
             $voucher_payment = PaymentVoucher::where('id', $voucher_payment_plan->payment_voucher_id)->first();
 
-            if($voucher_payment->payment_type == 'NON RUTIN'){
-                $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
-                $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
-            }else if($voucher_payment->payment_type == 'RUTIN'){
-                $event['crudTable-voucher_payment_rutin_create_success'] = true;
-                $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
-            }
+            // if($voucher_payment->payment_type == 'NON RUTIN'){
+            // }else if($voucher_payment->payment_type == 'RUTIN'){
+            //     $event['crudTable-voucher_payment_rutin_create_success'] = true;
+            //     $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
+            // }
+
+            $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
 
             $approval = Approval::where('model_type', PaymentVoucherPlan::class)
             ->where('model_id', $voucher_payment_plan->id)
@@ -2744,7 +2840,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
             if($request->action == Approval::APPROVED){
                 if($final_approval->no_apprv == $request->no_apprv){
-                    $this->addTransaction($voucher_payment->voucher_id);
+                    // $this->addTransaction($voucher_payment->voucher_id);
                     // CustomHelper::updateOrCreateJournalEntry([
                     //     'account_id' => $voucher->account_id,
                     //     'reference_id' => $voucher_payment->id,

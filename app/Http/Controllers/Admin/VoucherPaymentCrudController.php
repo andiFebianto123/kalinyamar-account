@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Models\ClientPo;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class VoucherPaymentCrudController extends CrudController {
@@ -600,11 +601,11 @@ class VoucherPaymentCrudController extends CrudController {
                                     'name' => 'user_approval',
                                     'orderable' => false,
                                 ],
-                                [
-                                    'name' => 'action',
-                                    'type' => 'action',
-                                    'label' =>  '',
-                                ]
+                                // [
+                                //     'name' => 'action',
+                                //     'type' => 'action',
+                                //     'label' =>  '',
+                                // ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=NON RUTIN'),
                             'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=voucher_payment_plan_all'),
@@ -717,11 +718,11 @@ class VoucherPaymentCrudController extends CrudController {
                                     'name' => 'user_approval',
                                     'orderable' => false,
                                 ],
-                                [
-                                    'name' => 'action',
-                                    'type' => 'action',
-                                    'label' =>  '',
-                                ]
+                                // [
+                                //     'name' => 'action',
+                                //     'type' => 'action',
+                                //     'label' =>  '',
+                                // ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=SUBKON'),
                         ]
@@ -2447,36 +2448,32 @@ class VoucherPaymentCrudController extends CrudController {
         $settings = Setting::first();
 
 
-        $v_e = DB::table('voucher_edit')
-            ->select(DB::raw('MAX(id) as id'), 'voucher_id')
-            ->groupBy('voucher_id');
+        $p_v_p = DB::table('payment_voucher_plan')
+            ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
+            ->groupBy('payment_voucher_id');
 
         $a_p = DB::table('approvals')
-                ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
-                ->groupBy('model_type', 'model_id');
+        ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+        ->groupBy('model_type', 'model_id');
 
 
-        $voucherList = Voucher::leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
-        ->leftJoinSub($v_e, 'v_e', function ($join) {
-            $join->on('v_e.voucher_id', '=', 'vouchers.id');
+        $voucherList = Voucher::leftJoin('payment_vouchers', 'payment_vouchers.voucher_id', 'vouchers.id')
+        ->leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
+        ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
+            $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
         })
-        ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id')
+        ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id')
         ->leftJoinSub($a_p, 'a_p', function ($join) {
-            $join->on('a_p.model_id', '=', 'voucher_edit.id')
-            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
+            $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
+            ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
         })
         ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
-        ->whereNotExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('payment_vouchers')
-                ->whereColumn('payment_vouchers.voucher_id', 'vouchers.id');
-        })
         ->where('approvals.status', Approval::APPROVED)
+        ->where('vouchers.payment_status', 'BELUM BAYAR')
         ->select(DB::raw("
             vouchers.*,
             accounts.name as account_name,
             accounts.code as account_code,
-            voucher_edit.id as voucer_edit_id,
             approvals.status as approval_status,
             approvals.user_id as approval_user_id,
             approvals.no_apprv as approval_no_apprv
@@ -2517,6 +2514,8 @@ class VoucherPaymentCrudController extends CrudController {
             $voucher = $request->voucher;
             foreach($voucher as $id_v){
                 $voucher = Voucher::find($id_v);
+                $voucher->payment_status = 'BAYAR';
+                $voucher->save();
                 $type = '';
                 if($voucher->payment_type == 'NON RUTIN'){
                     $type = 'NON RUTIN';
@@ -2527,30 +2526,8 @@ class VoucherPaymentCrudController extends CrudController {
                     $event['crudTable-voucher_payment_rutin_create_success'] = true;
                     $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
                 }
-                $payment_voucher = new PaymentVoucher();
-                $payment_voucher->voucher_id = $id_v;
-                $payment_voucher->payment_type = $type;
-                $payment_voucher->save();
 
-                $payment_voucher_plan = new PaymentVoucherPlan();
-                $payment_voucher_plan->payment_voucher_id  = $payment_voucher->id;
-                $payment_voucher_plan->save();
-
-                $user_approval = User::permission('APPROVE RENCANA BAYAR')
-                ->orderBy('no_order', 'ASC')->get();
-
-                foreach($user_approval as $key => $user){
-                    $approval = new Approval;
-                    $approval->model_type = PaymentVoucherPlan::class;
-                    $approval->model_id = $payment_voucher_plan->id;
-                    $approval->no_apprv = $key + 1;
-                    $approval->user_id = $user->id;
-                    $approval->position = '';
-                    $approval->status = Approval::PENDING;
-                    $approval->save();
-                }
-                $voucher->payment_status = 'BAYAR';
-                $voucher->save();
+                $this->addTransaction($id_v);
             }
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
@@ -2561,11 +2538,11 @@ class VoucherPaymentCrudController extends CrudController {
             if (request()->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'data' => $payment_voucher,
+                    'data' => [],
                     'events' => $event,
                 ]);
             }
-            return $this->crud->performSaveAction($payment_voucher->getKey());
+            // return $this->crud->performSaveAction($payment_voucher->getKey());
         }catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -2577,7 +2554,7 @@ class VoucherPaymentCrudController extends CrudController {
     }
 
     public function addTransaction($voucher_id){
-        $voucher = Voucher::find($voucher_id);
+        $voucher = Voucher::where('id', $voucher_id)->first();
         $po = $voucher->reference;
         $po_type = $voucher->reference_type;
         $invoice = InvoiceClient::where('client_po_id', $voucher->client_po_id)->first();

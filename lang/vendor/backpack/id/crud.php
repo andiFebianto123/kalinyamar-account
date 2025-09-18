@@ -1130,7 +1130,7 @@ return [
                     'label' => 'Tanggal Voucher',
                 ],
                 'bussines_entity_name' => [
-                    'label' => 'Nama BU',
+                    'label' => 'Nama Badan Usaha',
                 ],
                 'bank' => [
                     'label' => 'Bank',
@@ -1233,6 +1233,7 @@ return [
     ],
     'voucher_payment' => [
         'title_header' => 'Pembayaran',
+        'title_modal_create_payment' => 'Pembayaran',
         'title_modal_create' => 'Rencana Bayar',
         'title_modal_edit' => 'Ubah Rencana Bayar',
         'title_modal_delete' => 'Rencana Bayar',
