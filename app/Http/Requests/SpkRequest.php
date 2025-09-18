@@ -25,17 +25,27 @@ class SpkRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+        $id = request('id');
+
+        $rule = [
             'subkon_id' => 'required|exists:subkons,id',
             'no_spk' => 'required|string|max:255',
             'date_spk' => 'required|string',
+            'work_code' => 'required|max:30|unique:spk,work_code,'. $id,
             'job_name' => 'required|string|max:255',
             'job_description' => 'required|string',
             'job_value' => 'required|numeric|min:1000',
             'document_path' => ValidUpload::field('required')->file('mimes:pdf|max:5000'),
             'tax_ppn' => 'nullable|numeric|min:0',
+            'status' => 'required|in:open,close',
             'total_value_with_tax' => 'nullable|numeric',
         ];
+
+        if($id){
+            $rule['work_code'] = 'nullable|max:30|unique:spk,work_code,'.$id;
+        }
+
+        return $rule;
     }
 
     /**

@@ -314,6 +314,7 @@ return [
             'tax_ppn' => 'PPN',
             'total_value_with_tax' => 'Nilai Pekerjaan Include PPn',
             'document_path' => 'Dokumen SPK',
+            'status' => 'Status SPK',
         ],
         'field' => [
             'subkon_id' => [
@@ -345,6 +346,9 @@ return [
                 'label' => 'Unggah Dokumen SPK',
                 'placeholder' => '000.000',
             ],
+            'status' => [
+                'label' => 'Status SPK',
+            ]
         ]
     ],
     'client' => [

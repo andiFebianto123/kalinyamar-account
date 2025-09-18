@@ -266,6 +266,14 @@ class SpkCrudController extends CrudController
             ],
         );
 
+        CRUD::addColumn(
+            [
+                'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                'name' => 'work_code',
+                'type'  => 'text'
+            ],
+        );
+
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.spk.column.job_name'),
@@ -316,12 +324,35 @@ class SpkCrudController extends CrudController
             ],
         );
 
+        CRUD::addColumn([
+            'label'  => trans('backpack::crud.po.column.due_date'),
+            'name' => 'due_date',
+            'type'  => 'date'
+        ]);
+
+        CRUD::addColumn([
+            'label'  => trans('backpack::crud.spk.column.status'),
+            'name' => 'status',
+            'type'  => 'closure',
+            'function' => function($entry){
+                return strtoupper($entry->status);
+            }
+        ]);
+
         CRUD::column([
             'name'   => 'document_path',
             'type'   => 'upload',
             'label'  => trans('backpack::crud.spk.column.document_path'),
             'disk'   => 'public',
         ]);
+
+        CRUD::addColumn(
+            [
+                'label'  => trans('backpack::crud.po.column.additional_info'),
+                'name' => 'additional_info',
+                'type'  => 'textarea'
+            ],
+        );
 
     }
 
@@ -522,12 +553,22 @@ class SpkCrudController extends CrudController
         $settings = Setting::first();
 
         $spk_prefix = [];
+        $work_code_prefix = [];
+        $work_code_disable = [
+            'disabled' => true,
+        ];
         if(!$this->crud->getCurrentEntryId()){
             if($settings?->spk_prefix){
                 $spk_prefix = [
                     'value' => $settings->spk_prefix,
                 ];
             }
+            if($settings?->work_code_prefix){
+                $work_code_prefix = [
+                    'value' => $settings->work_code_prefix,
+                ];
+            }
+            $work_code_disable = [];
         }
 
 
@@ -585,6 +626,28 @@ class SpkCrudController extends CrudController
             ],
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'work_code',
+            'label' => trans('backpack::crud.client_po.field.work_code.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                ...$work_code_disable,
+                'placeholder' => trans('backpack::crud.client_po.field.work_code.placeholder'),
+            ],
+            ...$work_code_prefix
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_2',
+            'type' => 'hidden',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
             ],
         ]);
 
@@ -680,6 +743,33 @@ class SpkCrudController extends CrudController
         ]);
 
         CRUD::addField([
+            'name' => 'due_date',
+            'label' => trans('backpack::crud.po.field.due_date.label'),
+            'type' => 'date',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.po.field.field.due_date.placeholder'),
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name'        => 'status',
+            'label'       => trans('backpack::crud.spk.field.status.label'),
+            'type'        => 'select_from_array',
+            'options'     => [
+                '' => trans('backpack::crud.po.field.status.placeholder'),
+                'open' => trans('backpack::crud.po.field.status.open'),
+                'close' => trans('backpack::crud.po.field.status.close')
+            ],
+            'allows_null' => false,
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+        ]);
+
+        CRUD::addField([
             'name' => 'document_path',
             'label' => trans('backpack::crud.spk.field.document_path.label'),
             'type' => 'upload',
@@ -691,6 +781,18 @@ class SpkCrudController extends CrudController
                 'path' => 'document_spk',
                 'deleteWhenEntryIsDeleted' => true,
             ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'additional_info',
+            'label' => trans('backpack::crud.po.field.additional_info.label'),
+            'type' => 'textarea',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.po.field.additional_info.placeholder')
+            ]
+            // 'wrapper'   => [
+            //     'class' => 'form-group col-md-6'
+            // ],
         ]);
 
         /**

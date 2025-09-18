@@ -908,7 +908,8 @@ class InvoiceClientCrudController extends CrudController
 
         request()->merge([
             'nominal_exclude_ppn' => $po->job_value,
-            'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+            // 'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+            'nominal_include_ppn' => 0,
         ]);
 
         $request = $this->crud->validateRequest();
