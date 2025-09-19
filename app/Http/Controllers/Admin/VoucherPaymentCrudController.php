@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Models\Client;
 use App\Models\ClientPo;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -166,7 +167,8 @@ class VoucherPaymentCrudController extends CrudController {
                     $total_voucher_data_non_rutin = $total_voucher_data_non_rutin
                         ->whereHas('voucher', function ($q) use ($search) {
                             $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                                $query->where('po_number', 'like', "%{$search}%");
+                                $query->where('po_number', 'like', "%{$search}%")
+                                ->orWhere('no_spk', 'like', '%'.$search.'%');
                             });
                         });
                 }
@@ -368,7 +370,8 @@ class VoucherPaymentCrudController extends CrudController {
                     $total_voucher_data_rutin = $total_voucher_data_rutin
                         ->whereHas('voucher', function ($q) use ($search) {
                             $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                                $query->where('po_number', 'like', "%{$search}%");
+                                $query->where('po_number', 'like', "%{$search}%")
+                                ->orWhere('no_spk', 'like', '%'.$search.'%');
                             });
                         });
                 }
@@ -909,7 +912,8 @@ class VoucherPaymentCrudController extends CrudController {
                 $this->crud->query = $this->crud->query
                 ->whereHas('voucher', function($q)use($search){
                     $q->whereHasMorph('reference', '*', function ($query) use($search){
-                        $query->where('po_number', 'like', '%'.$search.'%');
+                        $query->where('po_number', 'like', '%'.$search.'%')
+                        ->orWhere('no_spk', 'like', '%'.$search.'%');
                     });
                 });
             }
@@ -1026,6 +1030,9 @@ class VoucherPaymentCrudController extends CrudController {
                     'name' => 'reference_id',
                     'type'  => 'closure',
                     'function' => function($entry){
+                        if($entry?->voucher?->reference_type == 'App\Models\Spk'){
+                            return $entry?->voucher?->reference?->no_spk;
+                        }
                         return $entry?->voucher?->reference?->po_number;
                     }
                 ], // BELUM FILTER
@@ -1521,7 +1528,8 @@ class VoucherPaymentCrudController extends CrudController {
                 $this->crud->query = $this->crud->query
                 ->whereHas('voucher', function($q)use($search){
                     $q->whereHasMorph('reference', '*', function ($query) use($search){
-                        $query->where('po_number', 'like', '%'.$search.'%');
+                        $query->where('po_number', 'like', '%'.$search.'%')
+                        ->orWhere('no_spk', 'like', '%'.$search.'%');
                     });
                 });
             }
@@ -1639,6 +1647,9 @@ class VoucherPaymentCrudController extends CrudController {
                     'name' => 'reference_id',
                     'type'  => 'closure',
                     'function' => function($entry){
+                        if($entry?->voucher?->reference_type == 'App\Models\Spk'){
+                            return $entry?->voucher?->reference?->no_spk;
+                        }
                         return $entry?->voucher?->reference?->po_number;
                     },
                 ], // BELUM FILTER
@@ -2107,7 +2118,8 @@ class VoucherPaymentCrudController extends CrudController {
                     $this->crud->query = $this->crud->query
                         ->whereHas('voucher', function ($q) use ($search) {
                             $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                                $query->where('po_number', 'like', "%{$search}%");
+                                $query->where('po_number', 'like', "%{$search}%")
+                                ->orWhere('no_spk', 'like', '%'.$search.'%');
                             });
                         });
                 }
@@ -2270,6 +2282,9 @@ class VoucherPaymentCrudController extends CrudController {
                     'name' => 'reference_id',
                     'type'  => 'closure',
                     'function' => function($entry){
+                        if($entry?->voucher?->reference_type == 'App\Models\Spk'){
+                            return $entry?->voucher?->reference?->no_spk;
+                        }
                         return $entry?->voucher?->reference?->po_number;
                     }
                 ], // BELUM FILTER
@@ -2515,6 +2530,7 @@ class VoucherPaymentCrudController extends CrudController {
             foreach($voucher as $id_v){
                 $voucher = Voucher::find($id_v);
                 $voucher->payment_status = 'BAYAR';
+                $voucher->payment_date = Carbon::now();
                 $voucher->save();
                 $type = '';
                 if($voucher->payment_type == 'NON RUTIN'){
@@ -2563,24 +2579,24 @@ class VoucherPaymentCrudController extends CrudController {
         if($client_po->status == 'TANPA PO'){
             // ada po
             $account = Account::where('code', "50222")->first();
-            $price_general_loan = $po->load_general_value;
+            $price_general_loan = $client_po->load_general_value;
             CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account->id,
-                'reference_id' => $po->id,
-                'reference_type' => $po_type,
-                'description' => "Transaksi tanpa PO ".$po->work_code,
+                'reference_id' => $client_po->id,
+                'reference_type' => ClientPo::class,
+                'description' => "Transaksi tanpa PO ".$client_po->work_code,
                 'date' => Carbon::now(),
                 'debit' => $price_general_loan,
                 // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
                 'account_id' => $account->id,
-                'reference_id' => $po->id,
-                'reference_type' => $po_type,
+                'reference_id' => $client_po->id,
+                'reference_type' => ClientPo::class,
             ]);
         }
 
         // periksa jenis voucher
-        if($voucher->reference_type == "App\Models\PurchaseOrder"){
+        if($voucher->reference_type == "App\Models\PurchaseOrder" || $voucher->reference_type == "App\Models\Spk"){
             if($invoice == null){
                 $account = Account::where('code', "504")->first();
                 $payment_transfer = $voucher->payment_transfer;

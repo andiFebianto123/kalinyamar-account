@@ -33,7 +33,7 @@
                             <td>{{$voucher->date_voucher_str}}</td>
                             <td>{{$voucher?->subkon?->name}}</td>
                             <td>{{$voucher->bill_date_str}}</td>
-                            <td>{{$voucher->reference->po_number}}</td>
+                            <td>{{ ($voucher->reference_type == 'App\Models\Spk') ? $voucher->reference->no_spk : $voucher->reference->po_number}}</td>
                             <td>{{$voucher->payment_transfer_str}}</td>
                             <td>{{$voucher->due_date_str}}</td>
                             <td>{{$voucher->factur_status}}</td>

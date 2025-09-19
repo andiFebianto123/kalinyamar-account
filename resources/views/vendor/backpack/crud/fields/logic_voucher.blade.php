@@ -57,25 +57,33 @@
                         var data_po_spk = {!! json_encode($set_value) !!};
                         var data_entry = {!! json_encode($entry) !!};
 
+                        var no_po_spk = "";
+                        if(data_po_spk.type == 'spk'){
+                            no_po_spk = data_entry.reference.no_spk;
+                        }else{
+                            no_po_spk = data_entry.reference.po_number;
+                        }
+
                         var po_number_text = `${data_entry.client_po.work_code}`;
 
                         var selectedOption = new Option(po_number_text, data_entry.client_po.id, true, true);
                         // $(form+ ' select[name="client_po_id"]').val(null).trigger('change');
                         $(form+ ' select[name="client_po_id"]').append(selectedOption).trigger('change');
 
-                        var selectedOptionw = new Option(data_entry.reference.po_number, data_entry.reference.id, true, true);
+                        var selectedOptionw = new Option(no_po_spk, data_entry.reference.id, true, true);
                         // $(form+' select[name="reference_id"]').val(null).trigger('change');
                         $(form+' select[name="reference_id"]').append(selectedOptionw).trigger('change');
 
                         $(form+ ' input[name="bussines_entity_name"]').val(data_po_spk.name_company);
+                        $(form+' input[name="type"]').val(data_po_spk.type);
                         // $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
                         // $(form+ ' input[name="bank_name"]').val(data_po_spk.bank_name);
                         // $(form+' input[name="no_account"]').val(data_po_spk.bank_account);
                         // $(form+' input[name="no_type"]').val(data_po_spk.type);
 
-                        setTimeout(() => {
-                             $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
-                        }, 500);
+                        // setTimeout(() => {
+                        //      $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
+                        // }, 500);
 
                     @endif
 

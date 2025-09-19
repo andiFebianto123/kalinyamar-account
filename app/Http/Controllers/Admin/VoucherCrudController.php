@@ -1484,6 +1484,17 @@ class VoucherCrudController extends CrudController {
             ->first();
             $company = $client->subkon;
             $invoice_exists = null;
+        }else if($type == 'spk'){
+            $client = Spk::where('id', $id)
+            ->select(DB::raw("id, no_spk as po_number, job_name,
+                IF(job_value > 0, job_value, 0) as price_total,
+                IF(tax_ppn > 0, tax_ppn, 0) as ppn,
+                IF(total_value_with_tax > 0, total_value_with_tax, 0) as price_total_include_ppn,
+                work_code, 'Spk' as type,
+                subkon_id, date_spk as date_po"))
+            ->first();
+            $company = $client->subkon;
+            $invoice_exists = null;
         }
 
         $account_selected = Account::query();
@@ -1522,10 +1533,12 @@ class VoucherCrudController extends CrudController {
         //     'spk' as type
         // "))->where('spk.no_spk', 'like', "%$q%");
 
-        $po_subkon = PurchaseOrder::select(DB::raw("id, po_number, 'subkon' as type"))
-        ->where('po_number', 'like', "%$q%");
+        $po_subkon = PurchaseOrder::select(DB::raw("id, po_number, 'subkon' as type"));
+        $po_spk = Spk::select(DB::raw("id, no_spk as po_number, 'spk' as type"));
 
         $union = $po_subkon
+        ->unionAll($po_spk)
+        ->where('po_number', 'like', "%$q%")
         ->paginate(20);
 
         $results = [];
@@ -2290,6 +2303,8 @@ class VoucherCrudController extends CrudController {
                 $item->reference_type = ClientPo::class;
             }else if($type == 'subkon'){
                 $item->reference_type = PurchaseOrder::class;
+            }else if($type == 'spk'){
+                $item->reference_type = Spk::class;
             }
             $item->subkon_id = $request->subkon_id;
             $item->client_po_id = $request->client_po_id;
@@ -2477,6 +2492,8 @@ class VoucherCrudController extends CrudController {
             $voucher->reference->type = 'client';
         }else if($voucher?->reference_type == PurchaseOrder::class){
             $voucher->reference->type = 'subkon';
+        }else if($voucher?->reference_type == Spk::class){
+            $voucher->reference->type = 'spk';
         }
 
         $voucher->client_po = ClientPo::find($voucher->client_po_id);
@@ -2597,6 +2614,8 @@ class VoucherCrudController extends CrudController {
                 $item->reference_type = ClientPo::class;
             }else if($type == 'subkon'){
                 $item->reference_type = PurchaseOrder::class;
+            }else if($type == 'spk'){
+                $item->reference_type = Spk::class;
             }
             $item->subkon_id = $request->subkon_id;
             $item->client_po_id = $request->client_po_id;
@@ -3395,10 +3414,10 @@ class VoucherCrudController extends CrudController {
         CRUD::column(
             [
                 'label'  => '',
-                'name' => 'reference_id',
+                'name' => 'client_po_id',
                 'type'  => 'closure',
                 'function' => function($entry){
-                    return $entry->reference->work_code;
+                    return $entry?->client_po?->work_code;
                 }
             ],
         );
@@ -3473,9 +3492,12 @@ class VoucherCrudController extends CrudController {
         CRUD::column(
             [
                 'label'  => '',
-                'name' => 'client_po_id',
+                'name' => 'reference_id',
                 'type'  => 'closure',
                 'function' => function($entry){
+                    if($entry->reference_type == Spk::class){
+                        return $entry->reference->no_spk;
+                    }
                     return $entry->reference->po_number;
                 }
             ],
@@ -3700,8 +3722,17 @@ class VoucherCrudController extends CrudController {
                 $edit_v->delete();
             }
 
-            JournalEntry::where('reference_id', $item->id)
-            ->where('reference_type', Voucher::class)->delete();
+            JournalEntry::where(function($query) use($item){
+                $query->where('reference_id', $item->id)
+                ->where('reference_type', Voucher::class);
+            })->orWhere(function($query) use($item){
+                $query->where('description', $item->client_po->work_code);
+            })
+            ->orWhere(function($query) use($item){
+                $query->where('reference_id', $item->client_po->id)
+                ->where('reference_type', ClientPo::class);
+            })
+            ->delete();
 
             $item->delete();
 

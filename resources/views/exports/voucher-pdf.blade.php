@@ -41,7 +41,7 @@
         <td class="label">Akun Biaya</td><td class="value">{{$voucher?->account?->code ." - ".$voucher?->account?->name}}</td>
     </tr>
     <tr>
-        <td class="label">Kode Pekerjaan</td><td class="value">{{$voucher?->reference?->work_code}}</td>
+        <td class="label">Kode Pekerjaan</td><td class="value">{{$voucher?->client_po?->work_code}}</td>
         <td class="label">Sumber Rekening</td><td class="value">{{$voucher?->account_source?->name}}</td>
     </tr>
     <tr>
@@ -69,7 +69,10 @@
         <td class="label">Potongan PPh 23</td><td class="value">Rp.{{$voucher->discount_pph_23}}</td>
     </tr>
     <tr>
-        <td class="label">No. PO/SPK</td><td class="value">{{$voucher->reference->po_number}}</td>
+        @php
+            $no_po_spk = ($voucher->reference_type == 'App\Models\Spk') ? $voucher->reference->no_spk : $voucher->reference->po_number;
+        @endphp
+        <td class="label">No. PO/SPK</td><td class="value">{{$no_po_spk}}</td>
         <td class="label">Potongan PPh 4</td><td class="value">Rp.{{$voucher->discount_pph_4}}</td>
     </tr>
     <tr>
