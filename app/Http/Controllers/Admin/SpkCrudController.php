@@ -1184,11 +1184,14 @@ class SpkCrudController extends CrudController
 
      protected function setupShowOperation()
     {
-        $this->setupUpdateOperation();
+        $this->setupCreateOperation();
 
+        // update field hidden
         CRUD::field('space')->remove();
+        CRUD::field('additional_info')->remove();
+        CRUD::field('space_2')->remove();
 
-        // urutan 1
+        // update subkon id
         CRUD::field('subkon_id')->remove();
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.subkon.column.name'), // Table column heading
@@ -1197,25 +1200,51 @@ class SpkCrudController extends CrudController
             'entity'      => 'subkon', // the method that defines the relationship in your Model
             'attribute'   => "name", // foreign key attribute that is shown to user
             'data_source' => backpack_url('vendor/select2-subkon-id'), // url to controller search function (with /{id} should return a single entry)
-            // 'attributes' => [
-            //     'disabled'  => 'disabled',
-            //     'placeholder' => trans('backpack::crud.spk.field.subkon_id.placeholder')
-            // ],
-            'placeholder' => trans('backpack::crud.spk.field.subkon_id.placeholder'),
             'wrapper'   => [
                 'class' => 'form-group col-md-12'
             ],
         ])->before('no_spk');
+        // update job_name
+        CRUD::field('job_name')->remove();
+        CRUD::field([
+            'label'  => trans('backpack::crud.po.column.job_name'),
+            'name' => 'job_name',
+            'type'  => 'text',
+            'wrapper' => [
+                'class' => 'form-group col-md-12',
+            ]
+        ])->before('job_description');
+        // update job_description
+        CRUD::field('job_description')->remove();
+        CRUD::field([
+            'name' => 'job_description',
+            'label' => trans('backpack::crud.po.field.job_description.label'),
+            'type' => 'textarea',
+            'wrapper' => [
+                'class' => 'form-group col-md-12',
+            ]
+        ])->before('job_value');
+        CRUD::field([
+            'label'  => trans('backpack::crud.po.column.additional_info'),
+            'name' => 'additional_info',
+            'type'  => 'text',
+            'wrapper' => [
+                'class' => 'form-group col-md-12',
+            ]
+        ])->after('document_path');
 
-
+        // load entry data
         $this->setupListOperation();
 
+        // remove row number
         CRUD::column('row_number')->remove();
-        CRUD::column('document_path')->remove();
 
+        // update document path
+        CRUD::column('document_path')->remove();
+        CRUD::column('additional_info')->remove();
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.spk.column.document_path'),
+                'label'  => trans('backpack::crud.po.column.document_path'),
                 'name' => 'document_path',
                 'type'  => 'text',
                  'wrapper'   => [
@@ -1232,19 +1261,27 @@ class SpkCrudController extends CrudController
             ],
         );
 
+        // update date_po
         CRUD::column('date_spk')->remove();
         CRUD::column([
             'name' => 'date_spk',
-            'label' => trans('backpack::crud.spk.column.date_spk'),
+            'label' => trans('backpack::crud.po.column.date_spk'),
             'type' => 'date',
             'format' => 'DD/MM/Y',
             'attributes' => [
-                'placeholder' => trans('backpack::crud.spk.field.date_spk.placeholder'),
+                'placeholder' => trans('backpack::crud.po.field.date_spk.placeholder'),
             ],
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
         ])->after('no_spk');
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.additional_info'),
+                'name' => 'additional_info',
+                'type'  => 'textarea'
+            ],
+        )->after('document_path');
     }
 
     public function show($id)
