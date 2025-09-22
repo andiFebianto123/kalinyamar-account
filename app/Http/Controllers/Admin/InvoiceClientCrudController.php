@@ -938,7 +938,7 @@ class InvoiceClientCrudController extends CrudController
             $invoice = new InvoiceClient();
             $invoice->invoice_number = $request->invoice_number;
             $invoice->name = 'invoice';
-            $invoice->address_po = $request->address_po;
+            $invoice->address_po = ($request->address_po != '' && $request->address_po != null) ? $request->address_po : '';
             $invoice->description = $request->description;
             $invoice->invoice_date = $request->invoice_date;
             $invoice->client_po_id = $request->client_po_id;
@@ -1016,15 +1016,17 @@ class InvoiceClientCrudController extends CrudController
             }
 
             $items = $request->invoice_client_details_edit;
+            $total_item_price = 0;
             foreach($items as $item){
-                $total_price += $item['price'];
+                $total_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
+                $total_item_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
             }
 
             // $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
             $invoice = InvoiceClient::where('id', $id)->first();
             $invoice->invoice_number = $request->invoice_number;
             $invoice->name = 'invoice';
-            $invoice->address_po = $request->address_po;
+            $invoice->address_po = ($request->address_po != '' && $request->address_po != null) ? $request->address_po : '';
             $invoice->description = $request->description;
             $invoice->invoice_date = $request->invoice_date;
             $invoice->client_po_id = $request->client_po_id;
@@ -1041,12 +1043,14 @@ class InvoiceClientCrudController extends CrudController
 
             InvoiceClientDetail::where('invoice_client_id', $id)->delete();
 
-            foreach($items as $item){
-                $invoice_item = new InvoiceClientDetail();
-                $invoice_item->invoice_client_id = $invoice->id;
-                $invoice_item->name = $item['name'];
-                $invoice_item->price = $item['price'];
-                $invoice_item->save();
+            if($total_item_price > 0){
+                foreach($items as $item){
+                    $invoice_item = new InvoiceClientDetail();
+                    $invoice_item->invoice_client_id = $invoice->id;
+                    $invoice_item->name = $item['name'];
+                    $invoice_item->price = $item['price'];
+                    $invoice_item->save();
+                }
             }
 
             $this->data['entry'] = $this->crud->entry = $invoice;
