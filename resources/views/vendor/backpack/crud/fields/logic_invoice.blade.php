@@ -22,12 +22,14 @@
                 form_type : "{{ $crud->getActionMethod() }}",
                 total_price: 0,
                 logicFormulaNoPO: function(){
+                    var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
                     var nominal_exclude_ppn = getInputNumber(form + ' input[name="nominal_exclude_ppn"]');
                     var tax_ppn = getInputNumber(form + ' input[name="tax_ppn"]');
                     var nilai_ppn = (tax_ppn == 0) ? 0 : (nominal_exclude_ppn * (tax_ppn / 100));
                     var total = nominal_exclude_ppn + nilai_ppn;
                     setInputNumber(form + ' #nominal_include_ppn_masked', total);
+                    instance.total_price = Number($(form + ' input[name="nominal_exclude_ppn"]').val());
                 },
                 load: function(){
                     var instance = this;
@@ -66,8 +68,14 @@
                         });
                     });
 
+                    $(form+' #nominal_exclude_ppn_masked').on('keyup', function(){
+                        instance.logicFormulaNoPO();
+                        countTotalPrice();
+                    });
+
                     $(form+' input[name="tax_ppn"]').on('keyup', function(){
                         instance.logicFormulaNoPO();
+                        countTotalPrice();
                     });
 
                     var countTotalPrice = function(){

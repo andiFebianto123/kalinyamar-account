@@ -658,7 +658,7 @@ class InvoiceClientCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.invoice_client.field.nominal_exclude_ppn.placeholder'),
-                'disabled' => true,
+                // 'disabled' => true,
             ]
         ]);
 
@@ -908,8 +908,8 @@ class InvoiceClientCrudController extends CrudController
 
         request()->merge([
             'nominal_exclude_ppn' => $po->job_value,
-            // 'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
-            'nominal_include_ppn' => 0,
+            'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+            // 'nominal_include_ppn' => 0,
         ]);
 
         $request = $this->crud->validateRequest();
@@ -928,8 +928,10 @@ class InvoiceClientCrudController extends CrudController
             }
 
             $items = $request->invoice_client_details;
+            $total_item_price = 0;
             foreach($items as $item){
-                $total_price += $item['price'];
+                $total_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
+                $total_item_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
             }
 
             // $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
@@ -952,12 +954,14 @@ class InvoiceClientCrudController extends CrudController
             $invoice->price_total = $total_price;
             $invoice->save();
 
-            foreach($items as $item){
-                $invoice_item = new InvoiceClientDetail();
-                $invoice_item->invoice_client_id = $invoice->id;
-                $invoice_item->name = $item['name'];
-                $invoice_item->price = $item['price'];
-                $invoice_item->save();
+            if($total_item_price > 0){
+                foreach($items as $item){
+                    $invoice_item = new InvoiceClientDetail();
+                    $invoice_item->invoice_client_id = $invoice->id;
+                    $invoice_item->name = $item['name'];
+                    $invoice_item->price = $item['price'];
+                    $invoice_item->save();
+                }
             }
 
             $this->data['entry'] = $this->crud->entry = $invoice;
@@ -1071,27 +1075,30 @@ class InvoiceClientCrudController extends CrudController
     }
 
     public function applyInvoicePaymentToAccount($invoice){
-        $approval_voucher = Approval::where('model_type', 'App\\Models\\PaymentVoucherPlan')
-        ->whereExists(function ($query) use ($invoice) {
-            $query->select(DB::raw(1))
-            ->from('payment_voucher_plan')
-            ->whereColumn('payment_voucher_plan.id', 'approvals.model_id')
-            ->whereExists(function ($query) use ($invoice) {
-                $query->select(DB::raw(1))
-                ->from('payment_vouchers')
-                ->whereColumn('payment_vouchers.id', 'payment_voucher_plan.payment_voucher_id')
-                ->whereExists(function ($query) use ($invoice) {
-                    $query->select(DB::raw(1))
-                    ->from('vouchers')
-                    ->whereColumn('vouchers.id', 'payment_vouchers.voucher_id')
-                    // ->where('vouchers.reference_type', '=', 'App\\Models\\ClientPo')
-                    ->where('vouchers.client_po_id', '=', $invoice->client_po_id);
-                });
-            });
-        })->orderBy('id', 'desc')->first();
-        if($approval_voucher){
-            if($approval_voucher->status == 'Approved'){
-                $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
+        // $approval_voucher = Approval::where('model_type', 'App\\Models\\PaymentVoucherPlan')
+        // ->whereExists(function ($query) use ($invoice) {
+        //     $query->select(DB::raw(1))
+        //     ->from('payment_voucher_plan')
+        //     ->whereColumn('payment_voucher_plan.id', 'approvals.model_id')
+        //     ->whereExists(function ($query) use ($invoice) {
+        //         $query->select(DB::raw(1))
+        //         ->from('payment_vouchers')
+        //         ->whereColumn('payment_vouchers.id', 'payment_voucher_plan.payment_voucher_id')
+        //         ->whereExists(function ($query) use ($invoice) {
+        //             $query->select(DB::raw(1))
+        //             ->from('vouchers')
+        //             ->whereColumn('vouchers.id', 'payment_vouchers.voucher_id')
+        //             // ->where('vouchers.reference_type', '=', 'App\\Models\\ClientPo')
+        //             ->where('vouchers.client_po_id', '=', $invoice->client_po_id);
+        //         });
+        //     });
+        // })->orderBy('id', 'desc')->first();
+
+        $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
+
+        if($voucher){
+            if($voucher->payment_status == 'BAYAR'){
+                // $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
                 $account_beban = Account::where('code', "504")->first();
                 $payment_transfer = $voucher->payment_transfer;
                 CustomHelper::insertJournalEntry([

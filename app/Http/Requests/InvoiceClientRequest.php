@@ -59,24 +59,42 @@ class InvoiceClientRequest extends FormRequest
             $rule['invoice_client_details_edit.*.price'] = 'required|numeric|min:1000';
         }else{
             $items = json_decode(request()->invoice_client_details, true);
+            $status_empty = true;
+            $items_total_price = 0;
+            if($items != null){
+                foreach($items as $item){
+                    $items_total_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
+                    if($items_total_price > 0){
+                        $status_empty = false;
+                    }
+                }
+            }
             $this->merge([
                 'invoice_client_details' => $items,
             ]);
-            $rule['invoice_client_details'] = [
-                'required',
-                'array',
-                'min:1',
-                function ($attribute, $value, $fail) use($client_po, $items){
-                    $client = ClientPo::find($client_po);
-                    $price_total = $client->job_value;
-                    $items_total_price = collect($items)->sum('price');
-                    if($price_total != $items_total_price){
-                        $fail(trans('backpack::crud.invoice_client.field.item.errors.total_price'));
+            if(!$status_empty){
+                $rule['invoice_client_details'] = [
+                    'required',
+                    'array',
+                    'min:1',
+                    function ($attribute, $value, $fail) use($client_po, $items){
+                        $client = ClientPo::find($client_po);
+                        $price_total = $client->job_value;
+                        // $items_total_price = collect($items)->sum('price');
+
+                        $items_total_price = 0;
+                        foreach($items as $item){
+                            $items_total_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
+                        }
+
+                        if($price_total != $items_total_price){
+                            $fail(trans('backpack::crud.invoice_client.field.item.errors.total_price'));
+                        }
                     }
-                }
-            ];'required|array|min:1';
-            $rule['invoice_client_details.*.name'] = 'required|max:120';
-            $rule['invoice_client_details.*.price'] = 'required|numeric|min:1000';
+                ];
+                $rule['invoice_client_details.*.name'] = 'required|max:120';
+                $rule['invoice_client_details.*.price'] = 'required|numeric|min:1000';
+            }
         }
 
         return $rule;
