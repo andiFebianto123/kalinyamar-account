@@ -7,9 +7,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Requests\SpkRequest;
 use App\Http\Helpers\CustomHelper;
+use App\Models\Spk;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
+use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -55,15 +56,330 @@ class SpkCrudController extends CrudController
         }
     }
 
+    public function total_price(){
+        $filter_year = request()->filter_year;
+        $total_open = Spk::where('status', Spk::OPEN);
+        if($filter_year != null && $filter_year != 'all'){
+            $total_open = $total_open->where(DB::raw("YEAR(date_spk)"), $filter_year);
+        }
+        $total_open = $total_open->sum('total_value_with_tax');
+
+        $total_closed = Spk::where('status', Spk::CLOSE);
+        if($filter_year != null && $filter_year != 'all'){
+            $total_closed = $total_closed->where(DB::raw("YEAR(date_spk)"), $filter_year);
+        }
+        $total_closed = $total_closed->sum('total_value_with_tax');
+
+        $price_total_open = CustomHelper::formatRupiahWithCurrency($total_open);
+        $price_total_closed = CustomHelper::formatRupiahWithCurrency($total_closed);
+        return [
+            'total_open' => $price_total_open,
+            'total_closed' => $price_total_closed
+        ];
+    }
+
     public function index()
     {
         $this->crud->hasAccessOrFail('list');
+
+        $this->card->addCard([
+            'name' => 'spk_tab',
+            'line' => 'top',
+            'view' => 'crud::components.card-tab',
+            'params' => [
+                'tabs' => [
+                    [
+                        'name' => 'list_all_spk',
+                        'label' => trans('backpack::crud.po.tab.title_all_po'),
+                        // 'class' => '',
+                        'active' => true,
+                        'view' => 'crud::components.datatable',
+                        'params' => [
+                            'crud_custom' => $this->crud,
+                            'columns' => [
+                                [
+                                    'name'      => 'row_number',
+                                    'type'      => 'row_number',
+                                    'label'     => 'No',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.spk.column.no_spk'),
+                                    'name' => 'no_spk',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.spk.column.date_spk'),
+                                    'name' => 'date_spk',
+                                    'type'  => 'date'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                                    'name' => 'work_code',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_name'),
+                                    'name' => 'job_name',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_description'),
+                                    'name' => 'job_description',
+                                    'type'  => 'textarea'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_value'),
+                                    'name' => 'job_value',
+                                    'type'  => 'number',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.tax_ppn'),
+                                    'name' => 'tax_ppn',
+                                    'type'  => 'number',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.total_value_with_tax'),
+                                    'name' => 'total_value_with_tax',
+                                    'type'  => 'number-custom',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.due_date'),
+                                    'name' => 'due_date',
+                                    'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.po.column.status'),
+                                    'name' => 'status',
+                                    'type' => 'closure'
+                                ],
+                                [
+                                    'name'   => 'document_path',
+                                    'type'   => 'upload',
+                                    'label'  => trans('backpack::crud.po.column.document_path'),
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.additional_info'),
+                                    'name' => 'additional_info',
+                                    'type'  => 'textarea'
+                                ],
+                                [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  trans('backpack::crud.actions'),
+                                ],
+                            ],
+                            'route' => backpack_url('/vendor/spk-trans/search?tab=list_all_po'),
+                            'route_export_pdf' => backpack_url('/vendor/spk-trans/export-pdf?tab=list_all_spk'),
+                            'title_export_pdf' => 'Spk.pdf',
+                            'route_export_excel' => backpack_url('/vendor/spk-trans/export-excel?tab=list_all_spk'),
+                            'title_export_excel' => 'Spk.xlsx',
+                        ],
+                    ],
+                    [
+                        'name' => 'list_open',
+                        'label' => trans('backpack::crud.po.tab.open'),
+                        // 'class' => '',
+                        'active' => false,
+                        'view' => 'crud::components.datatable-po',
+                        'params' => [
+                            'crud_custom' => $this->crud,
+                            'columns' => [
+                                [
+                                    'name'      => 'row_number',
+                                    'type'      => 'row_number',
+                                    'label'     => 'No',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.spk.column.no_spk'),
+                                    'name' => 'no_spk',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.spk.column.date_spk'),
+                                    'name' => 'date_spk',
+                                    'type'  => 'date'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                                    'name' => 'work_code',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_name'),
+                                    'name' => 'job_name',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_description'),
+                                    'name' => 'job_description',
+                                    'type'  => 'textarea'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_value'),
+                                    'name' => 'job_value',
+                                    'type'  => 'number',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.tax_ppn'),
+                                    'name' => 'tax_ppn',
+                                    'type'  => 'number',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.total_value_with_tax'),
+                                    'name' => 'total_value_with_tax',
+                                    'type'  => 'number-custom',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.due_date'),
+                                    'name' => 'due_date',
+                                    'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.po.column.status'),
+                                    'name' => 'status',
+                                    'type' => 'closure'
+                                ],
+                                [
+                                    'name'   => 'document_path',
+                                    'type'   => 'upload',
+                                    'label'  => trans('backpack::crud.po.column.document_path'),
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.additional_info'),
+                                    'name' => 'additional_info',
+                                    'type'  => 'textarea'
+                                ],
+                            ],
+                            'total_include_ppn' => CustomHelper::formatRupiah(Spk::where('status', Spk::OPEN)->sum('total_value_with_tax')),
+                            'route' => backpack_url('/vendor/spk-trans/search?tab=open'),
+                            'route_export_pdf' => backpack_url('/vendor/spk-trans/export-pdf?tab=open'),
+                            'title_export_pdf' => 'Spk-open.pdf',
+                            'route_export_excel' => backpack_url('/vendor/spk-trans/export-excel?tab=open'),
+                            'title_export_excel' => 'Spk-open.xlsx',
+                        ],
+                    ],
+                    [
+                        'name' => 'list_close',
+                        'label' => trans('backpack::crud.po.tab.close'),
+                        // 'class' => '',
+                        'active' => false,
+                        'view' => 'crud::components.datatable-po',
+                        'params' => [
+                            'crud_custom' => $this->crud,
+                            'columns' => [
+                                 [
+                                    'name'      => 'row_number',
+                                    'type'      => 'row_number',
+                                    'label'     => 'No',
+                                    'orderable' => false,
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.spk.column.no_spk'),
+                                    'name' => 'no_spk',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.spk.column.date_spk'),
+                                    'name' => 'date_spk',
+                                    'type'  => 'date'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                                    'name' => 'work_code',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_name'),
+                                    'name' => 'job_name',
+                                    'type'  => 'text'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_description'),
+                                    'name' => 'job_description',
+                                    'type'  => 'textarea'
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.job_value'),
+                                    'name' => 'job_value',
+                                    'type'  => 'number',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.tax_ppn'),
+                                    'name' => 'tax_ppn',
+                                    'type'  => 'number',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.total_value_with_tax'),
+                                    'name' => 'total_value_with_tax',
+                                    'type'  => 'number-custom',
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.due_date'),
+                                    'name' => 'due_date',
+                                    'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.po.column.status'),
+                                    'name' => 'status',
+                                    'type' => 'closure'
+                                ],
+                                [
+                                    'name'   => 'document_path',
+                                    'type'   => 'upload',
+                                    'label'  => trans('backpack::crud.po.column.document_path'),
+                                ],
+                                [
+                                    'label'  => trans('backpack::crud.po.column.additional_info'),
+                                    'name' => 'additional_info',
+                                    'type'  => 'textarea'
+                                ],
+                            ],
+                            'total_include_ppn' => CustomHelper::formatRupiah(Spk::where('status', Spk::CLOSE)->sum('total_value_with_tax')),
+                            'route' => backpack_url('/vendor/spk-trans/search?tab=close'),
+                            'route_export_pdf' => backpack_url('/vendor/spk-trans/export-pdf?tab=close'),
+                            'title_export_pdf' => 'Spk-close.pdf',
+                            'route_export_excel' => backpack_url('/vendor/spk-trans/export-excel?tab=close'),
+                            'title_export_excel' => 'Spk-close.xlsx',
+                        ],
+                    ]
+                ]
+            ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'spk-plugin',
+            'line' => 'top',
+            'view' => 'crud::components.spk-plugin',
+            'parent_view' => 'crud::components.filter-parent',
+            'params' => [],
+        ]);
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "SPK vendor (Subkon)";
         $this->data['title_modal_edit'] = "SPK Vendor (Subkon)";
         $this->data['title_modal_delete'] = "SPK Vendor (Subkon)";
+        $this->data['cards'] = $this->card;
 
         $breadcrumbs = [
             'Vendor (Subkon)' => backpack_url('vendor'),
@@ -72,7 +388,7 @@ class SpkCrudController extends CrudController
 
         $this->data['breadcrumbs'] = $breadcrumbs;
 
-        $list = "crud::list-custom" ?? $this->crud->getListView();
+        $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
     }
 
@@ -110,14 +426,29 @@ class SpkCrudController extends CrudController
         DB::beginTransaction();
         try{
 
+            $events = [];
+
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
             $this->data['entry'] = $this->crud->entry = $item;
+
+            $events['crudTable-list_all_spk_create_success'] = $item;
+            $events['crudTable-list_open_create_success'] = $item;
+            $events['crudTable-list_close_create_success'] = $item;
+            $events['crudTable-filter-spk_plugin_load'] = $item;
+
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
             $this->crud->setSaveAction();
-
             DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $item,
+                    'events' => $events,
+                ]);
+            }
+
             return $this->crud->performSaveAction($item->getKey());
 
         }catch (\Exception $e) {
@@ -173,17 +504,31 @@ class SpkCrudController extends CrudController
         DB::beginTransaction();
         try{
 
+            $events = [];
+
             $item = $this->crud->update(
                 $request->get($this->crud->model->getKeyName()),
                 $this->crud->getStrippedSaveRequest($request)
             );
             $this->data['entry'] = $this->crud->entry = $item;
 
+            $events['crudTable-list_all_spk_create_success'] = $item;
+            $events['crudTable-list_open_create_success'] = $item;
+            $events['crudTable-list_close_create_success'] = $item;
+            $events['crudTable-filter-spk_plugin_load'] = $item;
+
             \Alert::success(trans('backpack::crud.update_success'))->flash();
 
             $this->crud->setSaveAction();
 
             DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $item,
+                    'events' => $events,
+                ]);
+            }
 
             return $this->crud->performSaveAction($item->getKey());
 
@@ -208,9 +553,9 @@ class SpkCrudController extends CrudController
         // CRUD::setFromDb(); // set columns from db columns.
         $settings = Setting::first();
 
-        $this->crud->file_title_export_pdf = "Laporan_daftar_spk.pdf";
-        $this->crud->file_title_export_excel = "Laporan_daftar_spk.xlsx";
-        $this->crud->param_uri_export = "?export=1";
+        // $this->crud->file_title_export_pdf = "Laporan_daftar_spk.pdf";
+        // $this->crud->file_title_export_excel = "Laporan_daftar_spk.xlsx";
+        // $this->crud->param_uri_export = "?export=1";
 
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
@@ -225,6 +570,14 @@ class SpkCrudController extends CrudController
                 $filterYear = $request->filter_year;
                 $this->crud->query = $this->crud->query
                 ->where(DB::raw("YEAR(date_spk)"), $filterYear);
+            }
+        }
+
+        if($request->has('tab')){
+            if($request->tab == 'open'){
+                $this->crud->query = $this->crud->query->where('status', Spk::OPEN);
+            }else if($request->tab == 'close'){
+                $this->crud->query = $this->crud->query->where('status', Spk::CLOSE);
             }
         }
 

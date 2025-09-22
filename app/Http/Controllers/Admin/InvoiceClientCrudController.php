@@ -906,11 +906,13 @@ class InvoiceClientCrudController extends CrudController
 
         $po = ClientPo::find(request()->client_po_id);
 
-        request()->merge([
-            'nominal_exclude_ppn' => $po->job_value,
-            'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
-            // 'nominal_include_ppn' => 0,
-        ]);
+        if($po != null){
+             request()->merge([
+                'nominal_exclude_ppn' => $po->job_value,
+                'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+                // 'nominal_include_ppn' => 0,
+            ]);
+        }
 
         $request = $this->crud->validateRequest();
 
@@ -990,10 +992,12 @@ class InvoiceClientCrudController extends CrudController
 
         $po = ClientPo::find(request()->client_po_id);
 
-        request()->merge([
-            'nominal_exclude_ppn' => $po->job_value,
-            'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
-        ]);
+        if($po != null){
+            request()->merge([
+                'nominal_exclude_ppn' => $po->job_value,
+                'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+            ]);
+        }
 
         // execute the FormRequest authorization and validation, if one is required
         $request = $this->crud->validateRequest();

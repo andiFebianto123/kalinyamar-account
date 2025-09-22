@@ -26,10 +26,20 @@
                         $('#filterYear .dropdown-menu li a').removeClass('active');
                         let value = $(this).data('value');
                         $(this).addClass('active');
-                        var route = "{!! url($crud->route.'/search') !!}";
-                        route += "?filter_year="+value;
-                        crud.table.ajax.url(route).load();
-                        window.filter_tables.filter_year = value;
+                        forEachFlexible(SIAOPS.getAllAttributes(), function(key, item){
+                            if(key.includes("crudTable")){
+                                var url_route = item.route;
+                                url_route += "&filter_year="+value;
+                                item.table.ajax.url(url_route).load();
+                                window.filter_tables.filter_year = value;
+                            }
+                        });
+
+                        forEachFlexible(eventEmitter.events, function(key, data){
+                            if(key.includes("crudTable-filter")){
+                                eventEmitter.emit(key, true);
+                            }
+                        });
                     });
                 });
             }

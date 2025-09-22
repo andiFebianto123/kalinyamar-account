@@ -17,6 +17,8 @@ class Spk extends Model
     | GLOBAL VARIABLES
     |--------------------------------------------------------------------------
     */
+    const OPEN = 'open';
+    const CLOSE = 'close';
 
     protected $table = 'spk';
     // protected $primaryKey = 'id';

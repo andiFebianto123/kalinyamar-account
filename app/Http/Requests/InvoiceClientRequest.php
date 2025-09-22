@@ -31,6 +31,7 @@ class InvoiceClientRequest extends FormRequest
 
         $rule = [
             // 'name' => 'required|min:5|max:255'
+            // 'job_value' => 'required|numeric|min:1000',
             'invoice_number' => 'required|min:3|max:50|unique:invoice_clients,invoice_number,'.$id,
             'invoice_date' => 'required',
             'client_po_id' => 'required|exists:client_po,id',

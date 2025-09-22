@@ -75,6 +75,7 @@ Route::group([
         Route::get('purchase-order/total', [PurchaseOrderCrudController::class, 'total_price']);
         Route::crud('purchase-order-tab', 'PurchaseOrderTabController');
         Route::crud('spk-trans', 'SpkCrudController');
+        Route::get('spk-trans/total', [SpkCrudController::class, 'total_price']);
         ROute::post('spk-trans/export-pdf', [SpkCrudController::class, 'exportPdf']);
         Route::post('spk-trans/export-excel', [SpkCrudController::class, 'exportExcel']);
         Route::post('download-po', 'PurchaseOrderCrudController@exportExcel');
