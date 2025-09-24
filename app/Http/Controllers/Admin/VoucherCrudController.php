@@ -168,7 +168,7 @@ class VoucherCrudController extends CrudController {
             // kolom 10
             if (isset($request->search[10])) {
                 $search = trim($request->search[10]);
-                $data = $data->where('factur_status', 'like', '%'.$search.'%');
+                $data = $data->where('factur_status', 'like', $search.'%');
             }
 
             // kolom 11 (whereHasMorph reference)
@@ -232,7 +232,7 @@ class VoucherCrudController extends CrudController {
             // kolom 17
             if (isset($request->search[18])) {
                 $search = trim($request->search[18]);
-                $data = $data->where('payment_status', 'like', '%'.$search.'%');
+                $data = $data->where('payment_status', 'like', $search.'%');
             }
         }
 
@@ -643,7 +643,7 @@ class VoucherCrudController extends CrudController {
 
             if(trim($request->columns[10]['search']['value']) != ''){
                 $this->crud->query = $this->crud->query
-                ->where('factur_status', 'like', '%'.$request->columns[10]['search']['value'].'%');
+                ->where('factur_status', 'like', $request->columns[10]['search']['value'].'%');
             }
 
             if(trim($request->columns[11]['search']['value']) != ''){
@@ -703,7 +703,7 @@ class VoucherCrudController extends CrudController {
 
             if(trim($request->columns[18]['search']['value']) != ''){
                 $this->crud->query = $this->crud->query
-                ->where('payment_status', 'like', '%'.$request->columns[18]['search']['value'].'%');
+                ->where('payment_status', 'like', $request->columns[18]['search']['value'].'%');
             }
 
             if(trim($request->columns[19]['search']['value']) != ''){
@@ -1079,7 +1079,7 @@ class VoucherCrudController extends CrudController {
             if (isset($request->columns[10]['search']['value'])) {
                 $search = trim($request->columns[10]['search']['value']);
                 $this->crud->query = $this->crud->query
-                    ->where('factur_status', 'like', '%'.$search.'%');
+                    ->where('factur_status', 'like', $search.'%');
             }
 
             if (isset($request->columns[11]['search']['value'])) {
@@ -1143,7 +1143,7 @@ class VoucherCrudController extends CrudController {
             if (isset($request->columns[18]['search']['value'])) {
                 $search = trim($request->columns[18]['search']['value']);
                 $this->crud->query = $this->crud->query
-                    ->where('payment_status', 'like', '%'.$search.'%');
+                    ->where('payment_status', 'like', $search.'%');
             }
 
             if (isset($request->columns[19]['search']['value'])) {
@@ -1577,10 +1577,10 @@ class VoucherCrudController extends CrudController {
             'due_date' => 'required|date',
             'factur_status' => 'required',
             'payment_type' => 'required|max:50',
-            'payment_status' => 'required|max:50',
+            'payment_status' => 'nullable|max:50',
             'priority' => 'required|max:50',
             'account_source_id' => 'required',
-            'reference_id' => 'required',
+            'reference_id' => 'nullable',
             'subkon_id' => 'required',
             'client_po_id' => 'required',
         ];
@@ -2345,8 +2345,8 @@ class VoucherCrudController extends CrudController {
             // $item->bank_name = '';
             // $item->no_account = '';
             $item->payment_type = $request->payment_type;
-            $item->payment_status = $request->payment_status;
-            $item->payment_date = $request->payment_date;
+            // $item->payment_status = $request->payment_status;
+            // $item->payment_date = $request->payment_date;
             $item->priority = $request->priority;
             $item->information = $request->information ?? '';
             $item->save();
@@ -2368,7 +2368,7 @@ class VoucherCrudController extends CrudController {
                 'bill_date',
                 'date_receipt_bill',
                 'payment_description',
-                'no_po_spk',
+                // 'no_po_spk',
                 'date_po_spk',
                 'bill_value',
                 'tax_ppn',
@@ -2655,8 +2655,8 @@ class VoucherCrudController extends CrudController {
             $item->no_account = $castAccount->bank_account;
 
             $item->payment_type = $request->payment_type;
-            $item->payment_status = $request->payment_status;
-            $item->payment_date = $request->payment_date;
+            $item->payment_status = "BELUM BAYAR"; // $request->payment_status;
+            $item->payment_date = null; // $request->payment_date;
             $item->priority = $request->priority;
             $item->information = $request->information ?? '';
             $item->save();
@@ -3496,9 +3496,9 @@ class VoucherCrudController extends CrudController {
                 'type'  => 'closure',
                 'function' => function($entry){
                     if($entry->reference_type == Spk::class){
-                        return $entry->reference->no_spk;
+                        return $entry?->reference?->no_spk;
                     }
-                    return $entry->reference->po_number;
+                    return $entry?->reference?->po_number;
                 }
             ],
         );

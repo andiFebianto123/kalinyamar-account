@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
+use App\Http\Controllers\CrudController;
 use Backpack\PermissionManager\app\Http\Requests\RoleStoreCrudRequest as StoreRequest;
 use Backpack\PermissionManager\app\Http\Requests\RoleUpdateCrudRequest as UpdateRequest;
 
@@ -48,6 +48,20 @@ class RoleCrudController extends CrudController
         }
     }
 
+    public function getUserRole(){
+        $role_id = request('role_id');
+        $role = $this->role_model::find($role_id);
+        $users = $role->users;
+        $get_users = [];
+        foreach($users as $user){
+            $get_users[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+            ];
+        }
+        return response()->json($get_users);
+    }
+
     public function setupListOperation()
     {
         /**
@@ -74,9 +88,14 @@ class RoleCrudController extends CrudController
             'type'      => 'text',
             'name'      => 'users_count',
             'wrapper'   => [
-                'href' => function ($crud, $column, $entry, $related_key) {
-                    return backpack_url('user?role='.$entry->getKey());
-                },
+                // 'href' => function ($crud, $column, $entry, $related_key) {
+                //     return backpack_url('user?role='.$entry->getKey());
+                // },
+                'href' => 'javascript:void(0)',
+                'class' => 'user_count',
+                'data-id-role' => function ($crud, $column, $entry, $related_key) {
+                    return $entry->getKey();
+                }
             ],
             'suffix'    => ' '.strtolower(trans('backpack::permissionmanager.users')),
         ]);
@@ -111,11 +130,18 @@ class RoleCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('list');
 
+        $this->modal->addModal([
+            'name' => 'modal_list_user',
+            'view' => 'crud::components.modal-list-user',
+            'title' => 'Daftar Pengguna',
+        ]);
+
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = $this->data['title'];
         $this->data['title_modal_edit'] = $this->data['title'];
         $this->data['title_modal_delete'] = $this->data['title'];
+        $this->data['modals'] = $this->modal;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         $list = "crud::list-custom" ?? $this->crud->getListView();

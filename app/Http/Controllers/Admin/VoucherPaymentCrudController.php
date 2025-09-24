@@ -197,7 +197,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $search = trim($non_rutin_filter['columns'][8]['search']['value']);
                 if ($search !== '') {
                     $total_voucher_data_non_rutin = $total_voucher_data_non_rutin
-                        ->where('factur_status', 'like', "%{$search}%");
+                        ->where('factur_status', 'like', "{$search}%");
                 }
             }
 
@@ -215,7 +215,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $search = trim($non_rutin_filter['columns'][10]['search']['value']);
                 if ($search !== '') {
                     $total_voucher_data_non_rutin = $total_voucher_data_non_rutin
-                        ->where('payment_status', 'like', "%{$search}%");
+                        ->where('payment_status', 'like', "{$search}%");
                 }
             }
 
@@ -400,7 +400,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $search = trim($rutin_filter['columns'][8]['search']['value']);
                 if ($search !== '') {
                     $total_voucher_data_rutin = $total_voucher_data_rutin
-                        ->where('factur_status', 'like', "%{$search}%");
+                        ->where('factur_status', 'like', "{$search}%");
                 }
             }
 
@@ -418,7 +418,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $search = trim($rutin_filter['columns'][10]['search']['value']);
                 if ($search !== '') {
                     $total_voucher_data_rutin = $total_voucher_data_rutin
-                        ->where('payment_status', 'like', "%{$search}%");
+                        ->where('payment_status', 'like', "{$search}%");
                 }
             }
 
@@ -930,7 +930,7 @@ class VoucherPaymentCrudController extends CrudController {
 
             if(isset($request->columns[8]['search']['value'])){
                 $this->crud->query = $this->crud->query
-                ->where('factur_status', 'like', '%'.$request->columns[8]['search']['value'].'%');
+                ->where('factur_status', 'like', $request->columns[8]['search']['value'].'%');
             }
 
             if(isset($request->columns[9]['search']['value'])){
@@ -940,7 +940,7 @@ class VoucherPaymentCrudController extends CrudController {
 
             if(isset($request->columns[10]['search']['value'])){
                 $this->crud->query = $this->crud->query
-                ->where('payment_status', 'like', '%'.$request->columns[10]['search']['value'].'%');
+                ->where('payment_status', 'like', $request->columns[10]['search']['value'].'%');
             }
 
             if(isset($request->columns[11]['search']['value'])){
@@ -1546,7 +1546,7 @@ class VoucherPaymentCrudController extends CrudController {
 
             if(trim($request->columns[8]['search']['value']) != ''){
                 $this->crud->query = $this->crud->query
-                ->where('factur_status', 'like', '%'.$request->columns[8]['search']['value'].'%');
+                ->where('factur_status', 'like', $request->columns[8]['search']['value'].'%');
             }
 
             if(trim($request->columns[9]['search']['value']) != ''){
@@ -1556,7 +1556,7 @@ class VoucherPaymentCrudController extends CrudController {
 
             if(trim($request->columns[10]['search']['value']) != ''){
                 $this->crud->query = $this->crud->query
-                ->where('payment_status', 'like', '%'.$request->columns[10]['search']['value'].'%');
+                ->where('payment_status', 'like', $request->columns[10]['search']['value'].'%');
             }
 
             if(trim($request->columns[11]['search']['value']) != ''){
@@ -2148,7 +2148,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $search = trim($request->columns[8]['search']['value']);
                 if ($search !== '') {
                     $this->crud->query = $this->crud->query
-                        ->where('factur_status', 'like', "%{$search}%");
+                        ->where('factur_status', 'like', "{$search}%");
                 }
             }
 
@@ -2166,7 +2166,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $search = trim($request->columns[10]['search']['value']);
                 if ($search !== '') {
                     $this->crud->query = $this->crud->query
-                        ->where('payment_status', 'like', "%{$search}%");
+                        ->where('payment_status', 'like', "{$search}%");
                 }
             }
 

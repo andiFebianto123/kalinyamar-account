@@ -182,18 +182,19 @@ class VoucherPaymentPlanCrudController extends CrudController {
             if (isset($request->search[9]) && trim($request->search[9]) !== '') {
                 $search = trim($request->search[9]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                    ->where('vouchers.factur_status', 'like', "%{$search}%");
+                    ->where('vouchers.factur_status', 'like', "{$search}%");
             }
 
             // Kolom 10 - reference.job_name
             if (isset($request->search[10]) && trim($request->search[10]) !== '') {
                 $search = trim($request->search[10]);
                 $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin
-                ->whereHas('voucher', function($q) use($search){
-                    $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                        $query->where('job_name', 'like', "%{$search}%");
-                    });
-                });
+                ->where('vouchers.job_name', 'like', "%{$search}%");
+                // ->whereHas('voucher', function($q) use($search){
+                //     $q->whereHasMorph('reference', '*', function ($query) use ($search) {
+                //         $query->where('job_name', 'like', "%{$search}%");
+                //     });
+                // });
             }
 
             // Kolom 11 - due_date
@@ -1998,17 +1999,18 @@ class VoucherPaymentPlanCrudController extends CrudController {
 
             if(trim($request->columns[9]['search']['value'] ?? '') != ''){
                 $this->crud->query = $this->crud->query
-                ->where('vouchers.factur_status', 'like', '%'.$request->columns[9]['search']['value'].'%');
+                ->where('vouchers.factur_status', 'like', $request->columns[9]['search']['value'].'%');
             }
 
             if(trim($request->columns[10]['search']['value'] ?? '') != ''){
                 $search = $request->columns[10]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->whereHas('voucher', function($q)use($search){
-                    $q->whereHasMorph('reference', '*', function ($query) use($search){
-                        $query->where('job_name', 'like', '%'.$search.'%');
-                    });
-                });
+                ->where('vouchers.job_name', 'like', '%'.$request->columns[10]['search']['value'].'%');
+                // ->whereHas('voucher', function($q)use($search){
+                //     $q->whereHasMorph('reference', '*', function ($query) use($search){
+                //         $query->where('job_name', 'like', '%'.$search.'%');
+                //     });
+                // });
             }
 
             if(trim($request->columns[11]['search']['value'] ?? '') != ''){
@@ -2157,10 +2159,7 @@ class VoucherPaymentPlanCrudController extends CrudController {
             [
                 'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
                 'name' => 'job_name',
-                'type'  => 'closure',
-                'function' => function($entry){
-                    return $entry?->voucher?->reference?->job_name;
-                },
+                'type'  => 'text',
             ], // BELUM FILTER
         );
 

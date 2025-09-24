@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\SpkCrudController;
+use App\Http\Controllers\Admin\RoleCrudController;
 use App\Http\Controllers\Admin\AssetCrudController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ClientCrudController;
@@ -57,6 +58,7 @@ Route::group([
     Route::prefix('setting')->group(function () {
         Route::crud('permission', 'PermissionCrudController');
         Route::crud('role', 'RoleCrudController');
+        Route::post('role/get-user-role', [RoleCrudController::class, 'getUserRole']);
         Route::crud('user', 'UserCrudController');
         Route::crud('account', 'AccountUserCrudController');
         Route::post('account/updated', [AccountUserCrudController::class, 'update_personal']);

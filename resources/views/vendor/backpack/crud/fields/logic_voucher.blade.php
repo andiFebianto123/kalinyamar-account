@@ -128,11 +128,11 @@
 
                                 // var work_option = new Option(work_code_text, po.id, true, true);
                                 // $(form+ ' select[name="reference_id"]').append(work_option).trigger('change');
-                                $(form+' input[name="job_name"]').val(po.job_name);
-                                setInputNumber(form+' #bill_value_masked', po.price_total);
-                                setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
+                                // $(form+' input[name="job_name"]').val(po.job_name);
+                                // setInputNumber(form+' #bill_value_masked', po.price_total);
+                                // setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
                                 $(form+' input[name="type"]').val(po.type);
-                                instance.logicFormula();
+                                // instance.logicFormula();
                             }
                         })
                     });
@@ -163,14 +163,14 @@
                                 }
 
                                 if(data.company){
-                                    // var subkon_option = new Option(data.company.name, data.company.id, true, true);
-                                    // $(form+' select[name="subkon_id"]').append(subkon_option).trigger('change');
-                                    // if(data.company.bank_name){
-                                    //     $(form+' input[name="bank_name"]').val(data.company.bank_name);
-                                    // }
-                                    // if(data.company.bank_account){
-                                    //     $(form+' input[name="no_account"]').val(data.company.bank_account);
-                                    // }
+                                    var subkon_option = new Option(data.company.name, data.company.id, true, true);
+                                    $(form+' select[name="subkon_id"]').append(subkon_option).trigger('change');
+                                    if(data.company.bank_name){
+                                        $(form+' input[name="bank_name"]').val(data.company.bank_name);
+                                    }
+                                    if(data.company.bank_account){
+                                        $(form+' input[name="no_account"]').val(data.company.bank_account);
+                                    }
                                 }else{
                                     // $(form+' select[name="subkon_id"]').val(null).trigger('change');
                                     // $(form+' input[name="bank_name"]').val(null);
@@ -186,7 +186,7 @@
                                 // var po_number_option = new Option(po_number_text, po.id, true, true);
                                 // $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
 
-                                // $(form+' input[name="job_name"]').val(po.job_name);
+                                $(form+' input[name="job_name"]').val(po.job_name);
                                 // setInputNumber(form+' #bill_value_masked', po.price_total);
                                 // setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
                                 // $(form+' input[name="type"]').val(po.type);

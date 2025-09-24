@@ -70,7 +70,7 @@
     </tr>
     <tr>
         @php
-            $no_po_spk = ($voucher->reference_type == 'App\Models\Spk') ? $voucher->reference->no_spk : $voucher->reference->po_number;
+            $no_po_spk = ($voucher->reference_type == 'App\Models\Spk') ? $voucher->reference->no_spk : $voucher?->reference?->po_number;
         @endphp
         <td class="label">No. PO/SPK</td><td class="value">{{$no_po_spk}}</td>
         <td class="label">Potongan PPh 4</td><td class="value">Rp.{{$voucher->discount_pph_4}}</td>

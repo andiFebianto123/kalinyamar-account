@@ -420,7 +420,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @endpush
 
-@if (isset($scripts) && isset($modals))
+@if (isset($scripts))
     @foreach ($scripts->getScripts()->where('line', 'top')->all() ?? [] as $script)
         @push('inline_scripts')
             @if($script['type'] === 'src')
@@ -449,7 +449,9 @@
             @endif
         @endpush
     @endforeach
+@endif
 
+@if (isset($modals))
     @foreach ($modals->getModals()->all() ?? [] as $modal)
         @push('after_scripts')
             @if (isset($modal['parent_view']))
