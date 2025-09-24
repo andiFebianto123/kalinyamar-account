@@ -2162,9 +2162,9 @@ class VoucherCrudController extends CrudController {
             'type'      => 'select2_array',
             'name'      => 'payment_status',
             'options'   => [
-                '' => trans('backpack::crud.voucher.field.payment_status.placeholder'),
-                'BAYAR' => 'BAYAR',
+                // '' => trans('backpack::crud.voucher.field.payment_status.placeholder'),
                 'BELUM BAYAR' => 'BELUM BAYAR',
+                'BAYAR' => 'BAYAR',
             ], // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
             'wrapper' => [
                 'class' => 'form-group col-md-6'
