@@ -345,14 +345,14 @@ class ProjectListCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -404,7 +404,7 @@ class ProjectListCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
                                     'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
@@ -487,7 +487,7 @@ class ProjectListCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
 
@@ -554,7 +554,7 @@ class ProjectListCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.project.column.project_edit.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -577,7 +577,7 @@ class ProjectListCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.project.column.project_edit.history_update.label'),
                 'name' => 'history_update',
-                'type'  => 'text',
+                'type'  => 'wrap_text',
             ]);
 
         }
@@ -1505,7 +1505,7 @@ class ProjectListCrudController extends CrudController {
             [
                 'label'  => '',
                 'name' => 'name',
-                'type'  => 'text'
+                'type'  => 'wrap_text'
             ],
         );
 
@@ -1513,7 +1513,7 @@ class ProjectListCrudController extends CrudController {
             [
                 'label'  => '',
                 'name' => 'no_po_spk',
-                'type'  => 'text'
+                'type'  => 'wrap_text'
             ],
         );
 
@@ -1613,7 +1613,7 @@ class ProjectListCrudController extends CrudController {
             'attribute' => 'name', // foreign key attribute that is shown to user
             'model'     => "App\Models\SetupClient", // foreign key model
             // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
+            'limit' => 50, // Limit the number of characters shown
         ]);
         CRUD::column(
             [
@@ -1647,7 +1647,7 @@ class ProjectListCrudController extends CrudController {
             [
                 'label'  => '',
                 'name' => 'information',
-                'type'  => 'text'
+                'type'  => 'wrap_text'
             ],
         );
 

@@ -41,7 +41,9 @@ class SpkRequest extends FormRequest
             'total_value_with_tax' => 'nullable|numeric',
         ];
 
-        if($id){
+        if(request()->has('work_code')){
+            $rule['work_code'] = 'required|max:30|unique:spk,work_code,'.$id;
+        }else{
             $rule['work_code'] = 'nullable|max:30|unique:spk,work_code,'.$id;
         }
 

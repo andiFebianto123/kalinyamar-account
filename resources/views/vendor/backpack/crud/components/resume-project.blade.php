@@ -227,7 +227,7 @@
                                 $('#invoice_1 tbody').append(`
                                     <tr>
                                         <td>${(index+1)}</td>
-                                        <td>${value.setup_client.name}</td>
+                                        <td>${value.client_name_str}</td>
                                         <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
@@ -245,7 +245,7 @@
                                 $('#invoice_2 tbody').append(`
                                     <tr>
                                         <td>${index+1}</td>
-                                        <td>${value.setup_client.name}</td>
+                                        <td>${value.client_name_str}</td>
                                         <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
@@ -263,7 +263,7 @@
                                 $('#invoice_3 tbody').append(`
                                     <tr>
                                         <td>${index+1}</td>
-                                        <td>${value.setup_client.name}</td>
+                                        <td>${value.client_name_str}</td>
                                         <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
@@ -281,7 +281,7 @@
                                 $('#invoice_4 tbody').append(`
                                     <tr>
                                         <td>${index+1}</td>
-                                        <td>${value.setup_client.name}</td>
+                                        <td>${value.client_name_str}</td>
                                         <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
@@ -299,7 +299,7 @@
                                 $('#invoice_5 tbody').append(`
                                     <tr>
                                         <td>${index+1}</td>
-                                        <td>${value.setup_client.name}</td>
+                                        <td>${value.client_name_str}</td>
                                         <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);
@@ -317,7 +317,7 @@
                                 $('#invoice_6 tbody').append(`
                                     <tr>
                                         <td>${index+1}</td>
-                                        <td>${value.setup_client.name}</td>
+                                        <td>${value.client_name_str}</td>
                                         <td>${value.price_total_include_ppn_str}</td>
                                     <tr>
                                 `);

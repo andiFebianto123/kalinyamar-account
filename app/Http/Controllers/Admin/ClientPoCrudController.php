@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Setting;
+use App\Models\Voucher;
 use App\Models\ClientPo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
@@ -1008,7 +1009,7 @@ class ClientPoCrudController extends CrudController
         $po_prefix = [];
         $work_code_prefix = [];
         $work_code_disabled = [
-            'disabled' => true,
+            // 'disabled' => true,
         ];
         $po_number_disabled = [
             'disabled' => true,
@@ -1026,6 +1027,15 @@ class ClientPoCrudController extends CrudController
             }
             $work_code_disabled = [];
             $po_number_disabled = [];
+        }else{
+            $id = $this->crud->getCurrentEntryId();
+            $voucher_exists = Voucher::where('client_po_id', $id)
+            ->first();
+            if($voucher_exists){
+                $work_code_disabled = [
+                    'disabled' => true,
+                ];
+            }
         }
 
 

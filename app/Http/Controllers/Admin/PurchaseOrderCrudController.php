@@ -17,6 +17,7 @@ use App\Http\Controllers\CrudController;
 use App\Http\Requests\PurchaseOrderRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use App\Http\Controllers\Admin\PurchaseOrderTabController;
+use App\Models\Voucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -746,7 +747,7 @@ class PurchaseOrderCrudController extends CrudController
         $po_prefix_value = [];
         $work_code_prefix = [];
         $work_code_disable = [
-            'disabled' => true,
+            // 'disabled' => true,
         ];
         if(!$this->crud->getCurrentEntryId()){
             $po_prefix_value = [
@@ -757,7 +758,15 @@ class PurchaseOrderCrudController extends CrudController
                     'value' => $settings->work_code_prefix,
                 ];
             }
-            $work_code_disable = [];
+        }else{
+            $id = $this->crud->getCurrentEntryId();
+            $voucher_exists = Voucher::where('reference_type', PurchaseOrder::class)
+            ->where('reference_id', $id)->first();
+            if($voucher_exists){
+                $work_code_disable = [
+                    'disabled' => true,
+                ];
+            }
         }
 
         CRUD::field([   // 1-n relationship

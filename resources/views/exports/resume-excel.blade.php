@@ -27,7 +27,7 @@
             @foreach ($data['list']['invoice_1'] as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $item->setup_client->name }}</td>
+                    <td>{{ $item->name }}</td>
                     <td> {{ $item->price_total_include_ppn_str }} </td>
                 </tr>
             @endforeach
@@ -54,7 +54,7 @@
             @foreach ($data['list']['invoice_2'] as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $item->setup_client->name }}</td>
+                    <td>{{ $item->name }}</td>
                     <td> {{ $item->price_total_include_ppn_str }} </td>
                 </tr>
             @endforeach
@@ -81,7 +81,7 @@
             @foreach ($data['list']['invoice_3'] as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $item->setup_client->name }}</td>
+                    <td>{{ $item->name }}</td>
                     <td> {{ $item->price_total_include_ppn_str }} </td>
                 </tr>
             @endforeach
@@ -108,7 +108,7 @@
             @foreach ($data['list']['invoice_4'] as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $item->setup_client->name }}</td>
+                    <td>{{ $item->name }}</td>
                     <td> {{ $item->price_total_include_ppn_str }} </td>
                 </tr>
             @endforeach
@@ -135,7 +135,7 @@
             @foreach ($data['list']['invoice_5'] as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $item->setup_client->name }}</td>
+                    <td>{{ $item->name }}</td>
                     <td> {{ $item->price_total_include_ppn_str }} </td>
                 </tr>
             @endforeach
@@ -162,7 +162,7 @@
             @foreach ($data['list']['invoice_6'] as $key => $item)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $item->setup_client->name }}</td>
+                    <td>{{ $item->name }}</td>
                     <td> {{ $item->price_total_include_ppn_str }} </td>
                 </tr>
             @endforeach

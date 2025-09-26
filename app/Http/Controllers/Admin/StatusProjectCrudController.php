@@ -509,75 +509,107 @@ class StatusProjectCrudController extends CrudController {
             $data['tgl_start_invoice'] = '';
         }
 
-        $invoice_1 = Project::where('status_po', 'UNPAID')
-        ->where('status_po', '!=', "BELUM ADA PO")
+        $invoice_1 = Project::where('projects.status_po', 'UNPAID')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
         ->orderBy('id', 'DESC')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->get();
         $data['invoice_1'] = $invoice_1;
-
         $grand_total = 0;
 
         $total_invoice_1 = 0;
         foreach($invoice_1 as $val1){
             $total_invoice_1 += $val1->price_total_include_ppn;
             $val1->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val1->price_total_include_ppn);
-            $val1->client_name_str = $val1->setup_client->name;
+            $val1->client_name_str = $val1->name;
         }
         $grand_total += $total_invoice_1;
         $data['invoice_1_total'] = $total_invoice_1;
         $data['invoice_1_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_1);
 
-        $invoice_2 = Project::where('status_po', 'TERTUNDA')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'RUTIN')
-        ->orderBy('id', 'DESC')->get();
+        $invoice_2 = Project::where('projects.status_po', 'TERTUNDA')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'RUTIN')
+        ->orderBy('id', 'DESC')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
+        ->get();
         $data['invoice_2'] = $invoice_2;
 
         $total_invoice_2 = 0;
         foreach($invoice_2 as $val2){
             $total_invoice_2 += $val2->price_total_include_ppn;
             $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
-            $val2->client_name_str = $val2->setup_client->name;
+            $val2->client_name_str = $val2->name;
         }
         $grand_total += $total_invoice_2;
         $data['invoice_2_total'] = $total_invoice_2;
         $data['invoice_2_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_2);
 
 
-        $invoice_3 = Project::where('status_po', 'TERTUNDA')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'NON RUTIN')
-        ->orderBy('id', 'DESC')->get();
+        $invoice_3 = Project::where('projects.status_po', 'TERTUNDA')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'NON RUTIN')
+        ->orderBy('id', 'DESC')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
+        ->get();
         $data['invoice_3'] = $invoice_3;
 
         $total_invoice_3 = 0;
         foreach($invoice_3 as $val3){
             $total_invoice_3 += $val3->price_total_include_ppn;
             $val3->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val3->price_total_include_ppn);
-            $val3->client_name_str = $val3->setup_client->name;
+            $val3->client_name_str = $val3->name;
         }
         $grand_total += $total_invoice_3;
         $data['invoice_3_total'] = $total_invoice_3;
         $data['invoice_3_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_3);
 
-        $invoice_4 = Project::where('status_po', 'RETENSI')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->orderBy('id', 'DESC')->get();
+        $invoice_4 = Project::where('projects.status_po', 'RETENSI')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
+        ->orderBy('id', 'DESC')
+        ->get();
         $data['invoice_4'] = $invoice_4;
 
         $total_invoice_4 = 0;
         foreach($invoice_4 as $val4){
             $total_invoice_4 += $val4->price_total_include_ppn;
             $val4->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val4->price_total_include_ppn);
-            $val4->client_name_str = $val4->setup_client->name;
+            $val4->client_name_str = $val4->name;
         }
         $grand_total += $total_invoice_4;
         $data['invoice_4_total'] = $total_invoice_4;
         $data['invoice_4_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_4);
 
-        $invoice_5 = Project::where('status_po', 'BELUM SELESAI')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'RUTIN')
+        $invoice_5 = Project::where('projects.status_po', 'BELUM SELESAI')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'RUTIN')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_5'] = $invoice_5;
 
@@ -585,15 +617,21 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_5 as $val5){
             $total_invoice_5 += $val5->price_total_include_ppn;
             $val5->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val5->price_total_include_ppn);
-            $val5->client_name_str = $val5->setup_client->name;
+            $val5->client_name_str = $val5->name;
         }
         $grand_total += $total_invoice_5;
         $data['invoice_5_total'] = $total_invoice_5;
         $data['invoice_5_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_5);
 
-        $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'NON RUTIN')
+        $invoice_6 = Project::where('projects.status_po', 'BELUM SELESAI')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'NON RUTIN')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_6'] = $invoice_6;
 
@@ -601,7 +639,7 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_6 as $val6){
             $total_invoice_6 += $val6->price_total_include_ppn;
             $val6->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val6->price_total_include_ppn);
-            $val6->client_name_str = $val6->setup_client->name;
+            $val6->client_name_str = $val6->name;
         }
         $grand_total += $total_invoice_6;
         $data['invoice_6_total'] = $total_invoice_6;
@@ -634,9 +672,15 @@ class StatusProjectCrudController extends CrudController {
             $data['tgl_start_invoice'] = '';
         }
 
-        $invoice_1 = Project::where('status_po', 'UNPAID')
-        ->where('status_po', '!=', "BELUM ADA PO")
+        $invoice_1 = Project::where('projects.status_po', 'UNPAID')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
         ->orderBy('id', 'DESC')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->get();
         $data['invoice_1'] = $invoice_1;
 
@@ -646,15 +690,21 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_1 as $val1){
             $total_invoice_1 += $val1->price_total_include_ppn;
             $val1->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val1->price_total_include_ppn);
-            $val1->client_name_str = $val1->setup_client->name;
+            $val1->client_name_str = $val1->name;
         }
         $grand_total += $total_invoice_1;
         $data['invoice_1_total'] = $total_invoice_1;
         $data['invoice_1_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_1);
 
-        $invoice_2 = Project::where('status_po', 'TERTUNDA')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'RUTIN')
+        $invoice_2 = Project::where('projects.status_po', 'TERTUNDA')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'RUTIN')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_2'] = $invoice_2;
 
@@ -662,16 +712,22 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_2 as $val2){
             $total_invoice_2 += $val2->price_total_include_ppn;
             $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
-            $val2->client_name_str = $val2->setup_client->name;
+            $val2->client_name_str = $val2->name;
         }
         $grand_total += $total_invoice_2;
         $data['invoice_2_total'] = $total_invoice_2;
         $data['invoice_2_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_2);
 
 
-        $invoice_3 = Project::where('status_po', 'TERTUNDA')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'NON RUTIN')
+        $invoice_3 = Project::where('projects.status_po', 'TERTUNDA')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'NON RUTIN')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_3'] = $invoice_3;
 
@@ -679,14 +735,20 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_3 as $val3){
             $total_invoice_3 += $val3->price_total_include_ppn;
             $val3->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val3->price_total_include_ppn);
-            $val3->client_name_str = $val3->setup_client->name;
+            $val3->client_name_str = $val3->name;
         }
         $grand_total += $total_invoice_3;
         $data['invoice_3_total'] = $total_invoice_3;
         $data['invoice_3_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_3);
 
-        $invoice_4 = Project::where('status_po', 'RETENSI')
-        ->where('status_po', '!=', "BELUM ADA PO")
+        $invoice_4 = Project::where('projects.status_po', 'RETENSI')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_4'] = $invoice_4;
 
@@ -700,9 +762,15 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_4_total'] = $total_invoice_4;
         $data['invoice_4_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_4);
 
-        $invoice_5 = Project::where('status_po', 'BELUM SELESAI')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'RUTIN')
+        $invoice_5 = Project::where('projects.status_po', 'BELUM SELESAI')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'RUTIN')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_5'] = $invoice_5;
 
@@ -710,15 +778,21 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_5 as $val5){
             $total_invoice_5 += $val5->price_total_include_ppn;
             $val5->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val5->price_total_include_ppn);
-            $val5->client_name_str = $val5->setup_client->name;
+            $val5->client_name_str = $val5->name;
         }
         $grand_total += $total_invoice_5;
         $data['invoice_5_total'] = $total_invoice_5;
         $data['invoice_5_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_5);
 
-        $invoice_6 = Project::where('status_po', 'BELUM SELESAI')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->where('category', 'NON RUTIN')
+        $invoice_6 = Project::where('projects.status_po', 'BELUM SELESAI')
+        ->select(DB::raw("
+            MAX(projects.id) as id,
+            SUM(projects.price_total_include_ppn) as price_total_include_ppn,
+            setup_clients.name"))
+        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+        ->where('projects.status_po', '!=', "BELUM ADA PO")
+        ->where('projects.category', 'NON RUTIN')
+        ->groupBy(['projects.client_id', 'setup_clients.name'])
         ->orderBy('id', 'DESC')->get();
         $data['invoice_6'] = $invoice_6;
 
@@ -726,7 +800,7 @@ class StatusProjectCrudController extends CrudController {
         foreach($invoice_6 as $val6){
             $total_invoice_6 += $val6->price_total_include_ppn;
             $val6->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val6->price_total_include_ppn);
-            $val6->client_name_str = $val6->setup_client->name;
+            $val6->client_name_str = $val6->name;
         }
         $grand_total += $total_invoice_6;
         $data['invoice_6_total'] = $total_invoice_6;
@@ -798,7 +872,7 @@ class StatusProjectCrudController extends CrudController {
             CRUD::column(
                 [
                     'label'  => trans('backpack::crud.project.column.project.no_po_spk.label'),
-                    'name' => 'no_po_spk',
+                    'name' => 'wrap_text',
                     'type'  => 'text'
                 ],
             );
@@ -806,7 +880,7 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label'  => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -827,7 +901,7 @@ class StatusProjectCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
@@ -868,14 +942,14 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -896,7 +970,7 @@ class StatusProjectCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
@@ -946,14 +1020,14 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -974,7 +1048,7 @@ class StatusProjectCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column(
                 [
@@ -1050,14 +1124,14 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -1078,7 +1152,7 @@ class StatusProjectCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column(
                 [
@@ -1101,14 +1175,14 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -1129,7 +1203,7 @@ class StatusProjectCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
@@ -1180,14 +1254,14 @@ class StatusProjectCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -1208,7 +1282,7 @@ class StatusProjectCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),

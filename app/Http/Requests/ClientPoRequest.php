@@ -70,7 +70,9 @@ class ClientPoRequest extends FormRequest
             $rule = $rule_origin;
         }
 
-        if($id){
+        if(request()->has('work_code')){
+            $rule['work_code'] = 'required|max:30|unique:client_po,work_code,'.$id;
+        }else{
             $rule['work_code'] = 'nullable|max:30|unique:client_po,work_code,'.$id;
         }
 

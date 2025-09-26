@@ -7,18 +7,6 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>1</td>
-                <td>Andi Febian</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Budi Santoso</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>Citra Lestari</td>
-            </tr>
         </tbody>
     </table>
 </div>

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Spk;
 use App\Models\Setting;
+use App\Models\Voucher;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Requests\SpkRequest;
 use App\Http\Helpers\CustomHelper;
-use App\Models\Spk;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
@@ -908,7 +909,6 @@ class SpkCrudController extends CrudController
         $spk_prefix = [];
         $work_code_prefix = [];
         $work_code_disable = [
-            'disabled' => true,
         ];
         if(!$this->crud->getCurrentEntryId()){
             if($settings?->spk_prefix){
@@ -922,6 +922,15 @@ class SpkCrudController extends CrudController
                 ];
             }
             $work_code_disable = [];
+        }else{
+            $id = $this->crud->getCurrentEntryId();
+            $voucher_exists = Voucher::where('reference_type', Spk::class)
+            ->where('reference_id', $id)->first();
+            if($voucher_exists){
+                $work_code_disable = [
+                    'disabled' => true,
+                ];
+            }
         }
 
 

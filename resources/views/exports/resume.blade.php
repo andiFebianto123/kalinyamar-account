@@ -112,7 +112,7 @@
         </thead>
         <tbody>
           @foreach ($items['list']['invoice_1'] as $key => $item_1)
-            <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->setup_client->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
+            <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
           @endforeach
           <tr class="bg-light-actual">
             <td></td>
@@ -136,7 +136,7 @@
         </thead>
         <tbody>
             @foreach ($items['list']['invoice_2'] as $key => $item_1)
-                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->setup_client->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
+                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
             @endforeach
             <tr class="bg-light-actual">
                 <td></td>
@@ -160,7 +160,7 @@
         </thead>
         <tbody>
             @foreach ($items['list']['invoice_3'] as $key => $item_1)
-                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->setup_client->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
+                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
             @endforeach
             <tr class="bg-light-actual">
                 <td></td>
@@ -184,7 +184,7 @@
         </thead>
         <tbody>
             @foreach ($items['list']['invoice_4'] as $key => $item_1)
-                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->setup_client->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
+                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
             @endforeach
             <tr class="bg-light-actual">
                 <td></td>
@@ -208,7 +208,7 @@
         </thead>
         <tbody>
             @foreach ($items['list']['invoice_5'] as $key => $item_1)
-                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->setup_client->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
+                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
             @endforeach
             <tr class="bg-light-actual">
                 <td></td>
@@ -232,7 +232,7 @@
         </thead>
         <tbody>
             @foreach ($items['list']['invoice_6'] as $key => $item_1)
-                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->setup_client->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
+                <tr><td>{{ $key + 1 }}</td><td>{{ $item_1->name }}</td><td>{{ $item_1->price_total_include_ppn_str }}</td></tr>
             @endforeach
             <tr class="bg-light-actual">
                 <td></td>

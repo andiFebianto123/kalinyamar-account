@@ -40,9 +40,12 @@ class PurchaseOrderRequest extends FormRequest
             'document_path' => ValidUpload::field('required')->file('mimes:pdf|max:5000'),
         ];
 
-        if($id){
+        if(request()->has('work_code')){
+            $rule['work_code'] = 'required|max:30|unique:purchase_orders,work_code,'.$id;
+        }else{
             $rule['work_code'] = 'nullable|max:30|unique:purchase_orders,work_code,'.$id;
         }
+
         return $rule;
     }
 

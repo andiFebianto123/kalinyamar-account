@@ -504,14 +504,14 @@ class QuotationCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
                     'name' => 'no_rfq',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
                                     'label' => trans('backpack::crud.quotation.column.name_project.label'),
                     'name' => 'name_project',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -541,7 +541,7 @@ class QuotationCrudController extends CrudController {
                 'attribute' => 'name', // foreign key attribute that is shown to user
                 'model'     => "App\Models\SetupClient", // foreign key model
                 // OPTIONAL
-                // 'limit' => 32, // Limit the number of characters shown
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column(
                 [
@@ -586,7 +586,7 @@ class QuotationCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.quotation.column.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
 
@@ -622,7 +622,7 @@ class QuotationCrudController extends CrudController {
                 [
                                     'label' => trans('backpack::crud.quotation.column.name_project.label_2'),
                     'name' => 'name_project',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -645,7 +645,7 @@ class QuotationCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.quotation.column.history_update.label'),
                 'name' => 'history_update',
-                'type'  => 'text',
+                'type'  => 'wrap_text',
             ]);
         }
     }
