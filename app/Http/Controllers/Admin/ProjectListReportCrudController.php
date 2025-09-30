@@ -91,8 +91,13 @@ class ProjectListReportCrudController extends CrudController {
         $settings = Setting::first();
 
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
-        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
-        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        $this->crud->file_title_export_pdf = "Laporan_project-report.pdf";
+        $this->crud->file_title_export_excel = "Laporan_project-report.xlsx";
+        $this->crud->param_uri_export = "?export=1";
+
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+
 
         if(request()->has('filter_category')){
             if(request()->filter_category != 'all'){

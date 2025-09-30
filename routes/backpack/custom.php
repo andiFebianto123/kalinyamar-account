@@ -204,6 +204,7 @@ Route::group([
 
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
+    Route::post('account/select2-account-child', [CastAccountsCrudController::class, 'account_child_select2']);
 
 }); // this should be the absolute last line of this file
 

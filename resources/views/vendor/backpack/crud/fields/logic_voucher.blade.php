@@ -53,15 +53,23 @@
                     var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
 
-                    @if ($set_value != null)
+                    @if (isset($entry))
                         var data_po_spk = {!! json_encode($set_value) !!};
                         var data_entry = {!! json_encode($entry) !!};
 
-                        var no_po_spk = "";
-                        if(data_po_spk.type == 'spk'){
-                            no_po_spk = data_entry.reference.no_spk;
-                        }else{
-                            no_po_spk = data_entry.reference.po_number;
+                        if(data_po_spk != null){
+                            var no_po_spk = "";
+                            if(data_po_spk.type == 'spk'){
+                                no_po_spk = data_entry.reference.no_spk;
+                            }else{
+                                no_po_spk = data_entry.reference.po_number;
+                            }
+
+                            $(form+ ' input[name="bussines_entity_name"]').val(data_po_spk.name_company);
+                            $(form+' input[name="type"]').val(data_po_spk.type);
+
+                            var selectedOptionw = new Option(no_po_spk, data_entry.reference.id, true, true);
+                            $(form+' select[name="reference_id"]').append(selectedOptionw).trigger('change');
                         }
 
                         var po_number_text = `${data_entry.client_po.work_code}`;
@@ -70,12 +78,7 @@
                         // $(form+ ' select[name="client_po_id"]').val(null).trigger('change');
                         $(form+ ' select[name="client_po_id"]').append(selectedOption).trigger('change');
 
-                        var selectedOptionw = new Option(no_po_spk, data_entry.reference.id, true, true);
-                        // $(form+' select[name="reference_id"]').val(null).trigger('change');
-                        $(form+' select[name="reference_id"]').append(selectedOptionw).trigger('change');
-
-                        $(form+ ' input[name="bussines_entity_name"]').val(data_po_spk.name_company);
-                        $(form+' input[name="type"]').val(data_po_spk.type);
+                        $(form+' input[name="job_name_disabled"]').val(data_entry.job_name);
                         // $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
                         // $(form+ ' input[name="bank_name"]').val(data_po_spk.bank_name);
                         // $(form+' input[name="no_account"]').val(data_po_spk.bank_account);
@@ -150,9 +153,9 @@
                                 var account = data.account;
 
 
-                                var account_text = `${account.code} - ${account.name}`;
-                                var account_option = new Option(account_text, account.id, true, true);
-                                $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
+                                // var account_text = `${account.code} - ${account.name}`;
+                                // var account_option = new Option(account_text, account.id, true, true);
+                                // $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
 
                                 var po_number_text = `${po.po_number} (${po.type})`;
 
@@ -187,6 +190,7 @@
                                 // $(form+ ' select[name="client_po_id"]').append(po_number_option).trigger('change');
 
                                 $(form+' input[name="job_name"]').val(po.job_name);
+                                $(form+' input[name="job_name_disabled"]').val(po.job_name);
                                 // setInputNumber(form+' #bill_value_masked', po.price_total);
                                 // setInputNumber(form+' input[name="tax_ppn"]', po.ppn);
                                 // $(form+' input[name="type"]').val(po.type);

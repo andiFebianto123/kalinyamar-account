@@ -460,7 +460,7 @@ return [
         'title_modal_delete' => 'Invoice (Client)',
         'column' => [
             'invoice_number' => 'No. Invoice',
-            'name' => 'Nama Invoice',
+            'name' => 'Nama Pekerjaan',
             'invoice_date' => 'Tanggal Invoice',
             'client_po_id' => 'No. PO',
             'po_date' => 'Tanggal PO',

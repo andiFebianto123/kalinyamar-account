@@ -218,7 +218,22 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.name'),
                 'name' => 'name',
-                'type'  => 'text'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->client_po->job_name;
+                },
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDir) {
+                    return $query->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id')
+                    ->orderBy('client_po.job_name', $columnDir)
+                    ->select('invoice_clients.*');
+                },
+                'searchable' => true,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    return $query->orWhereHas('client_po', function ($query) use ($searchTerm) {
+                        $query->where('job_name', 'like', '%' . $searchTerm . '%');
+                    });
+                }
             ],
         );
 
@@ -1163,7 +1178,19 @@ class InvoiceClientCrudController extends CrudController
             'label' => trans('backpack::crud.invoice_client.field.invoice_number.label'),
             'type' => 'text',
             'wrapper'   => [
-                'class' => 'form-group col-md-12',
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.invoice_client.field.invoice_number.placeholder'),
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'name',
+            'label' => trans('backpack::crud.invoice_client.column.name'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.invoice_client.field.invoice_number.placeholder'),
@@ -1387,6 +1414,17 @@ class InvoiceClientCrudController extends CrudController
                 'label'  => trans('backpack::crud.invoice_client.column.invoice_number'),
                 'name' => 'invoice_number',
                 'type'  => 'text'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.name'),
+                'name' => 'name',
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->client_po->job_name;
+                }
             ],
         );
 

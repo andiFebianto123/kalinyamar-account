@@ -120,22 +120,34 @@
                 $total_item = $details->count();
                 $total_price = 0;
             @endphp
-            @foreach ($details as $key => $item)
-                @php
-                    $iteration = $key + 1;
-                    $total_price += (int) $item->price;
-                @endphp
+            @if (count($details) > 0)
+                @foreach ($details as $key => $item)
+                    @php
+                        $iteration = $key + 1;
+                        $total_price += (int) $item->price;
+                    @endphp
+                    <tr>
+                        <td class="text-center remove-border border-item">{{$iteration}}</td>
+                        <td class="remove-border border-item">{{$item->name}}</td>
+                        <td class="remove-border border-item">
+                            <div class="clearfix">
+                                <div class="float-start">{{$currency_symbol}}</div>
+                                <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($item->price)}}</div>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            @else
                 <tr>
-                    <td class="text-center remove-border border-item">{{$iteration}}</td>
-                    <td class="remove-border border-item">{{$item->name}}</td>
+                    <td class="text-center remove-border border-item" style="height: 30px;"></td>
+                    <td class="remove-border border-item"></td>
                     <td class="remove-border border-item">
                         <div class="clearfix">
-                            <div class="float-start">{{$currency_symbol}}</div>
-                            <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($item->price)}}</div>
+
                         </div>
                     </td>
                 </tr>
-            @endforeach
+            @endif
             <tr>
                 <td colspan="2" class="text-right remove-border border-top border-item">Sub Total</td>
                 <td class="remove-border border-top border-item">

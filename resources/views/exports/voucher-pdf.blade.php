@@ -62,22 +62,22 @@
     </tr>
     <tr>
         <td class="label">Tanggal Terima Tagihan</td><td class="value">{{$voucher->date_receipt_bill}}</td>
-        <td class="label">Total</td><td class="value">Rp.{{ $voucher->total }}</td>
+        <td class="label">Total</td><td class="value">{{ $voucher->total_str }}</td>
     </tr>
     <tr>
         <td class="label">Deskripsi Pembayaran</td><td class="value">{{$voucher->payment_description}}</td>
-        <td class="label">Potongan PPh 23</td><td class="value">Rp.{{$voucher->discount_pph_23}}</td>
+        <td class="label">Potongan PPh 23</td><td class="value">{{$voucher->discount_pph_23_str}}</td>
     </tr>
     <tr>
         @php
             $no_po_spk = ($voucher->reference_type == 'App\Models\Spk') ? $voucher->reference->no_spk : $voucher?->reference?->po_number;
         @endphp
         <td class="label">No. PO/SPK</td><td class="value">{{$no_po_spk}}</td>
-        <td class="label">Potongan PPh 4</td><td class="value">Rp.{{$voucher->discount_pph_4}}</td>
+        <td class="label">Potongan PPh 4</td><td class="value">{{$voucher->discount_pph_4_str}}</td>
     </tr>
     <tr>
-        <td class="label">Nilai Tagihan</td><td class="value">Rp.{{$voucher->bill_value}}</td>
-        <td class="label">Potongan PPh 21</td><td class="value">Rp.{{$voucher->discount_pph_21}}</td>
+        <td class="label">Nilai Tagihan</td><td class="value">{{$voucher->bill_value_str}}</td>
+        <td class="label">Potongan PPh 21</td><td class="value">{{$voucher->discount_pph_21_str}}</td>
     </tr>
     <tr>
         <td class="label">PPh 23</td><td class="value">{{$voucher->pph_21}}%</td>
@@ -92,7 +92,7 @@
         <td class="label">No. Rekening</td><td class="value">{{$voucher->no_account}}</td>
     </tr>
     <tr>
-        <td class="label">Pembayaran (Nilai Transfer)</td><td class="value">Rp.{{$voucher->payment_transfer}}</td>
+        <td class="label">Pembayaran (Nilai Transfer)</td><td class="value">{{$voucher->payment_transfer_str}}</td>
         <td class="label">Status Bayar</td><td class="value">{{$voucher->payment_status}}</td>
     </tr>
     <tr>

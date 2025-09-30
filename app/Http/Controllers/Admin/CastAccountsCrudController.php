@@ -672,6 +672,29 @@ class CastAccountsCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
+    function account_child_select2(){
+        $this->crud->hasAccessOrFail('create');
+
+        $search = request()->input('q');
+        $dataset = \App\Models\Account::select(['id', 'code', 'name'])
+            ->where('level', '>', 1)
+            ->where(function($q) use($search){
+                $q->where('name', 'LIKE', "%$search%")
+                ->orWhere('code', 'LIKE', "%$search%");
+            })
+            ->orderBy('code', 'ASC')
+            ->paginate(10);
+
+        $results = [];
+        foreach ($dataset as $item) {
+            $results[] = [
+                'id' => $item->id,
+                'text' => $item->code.' - '.$item->name,
+            ];
+        }
+        return response()->json(['results' => $results]);
+    }
+
     function accessAccount($id_account){
         $account = CastAccount::whereHas('informations', function($q){
             $q->where('name', 'Jadikan rekening utama');
@@ -1251,7 +1274,6 @@ class CastAccountsCrudController extends CrudController
                 $new_saldo = $before_saldo - $nominal_transaction;
             }
 
-
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $cast_account_id;
             $newTransaction->date_transaction = $date_transaction;
@@ -1509,7 +1531,7 @@ class CastAccountsCrudController extends CrudController
 
     public function getSelectToAccount(){
         $castAccounts = CastAccount::whereHas('informations', function($q){
-            $q->where("additional_informations.id", 2)->select(DB::raw("1"));
+            $q->where("additional_informations.id", 2);
         })->where('status', CastAccount::CASH)->get(['id', 'name']);
         return response()->json([
             'status' => true,

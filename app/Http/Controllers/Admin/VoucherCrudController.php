@@ -174,8 +174,8 @@ class VoucherCrudController extends CrudController {
             // kolom 11 (whereHasMorph reference)
             if (isset($request->search[11])) {
                 $search = trim($request->search[11]);
-                $data = $data->whereHasMorph('reference', '*', function ($query) use ($search) {
-                    $query->where('work_code', 'like', '%'.$search.'%');
+                $data = $data->whereHas('client_po', function($q) use($search){
+                    $q->where('work_code', 'like', '%'.$search.'%');
                 });
             }
 
@@ -727,7 +727,7 @@ class VoucherCrudController extends CrudController {
             CRUD::column([
                 'label'  => '',
                 'name' => 'no_voucher',
-                'type'  => 'text',
+                'type'  => 'wrap_text',
                 'searchLogic' => function ($query, $column, $searchTerm) {
                     // $query->orWhereHas('client_po', function ($q) use ($column, $searchTerm) {
                     //     $q->where('po_number', 'like', '%'.$searchTerm.'%');
@@ -768,7 +768,7 @@ class VoucherCrudController extends CrudController {
                 [
                     'label'  => '',
                     'name' => 'payment_description',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
@@ -819,7 +819,7 @@ class VoucherCrudController extends CrudController {
                 [
                     'label'  => '',
                     'name' => 'job_name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
@@ -952,7 +952,7 @@ class VoucherCrudController extends CrudController {
             CRUD::column([
                 'label'  => '',
                 'name' => 'history_update',
-                'type'  => 'text',
+                'type'  => 'wrap_text',
             ]);
 
             CRUD::column([
@@ -1647,7 +1647,7 @@ class VoucherCrudController extends CrudController {
             'entity'      => 'account',
             'model'       => 'App\Models\Account',
             'attribute'   => "name",
-            'data_source' => backpack_url('account/select2-account'),
+            'data_source' => backpack_url('account/select2-account-child'),
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -1723,15 +1723,21 @@ class VoucherCrudController extends CrudController {
         ]);
 
         CRUD::addField([
-            'name' => 'job_name',
+            'name' => 'job_name_disabled',
             'label' => trans('backpack::crud.voucher.field.job_name.label'),
             'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-12',
             ],
             'attributes' => [
+                'disabled' => true,
                 'placeholder' => trans('backpack::crud.voucher.field.job_name.placeholder'),
             ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'job_name',
+            'type' => 'hidden',
         ]);
 
         CRUD::addField([
@@ -3397,7 +3403,7 @@ class VoucherCrudController extends CrudController {
         CRUD::column([
             'label'  => '',
             'name' => 'no_payment',
-            'type'  => 'text',
+            'type'  => 'wrap_text',
         ]);
 
         CRUD::column(
@@ -3436,7 +3442,7 @@ class VoucherCrudController extends CrudController {
         CRUD::column([
             'label'  => '',
             'name' => 'job_name',
-            'type'  => 'text',
+            'type'  => 'wrap_text',
         ]);
 
         CRUD::column([
@@ -3466,7 +3472,7 @@ class VoucherCrudController extends CrudController {
          CRUD::column([
             'label'  => '',
             'name' => 'bill_number',
-            'type'  => 'text',
+            'type'  => 'wrap_text',
         ]);
 
          CRUD::column([
@@ -3486,7 +3492,7 @@ class VoucherCrudController extends CrudController {
         CRUD::column([
             'label'  => '',
             'name' => 'payment_description',
-            'type'  => 'text',
+            'type'  => 'wrap_text',
         ]);
 
         CRUD::column(
@@ -3664,7 +3670,7 @@ class VoucherCrudController extends CrudController {
         CRUD::column([
             'label'  => '',
             'name' => 'information',
-            'type'  => 'text',
+            'type'  => 'wrap_text',
         ]);
 
     }
@@ -3756,6 +3762,12 @@ class VoucherCrudController extends CrudController {
 
     public function print($id){
         $voucher = Voucher::find($id);
+        $voucher->total_str = CustomHelper::formatRupiahWithCurrency($voucher->total);
+        $voucher->discount_pph_23_str = CustomHelper::formatRupiahWithCurrency($voucher->discount_pph_23);
+        $voucher->discount_pph_4_str = CustomHelper::formatRupiahWithCurrency($voucher->discount_pph_4);
+        $voucher->bill_value_str = CustomHelper::formatRupiahWithCurrency($voucher->bill_value);
+        $voucher->discount_pph_21_str = CustomHelper::formatRupiahWithCurrency($voucher->discount_pph_21);
+        $voucher->payment_transfer_str = CustomHelper::formatRupiahWithCurrency($voucher->payment_transfer);
 
         $pdf = Pdf::loadView('exports.voucher-pdf', [
             'voucher' => $voucher,

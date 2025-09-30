@@ -30,6 +30,9 @@
 
 @push('after_scripts')
     <script>
+        if(window.filter_tables == undefined){
+            window.filter_tables = {};
+        }
         if(typeof filterSelectYear != 'function'){
             function filterSelectYear(){
                 $('#filterYear .dropdown-menu li').each(function(){
@@ -44,6 +47,8 @@
                         route_project += "&filter_category="+value;
                         route_project += "&filter_client="+filter_client;
                         route_project_edit += "&filter_category="+value;
+                        window.filter_tables.filter_category = value;
+                        window.filter_tables.filter_client = filter_client;
 
                         // if(SIAOPS.getAttribute('crudTable-project') != null){
                         //     SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
@@ -86,6 +91,8 @@
                         route_project += "&filter_category="+filter_category;
                         route_project += "&filter_client="+value;
                         route_project_edit += "&filter_category="+value;
+                        window.filter_tables.filter_category = filter_category;
+                        window.filter_tables.filter_client = value;
 
                         // if(SIAOPS.getAttribute('crudTable-project') != null){
                         //     SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();

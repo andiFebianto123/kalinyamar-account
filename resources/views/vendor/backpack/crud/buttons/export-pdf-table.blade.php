@@ -28,7 +28,12 @@
             }else{
                 var filter_params_url = '';
             }
-            var url_export_with_params = get_url_export + params_url + '&' + filter_params_url;
+
+            var url_export_with_params = get_url_export + params_url;
+
+            if(filter_params_url != ''){
+                url_export_with_params = url_export_with_params + '&' + filter_params_url;
+            }
 
             if(get_url_export == ''){
                 setLoadingButton("#btn-export-pdf", false);
