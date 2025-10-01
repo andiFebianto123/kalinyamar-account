@@ -125,39 +125,39 @@
                 load: function(){
                     var instance = this;
                     instance.eventLoader();
-                    $('#panel-quotation').html(`
-                        <div class="d-flex justify-content-end">
-                            <div class="p-2 bd-highlight">
-                                <a href="javascript:void(0)">
-                                <button id="btn-export-pdf" class="btn btn-primary">
-                                    <i class="la la-file-download"></i> PDF
-                                </button>
-                                </a>
-                                <a href="javascript:void(0)">
-                                <button id="btn-export-pdf" class="btn btn-primary">
-                                    <i class="la la-file-download"></i> PDF
-                                </button>
-                                </a>
-                            </div>
-                        </div>
-                    `);
-                    $('#panel-quotation_check').html(`
-                        <div class="d-flex justify-content-end">
-                            <div class="p-2 bd-highlight">
-                                <a href="javascript:void(0)">
-                                <button id="btn-export-pdf" class="btn btn-primary">
-                                    <i class="la la-file-download"></i> PDF
-                                </button>
-                                </a>
-                                <a href="javascript:void(0)">
-                                <button id="btn-export-excel" class="btn btn-primary">
-                                    <i class="la la-file-download"></i> Excel
-                                </button>
-                                </a>
-                            </div>
-                        </div>
-                    `);
-                    instance.actionLoad();
+                    // $('#panel-quotation').html(`
+                    //     <div class="d-flex justify-content-end">
+                    //         <div class="p-2 bd-highlight">
+                    //             <a href="javascript:void(0)">
+                    //             <button id="btn-export-pdf" class="btn btn-primary">
+                    //                 <i class="la la-file-download"></i> PDF
+                    //             </button>
+                    //             </a>
+                    //             <a href="javascript:void(0)">
+                    //             <button id="btn-export-pdf" class="btn btn-primary">
+                    //                 <i class="la la-file-download"></i> PDF
+                    //             </button>
+                    //             </a>
+                    //         </div>
+                    //     </div>
+                    // `);
+                    // $('#panel-quotation_check').html(`
+                    //     <div class="d-flex justify-content-end">
+                    //         <div class="p-2 bd-highlight">
+                    //             <a href="javascript:void(0)">
+                    //             <button id="btn-export-pdf" class="btn btn-primary">
+                    //                 <i class="la la-file-download"></i> PDF
+                    //             </button>
+                    //             </a>
+                    //             <a href="javascript:void(0)">
+                    //             <button id="btn-export-excel" class="btn btn-primary">
+                    //                 <i class="la la-file-download"></i> Excel
+                    //             </button>
+                    //             </a>
+                    //         </div>
+                    //     </div>
+                    // `);
+                    // instance.actionLoad();
                 }
             }
         });

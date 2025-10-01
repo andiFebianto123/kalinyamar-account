@@ -93,11 +93,12 @@
     </tr>
     <tr>
         <td class="label">Pembayaran (Nilai Transfer)</td><td class="value">{{$voucher->payment_transfer_str}}</td>
-        <td class="label">Status Bayar</td><td class="value">{{$voucher->payment_status}}</td>
+        <td class="label">A/N rekening</td><td class="value">{{$voucher->account_holder_name ?? $voucher->subkon->account_holder_name}}</td>
     </tr>
     <tr>
         <td class="label">Jatuh Tempo</td><td class="value">{{$voucher->due_date}}</td>
-        <td></td><td></td>
+        <td class="label">Status Bayar</td><td class="value">{{$voucher->payment_status}}</td>
+        {{-- <td></td><td></td> --}}
     </tr>
     <tr>
         <td class="label">No. Faktur</td><td class="value">{{$voucher->no_factur}}</td>

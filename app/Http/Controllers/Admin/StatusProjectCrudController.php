@@ -872,8 +872,8 @@ class StatusProjectCrudController extends CrudController {
             CRUD::column(
                 [
                     'label'  => trans('backpack::crud.project.column.project.no_po_spk.label'),
-                    'name' => 'wrap_text',
-                    'type'  => 'text'
+                    'name' => 'no_po_spk',
+                    'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(

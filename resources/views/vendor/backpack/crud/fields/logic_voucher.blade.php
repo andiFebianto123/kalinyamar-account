@@ -111,10 +111,14 @@
                                     if(data.company.bank_account){
                                         $(form+' input[name="no_account"]').val(data.company.bank_account);
                                     }
+                                    if(data.company.account_holder_name){
+                                        $(form+' input[name="account_holder_name"]').val(data.company.account_holder_name);
+                                    }
                                 }else{
                                     $(form+' select[name="subkon_id"]').val(null).trigger('change');
                                     $(form+' input[name="bank_name"]').val(null);
                                     $(form+' input[name="no_account"]').val(null);
+                                    $(form+' input[name="account_holder_name"]').val(null);
                                 }
 
                                 if(data.date_po){

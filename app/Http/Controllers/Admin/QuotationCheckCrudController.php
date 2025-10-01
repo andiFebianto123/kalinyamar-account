@@ -269,6 +269,9 @@ class QuotationCheckCrudController extends CrudController {
         CRUD::disableResponsiveTable();
         $settings = Setting::first();
 
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+
         if($type == 'quotation_check'){
             // CRUD::setModel(QuotationCheck::class);
             $this->crud->query = $this->crud->query

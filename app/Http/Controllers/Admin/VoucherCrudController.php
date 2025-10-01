@@ -19,10 +19,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
+use App\Models\PaymentVoucherPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Models\PaymentVoucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -1601,9 +1603,8 @@ class VoucherCrudController extends CrudController {
 
         $rule['job_name'] = 'required';
 
-        if(request()->has('id')){
-
-        }
+        // if(request()->has('id')){
+        // }
 
         return $rule;
     }
@@ -2124,6 +2125,19 @@ class VoucherCrudController extends CrudController {
         ]);
 
         CRUD::addField([
+            'name' => 'account_holder_name',
+            'label' => trans('backpack::crud.voucher.field.account_holder_name.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => trans('backpack::crud.voucher.field.account_holder_name.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
             'name' => 'bank_name',
             'label' => trans('backpack::crud.voucher.field.bank_name.label'),
             'type' => 'text',
@@ -2283,11 +2297,13 @@ class VoucherCrudController extends CrudController {
         DB::beginTransaction();
         try{
 
-            if($flag_approval_status){
+            $voucher_plan_exists = PaymentVoucher::where('voucher_id', $request->id)->first();
+
+            if($voucher_plan_exists){
                 return response()->json([
                     'status' => false,
                     'success' => false,
-                    'error' => trans('backpack::crud.voucher.confirm.update_failed_status'),
+                    'error' => trans('backpack::crud.voucher.confirm.update_failed_plan_exists'),
                 ]);
             }
 
@@ -2348,11 +2364,12 @@ class VoucherCrudController extends CrudController {
             $castAccount = Subkon::find($request->subkon_id);
             $item->bank_name = $castAccount->bank_name;
             $item->no_account = $castAccount->bank_account;
+            $item->account_holder_name = $castAccount->account_holder_name;
             // $item->bank_name = '';
             // $item->no_account = '';
             $item->payment_type = $request->payment_type;
-            // $item->payment_status = $request->payment_status;
-            // $item->payment_date = $request->payment_date;
+            $item->payment_status = $request->payment_status;
+            $item->payment_date = $request->payment_date;
             $item->priority = $request->priority;
             $item->information = $request->information ?? '';
             $item->save();
@@ -2401,9 +2418,12 @@ class VoucherCrudController extends CrudController {
                 'subkon_id',
                 'client_po_id',
                 'payment_date',
+                'account_holder_name',
             ];
 
             $edit_flag = 0;
+
+            $edit_field = [];
 
             foreach ($fieldsToLog as $field) {
                 $old = optional($oldItem)->$field;
@@ -2413,6 +2433,7 @@ class VoucherCrudController extends CrudController {
                 $normalizedNew = $this->normalize($new);
 
                 if ($normalizedOld !== $normalizedNew) {
+                    $edit_field[] = $field;
                     $edit_flag++;
                 }
             }
@@ -2452,6 +2473,40 @@ class VoucherCrudController extends CrudController {
                     $client->job_name = $voucher->job_name;
                     $client->load_general_value = $voucher->payment_transfer;
                     $client->save();
+                }
+            }
+
+            $field_danger = [
+                "account_id",
+                "bill_value",
+                "total",
+                "pph_23",
+                "discount_pph_23",
+                "pph_4",
+                "discount_pph_4",
+                "pph_21",
+                "discount_pph_21",
+                "payment_transfer",
+                "payment_status",
+                "account_source_id",
+                "payment_date"
+            ];
+            $flag_validation_field = false;
+
+            foreach($field_danger as $name_field){
+                if(in_array($name_field, $edit_field)){
+                    $flag_validation_field = true;
+                    break;
+                }
+            }
+
+            if($flag_validation_field){
+                if($flag_approval_status){
+                    return response()->json([
+                        'status' => false,
+                        'success' => false,
+                        'error' => trans('backpack::crud.voucher.confirm.update_failed_status'),
+                    ]);
                 }
             }
 
@@ -2659,6 +2714,7 @@ class VoucherCrudController extends CrudController {
             $castAccount = Subkon::find($request->subkon_id);
             $item->bank_name = $castAccount->bank_name;
             $item->no_account = $castAccount->bank_account;
+            $item->account_holder_name = $castAccount->account_holder_name;
 
             $item->payment_type = $request->payment_type;
             $item->payment_status = "BELUM BAYAR"; // $request->payment_status;
@@ -2955,10 +3011,23 @@ class VoucherCrudController extends CrudController {
             'attribute'   => "name",
             'data_source' => backpack_url('fa/voucher/select2-subkon'),
             'wrapper'   => [
-                'class' => 'form-group col-md-12',
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.voucher.field.bussines_entity_name.placeholder'),
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'account_holder_name',
+            'label' => trans('backpack::crud.voucher.field.account_holder_name.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => trans('backpack::crud.voucher.field.account_holder_name.placeholder'),
             ]
         ]);
 
@@ -3465,6 +3534,17 @@ class VoucherCrudController extends CrudController {
                 'type'  => 'closure',
                 'function' => function($entry){
                     return $entry->subkon->name;
+                }
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => '',
+                'name' => 'account_holder_name',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return $entry->account_holder_name ?? $entry->subkon->account_holder_name;
                 }
             ],
         );

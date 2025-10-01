@@ -1089,6 +1089,10 @@ return [
             'date_factur' => [
                 'label' => 'Tanggal Faktur',
             ],
+            'account_holder_name' => [
+                'label' => 'A/N rekening',
+                'placeholder' => 'Masukan A/N rekening',
+            ],
             'bank_name' => [
                 'label' => 'Nama Bank',
                 'placeholder' => 'Masukan nama bank',
@@ -1223,6 +1227,7 @@ return [
             'confirm_after_success' => 'Voucher Berhasil Disetujui',
             'alert_success' => '',
             'update_failed_status' => 'Anda tidak bisa melakukan edit voucher karena status voucher saat ini sudah Approve',
+            'update_failed_plan_exists' => 'Anda tidak bisa melakukan edit voucher karena voucher sudah masuk rencana bayar',
         ],
         'total_exclude_ppn' => 'Jumlah Exlude PPn',
         'total_include_ppn' => 'Jumlah Include PPn',
