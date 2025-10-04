@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Models\InvoiceClient;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * Class CastAccountsCrudController
@@ -657,8 +659,11 @@ class CastAccountsCrudController extends CrudController
 
         $search = request()->input('q');
         $dataset = \App\Models\Account::select(['id', 'code', 'name'])
-            ->where('name', 'LIKE', "%$search%")
-            ->orWhere('code', 'LIKE', "%$search%")
+            ->where('level', ">", 2)
+            ->where(function($q) use($search){
+                $q->where('name', 'LIKE', "%$search%")
+                ->orWhere('code', 'LIKE', "%$search%");
+            })
             ->orderBy('code', 'ASC')
             ->paginate(10);
 
@@ -695,6 +700,50 @@ class CastAccountsCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
+    public function select2Invoice()
+    {
+        $this->crud->hasAccessOrFail('create');
+
+        $search = request()->input('q');
+        $r_type = request()->type;
+        $invoices = InvoiceClient::where('status', 'Unpaid')
+        ->where(function($q) use($search){
+            $q->where('invoice_number', 'LIKE', "%$search%")
+            ->orWhere('name', 'LIKE', "%$search%")
+            ->orWhere('kdp', 'LIKE', "%$search%");
+        });
+
+        $dataset = $invoices->paginate(20);
+
+        $results = [];
+        foreach ($dataset as $item) {
+            $type = ucfirst($item->type);
+            $results[] = [
+                'id' => $item->id,
+                'text' => ($r_type == 'kdp') ? $item->kdp : $item->invoice_number,
+            ];
+        }
+        return response()->json(['results' => $results]);
+    }
+
+    public function get_invoice_ajax(){
+        // url : {{ url($crud->route) }}/get-invoice
+        // method : GET
+        $req = request();
+        $id = $req->id;
+        $invoice = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
+        ->where('invoice_clients.id', $id)
+        ->select(DB::raw('
+            invoice_clients.id,
+            invoice_clients.kdp,
+            invoice_clients.invoice_number,
+            client_po.job_name
+        '))
+        ->first();
+        return response()->json($invoice);
+
+    }
+
     function accessAccount($id_account){
         $account = CastAccount::whereHas('informations', function($q){
             $q->where('name', 'Jadikan rekening utama');
@@ -717,6 +766,7 @@ class CastAccountsCrudController extends CrudController
         CRUD::setValidation($this->ruleValidationTransaction());
 
         $attribute_form = [];
+        $invoice_disabled = [];
 
         $has_access_primary = $this->accessAccount($id);
 
@@ -727,6 +777,10 @@ class CastAccountsCrudController extends CrudController
                     'disabled' => true,
                 ];
             }
+
+            $invoice_disabled = [
+                'disabled' => true,
+            ];
         }
 
 
@@ -780,15 +834,31 @@ class CastAccountsCrudController extends CrudController
             ]
         ]);
 
+        // CRUD::addField([
+        //     'name' => 'kdp',
+        //     'label' => trans('backpack::crud.cash_account.field_transaction.kdp.label'),
+        //     'type' => 'text',
+        //     'wrapper' => [
+        //         'class' => 'form-group col-md-6'
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => trans('backpack::crud.cash_account.field_transaction.kdp.placeholder'),
+        //     ]
+        // ]);
+
         CRUD::addField([
-            'name' => 'kdp',
-            'label' => trans('backpack::crud.cash_account.field_transaction.kdp.label'),
-            'type' => 'text',
-            'wrapper' => [
-                'class' => 'form-group col-md-6'
+            'label'       => trans('backpack::crud.cash_account.field_transaction.kdp.label'), // Table column heading
+            'type'        => "select2_ajax_custom",
+            'name'        => 'kdp',
+            'model'       => 'App\Models\ClientPo',
+            'attribute'   => "work_code",
+            'data_source' => backpack_url('cash-flow/cast-accounts-select-to-invoice?type=kdp'),
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
-                'placeholder' => trans('backpack::crud.cash_account.field_transaction.kdp.placeholder'),
+                'placeholder' => trans('backpack::crud.voucher.field.work_code.placeholder'),
+                ...$invoice_disabled,
             ]
         ]);
 
@@ -825,16 +895,37 @@ class CastAccountsCrudController extends CrudController
             ]
         ]);
 
+        // CRUD::addField([
+        //     'name' => 'no_invoice',
+        //     'label' => trans('backpack::crud.cash_account.field_transaction.no_invoice.label'),
+        //     'type' => 'text',
+        //     'wrapper'   => [
+        //         'class' => 'form-group col-md-6',
+        //     ],
+        //     'attributes' => [
+        //         'placeholder' => trans('backpack::crud.cash_account.field_transaction.no_invoice.placeholder'),
+        //     ]
+        // ]);
+
         CRUD::addField([
-            'name' => 'no_invoice',
             'label' => trans('backpack::crud.cash_account.field_transaction.no_invoice.label'),
-            'type' => 'text',
+            'type'        => "select2_ajax_custom",
+            'name'        => 'no_invoice',
+            'model'       => 'App\Models\ClientPo',
+            'attribute'   => "work_code",
+            'data_source' => backpack_url('cash-flow/cast-accounts-select-to-invoice?type=invoice'),
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'placeholder' => trans('backpack::crud.cash_account.field_transaction.no_invoice.placeholder'),
+                ...$invoice_disabled,
             ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'logic_account_transaction',
+            'type' => 'logic-account-transaction',
         ]);
 
         if($has_access_primary == 0){
@@ -1255,7 +1346,6 @@ class CastAccountsCrudController extends CrudController
 
         DB::beginTransaction();
         try{
-
             $cast_account_id = $request->cast_account_id;
             $date_transaction = $request->date_transaction;
             $nominal_transaction = $request->nominal_transaction;
@@ -1274,6 +1364,15 @@ class CastAccountsCrudController extends CrudController
                 $new_saldo = $before_saldo - $nominal_transaction;
             }
 
+            if($request->has('kdp') || $request->has('no_invoice')){
+                $id = $request->kdp ?? $request->no_invoice;
+                $invoice = InvoiceClient::find($id);
+                $kdp = $invoice->kdp;
+                $no_invoice = $invoice->no_invoice;
+                $invoice->status = 'Paid';
+                $invoice->save();
+            }
+
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $cast_account_id;
             $newTransaction->date_transaction = $date_transaction;
@@ -1285,6 +1384,11 @@ class CastAccountsCrudController extends CrudController
             $newTransaction->description = $description;
             $newTransaction->kdp = $kdp;
             $newTransaction->job_name = $job_name;
+
+            if($kdp != null && $kdp != ''){
+                $newTransaction->reference_type = InvoiceClient::class;
+                $newTransaction->reference_id = $invoice->id;
+            }
 
             if($request->has('account_id')){
                 $newTransaction->account_id = $request->account_id;

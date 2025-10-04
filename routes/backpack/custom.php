@@ -111,6 +111,8 @@ Route::group([
         Route::post('cast-accounts-transaction', [CastAccountsCrudController::class, 'storeTransaction']);
         Route::get('cast-accounts-show', [CastAccountsCrudController::class, 'showTransaction']);
         Route::get('cast-accounts-select-to-account', [CastAccountsCrudController::class, 'getSelectToAccount']);
+        Route::post('cast-accounts-select-to-invoice', [CastAccountsCrudController::class, 'select2Invoice']);
+        Route::get('cast-accounts/get-invoice', [CastAccountsCrudController::class, 'get_invoice_ajax']);
         Route::post('cast-accounts-move-transaction', [CastAccountsCrudController::class, 'storeMoveTransfer']);
         Route::delete('cast-accounts/delete-transaction/{id}', [CastAccountsCrudController::class, 'destroyTransaction']);
 
@@ -205,6 +207,7 @@ Route::group([
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
     Route::post('account/select2-account-child', [CastAccountsCrudController::class, 'account_child_select2']);
+
 
 }); // this should be the absolute last line of this file
 

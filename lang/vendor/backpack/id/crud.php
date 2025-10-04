@@ -202,7 +202,7 @@ return [
         'cash_flow_cash' => 'Rekening Kas',
         'cash_flow_loan' => 'Rekening Pinjaman',
         'finance_report' => 'Laporan Keuangan',
-        'expense_account' => 'Akun Biaya',
+        'expense_account' => 'Chart Of Account',
         'profit_lost' => 'Laba Rugi',
         'balance_sheet' => 'Neraca',
         'asset' => 'Daftar Aset',
@@ -613,8 +613,8 @@ return [
                 'placeholder' => 'Masukan nama pekerjaan'
             ],
             'account_id' => [
-                'label' => 'Akun Biaya',
-                'placeholder' => '-AKUN BIAYA'
+                'label' => 'Akun',
+                'placeholder' => '-AKUN'
             ],
             'account' => [
                 'label' => 'Akun',
@@ -696,10 +696,10 @@ return [
         ]
     ],
     'expense_account' => [
-        'title_header' => 'Akun Biaya',
-        'title_modal_create' => 'Akun Biaya',
-        'title_modal_edit' => 'Akun Biaya',
-        'title_modal_delete' => 'Akun Biaya',
+        'title_header' => 'Chart Of Account',
+        'title_modal_create' => 'Chart Of Account',
+        'title_modal_edit' => 'Chart Of Account',
+        'title_modal_delete' => 'Chart Of Account',
         'column' => [
             'code' => 'Kode Akun',
             'name' => 'Nama Akun',
