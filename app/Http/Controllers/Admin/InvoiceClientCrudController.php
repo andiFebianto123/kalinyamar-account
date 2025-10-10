@@ -984,12 +984,13 @@ class InvoiceClientCrudController extends CrudController
             $this->data['entry'] = $this->crud->entry = $invoice;
 
             $this->applyInvoicePaymentToAccount($invoice);
+            CustomHelper::invoiceEntry($invoice);
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
             $this->crud->setSaveAction();
 
-            DB::commit();
+            // DB::commit();
             return $this->crud->performSaveAction($invoice->getKey());
         }catch (\Exception $e) {
             DB::rollBack();
@@ -1080,6 +1081,7 @@ class InvoiceClientCrudController extends CrudController
             //     }
             // }
 
+            CustomHelper::invoiceEntry($invoice);
 
             DB::commit();
             // show a success message

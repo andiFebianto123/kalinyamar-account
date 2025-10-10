@@ -653,6 +653,7 @@ return [
             'errors' => [
                 'nominal_transfer_to_more' => 'Nominal tidak boleh melebihi jumlah saldo.',
                 'to_account_is_same' => 'Rekening tujuan harus berbeda dengan rekening yang dipindah',
+                'account_id_exist' => 'Akun rekening harus berbeda dengan akun rekening lainnya'
             ]
         ]
     ],

@@ -2528,12 +2528,12 @@ class VoucherPaymentCrudController extends CrudController {
 
             $voucher = $request->voucher;
             foreach($voucher as $id_v){
-                $voucher = Voucher::find($id_v);
-                $voucher->payment_status = 'BAYAR';
-                $voucher->payment_date = Carbon::now();
-                $voucher->save();
+                $voucherItem = Voucher::find($id_v);
+                $voucherItem->payment_status = 'BAYAR';
+                $voucherItem->payment_date = Carbon::now();
+                $voucherItem->save();
                 $type = '';
-                if($voucher->payment_type == 'NON RUTIN'){
+                if($voucherItem->payment_type == 'NON RUTIN'){
                     $type = 'NON RUTIN';
                     $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
                     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
@@ -2544,6 +2544,7 @@ class VoucherPaymentCrudController extends CrudController {
                 }
 
                 $this->addTransaction($id_v);
+                CustomHelper::voucherPayment($voucherItem);
             }
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
@@ -2598,7 +2599,7 @@ class VoucherPaymentCrudController extends CrudController {
         // periksa jenis voucher
         if($voucher->reference_type == "App\Models\PurchaseOrder" || $voucher->reference_type == "App\Models\Spk"){
             if($invoice == null){
-                $account = Account::where('code', "504")->first();
+                $account = Account::where('code', "50401")->first();
                 $payment_transfer = $voucher->payment_transfer;
                 CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
@@ -2615,30 +2616,30 @@ class VoucherPaymentCrudController extends CrudController {
                     'reference_type' => Voucher::class,
                 ]);
             }else{
-                $account = Account::where('code', "501")->first();
+                $account = Account::where('id', $voucher->account_id)->first();
                 $payment_transfer = $voucher->payment_transfer;
 
-                $invoice->status = 'Paid';
-                $invoice->save();
+                // $invoice->status = 'Paid';
+                // $invoice->save();
 
-                $transaksi = new AccountTransaction;
-                $transaksi->cast_account_id = $voucher->account_source_id;
-                $transaksi->reference_type = Voucher::class;
-                $transaksi->reference_id = $voucher_id;
-                $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
-                $transaksi->nominal_transaction = $payment_transfer;
-                $transaksi->total_saldo_before = 0;
-                $transaksi->total_saldo_after = 0;
-                $transaksi->status = CastAccount::ENTER;
-                $transaksi->kdp = $client_po?->work_code;
-                $transaksi->job_name = $voucher?->job_name;
-                $transaksi->save();
+                // $transaksi = new AccountTransaction;
+                // $transaksi->cast_account_id = $voucher->account_source_id;
+                // $transaksi->reference_type = Voucher::class;
+                // $transaksi->reference_id = $voucher_id;
+                // $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
+                // $transaksi->nominal_transaction = $payment_transfer;
+                // $transaksi->total_saldo_before = 0;
+                // $transaksi->total_saldo_after = 0;
+                // $transaksi->status = CastAccount::ENTER;
+                // $transaksi->kdp = $client_po?->work_code;
+                // $transaksi->job_name = $voucher?->job_name;
+                // $transaksi->save();
 
                 CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
-                    'reference_id' => $transaksi->id,
-                    'reference_type' => AccountTransaction::class,
-                    'description' => $transaksi->kdp,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
@@ -2646,13 +2647,13 @@ class VoucherPaymentCrudController extends CrudController {
                 ], [
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
-                    'reference_type' => AccountTransaction::class,
+                    'reference_type' => Voucher::class,
                 ]);
             }
         }else if($voucher->reference_type == "App\Models\ClientPo"){
             if($invoice == null){
                 // jika tidak ada invoice di PO
-                $account = Account::where('code', "504")->first();
+                $account = Account::where('code', "50401")->first();
                 $payment_transfer = $voucher->payment_transfer;
                 CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
@@ -2669,30 +2670,30 @@ class VoucherPaymentCrudController extends CrudController {
                     'reference_type' => Voucher::class,
                 ]);
             }else{
-                $account = Account::where('code', "501")->first();
+                $account = Account::where('id', $voucher->account_id)->first();
                 $payment_transfer = $voucher->payment_transfer;
 
                 $invoice->status = 'Paid';
                 $invoice->save();
 
-                $transaksi = new AccountTransaction;
-                $transaksi->cast_account_id = $voucher->account_source_id;
-                $transaksi->reference_type = Voucher::class;
-                $transaksi->reference_id = $voucher_id;
-                $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
-                $transaksi->nominal_transaction = $payment_transfer;
-                $transaksi->total_saldo_before = 0;
-                $transaksi->total_saldo_after = 0;
-                $transaksi->status = CastAccount::ENTER;
-                $transaksi->kdp = $po?->work_code;
-                $transaksi->job_name = $po?->job_name;
-                $transaksi->save();
+                // $transaksi = new AccountTransaction;
+                // $transaksi->cast_account_id = $voucher->account_source_id;
+                // $transaksi->reference_type = Voucher::class;
+                // $transaksi->reference_id = $voucher_id;
+                // $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
+                // $transaksi->nominal_transaction = $payment_transfer;
+                // $transaksi->total_saldo_before = 0;
+                // $transaksi->total_saldo_after = 0;
+                // $transaksi->status = CastAccount::ENTER;
+                // $transaksi->kdp = $po?->work_code;
+                // $transaksi->job_name = $po?->job_name;
+                // $transaksi->save();
 
                 CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
-                    'reference_id' => $transaksi->id,
-                    'reference_type' => AccountTransaction::class,
-                    'description' => $transaksi->kdp,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
@@ -2700,7 +2701,7 @@ class VoucherPaymentCrudController extends CrudController {
                 ], [
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
-                    'reference_type' => AccountTransaction::class,
+                    'reference_type' => Voucher::class,
                 ]);
             }
         }

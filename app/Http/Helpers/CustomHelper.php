@@ -1,17 +1,22 @@
 <?php
 namespace App\Http\Helpers;
 
+use Carbon\Carbon;
 use App\Models\Spk;
 use App\Models\Asset;
+use App\Models\Account;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\ClientPo;
 use App\Models\CastAccount;
 use App\Models\SetupClient;
 use App\Models\JournalEntry;
+use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
 use App\Models\AccountTransaction;
+use App\Models\Voucher;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\Cast;
 
 class CustomHelper {
 
@@ -262,6 +267,213 @@ class CustomHelper {
         $string = preg_replace('#<style(.*?)>(.*?)</style>#is', '', $string);
 
         return strip_tags($string);
+    }
+
+    public static function invoiceEntry($invoice){
+
+        $piutang = Account::where('code', '10201')->first();
+        if($piutang){
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Piutang invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->total_price,
+                'credit' => 0,
+            ], [
+                'account_id' => $piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+        }
+
+        $acct_ppn = Account::where('code', "20301")->first();
+        if($acct_ppn){
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $acct_ppn->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "PPN invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->price_total_include_ppn,
+                'credit' => 0,
+            ], [
+                'account_id' => $acct_ppn->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+        }
+
+    }
+
+    public static function invoicePaymentTransaction($transaction, $invoice){
+        if($invoice != null){
+            $piutang = Account::where('code', '10201')->first();
+            if($piutang){
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $piutang->id,
+                    'reference_id' => $transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => "Keluar piutang invoice ".$invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $invoice->total_price,
+                ], [
+                    'account_id' => $piutang->id,
+                    'reference_id' => $transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
+            }
+        }
+    }
+
+    public static function voucherEntry($voucher){
+
+        $journalDelete = JournalEntry::where('reference_id', $voucher->id)
+        ->where('reference_type', Voucher::class)->delete();
+
+        $hutang = Account::where('code', '20101')->first();
+        if($hutang){
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $hutang->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+                'description' => "piutang voucher ".$voucher->no_voucher,
+                'date' => Carbon::now(),
+                'debit' => $voucher->payment_transfer,
+                'credit' => 0,
+            ], [
+                'account_id' => $hutang->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+            ]);
+        }
+        if($voucher->total > 0){
+            $ppn = Account::where('code', '50303')->first();
+            if($ppn){
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $ppn->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPN voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->total,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $ppn->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                ]);
+            }
+        }
+        if($voucher->discount_pph_23 > 0){
+            $pph_23 = Account::where('code', '50306')->first();
+            if($pph_23){
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $pph_23->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPH 23 voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->discount_pph_23,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $pph_23->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                ]);
+            }
+        }
+        if($voucher->discount_pph_4 > 0){
+            $pph_4 = Account::where('code', '50307')->first();
+            if($pph_4){
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $pph_4->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPH 4 voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->discount_pph_4,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $pph_4->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                ]);
+            }
+        }
+        if($voucher->discount_pph_21 > 0){
+            $pph_21 = Account::where('code', '50301')->first();
+            if($pph_21){
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $pph_21->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPH 21 voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->discount_pph_21,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $pph_21->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                ]);
+            }
+        }
+    }
+
+    public static function voucherPayment($voucher){
+        $client_po = $voucher->client_po;
+        $cast_account = CastAccount::where('id', $voucher->account_source_id)->first();
+        // kurangi hutang
+        $hutang = Account::where('code', '20101')->first();
+        if($hutang){
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $hutang->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+                'description' => "piutang voucher ".$voucher->no_voucher,
+                'date' => Carbon::now(),
+                'debit' => 0,
+                'credit' => $voucher->payment_transfer,
+            ], [
+                'account_id' => $hutang->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+            ]);
+        }
+
+        $transaksi = new AccountTransaction;
+        $transaksi->cast_account_id = $voucher->account_source_id;
+        $transaksi->reference_type = Voucher::class;
+        $transaksi->reference_id = $voucher->id;
+        $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
+        $transaksi->nominal_transaction = $voucher->payment_transfer;
+        $transaksi->total_saldo_before = 0;
+        $transaksi->total_saldo_after = 0;
+        $transaksi->status = CastAccount::OUT;
+        $transaksi->kdp = $client_po?->work_code;
+        $transaksi->job_name = $voucher?->job_name;
+        $transaksi->save();
+
+        $accountBank = Account::where('id', $cast_account->account_id)->first();
+        if($accountBank){
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $accountBank->id,
+                'reference_id' => $transaksi->id,
+                'reference_type' => AccountTransaction::class,
+                'description' => "Saldo berkurang ".$voucher->no_voucher,
+                'date' => Carbon::now(),
+                'debit' => 0,
+                'credit' => $transaksi->nominal_transaction,
+            ], [
+                'account_id' => $accountBank->id,
+                'reference_id' => $transaksi->id,
+                'reference_type' => AccountTransaction::class,
+            ]);
+        }
+
     }
 
 }

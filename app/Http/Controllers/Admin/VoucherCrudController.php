@@ -2510,6 +2510,8 @@ class VoucherCrudController extends CrudController {
                 }
             }
 
+            CustomHelper::voucherEntry($item);
+
             \Alert::success(trans('backpack::crud.update_success'))->flash();
 
 
@@ -2753,6 +2755,8 @@ class VoucherCrudController extends CrudController {
                     $client->save();
                 }
             }
+
+            CustomHelper::voucherEntry($item);
 
             $event['crudTable-voucher_create_success'] = $item;
             $event['crudTable-history_edit_voucher_create_success'] = $item;

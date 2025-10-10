@@ -553,12 +553,27 @@ class CastAccountsCrudController extends CrudController
 
     function ruleValidation(){
         $id = request('id') ?? '';
+        $no_account = request('no_account') ?? '';
         // 'name' => 'required|min:5|max:255'
         return [
             'name' => 'required|max:100|unique:cast_accounts,name,'.$id,
             'bank_name' => 'required|max:50',
-            'no_account' => 'required|max:100',
+            'no_account' => 'required|max:100,unique:cast_accounts,no_account,'.$id,
             'total_saldo' => 'required|numeric|min:0',
+            'account_id' => [
+                'required',
+                'exists:accounts,id',
+                function ($attribute, $value, $fail) use($no_account){
+                    $castAccount = CastAccount::where('account_id', $value)
+                    ->where('status', CastAccount::CASH)
+                    ->where('no_account', $no_account)
+                    ->first();
+                    if($castAccount){
+                        $fail(trans('backpack::crud.cash_account.field_transfer.errors.account_id_exist'));
+                    }
+                    return true;
+                }
+            ]
         ];
     }
 
@@ -1024,6 +1039,22 @@ class CastAccountsCrudController extends CrudController
             ]);
 
             CRUD::addField([
+                'label'       => trans('backpack::crud.cash_account_loan.field.account.label'), // Table column heading
+                'type'        => "select2_ajax_custom",
+                'name'        => 'account_id',
+                'entity'      => 'account',
+                'model'       => 'App\Models\Account',
+                'attribute'   => "name",
+                'data_source' => backpack_url('account/select2-account'),
+                'wrapper'   => [
+                    'class' => 'form-group col-md-6',
+                ],
+                'attributes' => [
+                    'placeholder' => trans('backpack::crud.cash_account_loan.field.account.placeholder'),
+                ]
+            ]);
+
+            CRUD::addField([
                 'name' => 'total_saldo',
                 'label' => trans('backpack::crud.cash_account.field.total_saldo.label'),
                 'type' => 'mask',
@@ -1134,6 +1165,18 @@ class CastAccountsCrudController extends CrudController
             $acctTransaction->status = CastAccount::ENTER;
             $acctTransaction->is_first = 1;
             $acctTransaction->save();
+
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $item->account_id,
+                'reference_id' => $item->id,
+                'reference_type' => CastAccount::class,
+                'description' => 'Start Saldo',
+                'date' => Carbon::now(),
+                'debit' => $item->total_saldo,
+            ], [
+                'reference_id' => $item->id,
+                'reference_type' => CastAccount::class,
+            ]);
 
             // \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
@@ -1364,6 +1407,8 @@ class CastAccountsCrudController extends CrudController
                 $new_saldo = $before_saldo - $nominal_transaction;
             }
 
+            $invoice = null;
+
             if($request->has('kdp') || $request->has('no_invoice')){
                 $id = $request->kdp ?? $request->no_invoice;
                 $invoice = InvoiceClient::find($id);
@@ -1395,6 +1440,7 @@ class CastAccountsCrudController extends CrudController
                 $newTransaction->save();
 
                 // catat di journal
+                CustomHelper::invoicePaymentTransaction($newTransaction, $invoice);
                 CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $newTransaction->account_id,
                     'reference_id' => $newTransaction->id,
