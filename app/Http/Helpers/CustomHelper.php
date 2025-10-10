@@ -476,4 +476,8 @@ class CustomHelper {
 
     }
 
+    public static function invoicePayment(){
+
+    }
+
 }

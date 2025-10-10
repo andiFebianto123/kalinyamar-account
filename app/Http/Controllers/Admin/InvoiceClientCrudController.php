@@ -1124,7 +1124,7 @@ class InvoiceClientCrudController extends CrudController
         if($voucher){
             if($voucher->payment_status == 'BAYAR'){
                 // $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
-                $account_beban = Account::where('code', "504")->first();
+                $account_beban = Account::where('code', "50401")->first();
                 $payment_transfer = $voucher->payment_transfer;
                 CustomHelper::insertJournalEntry([
                     'account_id' => $account_beban->id,
@@ -1139,24 +1139,24 @@ class InvoiceClientCrudController extends CrudController
                 // akun beban pokok
                 $account_pokok = Account::where('code', $voucher->account_id)->first();
 
-                $transaksi = new AccountTransaction;
-                $transaksi->cast_account_id = $voucher->account_source_id;
-                $transaksi->reference_type = Voucher::class;
-                $transaksi->reference_id = $voucher->id;
-                $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
-                $transaksi->nominal_transaction = $payment_transfer;
-                $transaksi->total_saldo_before = 0;
-                $transaksi->total_saldo_after = 0;
-                $transaksi->status = CastAccount::ENTER;
-                $transaksi->kdp = $voucher?->client_po?->work_code;
-                $transaksi->job_name = $voucher?->reference->job_name;
-                $transaksi->save();
+                // $transaksi = new AccountTransaction;
+                // $transaksi->cast_account_id = $voucher->account_source_id;
+                // $transaksi->reference_type = Voucher::class;
+                // $transaksi->reference_id = $voucher->id;
+                // $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
+                // $transaksi->nominal_transaction = $payment_transfer;
+                // $transaksi->total_saldo_before = 0;
+                // $transaksi->total_saldo_after = 0;
+                // $transaksi->status = CastAccount::ENTER;
+                // $transaksi->kdp = $voucher?->client_po?->work_code;
+                // $transaksi->job_name = $voucher?->reference->job_name;
+                // $transaksi->save();
 
                 CustomHelper::insertJournalEntry([
                     'account_id' => $account_pokok->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
-                    'description' => $transaksi->kdp,
+                    'description' => $voucher?->client_po?->work_code,
                     'date' => Carbon::now(),
                     'debit' => $payment_transfer,
                     'credit' => 0,
