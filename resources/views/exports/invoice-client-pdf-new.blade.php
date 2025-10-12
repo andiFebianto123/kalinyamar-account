@@ -139,11 +139,12 @@
                 @endforeach
             @else
                 <tr>
-                    <td class="text-center remove-border border-item" style="height: 30px;"></td>
-                    <td class="remove-border border-item"></td>
+                    <td class="text-center remove-border border-item" style="height: 30px;">1</td>
+                    <td class="remove-border border-item">{{$header->client_po->job_name}}</td>
                     <td class="remove-border border-item">
                         <div class="clearfix">
-
+                            <div class="float-start">{{$currency_symbol}}</div>
+                            <div class="float-end text-right">{{\App\Http\Helpers\CustomHelper::formatRupiah($header->price_total_exclude_ppn)}}</div>
                         </div>
                     </td>
                 </tr>
