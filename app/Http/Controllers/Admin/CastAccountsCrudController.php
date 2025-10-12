@@ -752,7 +752,8 @@ class CastAccountsCrudController extends CrudController
             invoice_clients.id,
             invoice_clients.kdp,
             invoice_clients.invoice_number,
-            client_po.job_name
+            client_po.job_name,
+            invoice_clients.price_total
         '))
         ->first();
         return response()->json($invoice);
