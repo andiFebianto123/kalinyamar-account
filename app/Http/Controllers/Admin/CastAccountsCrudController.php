@@ -1463,6 +1463,21 @@ class CastAccountsCrudController extends CrudController
             $updateAccount->total_saldo = $new_saldo;
             $updateAccount->save();
 
+            // input tambah / kurang saldo ke akun bank
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $updateAccount->account_id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'description' => $description,
+                'date' => Carbon::now(),
+                'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
+                'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
+            ], [
+                'account_id' => $updateAccount->account_id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+            ]);
+
             $item = $newTransaction;
             $item->new_saldo = 'Rp'.CustomHelper::formatRupiah($item->total_saldo_after);
 
