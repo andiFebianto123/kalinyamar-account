@@ -290,13 +290,14 @@ class CustomHelper {
 
         $acct_ppn = Account::where('code', "20301")->first();
         if($acct_ppn){
+            $price_ppn = $invoice->nominal_include_ppn * ($invoice->tax_ppn / 100);
             CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $acct_ppn->id,
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
                 'description' => "PPN invoice ".$invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $invoice->price_total_include_ppn,
+                'debit' => $price_ppn,
                 'credit' => 0,
             ], [
                 'account_id' => $acct_ppn->id,
