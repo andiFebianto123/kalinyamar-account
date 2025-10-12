@@ -432,7 +432,7 @@ class CustomHelper {
         // kurangi hutang
         $hutang = Account::where('code', '20101')->first();
         if($hutang){
-            CustomHelper::updateOrCreateJournalEntry([
+            CustomHelper::insertJournalEntry([
                 'account_id' => $hutang->id,
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
@@ -440,10 +440,6 @@ class CustomHelper {
                 'date' => Carbon::now(),
                 'debit' => 0,
                 'credit' => $voucher->payment_transfer,
-            ], [
-                'account_id' => $hutang->id,
-                'reference_id' => $voucher->id,
-                'reference_type' => Voucher::class,
             ]);
         }
 
