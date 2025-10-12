@@ -990,7 +990,7 @@ class InvoiceClientCrudController extends CrudController
 
             $this->crud->setSaveAction();
 
-            // DB::commit();
+            DB::commit();
             return $this->crud->performSaveAction($invoice->getKey());
         }catch (\Exception $e) {
             DB::rollBack();
