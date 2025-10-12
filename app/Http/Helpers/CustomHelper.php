@@ -460,6 +460,8 @@ class CustomHelper {
         $transaksi->job_name = $voucher?->job_name;
         $transaksi->save();
 
+        dd($transaksi);
+
         $accountBank = Account::where('id', $cast_account->account_id)->first();
         if($accountBank){
             CustomHelper::updateOrCreateJournalEntry([
