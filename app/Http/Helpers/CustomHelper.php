@@ -353,6 +353,7 @@ class CustomHelper {
         }
         if($voucher->total > 0){
             $ppn = Account::where('code', '50303')->first();
+            $total_ppn = $voucher->total * ($voucher->tax_ppn / 100);
             if($ppn){
                 CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $ppn->id,
@@ -360,7 +361,7 @@ class CustomHelper {
                     'reference_type' => Voucher::class,
                     'description' => "PPN voucher ".$voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $voucher->total,
+                    'debit' => $total_ppn,
                     'credit' => 0,
                 ], [
                     'account_id' => $ppn->id,
