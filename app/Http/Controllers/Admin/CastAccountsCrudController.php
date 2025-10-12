@@ -1451,6 +1451,7 @@ class CastAccountsCrudController extends CrudController
                     'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
                     'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
                 ], [
+                    'account_id' => $newTransaction->account_id,
                     'reference_id' => $newTransaction->id,
                     'reference_type' => AccountTransaction::class,
                 ]);
