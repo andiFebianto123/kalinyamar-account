@@ -320,7 +320,7 @@ class CustomHelper {
                     'description' => "Keluar piutang invoice ".$invoice->invoice_number,
                     'date' => Carbon::now(),
                     'debit' => 0,
-                    'credit' => $invoice->total_price,
+                    'credit' => $invoice->price_total,
                 ], [
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,
