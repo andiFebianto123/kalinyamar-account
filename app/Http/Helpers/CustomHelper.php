@@ -279,7 +279,7 @@ class CustomHelper {
                 'reference_type' => InvoiceClient::class,
                 'description' => "Piutang invoice ".$invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $invoice->total_price,
+                'debit' => $invoice->price_total,
                 'credit' => 0,
             ], [
                 'account_id' => $piutang->id,
