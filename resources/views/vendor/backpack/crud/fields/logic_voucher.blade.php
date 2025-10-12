@@ -127,9 +127,9 @@
                                     $(form+' input[name="date_po_spk"]').val(null);
                                 }
 
-                                var account_text = `${account.code} - ${account.name}`;
-                                var account_option = new Option(account_text, account.id, true, true);
-                                $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
+                                // var account_text = `${account.code} - ${account.name}`;
+                                // var account_option = new Option(account_text, account.id, true, true);
+                                // $(form+ ' select[name="account_id"]').append(account_option).trigger('change');
 
                                 var work_code_text = `${po.work_code} (${po.type})`;
 
