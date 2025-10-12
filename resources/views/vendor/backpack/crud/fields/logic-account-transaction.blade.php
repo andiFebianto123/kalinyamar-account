@@ -36,7 +36,7 @@
                                 var invoice_number = data.invoice_number;
                                 var job_name = data.job_name;
                                 var selectedOption = new Option(invoice_number, id, true, true);
-                                setInputNumber(form + ' #nominal_transaction', data.price_total);
+                                setInputNumber(form + ' #nominal_transaction_masked', data.price_total);
                                 $(form+' select[name="no_invoice"]').append(selectedOption).trigger('change');
                                 $(form+' input[name="job_name"]').val(job_name);
                             }
@@ -54,7 +54,7 @@
                                 var invoice_number = data.kdp;
                                 var job_name = data.job_name;
                                 var selectedOption = new Option(invoice_number, id, true, true);
-                                setInputNumber(form + ' #nominal_transaction', data.price_total);
+                                setInputNumber(form + ' #nominal_transaction_masked', data.price_total);
                                 $(form+' select[name="kdp"]').append(selectedOption).trigger('change');
                                 $(form+' input[name="job_name"]').val(job_name);
                             }
