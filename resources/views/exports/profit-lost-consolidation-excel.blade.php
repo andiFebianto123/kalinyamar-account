@@ -1,5 +1,19 @@
 <table>
-    <tr>
+    @foreach ($data as $header)
+        <tr>
+            <td><strong>{{$header['name']}}</strong></td>
+            <td></td>
+            <td>{{ $header['total'] }}</td>
+        </tr>
+        @foreach ($header['item'] as $item)
+            <tr>
+                <td>{{$item->name}}</td>
+                <td>{{ $item->total }}</td>
+                <td></td>
+            </tr>
+        @endforeach
+    @endforeach
+    {{-- <tr>
         <td><strong>Pendapatan Usaha</strong></td>
         <td></td>
         <td>{{ $data['total_acct_1'] }}</td>
@@ -63,5 +77,5 @@
         <td><strong>Laba Bersih</strong></td>
         <td></td>
         <td><strong>{{ $data['total_acct_12'] }}</strong></td>
-    </tr>
+    </tr> --}}
 </table>

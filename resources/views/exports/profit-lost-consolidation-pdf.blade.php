@@ -45,7 +45,21 @@
             </tr> -->
         </thead>
         <tbody>
-            <tr>
+            @foreach ($data as $header)
+                <tr>
+                    <td><strong>{{$header['name']}}</strong></td>
+                    <td></td>
+                    <td class="text-right bold">{{ $header['total'] }}</td>
+                </tr>
+                @foreach ($header['item'] as $item)
+                    <tr>
+                        <td style="padding-left: 8px;">{{$item->name}}</td>
+                        <td class="text-right">{{ $item->total }}</td>
+                        <td></td>
+                    </tr>
+                @endforeach
+            @endforeach
+            {{-- <tr>
                 <td><strong>Pendapatan Usaha</strong></td>
                 <td></td>
                 <td class="text-right bold">{{ $data['total_acct_1'] }}</td>
@@ -109,7 +123,7 @@
                 <td><strong>Laba Bersih</strong></td>
                 <td></td>
                 <td class="text-right bold">{{ $data['total_acct_12'] }}</td>
-            </tr>
+            </tr> --}}
         </tbody>
     </table>
 </body>

@@ -810,6 +810,9 @@ return [
             'price_profit_lost_project' => [
                 'label' => 'Nilai Laba Rugi Proyek',
             ],
+            'header_id' => [
+                'label' => 'Header Konsolidasi',
+            ]
         ],
         'column' => [
             'client_po_id' => 'Nama Perusahaan',
@@ -987,7 +990,7 @@ return [
                 'placeholder' => 'Masukan nomor pengajuan pembayaran',
             ],
             'account_id' => [
-                'label' => 'Akun Biaya',
+                'label' => 'Akun',
                 'placeholder' => '-AKUN BIAYA'
             ],
             'no_voucher' => [

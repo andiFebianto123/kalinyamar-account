@@ -21,66 +21,7 @@
                 </tr>
             </thead>
             <tbody class="text-left">
-                <tr>
-                    <td><strong>Pendapatan Usaha</strong></td>
-                    <td></td>
-                    <td><strong id="str_tot_1">Rp. xxx</strong></td>
-                </tr>
-                <tr>
-                    <td>Pendapatan Kontrak</td>
-                    <td><div id="str_tot_2">Rp. xxx</div></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Pendapatan Non-Kontrak</td>
-                    <td><div id="str_tot_3">Rp. xxx</div></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><strong>Beban Usaha</strong></td>
-                    <td></td>
-                    <td><strong id="str_tot_4">Rp. xxx</strong></td>
-                </tr>
-                <tr>
-                    <td>Beban Proyek (Kontrak)</td>
-                    <td><div id="str_tot_5">Rp. xxx</div></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Beban Operasional (Umum)</td>
-                    <td><div id="str_tot_6">Rp. xxx</div></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><strong>Laba Usaha (Operating Profit)</strong></td>
-                    <td></td>
-                    <td><strong id="str_tot_7">Rp. xxx</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Pendapatan/Beban Lain-lain</strong></td>
-                    <td></td>
-                    <td><strong id="str_tot_8">Rp. xxx</strong></td>
-                </tr>
-                <tr>
-                    <td>Pendapatan Bunga Bank</td>
-                    <td><div id="str_tot_9">Rp. xxx</div></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><strong>Laba Sebelum Pajak</strong></td>
-                    <td></td>
-                    <td><strong id="str_tot_10">Rp. xxx</strong></td>
-                </tr>
-                <tr>
-                    <td>Beban Pajak</td>
-                    <td><div id="str_tot_11">Rp. xxx</div></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><strong>Laba Bersih</strong></td>
-                    <td></td>
-                    <td><strong id="str_tot_12">Rp. xxx</strong></td>
-                </tr>
+
             </tbody>
         </table>
     </div>
@@ -178,19 +119,42 @@
                             type: 'GET',
                             typeData: 'json',
                             success: function (result) {
-                                // $('#'+instance.table+' tbody').empty();
-                                $('#str_tot_1').html(result.total_acct_1);
-                                $('#str_tot_2').html(result.total_acct_2);
-                                $('#str_tot_3').html(result.total_acct_3);
-                                $('#str_tot_4').html(result.total_acct_4);
-                                $('#str_tot_5').html(result.total_acct_5);
-                                $('#str_tot_6').html(result.total_acct_6);
-                                $('#str_tot_7').html(result.total_acct_7);
-                                $('#str_tot_8').html(result.total_acct_8);
-                                $('#str_tot_9').html(result.total_acct_9);
-                                $('#str_tot_10').html(result.total_acct_10);
-                                $('#str_tot_11').html(result.total_acct_11);
-                                $('#str_tot_12').html(result.total_acct_12);
+                                $('#'+instance.table+' tbody').empty();
+                                // $('#str_tot_1').html(result.total_acct_1);
+                                // $('#str_tot_2').html(result.total_acct_2);
+                                // $('#str_tot_3').html(result.total_acct_3);
+                                // $('#str_tot_4').html(result.total_acct_4);
+                                // $('#str_tot_5').html(result.total_acct_5);
+                                // $('#str_tot_6').html(result.total_acct_6);
+                                // $('#str_tot_7').html(result.total_acct_7);
+                                // $('#str_tot_8').html(result.total_acct_8);
+                                // $('#str_tot_9').html(result.total_acct_9);
+                                // $('#str_tot_10').html(result.total_acct_10);
+                                // $('#str_tot_11').html(result.total_acct_11);
+                                // $('#str_tot_12').html(result.total_acct_12);
+                                // <tr>
+                                //     <td><strong>Pendapatan Usaha</strong></td>
+                                //     <td></td>
+                                //     <td><strong id="str_tot_1">Rp. xxx</strong></td>
+                                // </tr>
+                                var html = '';
+                                result.forEach(function(item){
+                                    html += `<tr>
+                                        <td><strong>${item.name}</strong></td>
+                                        <td></td>
+                                        <td><strong>${item.total}</strong></td>
+                                    </tr>`;
+                                    item.item.forEach(function(subitem){
+                                       html += `
+                                        <tr>
+                                            <td>${subitem.name}</td>
+                                            <td><div>${subitem.total}</div></td>
+                                            <td></td>
+                                        </tr>
+                                       `;
+                                    });
+                                });
+                                 $('#'+instance.table+' tbody').html(html);
                                 resolve(result);
                             },
                             error: function (xhr, status, error) {

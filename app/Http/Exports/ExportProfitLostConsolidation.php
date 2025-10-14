@@ -36,10 +36,18 @@ class ExportProfitLostConsolidation implements FromView, WithStyles, WithColumnW
             ],
         ]);
 
-        $sheet->getStyle('A1:C1')->getFont()->setBold(true);
-        $sheet->getStyle('A7:C7')->getFont()->setBold(true);
-        $sheet->getStyle('A10:C10')->getFont()->setBold(true);
-        $sheet->getStyle('A15:C15')->getFont()->setBold(true);
+        $i = 0;
+        foreach($this->data as $header){
+            $i++;
+            $sheet->getStyle("A$i:C$i")->getFont()->setBold(true);
+            foreach($header['item'] as $item){
+                $i++;
+            }
+        }
+        // $sheet->getStyle('A1:C1')->getFont()->setBold(true);
+        // $sheet->getStyle('A7:C7')->getFont()->setBold(true);
+        // $sheet->getStyle('A10:C10')->getFont()->setBold(true);
+        // $sheet->getStyle('A15:C15')->getFont()->setBold(true);
 
         $sheet->getStyle('B:C')->getAlignment()->setHorizontal('right');
 

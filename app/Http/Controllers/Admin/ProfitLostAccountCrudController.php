@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Exports\ProfitLostExcel;
+use App\Models\ConsolidateIncomeItem;
 use App\Http\Controllers\CrudController;
 use App\Http\Exports\ExportProfitLostConsolidation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -53,7 +54,7 @@ class ProfitLostAccountCrudController extends CrudController{
         }
     }
 
-    public function total_report_account_profit_lost_ajax(){
+    public function total_report_account_profit_lost_ajax_old(){
         $acct_1 = Account::where('accounts.code', 109)
         ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
         ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
@@ -133,6 +134,10 @@ class ProfitLostAccountCrudController extends CrudController{
             'total_acct_11' => CustomHelper::formatRupiahWithCurrency($acct_11->balance),
             'total_acct_12' => CustomHelper::formatRupiahWithCurrency($acct_12->balance)
         ]);
+    }
+
+    public function total_report_account_profit_lost_ajax(){
+        return $this->consolidate_formula();
     }
 
     public function listCardComponents($type){
@@ -314,6 +319,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
         $list = "crud::list-blank" ?? $this->crud->getListView();
+        $this->consolidate_formula();
         return view($list, $this->data);
     }
 
@@ -415,6 +421,240 @@ class ProfitLostAccountCrudController extends CrudController{
             'price_profit_final' => CustomHelper::formatRupiah($price_profit_final)
         ];
 
+    }
+
+    public function consolidate_formula(){
+
+        $dataset = [];
+        $consolidate_income_header = DB::table('consolidate_income_headers')
+        ->orderBy('id', 'asc')->get();
+        // dd($consolidate_income_header);
+
+        $contract_income = JournalEntry::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('accounts')
+                ->whereColumn('journal_entries.account_id', '=', 'accounts.id')
+                ->where('accounts.code', 'like', "401%");
+        })
+        ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+        ->first();
+        // pendapatan kontrak
+        $contract_income_number = $contract_income->total ?? 0;
+
+        if($consolidate_income_header[0]){
+            $data = [
+                'name' => $consolidate_income_header[0]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($contract_income_number),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[0]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+
+
+        $cost_expense = JournalEntry::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('accounts')
+                ->whereColumn('journal_entries.account_id', '=', 'accounts.id')
+                ->where('accounts.code', 'like', "501%");
+        })
+        ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+        ->first();
+        // beban usaha
+        $cost_expense_number = $cost_expense->total ?? 0;
+        if($consolidate_income_header[1]){
+            $data = [
+                'name' => $consolidate_income_header[1]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($cost_expense_number),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[1]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+        // laba usaha
+        $cost_profit_expense_number = $contract_income_number - $cost_expense_number;
+        if($consolidate_income_header[2]){
+            $data = [
+                'name' => $consolidate_income_header[2]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($cost_profit_expense_number),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[2]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+        $cost_other = JournalEntry::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('accounts')
+                ->whereColumn('journal_entries.account_id', '=', 'accounts.id')
+                ->where('accounts.code', 'like', "402%");
+        })
+        ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+        ->first();
+        // pendapatan lain - lain
+        $cost_other_number = $cost_other->total ?? 0;
+        if($consolidate_income_header[3]){
+            $data = [
+                'name' => $consolidate_income_header[3]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($cost_other_number),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[3]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+
+        $expense_other = $cost_other = JournalEntry::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('accounts')
+                ->whereColumn('journal_entries.account_id', '=', 'accounts.id')
+                ->where(function($q){
+                    $q->whereIn('accounts.code', [
+                        "50301",
+                        "50302",
+                        "50303",
+                        "50304",
+                        "50305",
+                        "50306",
+                        "50307"
+                    ]);
+                });
+        })
+        ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+        ->first();
+        // beban lain - lain
+        $expense_other_number = $expense_other->total ?? 0;
+        if($consolidate_income_header[4]){
+            $data = [
+                'name' => $consolidate_income_header[4]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($expense_other_number),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[4]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+        // laba sebelum pajak
+        $profit_before_tax = $cost_profit_expense_number + $cost_other_number - $expense_other_number;
+
+        if($consolidate_income_header[5]){
+            $data = [
+                'name' => $consolidate_income_header[5]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($profit_before_tax),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[5]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+
+        $tax_expense = $cost_other = JournalEntry::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('accounts')
+                ->whereColumn('journal_entries.account_id', '=', 'accounts.id')
+                ->whereIn('accounts.code', [
+                    "50305",
+                    "50306",
+                    "50307"
+                ]);
+        })
+        ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+        ->first();
+        $tax_expense_number = $tax_expense->total ?? 0;
+
+        // laba bersih
+        $net_profit = $profit_before_tax - $tax_expense_number;
+        if($consolidate_income_header[6]){
+            $data = [
+                'name' => $consolidate_income_header[6]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($net_profit),
+                'item' => [],
+            ];
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[6]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
+            $data['item'] = $items;
+            $dataset[] = $data;
+        }
+
+        return $dataset;
     }
 
     public function detail($id){
@@ -653,6 +893,18 @@ class ProfitLostAccountCrudController extends CrudController{
         return $rule;
     }
 
+    private function ruleConsolidateItem(){
+        $rule = [
+            'account_id' => [
+                'required',
+                'exists:accounts,id',
+                Rule::unique('consolidate_income_account_items', 'account_id')->ignore(request()->id)
+            ],
+            'header_id' => 'required|exists:consolidate_income_headers,id',
+        ];
+        return $rule;
+    }
+
     function validationProject(){
         $rule = [];
         $rule['client_po_id'] = 'required|unique:project_profit_lost,client_po_id,'.request()->id;
@@ -842,41 +1094,41 @@ class ProfitLostAccountCrudController extends CrudController{
 
             }
         }else{
-            CRUD::setValidation($this->ruleAccount());
-            CRUD::addField([
-                'name' => 'code',
-                'label' => trans('backpack::crud.expense_account.column.code'),
-                'type' => 'text',
-                'attributes' => [
-                    'placeholder' => trans('backpack::crud.expense_account.field.code.placeholder')
+            CRUD::setValidation($this->ruleConsolidateItem());
+            CRUD::setModel(ConsolidateIncomeItem::class);
+            $consolidate_header = DB::table('consolidate_income_headers')
+            ->get();
+            $optionHeader = [];
+            foreach($consolidate_header as $header){
+                $optionHeader[$header->id] = $header->name;
+            }
+
+            CRUD::addField([  // Select2
+                'label'     => trans('backpack::crud.profit_lost.fields.header_id.label'),
+                'type'      => 'select2_array',
+                'name'      => 'header_id',
+                'options'   =>  $optionHeader,
+                'wrapper' => [
+                    'class' => 'form-group col-md-12'
                 ]
             ]);
 
             CRUD::addField([
-                'name' => 'name',
-                'label' => trans('backpack::crud.expense_account.column.name'),
-                'type' => 'text',
-                'attributes' => [
-                    'placeholder' => trans('backpack::crud.expense_account.field.name.placeholder')
-                ]
-            ]);
-
-            CRUD::addField([
-                'name' => 'balance',
-                'label' =>  trans('backpack::crud.expense_account.column.balance'),
-                'type' => 'mask',
-                'mask' => '000.000.000.000.000.000',
-                'mask_options' => [
-                    'reverse' => true
-                ],
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+                'label'       => trans('backpack::crud.voucher.field.account_id.label'), // Table column heading
+                'type'        => "select2_ajax_custom",
+                'name'        => 'account_id',
+                'entity'      => 'account',
+                'model'       => 'App\Models\Account',
+                'attribute'   => "name",
+                'data_source' => backpack_url('account/select2-account'),
                 'wrapper'   => [
-                    'class' => 'form-group col-md-6',
+                    'class' => 'form-group col-md-12',
                 ],
                 'attributes' => [
-                    'placeholder' => '000.000',
+                    'placeholder' => trans('backpack::crud.voucher.field.account_id.placeholder'),
                 ]
             ]);
+
         }
 
 
@@ -1013,60 +1265,20 @@ class ProfitLostAccountCrudController extends CrudController{
         DB::beginTransaction();
         try{
 
-            $code = $request->code;
-            $beforeAccount = null;
+            $header_id = $request->header_id;
+            $account_id = $request->account_id;
 
-            for ($i = 1; $i <= strlen($code); $i++) {
-                $prefix = substr($code, 0, $i);
-                $account = Account::where('code', $prefix)
-                ->first();
-                if($account){
-                    $beforeAccount = $account;
-                }
-            }
-
-            $rootParent = $this->getRootParentAccount($code);
-
-            $request->merge([
-                'level' => ($beforeAccount) ? $beforeAccount->level + 1 : 2,
-                'type' => Account::INCOME,
-            ]);
-
-            $item = new Account;
-            $item->code = $code;
-            $item->name = request()->name;
-            $item->type = request()->type;
-            $item->level = request()->level;
-            $item->save();
-            $this->data['entry'] = $this->crud->entry = $item;
-
-            \Alert::success(trans('backpack::crud.insert_success'))->flash();
-
-            $this->crud->setSaveAction();
-
-            CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $item->id,
-                'reference_id' => $item->id,
-                'reference_type' => Account::class,
-                'description' => 'FIRST BALANCE',
-                'date' => Carbon::now(),
-                'debit' => $request->balance,
-                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-            ], [
-                'reference_id' => $item->id,
-                'reference_type' => Account::class,
-            ]);
-
-            if($rootParent){
-                $item->component_name = 'account_'.$rootParent->id;
-            }
+            $newItemConsolidate = new ConsolidateIncomeItem;
+            $newItemConsolidate->header_id = $header_id;
+            $newItemConsolidate->account_id = $account_id;
+            $newItemConsolidate->save();
 
             DB::commit();
             return response()->json([
                 'success' => true,
-                'data' => $item,
+                'data' => $newItemConsolidate,
                 'events' => [
-                    'account_create_success' => $item,
+                    'account_create_success' => $newItemConsolidate,
                 ]
             ]);
             // return $this->crud->performSaveAction($item->getKey());
@@ -2030,7 +2242,7 @@ class ProfitLostAccountCrudController extends CrudController{
     public function exportConsolidationPdf(){
 
         $pdf = Pdf::loadView('exports.profit-lost-consolidation-pdf', [
-            'data' => $this->total_report_account_profit_lost(),
+            'data' => $this->total_report_account_profit_lost_ajax(),
         ])->setPaper('A4', 'portrait');
 
         $fileName = 'laporan-laba-rugi_' . now()->format('Ymd_His') . '.pdf';
@@ -2044,7 +2256,7 @@ class ProfitLostAccountCrudController extends CrudController{
     }
 
     public function exportConsolidationExcel(){
-        $data = $this->total_report_account_profit_lost();
+        $data = $this->total_report_account_profit_lost_ajax();
 
         $name = "Laporan-laba-rugi.xlsx";
 
