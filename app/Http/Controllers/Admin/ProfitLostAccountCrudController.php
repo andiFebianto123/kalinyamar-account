@@ -295,6 +295,27 @@ class ProfitLostAccountCrudController extends CrudController{
 
     }
 
+    public function select2Account(){
+        $search = request()->input('q');
+        $dataset = \App\Models\Account::select(['id', 'code', 'name'])
+            // ->where('level', ">", 2)
+            ->where(function($q) use($search){
+                $q->where('name', 'LIKE', "%$search%")
+                ->orWhere('code', 'LIKE', "%$search%");
+            })
+            ->orderBy('code', 'ASC')
+            ->paginate(10);
+
+        $results = [];
+        foreach ($dataset as $item) {
+            $results[] = [
+                'id' => $item->id,
+                'text' => $item->code.' - '.$item->name,
+            ];
+        }
+        return response()->json(['results' => $results]);
+    }
+
     public function index()
     {
         $this->crud->hasAccessOrFail('list');
@@ -1120,7 +1141,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 'entity'      => 'account',
                 'model'       => 'App\Models\Account',
                 'attribute'   => "name",
-                'data_source' => backpack_url('account/select2-account'),
+                'data_source' => backpack_url('finance-report/profit-lost/select2-account'),
                 'wrapper'   => [
                     'class' => 'form-group col-md-12',
                 ],
