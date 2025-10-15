@@ -475,8 +475,16 @@ class CustomHelper {
 
     }
 
-    public static function invoicePayment(){
+    public static function balanceAccount($account_code){
+        $code = $account_code;
 
+        $sum_accounts = \App\Models\Account::selectRaw("
+            (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+        ")
+        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        ->where('accounts.code', 'LIKE', "".$code."%")
+        ->first();
+        return $sum_accounts->balance ?? 0;
     }
 
 }
