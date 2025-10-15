@@ -640,6 +640,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 'total' => CustomHelper::formatRupiahWithCurrency($profit_before_tax),
                 'item' => [],
             ];
+            $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
             ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
             ->groupBy('consolidate_income_account_items.account_id')
@@ -656,26 +657,12 @@ class ProfitLostAccountCrudController extends CrudController{
             $dataset[] = $data;
         }
 
-        // $tax_expense = JournalEntry::whereExists(function ($query) {
-        //     $query->select(DB::raw(1))
-        //         ->from('accounts')
-        //         ->whereColumn('journal_entries.account_id', '=', 'accounts.id')
-        //         ->whereIn('accounts.code', [
-        //             "50305",
-        //             "50306",
-        //             "50307"
-        //         ]);
-        // })
-        // ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
-        // ->first();
-        $tax_expense_number = 0;
-
-        // laba bersih
-        $net_profit = $profit_before_tax - $tax_expense_number;
+        // beban pajak
+        $expense_tax_number = 0;
         if($consolidate_income_header[6]){
             $data = [
                 'name' => $consolidate_income_header[6]->name,
-                'total' => CustomHelper::formatRupiahWithCurrency($net_profit),
+                'total' => CustomHelper::formatRupiahWithCurrency(0),
                 'item' => [],
             ];
             $totalAll = 0;
@@ -692,9 +679,33 @@ class ProfitLostAccountCrudController extends CrudController{
                 $totalAll += $item->total ?? 0;
                 $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
             }
-            $tax_expense_number = $totalAll;
-            $net_profit = $profit_before_tax - $tax_expense_number;
-            $data['total'] = CustomHelper::formatRupiahWithCurrency($net_profit);
+            $data['total'] = CustomHelper::formatRupiahWithCurrency($totalAll);
+            $data['item'] = $items;
+            $dataset[] = $data;
+            $expense_tax_number = $totalAll;
+        }
+
+        // laba bersih
+        $net_profit = $profit_before_tax - $expense_tax_number;
+        if($consolidate_income_header[7]){
+            $data = [
+                'name' => $consolidate_income_header[7]->name,
+                'total' => CustomHelper::formatRupiahWithCurrency($net_profit),
+                'item' => [],
+            ];
+            $totalAll = 0;
+            $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->leftJoin('journal_entries', 'journal_entries.account_id', 'consolidate_income_account_items.account_id')
+            ->groupBy('consolidate_income_account_items.account_id')
+            ->orderBy(DB::raw("MAX(consolidate_income_account_items.id)"), 'asc')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[7]->id)
+            ->select(
+                DB::raw("SUM(journal_entries.debit - journal_entries.credit) as total"),
+                DB::raw("MAX(accounts.name) as name")
+            )->get();
+            foreach($items as $item){
+                $item->total = CustomHelper::formatRupiahWithCurrency($item->total ?? 0);
+            }
             $data['item'] = $items;
             $dataset[] = $data;
         }

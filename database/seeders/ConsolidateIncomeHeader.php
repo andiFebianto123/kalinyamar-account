@@ -19,6 +19,7 @@ class ConsolidateIncomeHeader extends Seeder
             ['name' => 'Pendapatan Lain - lain'],
             ['name' => 'Beban Lain - lain'],
             ['name' => 'Laba Sebelum Pajak'],
+            ['name' => 'Beban Pajak PPH 25/29'],
             ['name' => 'Laba Bersih'],
         ];
 
