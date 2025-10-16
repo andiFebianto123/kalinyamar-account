@@ -149,6 +149,9 @@ class ExpenseAccountCrudController extends CrudController{
             'balance' => 'required|numeric|min:0',
         ];
         if($id){
+            if(array_key_exists('balance', $rule)){
+                unset($rule['balance']);
+            }
             $rule['code'] = [
                 'required',
                 'min:3',
@@ -167,38 +170,44 @@ class ExpenseAccountCrudController extends CrudController{
                 }
             ];
 
-            $rule['balance'] = [
-                'required',
-                'numeric',
-                'min:0',
-                function($attribute, $value, $fail) use($id){
-                    $old_balance = Account::leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-                    ->select(DB::raw("
-                        (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
-                    "))->where('accounts.id', $id)
-                    ->groupBy('accounts.id')
-                    ->first();
+            // $rule['balance'] = [
+            //     'required',
+            //     'numeric',
+            //     'min:0',
+            //     function($attribute, $value, $fail) use($id){
+            //         $old_balance = Account::leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            //         ->select(DB::raw("
+            //             (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+            //         "))->where('accounts.id', $id)
+            //         ->groupBy('accounts.id')
+            //         ->first();
 
-                    $old_balance = $old_balance->balance ?? 0;
+            //         $old_balance = $old_balance->balance ?? 0;
 
-                    if($value != $old_balance){
-                        $journal = JournalEntry::where('account_id', $id)
-                        ->whereNot('reference_type', Account::class)
-                        ->count();
-                        if($journal > 0){
-                            $fail(trans('backpack::crud.expense_account.field.code.errors.not_change_balance'));
-                        }
-                    }
+            //         if($value != $old_balance){
+            //             $journal = JournalEntry::where('account_id', $id)
+            //             ->whereNot('reference_type', Account::class)
+            //             ->count();
+            //             if($journal > 0){
+            //                 $fail(trans('backpack::crud.expense_account.field.code.errors.not_change_balance'));
+            //             }
+            //         }
 
 
-                }
-            ];
+            //     }
+            // ];
         }
         return $rule;
     }
 
     protected function setupCreateOperation(){
         CRUD::setValidation($this->ruleAccount());
+        $disabled_attr = [];
+        if($this->crud->getCurrentEntryId()){
+            $disabled_attr = [
+                'disabled' => true,
+            ];
+        }
 
         $settings = Setting::first();
 
@@ -234,6 +243,7 @@ class ExpenseAccountCrudController extends CrudController{
             ],
             'attributes' => [
                 'placeholder' => '000.000',
+                ...$disabled_attr,
             ]
         ]);
 
@@ -279,28 +289,28 @@ class ExpenseAccountCrudController extends CrudController{
             }
             $item->save();
 
-            if($request->balance > 0){
-                $journal = JournalEntry::where('account_id', $item->id)
-                ->where('reference_type', Account::class)
-                ->first();
-                if($journal){
-                    $journal->debit = $request->balance;
-                    $journal->credit = 0;
-                    $journal->save();
-                }else{
-                    CustomHelper::updateOrCreateJournalEntry([
-                        'account_id' => $item->id,
-                        'reference_id' => $item->id,
-                        'reference_type' => Account::class,
-                        'description' => 'FIRST BALANCE',
-                        'date' => Carbon::now(),
-                        'debit' => $request->balance,
-                    ], [
-                        'reference_id' => $item->id,
-                        'reference_type' => Account::class,
-                    ]);
-                }
-            }
+            // if($request->balance > 0){
+            //     $journal = JournalEntry::where('account_id', $item->id)
+            //     ->where('reference_type', Account::class)
+            //     ->first();
+            //     if($journal){
+            //         $journal->debit = $request->balance;
+            //         $journal->credit = 0;
+            //         $journal->save();
+            //     }else{
+            //         CustomHelper::updateOrCreateJournalEntry([
+            //             'account_id' => $item->id,
+            //             'reference_id' => $item->id,
+            //             'reference_type' => Account::class,
+            //             'description' => 'FIRST BALANCE',
+            //             'date' => Carbon::now(),
+            //             'debit' => $request->balance,
+            //         ], [
+            //             'reference_id' => $item->id,
+            //             'reference_type' => Account::class,
+            //         ]);
+            //     }
+            // }
 
             $events = [];
 
