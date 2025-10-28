@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Spk;
 use App\Models\User;
-use App\Models\Account;
+use App\Models\Client;
 
+use App\Models\Account;
 use App\Models\Setting;
 use App\Models\Voucher;
 use App\Models\Approval;
+use App\Models\ClientPo;
+use App\Models\LogPayment;
 use App\Models\CastAccount;
 use App\Models\SetupClient;
+use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
 use App\Models\PaymentVoucher;
@@ -24,8 +28,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
-use App\Models\Client;
-use App\Models\ClientPo;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class VoucherPaymentCrudController extends CrudController {
@@ -2543,7 +2545,7 @@ class VoucherPaymentCrudController extends CrudController {
                     $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
                 }
 
-                $this->addTransaction($id_v);
+                // $this->addTransaction($id_v);
                 CustomHelper::voucherPayment($voucherItem);
             }
 
@@ -2571,6 +2573,7 @@ class VoucherPaymentCrudController extends CrudController {
     }
 
     public function addTransaction($voucher_id){
+        $log_payment = [];
         $voucher = Voucher::where('id', $voucher_id)->first();
         $po = $voucher->reference;
         $po_type = $voucher->reference_type;
@@ -2581,7 +2584,7 @@ class VoucherPaymentCrudController extends CrudController {
             // ada po
             $account = Account::where('code', "50222")->first();
             $price_general_loan = $client_po->load_general_value;
-            CustomHelper::updateOrCreateJournalEntry([
+            $trans_1 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account->id,
                 'reference_id' => $client_po->id,
                 'reference_type' => ClientPo::class,
@@ -2594,6 +2597,16 @@ class VoucherPaymentCrudController extends CrudController {
                 'reference_id' => $client_po->id,
                 'reference_type' => ClientPo::class,
             ]);
+            $log_payment[] = [
+                'id' => $trans_1->id,
+                'account_id' => $account->id,
+                'reference_id' => $client_po->id,
+                'reference_type' => ClientPo::class,
+                'description' => "Transaksi tanpa PO ".$client_po->work_code,
+                'date' => Carbon::now(),
+                'debit' => $price_general_loan,
+                'type' => JournalEntry::class,
+            ];
         }
 
         // periksa jenis voucher
@@ -2601,7 +2614,7 @@ class VoucherPaymentCrudController extends CrudController {
             if($invoice == null){
                 $account = Account::where('code', "50401")->first();
                 $payment_transfer = $voucher->payment_transfer;
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_2 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
@@ -2615,6 +2628,17 @@ class VoucherPaymentCrudController extends CrudController {
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_2->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }else{
                 $account = Account::where('id', $voucher->account_id)->first();
                 $payment_transfer = $voucher->payment_transfer;
@@ -2635,7 +2659,7 @@ class VoucherPaymentCrudController extends CrudController {
                 // $transaksi->job_name = $voucher?->job_name;
                 // $transaksi->save();
 
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_3 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
@@ -2649,13 +2673,24 @@ class VoucherPaymentCrudController extends CrudController {
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_3->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }
         }else if($voucher->reference_type == "App\Models\ClientPo"){
             if($invoice == null){
                 // jika tidak ada invoice di PO
                 $account = Account::where('code', "50401")->first();
                 $payment_transfer = $voucher->payment_transfer;
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
@@ -2669,6 +2704,17 @@ class VoucherPaymentCrudController extends CrudController {
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_4->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }else{
                 $account = Account::where('id', $voucher->account_id)->first();
                 $payment_transfer = $voucher->payment_transfer;
@@ -2676,20 +2722,7 @@ class VoucherPaymentCrudController extends CrudController {
                 $invoice->status = 'Paid';
                 $invoice->save();
 
-                // $transaksi = new AccountTransaction;
-                // $transaksi->cast_account_id = $voucher->account_source_id;
-                // $transaksi->reference_type = Voucher::class;
-                // $transaksi->reference_id = $voucher_id;
-                // $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
-                // $transaksi->nominal_transaction = $payment_transfer;
-                // $transaksi->total_saldo_before = 0;
-                // $transaksi->total_saldo_after = 0;
-                // $transaksi->status = CastAccount::ENTER;
-                // $transaksi->kdp = $po?->work_code;
-                // $transaksi->job_name = $po?->job_name;
-                // $transaksi->save();
-
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_5 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
@@ -2703,7 +2736,26 @@ class VoucherPaymentCrudController extends CrudController {
                     'reference_id' => $voucher_id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_5->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }
+        }
+        if(sizeof($log_payment) > 0){
+            $newLogPayment = new LogPayment;
+            $newLogPayment->reference_type = Voucher::class;
+            $newLogPayment->reference_id = $voucher_id;
+            $newLogPayment->name = "VOUCHER_PAYMENT_WITH_INVOICE";
+            $newLogPayment->snapshot = json_encode($log_payment);
+            $newLogPayment->save();
         }
     }
 

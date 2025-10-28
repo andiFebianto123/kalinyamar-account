@@ -983,7 +983,7 @@ class InvoiceClientCrudController extends CrudController
 
             $this->data['entry'] = $this->crud->entry = $invoice;
 
-            $this->applyInvoicePaymentToAccount($invoice);
+            // $this->applyInvoicePaymentToAccount($invoice);
             CustomHelper::invoiceEntry($invoice);
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
@@ -1080,7 +1080,8 @@ class InvoiceClientCrudController extends CrudController
             //         $this->applyInvoicePaymentToAccount($invoice);
             //     }
             // }
-
+            // kondisi ini akan mengembalikan invoice waktu buat sebelum ada voucher
+            CustomHelper::rollbackPayment(InvoiceClient::class, $invoice->id);
             CustomHelper::invoiceEntry($invoice);
 
             DB::commit();
@@ -1118,60 +1119,6 @@ class InvoiceClientCrudController extends CrudController
         //         });
         //     });
         // })->orderBy('id', 'desc')->first();
-
-        $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
-
-        if($voucher){
-            if($voucher->payment_status == 'BAYAR'){
-                // $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
-                $account_beban = Account::where('code', "50401")->first();
-                $payment_transfer = $voucher->payment_transfer;
-                CustomHelper::insertJournalEntry([
-                    'account_id' => $account_beban->id,
-                    'reference_id' => $voucher->id,
-                    'reference_type' => Voucher::class,
-                    'description' => "Beban pekerjaan voucher ".$voucher->no_voucher,
-                    'date' => Carbon::now(),
-                    'debit' => 0,
-                    'credit' => $payment_transfer,
-                ]);
-
-                // akun beban pokok
-                $account_pokok = Account::where('code', $voucher->account_id)->first();
-
-                // $transaksi = new AccountTransaction;
-                // $transaksi->cast_account_id = $voucher->account_source_id;
-                // $transaksi->reference_type = Voucher::class;
-                // $transaksi->reference_id = $voucher->id;
-                // $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
-                // $transaksi->nominal_transaction = $payment_transfer;
-                // $transaksi->total_saldo_before = 0;
-                // $transaksi->total_saldo_after = 0;
-                // $transaksi->status = CastAccount::ENTER;
-                // $transaksi->kdp = $voucher?->client_po?->work_code;
-                // $transaksi->job_name = $voucher?->reference->job_name;
-                // $transaksi->save();
-
-                CustomHelper::insertJournalEntry([
-                    'account_id' => $account_pokok->id,
-                    'reference_id' => $voucher->id,
-                    'reference_type' => Voucher::class,
-                    'description' => $voucher?->client_po?->work_code,
-                    'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
-                    'credit' => 0,
-                ]);
-
-                // $voucher->account_id = $account_pokok->id;
-                $voucher->save();
-                $invoice->status = 'Paid';
-            }else{
-                $invoice->status = 'Unpaid';
-            }
-        }else{
-            $invoice->status = 'Unpaid';
-        }
-        $invoice->save();
     }
 
     protected function setupShowOperation(){
@@ -1605,7 +1552,8 @@ class InvoiceClientCrudController extends CrudController
         $this->crud->hasAccessOrFail('delete');
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
-        $id = $this->crud->getCurrentEntryId() ?? $id;
+        $id = $this->crud->getCurrentEntryId() ?? $id; // id invoice
+        CustomHelper::rollbackPayment(InvoiceClient::class, $id);
 
         return $this->crud->delete($id);
     }

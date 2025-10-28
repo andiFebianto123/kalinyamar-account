@@ -14,7 +14,9 @@ use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
 use App\Models\AccountTransaction;
+use App\Models\LogPayment;
 use App\Models\Voucher;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\Cast;
 
@@ -270,10 +272,81 @@ class CustomHelper {
     }
 
     public static function invoiceEntry($invoice){
+        $log_payment_invoice = [];
+        $log_payment_voucher = [];
+        $invoice_id = $invoice->id;
+        $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->first();
+        if($voucher){
+            CustomHelper::rollbackPayment(Voucher::class, $voucher->id, "VOUCHER_PAYMENT_WITH_INVOICE");
+            if($voucher->payment_status == 'BAYAR'){
+                $account_beban = Account::where('code', "50401")->first();
+                $payment_transfer = $voucher->payment_transfer;
+                $trans_1 = CustomHelper::insertJournalEntry([
+                    'account_id' => $account_beban->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $payment_transfer,
+                ]);
+                $log_payment_voucher[] = [
+                    'id' => $trans_1->id,
+                    'account_id' => $account_beban->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $payment_transfer,
+                    'type' => JournalEntry::class,
+                ];
+                // akun beban pokok
+                $account_pokok = Account::where('code', $voucher->account_id)->first();
 
+                $trans_2 = CustomHelper::insertJournalEntry([
+                    'account_id' => $account_pokok->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => $voucher?->client_po?->work_code,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                ]);
+                $log_payment_voucher[] = [
+                    'id' => $trans_2->id,
+                    'account_id' => $account_pokok->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => $voucher?->client_po?->work_code,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+
+                $voucher->save();
+                $invoice->status = 'Paid';
+            }else{
+                $invoice->status = 'Unpaid';
+            }
+            if(sizeof($log_payment_voucher) > 0){
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = Voucher::class;
+                $newLogPayment->reference_id = $voucher->id;
+                $newLogPayment->name = "VOUCHER_PAYMENT_WITH_INVOICE";
+                $newLogPayment->snapshot = json_encode($log_payment_voucher);
+                $newLogPayment->save();
+            }
+        }else{
+            $invoice->status = 'Unpaid';
+        }
+        $invoice->save();
+
+        // end invoice
         $piutang = Account::where('code', '10201')->first();
         if($piutang){
-            CustomHelper::updateOrCreateJournalEntry([
+            $trans_3 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $piutang->id,
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
@@ -286,12 +359,23 @@ class CustomHelper {
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
             ]);
+            $log_payment_invoice[] = [
+                'id' => $trans_3->id,
+                'account_id' => $piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Piutang invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->price_total,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
         }
 
         $acct_ppn = Account::where('code', "20301")->first();
         if($acct_ppn){
             $price_ppn = $invoice->price_total_include_ppn * ($invoice->tax_ppn / 100);
-            CustomHelper::updateOrCreateJournalEntry([
+            $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $acct_ppn->id,
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
@@ -304,9 +388,174 @@ class CustomHelper {
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
             ]);
+            $log_payment_invoice[] = [
+                'id' => $trans_4->id,
+                'account_id' => $acct_ppn->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "PPN invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $price_ppn,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
+        }
+        if(sizeof($log_payment_invoice) > 0){
+            $newLogPayment = new LogPayment;
+            $newLogPayment->reference_type = InvoiceClient::class;
+            $newLogPayment->reference_id = $invoice_id;
+            $newLogPayment->name = "CREATE_INVOICE";
+            $newLogPayment->snapshot = json_encode($log_payment_invoice);
+            $newLogPayment->save();
+        }
+    }
+
+    public static function invoiceUpdate($invoice){
+        $log_payment_invoice = [];
+        $log_payment_voucher = [];
+        $invoice_id = $invoice->id;
+        $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->whereExists(function ($query) use ($invoice) {
+            $query->select(DB::raw(1))
+            ->from('payment_vouchers')
+            ->whereColumn('payment_vouchers.voucher_id', 'vouchers.id')
+            ->whereExists(function ($query) use ($invoice) {
+                $query->select(DB::raw(1))
+                ->from('payment_voucher_plan')
+                ->whereColumn('payment_voucher_plan.payment_voucher_id', 'payment_vouchers.id');
+            });
+        })->first();
+        if($voucher){
+            CustomHelper::rollbackPayment(Voucher::class, $voucher->id, "VOUCHER_PAYMENT_WITH_INVOICE");
+            if($voucher->payment_status == 'BAYAR'){
+                $account_beban = Account::where('code', "50401")->first();
+                $payment_transfer = $voucher->payment_transfer;
+                $trans_1 = CustomHelper::insertJournalEntry([
+                    'account_id' => $account_beban->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $payment_transfer,
+                ]);
+                $log_payment_voucher[] = [
+                    'id' => $trans_1->id,
+                    'account_id' => $account_beban->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $payment_transfer,
+                    'type' => JournalEntry::class,
+                ];
+                // akun beban pokok
+                $account_pokok = Account::where('code', $voucher->account_id)->first();
+
+                $trans_2 = CustomHelper::insertJournalEntry([
+                    'account_id' => $account_pokok->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => $voucher?->client_po?->work_code,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                ]);
+                $log_payment_voucher[] = [
+                    'id' => $trans_2->id,
+                    'account_id' => $account_pokok->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => $voucher?->client_po?->work_code,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+
+                $voucher->save();
+                $invoice->status = 'Paid';
+            }else{
+                $invoice->status = 'Unpaid';
+            }
+            if(sizeof($log_payment_voucher) > 0){
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = Voucher::class;
+                $newLogPayment->reference_id = $voucher->id;
+                $newLogPayment->name = "VOUCHER_PAYMENT_WITH_INVOICE";
+                $newLogPayment->snapshot = json_encode($log_payment_voucher);
+                $newLogPayment->save();
+            }
+        }else{
+            $invoice->status = 'Unpaid';
+        }
+        $invoice->save();
+
+        // end invoice
+        $piutang = Account::where('code', '10201')->first();
+        if($piutang){
+            $trans_3 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Piutang invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->price_total,
+                'credit' => 0,
+            ], [
+                'account_id' => $piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+            $log_payment_invoice[] = [
+                'id' => $trans_3->id,
+                'account_id' => $piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Piutang invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->price_total,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
         }
 
-
+        $acct_ppn = Account::where('code', "20301")->first();
+        if($acct_ppn){
+            $price_ppn = $invoice->price_total_include_ppn * ($invoice->tax_ppn / 100);
+            $trans_4 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $acct_ppn->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "PPN invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $price_ppn,
+                'credit' => 0,
+            ], [
+                'account_id' => $acct_ppn->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+            $log_payment_invoice[] = [
+                'id' => $trans_4->id,
+                'account_id' => $acct_ppn->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "PPN invoice ".$invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $price_ppn,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
+        }
+        if(sizeof($log_payment_invoice) > 0){
+            $newLogPayment = new LogPayment;
+            $newLogPayment->reference_type = InvoiceClient::class;
+            $newLogPayment->reference_id = $invoice_id;
+            $newLogPayment->name = "CREATE_INVOICE";
+            $newLogPayment->snapshot = json_encode($log_payment_invoice);
+            $newLogPayment->save();
+        }
     }
 
     public static function invoicePaymentTransaction($transaction, $invoice){
@@ -331,13 +580,14 @@ class CustomHelper {
     }
 
     public static function voucherEntry($voucher){
-
+        $log_payment = [];
+        $voucher_id = $voucher->id;
         $journalDelete = JournalEntry::where('reference_id', $voucher->id)
         ->where('reference_type', Voucher::class)->delete();
 
         $hutang = Account::where('code', '20101')->first();
         if($hutang){
-            CustomHelper::updateOrCreateJournalEntry([
+            $trans_1 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $hutang->id,
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
@@ -350,12 +600,23 @@ class CustomHelper {
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
             ]);
+            $log_payment[] = [
+                'id' => $trans_1->id,
+                'account_id' => $hutang->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+                'description' => "piutang voucher ".$voucher->no_voucher,
+                'date' => Carbon::now(),
+                'debit' => $voucher->payment_transfer,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
         }
         if($voucher->total > 0){
             $ppn = Account::where('code', '50303')->first();
             $total_ppn = $voucher->total * ($voucher->tax_ppn / 100);
             if($ppn){
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_2 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $ppn->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
@@ -368,12 +629,23 @@ class CustomHelper {
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_2->id,
+                    'account_id' => $ppn->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPN voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $total_ppn,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }
         }
         if($voucher->discount_pph_23 > 0){
             $pph_23 = Account::where('code', '50306')->first();
             if($pph_23){
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_3 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $pph_23->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
@@ -386,12 +658,23 @@ class CustomHelper {
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_3->id,
+                    'account_id' => $pph_23->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPH 23 voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->discount_pph_23,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }
         }
         if($voucher->discount_pph_4 > 0){
             $pph_4 = Account::where('code', '50307')->first();
             if($pph_4){
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $pph_4->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
@@ -404,12 +687,23 @@ class CustomHelper {
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_4->id,
+                    'account_id' => $pph_4->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPH 4 voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->discount_pph_4,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }
         }
         if($voucher->discount_pph_21 > 0){
             $pph_21 = Account::where('code', '50301')->first();
             if($pph_21){
-                CustomHelper::updateOrCreateJournalEntry([
+                $trans_5 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $pph_21->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
@@ -422,7 +716,26 @@ class CustomHelper {
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                 ]);
+                $log_payment[] = [
+                    'id' => $trans_5->id,
+                    'account_id' => $pph_21->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "PPH 21 voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $voucher->discount_pph_21,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
             }
+        }
+        if(sizeof($log_payment) > 0){
+            $newLogPayment = new LogPayment;
+            $newLogPayment->reference_type = Voucher::class;
+            $newLogPayment->reference_id = $voucher_id;
+            $newLogPayment->name = "CREATE_VOUCHER";
+            $newLogPayment->snapshot = json_encode($log_payment);
+            $newLogPayment->save();
         }
     }
 
@@ -485,6 +798,200 @@ class CustomHelper {
         ->where('accounts.code', 'LIKE', "".$code."%")
         ->first();
         return $sum_accounts->balance ?? 0;
+    }
+
+    public static function voucherCreate($voucher_id, $invoice_not_exists = false){
+        $log_payment = [];
+        $voucher = Voucher::where('id', $voucher_id)->first();
+        $po = $voucher->reference;
+        $po_type = $voucher->reference_type;
+        $invoice = InvoiceClient::where('client_po_id', $voucher->client_po_id)->first();
+        $client_po = $voucher->client_po;
+
+        if($client_po->status == 'TANPA PO'){
+            // ada po
+            $account = Account::where('code', "50222")->first();
+            $price_general_loan = $client_po->load_general_value;
+            $trans_1 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $account->id,
+                'reference_id' => $client_po->id,
+                'reference_type' => ClientPo::class,
+                'description' => "Transaksi tanpa PO ".$client_po->work_code,
+                'date' => Carbon::now(),
+                'debit' => $price_general_loan,
+                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+            ], [
+                'account_id' => $account->id,
+                'reference_id' => $client_po->id,
+                'reference_type' => ClientPo::class,
+            ]);
+            $log_payment[] = [
+                'id' => $trans_1->id,
+                'account_id' => $account->id,
+                'reference_id' => $client_po->id,
+                'reference_type' => ClientPo::class,
+                'description' => "Transaksi tanpa PO ".$client_po->work_code,
+                'date' => Carbon::now(),
+                'debit' => $price_general_loan,
+                'type' => JournalEntry::class,
+            ];
+        }
+
+        // periksa jenis voucher
+        if($voucher->reference_type == "App\Models\PurchaseOrder" || $voucher->reference_type == "App\Models\Spk"){
+            if($invoice == null || $invoice_not_exists == true){
+                $account = Account::where('code', "50401")->first();
+                $payment_transfer = $voucher->payment_transfer;
+                $trans_2 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_2->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }else{
+                $account = Account::where('id', $voucher->account_id)->first();
+                $payment_transfer = $voucher->payment_transfer;
+
+                $trans_3 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_3->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }
+        }else if($voucher->reference_type == "App\Models\ClientPo"){
+            if($invoice == null || $invoice_not_exists == true){
+                // jika tidak ada invoice di PO
+                $account = Account::where('code', "50401")->first();
+                $payment_transfer = $voucher->payment_transfer;
+                $trans_4 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_4->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Beban dalam proses pekerjaan voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }else{
+                $account = Account::where('id', $voucher->account_id)->first();
+                $payment_transfer = $voucher->payment_transfer;
+
+                $invoice->status = 'Paid';
+                $invoice->save();
+
+                $trans_5 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher_id,
+                    'reference_type' => Voucher::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_5->id,
+                    'account_id' => $account->id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi voucher ".$voucher->no_voucher,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }
+        }
+        if(sizeof($log_payment) > 0){
+            $newLogPayment = new LogPayment;
+            $newLogPayment->reference_type = Voucher::class;
+            $newLogPayment->reference_id = $voucher_id;
+            $newLogPayment->name = "CREATE_VOUCHER";
+            $newLogPayment->snapshot = json_encode($log_payment);
+            $newLogPayment->save();
+        }
+    }
+
+    public static function rollbackPayment($reference_type, $reference_id, $name = null){
+        $payment = LogPayment::where('reference_type', $reference_type)
+        ->where('reference_id', $reference_id);
+        if($name){
+            $payment = $payment->where('name', $name);
+        }
+        $payment = $payment->get();
+        foreach($payment as $pay){
+            $snapshots = json_decode($pay->snapshot);
+            foreach($snapshots as $snapshot){
+                $snap_id = $snapshot->id;
+                if($snapshot->type == JournalEntry::class){
+                    JournalEntry::find($snap_id)->delete();
+                }else if($snapshot->type == AccountTransaction::class){
+                    AccountTransaction::find($snap_id)->delete();
+                }
+            }
+            // hapus historical transaksi
+            $pay->delete();
+        }
+        return 1;
     }
 
 }

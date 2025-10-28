@@ -185,28 +185,6 @@ function formatTimeAgo(timestamp) {
     }
 }
 
-// function formatRupiah(angka, prefix = '') {
-//     let isNegative = false;
-//     if (typeof angka === 'number' && angka < 0) {
-//         isNegative = true;
-//         angka = Math.abs(angka);
-//     }
-
-//     const numberString = angka.toString().replace(/[^,\d]/g, '');
-//     const split = numberString.split(',');
-//     let sisa = split[0].length % 3;
-//     let rupiah = split[0].substr(0, sisa);
-//     const ribuan = split[0].substr(sisa).match(/\d{3}/g);
-
-//     if (ribuan) {
-//         const separator = sisa ? '.' : '';
-//         rupiah += separator + ribuan.join('.');
-//     }
-
-//     rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
-
-//     return (prefix ? prefix + ' ' : '') + (isNegative ? '-' : '') + rupiah;
-// }
 
 function formatRupiah(angka, prefix = '') {
     let isNegative = false;
@@ -233,6 +211,18 @@ function formatRupiah(angka, prefix = '') {
     rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
 
     return (prefix ? prefix + ' ' : '') + (isNegative ? '-' : '') + rupiah;
+}
+
+function formatIdr(angka){
+    const formatter = new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR'
+    });
+
+    let hasilFormat = formatter.format(angka);
+    let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+    return tanpaRp;
 }
 
 
@@ -483,6 +473,11 @@ function setInputNumber(selected, value){
         str = Number(str);
     }
     $(selected).val(str).trigger('input');
+}
+
+function setInputNumber2(selected, value){
+    let nominal = formatIdr(value);
+    $(selected).val(nominal).trigger('input');
 }
 
 function MakeParamUrl(obj, prefix = "&") {

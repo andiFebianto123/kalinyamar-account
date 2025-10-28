@@ -31,22 +31,22 @@
                     var nilai_ppn = (ppn == 0) ? 0 : (bill_value * (ppn / 100));
 
                     var total = bill_value + nilai_ppn;
-                    setInputNumber(form+ ' #total_masked', total);
+                    setInputNumber2(form+ ' input[name="total"]', total);
 
                     var pph_23 = getInputNumber(form + ' input[name="pph_23"]');
                     var diskon_pph_23 = (pph_23 == 0) ? 0 : bill_value * (pph_23 / 100);
-                    setInputNumber(form+' #discount_pph_23_masked', diskon_pph_23);
+                    setInputNumber2(form+' input[name="discount_pph_23"]', diskon_pph_23);
 
                     var pph_4 = getInputNumber(form + ' input[name="pph_4"]');
                     var diskon_pph_4 = (pph_4 == 0) ? 0 : bill_value * (pph_4 / 100);
-                    setInputNumber(form+' #discount_pph_4_masked', diskon_pph_4);
+                    setInputNumber2(form+' input[name="discount_pph_4"]', diskon_pph_4);
 
                     var pph_21 = getInputNumber(form+' input[name="pph_21"]');
                     var diskon_pph_21 = (pph_21 == 0) ? 0 : bill_value * (pph_21 / 100);
-                    setInputNumber(form+' #discount_pph_21_masked', diskon_pph_21);
+                    setInputNumber2(form+' input[name="discount_pph_21"]', diskon_pph_21);
 
                     var payment_transfer = total - diskon_pph_23 - diskon_pph_4 - diskon_pph_21;
-                    setInputNumber(form+' #payment_transfer_masked', payment_transfer);
+                    setInputNumber2(form+' input[name="payment_transfer"]', payment_transfer);
 
                 },
                 load: function(){
@@ -88,6 +88,9 @@
                         //      $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
                         // }, 500);
 
+                        setTimeout(() => {
+                            instance.logicFormula();
+                        }, 200);
                     @endif
 
                     $(form+ ' select[name="reference_id"]').off('select2:select').on('select2:select', function (e) {

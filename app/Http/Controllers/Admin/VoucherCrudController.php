@@ -1657,32 +1657,6 @@ class VoucherCrudController extends CrudController {
             ]
         ]);
 
-        // CRUD::addField([
-        //     'name' => 'for_voucher',
-        //     'label' => trans('backpack::crud.voucher.field.for_voucher.label'),
-        //     'type' => 'text',
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6',
-        //     ],
-        //     'attributes' => [
-        //         'placeholder' => trans('backpack::crud.voucher.field.for_voucher.placeholder'),
-        //     ]
-        // ]);
-
-        // select2-work-code
-
-        // CRUD::addField([
-        //     'name' => 'work_code',
-        //     'label' => trans('backpack::crud.voucher.field.work_code.label'),
-        //     'type' => 'text',
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6',
-        //     ],
-        //     'attributes' => [
-        //         'placeholder' => trans('backpack::crud.voucher.field.work_code.placeholder'),
-        //     ],
-        // ]);
-
         CRUD::addField([
             'label'       => trans('backpack::crud.voucher.field.work_code.label'), // Table column heading
             'type'        => "select2_ajax_custom",
@@ -1768,32 +1742,6 @@ class VoucherCrudController extends CrudController {
                 'class' => 'form-group col-md-6'
             ],
         ]);
-
-        // CRUD::addField([
-        //     'name' => 'bussines_entity_code',
-        //     'label' => trans('backpack::crud.voucher.field.bussines_entity_code.label'),
-        //     'type' => 'text',
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6',
-        //     ],
-        //     'attributes' => [
-        //         'placeholder' => trans('backpack::crud.voucher.field.bussines_entity_code.placeholder'),
-        //     ]
-        // ]);
-
-        // CRUD::addField([  // Select2
-        //     'label'     => trans('backpack::crud.voucher.field.bussines_entity_type.label'),
-        //     'type'      => 'select2_array',
-        //     'name'      => 'bussines_entity_type',
-        //     'options'   => [
-        //         '' => trans('backpack::crud.voucher.field.bussines_entity_type.placeholder'),
-        //         'PT' => 'PT',
-        //         'CV' => 'CV',
-        //     ], // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
-        //     'wrapper' => [
-        //         'class' => 'form-group col-md-6'
-        //     ]
-        // ]);
 
         CRUD::addField([
             'label' => trans('backpack::crud.voucher.field.bussines_entity_name.label'),
@@ -1890,24 +1838,6 @@ class VoucherCrudController extends CrudController {
             ]
         ]);
 
-        // CRUD::addField([   // date_picker
-        //     'name'  => 'date_po_spk',
-        //     'type'  => 'text',
-        //     'label' => trans('backpack::crud.voucher.field.date_po_spk.label'),
-
-        //     // optional:
-        //     'date_picker_options' => [
-        //         'language' => App::getLocale(),
-        //     ],
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6'
-        //     ],
-        //     'suffix' => '<span class="la la-calendar"></span>',
-        //     'attributes' => [
-        //         'disabled' => true,
-        //     ]
-        // ]);
-
         CRUD::addField([
             'name' => 'bill_value',
             'label' =>  trans('backpack::crud.voucher.field.bill_value.label'),
@@ -1941,7 +1871,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'name' => 'total',
             'label' =>  trans('backpack::crud.voucher.field.total.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -1972,7 +1902,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'name' => 'discount_pph_23',
             'label' =>  trans('backpack::crud.voucher.field.discount_pph_23.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -2003,7 +1933,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'name' => 'discount_pph_4',
             'label' =>  trans('backpack::crud.voucher.field.discount_pph_4.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -2034,7 +1964,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'name' => 'discount_pph_21',
             'label' =>  trans('backpack::crud.voucher.field.discount_pph_21.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -2052,7 +1982,7 @@ class VoucherCrudController extends CrudController {
         CRUD::addField([
             'name' => 'payment_transfer',
             'label' =>  trans('backpack::crud.voucher.field.payment_transfer.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -2297,15 +2227,16 @@ class VoucherCrudController extends CrudController {
         DB::beginTransaction();
         try{
 
-            $voucher_plan_exists = PaymentVoucher::where('voucher_id', $request->id)->first();
+            // $voucher_plan_exists = PaymentVoucher::where('voucher_id', $request->id)->first();
 
-            if($voucher_plan_exists){
-                return response()->json([
-                    'status' => false,
-                    'success' => false,
-                    'error' => trans('backpack::crud.voucher.confirm.update_failed_plan_exists'),
-                ]);
-            }
+            // if($voucher_plan_exists){
+            //     // hapus plan exists
+            //     // return response()->json([
+            //     //     'status' => false,
+            //     //     'success' => false,
+            //     //     'error' => trans('backpack::crud.voucher.confirm.update_failed_plan_exists'),
+            //     // ]);
+            // }
 
             $data = $request->only(['bill_value', 'tax_ppn', 'pph_23', 'pph_4', 'pph_21']);
 
@@ -2502,14 +2433,26 @@ class VoucherCrudController extends CrudController {
 
             if($flag_validation_field){
                 if($flag_approval_status){
-                    return response()->json([
-                        'status' => false,
-                        'success' => false,
-                        'error' => trans('backpack::crud.voucher.confirm.update_failed_status'),
-                    ]);
+                    // delete payment
+                    $vp = PaymentVoucher::where('voucher_id', $item->id)->first();
+                    if($vp){
+                        $vpp = PaymentVoucherPlan::where('payment_voucher_id', $vp->id)->first();
+                        if($vpp){
+                            Approval::where('model_type', PaymentVoucherPlan::class)
+                            ->where('model_id', $vpp->id)->delete();
+                            $vpp->delete();
+                        }
+                        $vp->delete();
+                    }
+                    // return response()->json([
+                    //     'status' => false,
+                    //     'success' => false,
+                    //     'error' => trans('backpack::crud.voucher.confirm.update_failed_status'),
+                    // ]);
                 }
             }
 
+            CustomHelper::rollbackPayment(Voucher::class, $item->id);
             CustomHelper::voucherEntry($item);
 
             \Alert::success(trans('backpack::crud.update_success'))->flash();
@@ -2757,6 +2700,7 @@ class VoucherCrudController extends CrudController {
             }
 
             CustomHelper::voucherEntry($item);
+            CustomHelper::voucherCreate($item->id);
 
             $event['crudTable-voucher_create_success'] = $item;
             $event['crudTable-history_edit_voucher_create_success'] = $item;
@@ -3791,18 +3735,7 @@ class VoucherCrudController extends CrudController {
         try {
             $this->crud->hasAccessOrFail('delete');
 
-
             $item = Voucher::findOrFail($id);
-
-            $check_transaction = AccountTransaction::where('cast_account_id', $item->account_source_id)
-            ->where('kdp', $item->client_po->work_code)->first();
-
-            if($check_transaction){
-                return response()->json([
-                    'type' => 'errors',
-                    'message' => "Gagal menghapus karena voucher sudah tercatat di transaksi",
-                ], 500);
-            }
 
             $voucher_edit = VoucherEdit::where('voucher_id', $id)->get();
 
@@ -3812,17 +3745,8 @@ class VoucherCrudController extends CrudController {
                 $edit_v->delete();
             }
 
-            JournalEntry::where(function($query) use($item){
-                $query->where('reference_id', $item->id)
-                ->where('reference_type', Voucher::class);
-            })->orWhere(function($query) use($item){
-                $query->where('description', $item->client_po->work_code);
-            })
-            ->orWhere(function($query) use($item){
-                $query->where('reference_id', $item->client_po->id)
-                ->where('reference_type', ClientPo::class);
-            })
-            ->delete();
+            // hapus transaksi voucher
+            CustomHelper::rollbackPayment(Voucher::class, $id);
 
             $item->delete();
 

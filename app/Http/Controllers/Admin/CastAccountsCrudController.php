@@ -1563,6 +1563,21 @@ class CastAccountsCrudController extends CrudController
             $castAccount->save();
             $castAccount->new_saldo = 'Rp'.CustomHelper::formatRupiah($new_saldo);
 
+            // kurangi saldo utama
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $castAccount->account_id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'description' => $description,
+                'date' => Carbon::now(),
+                'debit' => 0,
+                'credit' => $request->nominal_transfer,
+            ], [
+                'account_id' => $castAccount->account_id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+            ]);
+
             // other account
             $otherAccount = CastAccount::where('id', $request->to_account)->first();
             $other_old_saldo = $otherAccount->total_saldo;
@@ -1582,6 +1597,21 @@ class CastAccountsCrudController extends CrudController
             $otherAccount->total_saldo = $other_new_saldo;
             $otherAccount->save();
             $otherAccount->new_saldo = 'Rp'.CustomHelper::formatRupiah($other_new_saldo);
+
+            // tambah saldo di akun tujuan
+            CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $otherAccount->account_id,
+                'reference_id' => $newTransaction_2->id,
+                'reference_type' => AccountTransaction::class,
+                'description' => $description,
+                'date' => Carbon::now(),
+                'debit' => $request->nominal_transfer,
+                'credit' => 0,
+            ], [
+                'account_id' => $otherAccount->account_id,
+                'reference_id' => $newTransaction_2->id,
+                'reference_type' => AccountTransaction::class,
+            ]);
 
 
             $item = $newTransaction_2;
