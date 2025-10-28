@@ -585,6 +585,35 @@ class CustomHelper {
         $journalDelete = JournalEntry::where('reference_id', $voucher->id)
         ->where('reference_type', Voucher::class)->delete();
 
+        $price_unifikasi = $voucher->discount_pph_23 + $voucher->discount_pph_4;
+        if($price_unifikasi > 0){
+            $account_unifikasi = Account::where('code', '20304')->first();
+            $trans_0 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $account_unifikasi->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+                'description' => "tambahan pph unifikasi ".$voucher->no_voucher,
+                'date' => Carbon::now(),
+                'debit' => $price_unifikasi,
+                'credit' => 0,
+            ], [
+                'account_id' => $account_unifikasi->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+            ]);
+            $log_payment[] = [
+                'id' => $trans_0->id,
+                'account_id' => $account_unifikasi->id,
+                'reference_id' => $voucher->id,
+                'reference_type' => Voucher::class,
+                'description' => "tambahan pph unifikasi ".$voucher->no_voucher,
+                'date' => Carbon::now(),
+                'debit' => $price_unifikasi,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
+        }
+
         $hutang = Account::where('code', '20101')->first();
         if($hutang){
             $trans_1 = CustomHelper::updateOrCreateJournalEntry([
