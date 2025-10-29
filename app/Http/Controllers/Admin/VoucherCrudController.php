@@ -2391,8 +2391,8 @@ class VoucherCrudController extends CrudController {
                     $approval->save();
                 }
 
-                $journal_entry = JournalEntry::where('reference_type', Voucher::class)
-                ->where('reference_id', $item->id)->delete();
+                // $journal_entry = JournalEntry::where('reference_type', Voucher::class)
+                // ->where('reference_id', $item->id)->delete();
             }
 
             $this->data['entry'] = $this->crud->entry = $item;
@@ -2444,11 +2444,6 @@ class VoucherCrudController extends CrudController {
                         }
                         $vp->delete();
                     }
-                    // return response()->json([
-                    //     'status' => false,
-                    //     'success' => false,
-                    //     'error' => trans('backpack::crud.voucher.confirm.update_failed_status'),
-                    // ]);
                 }
             }
 

@@ -1012,7 +1012,10 @@ class CustomHelper {
             foreach($snapshots as $snapshot){
                 $snap_id = $snapshot->id;
                 if($snapshot->type == JournalEntry::class){
-                    JournalEntry::find($snap_id)->delete();
+                    $journal = JournalEntry::find($snap_id);
+                    if($journal){
+                        $journal->delete();
+                    }
                 }else if($snapshot->type == AccountTransaction::class){
                     AccountTransaction::find($snap_id)->delete();
                 }
