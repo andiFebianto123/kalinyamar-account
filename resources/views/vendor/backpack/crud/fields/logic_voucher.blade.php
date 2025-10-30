@@ -24,6 +24,17 @@
 
 
         if(typeof setInputNumber2 == "undefined"){
+            function formatIdr(angka){
+                const formatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                });
+
+                let hasilFormat = formatter.format(angka);
+                let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+                return tanpaRp;
+            }
             function setInputNumber2(selected, value){
                 let nominal = formatIdr(value);
                 $(selected).val(nominal).trigger('input');
