@@ -20,6 +20,16 @@
 
 @push('crud_fields_scripts')
     <script>
+
+
+
+        if(typeof setInputNumber2 == "undefined"){
+            function setInputNumber2(selected, value){
+                let nominal = formatIdr(value);
+                $(selected).val(nominal).trigger('input');
+            }
+        }
+
         SIAOPS.setAttribute('logic_asset', function(){
             return {
                 form_type : "{{ $crud->getActionMethod() }}",
