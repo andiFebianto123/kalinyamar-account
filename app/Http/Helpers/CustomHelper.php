@@ -374,7 +374,7 @@ class CustomHelper {
 
         $acct_ppn = Account::where('code', "20301")->first();
         if($acct_ppn){
-            $price_ppn = $invoice->price_total_include_ppn * ($invoice->tax_ppn / 100);
+            $price_ppn = $invoice->price_total_exclude_ppn * ($invoice->tax_ppn / 100);
             $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $acct_ppn->id,
                 'reference_id' => $invoice->id,
@@ -643,7 +643,7 @@ class CustomHelper {
         }
         if($voucher->total > 0){
             $ppn = Account::where('code', '50303')->first();
-            $total_ppn = $voucher->total * ($voucher->tax_ppn / 100);
+            $total_ppn = $voucher->bill_value * ($voucher->tax_ppn / 100);
             if($ppn){
                 $trans_2 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $ppn->id,
