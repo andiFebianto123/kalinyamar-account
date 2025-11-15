@@ -21,8 +21,6 @@
 @push('crud_fields_scripts')
     <script>
 
-
-
         if(typeof setInputNumber2 == "undefined"){
             function formatIdr(angka){
                 const formatter = new Intl.NumberFormat('id-ID', {
@@ -50,6 +48,7 @@
                     var ppn = getInputNumber(form+' input[name="tax_ppn"]');
 
                     var nilai_ppn = (ppn == 0) ? 0 : (bill_value * (ppn / 100));
+                    setInputNumber2(form+' input[name="total_price_ppn"]', nilai_ppn);
 
                     var total = bill_value + nilai_ppn;
                     setInputNumber2(form+ ' input[name="total"]', total);

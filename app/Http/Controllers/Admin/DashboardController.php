@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Project;
+use App\Models\Voucher;
+use App\Models\ClientPo;
+use App\Models\Quotation;
 use App\Models\InvoiceClient;
+use App\Models\ProjectProfitLost;
+use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
-use App\Http\Helpers\CustomHelper;
-use App\Models\ClientPo;
-use App\Models\Quotation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 
@@ -152,27 +154,65 @@ class DashboardController extends CrudController
     }
 
     public function totalJobRealisasion(){
-        $invoice_rutin = ClientPo::whereExists(function ($query) {
+        $omset_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
+        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+        ->whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
-                ->whereRaw('invoice_clients.client_po_id = client_po.id');
+                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+        })
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('project_profit_lost')
+                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
         })
         ->where('client_po.category', 'RUTIN')
-        ->select(DB::raw("SUM(job_value) as total_omzet, SUM(price_total) as total_biaya"))->get();
+        ->groupBy('client_po.category')
+        ->get();
 
-        $invoice_non_rutin = ClientPo::whereExists(function ($query) {
+        $biaya_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
+        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('project_profit_lost')
+                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+        })
+        ->where('client_po.category', 'RUTIN')
+        ->groupBy('client_po.category')
+        ->get();
+
+        $omset_non_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
+        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+        ->whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
-                ->whereRaw('invoice_clients.client_po_id = client_po.id');
+                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
         })
-        ->where('client_po.category', 'NON RUTIN')
-        ->select(DB::raw("SUM(job_value) as total_omzet, SUM(price_total) as total_biaya"))->get();
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('project_profit_lost')
+                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+        })
+        ->where('client_po.category', 'RUTIN')
+        ->groupBy('client_po.category')
+        ->get();
+
+        $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
+        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('project_profit_lost')
+                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+        })
+        ->where('client_po.category', 'RUTIN')
+        ->groupBy('client_po.category')
+        ->get();
 
         return [
-            'total_omzet_rutin' => CustomHelper::formatRupiah($invoice_rutin[0]->total_omzet),
-            'total_biaya_rutin' => CustomHelper::formatRupiah($invoice_rutin[0]->total_biaya),
-            'total_omzet_non_rutin' => CustomHelper::formatRupiah($invoice_non_rutin[0]->total_omzet),
-            'total_biaya_non_rutin' => CustomHelper::formatRupiah($invoice_non_rutin[0]->total_biaya),
+            'total_omzet_rutin' => CustomHelper::formatRupiah($omset_rutin[0]?->nilai_biaya ?? 0),
+            'total_biaya_rutin' => CustomHelper::formatRupiah($biaya_rutin[0]?->nilai_biaya ?? 0),
+            'total_omzet_non_rutin' => CustomHelper::formatRupiah($omset_non_rutin[0]?->nilai_biaya ?? 0),
+            'total_biaya_non_rutin' => CustomHelper::formatRupiah($biaya_non_rutin[0]?->nilai_biaya ?? 0),
         ];
     }
 
@@ -217,18 +257,23 @@ class DashboardController extends CrudController
     }
 
     public function dataNonRutinMonitoring(){
-        $monitoring = ClientPo::whereExists(function ($query) {
+        $monitoring = ProjectProfitLost::select(
+            DB::raw('COUNT(client_po.id) as total_client'),
+            DB::raw('SUM(client_po.job_value_include_ppn) as total_job_value'),
+            DB::raw('SUM(vouchers.payment_transfer) as total_price_payment')
+        )
+        ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id')
+        ->leftJoin('vouchers', 'vouchers.client_po_id', '=', 'client_po.id')
+        ->whereNotExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
-                ->whereRaw('invoice_clients.client_po_id = client_po.id');
+                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
         })
         ->where('client_po.category', 'NON RUTIN')
-        ->select(DB::raw("
-            SUM(job_value) as total_job_value,
-            SUM(price_total) as total_price_total,
-            SUM(profit_and_lost_final) as total_profit_and_lost_final,
-            COUNT(po_number) as total_po_number
-        "))->get();
+        ->get();
+        foreach($monitoring as $mon){
+            $mon->total_laba = $mon?->total_job_value - $mon?->total_price_payment;
+        }
         return $monitoring;
     }
 

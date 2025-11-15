@@ -109,9 +109,9 @@
                             <tbody>
                                 @foreach ($data_monitoring as $item)
                                     <th>Rp{{ ($item->total_job_value) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_job_value) : 0 }}</th>
-                                    <th>Rp{{ ($item->total_price_total) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_price_total) : 0 }}</th>
-                                    <th>Rp{{ ($item->total_profit_and_lost_final) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_profit_and_lost_final) : 0 }}</th>
-                                    <th>{{$item->total_po_number}}</th>
+                                    <th>Rp{{ ($item->total_price_payment) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_price_payment) : 0 }}</th>
+                                    <th>Rp{{ ($item->total_laba) ? \App\Http\Helpers\CustomHelper::formatRupiah($item->total_laba) : 0 }}</th>
+                                    <th>{{$item->total_client}}</th>
                                 @endforeach
                             </tbody>
                         </table>

@@ -216,6 +216,14 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
+                'label' => trans('backpack::crud.invoice_client.field.kdp.label'),
+                'name' => 'kdp',
+                'type'  => 'text'
+            ],
+        );
+
+        CRUD::column(
+            [
                 'label'  => trans('backpack::crud.invoice_client.column.name'),
                 'name' => 'name',
                 'type'  => 'closure',
@@ -301,6 +309,21 @@ class InvoiceClientCrudController extends CrudController
             ],
         );
 
+        CRUD::column(
+            [
+                'label' => "Tgl Pengiriman Invoice - Normal",
+                'name' => 'send_invoice_normal',
+                'type'  => 'date'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => "Tgl Pengiriman Invoice - Revisi",
+                'name' => 'send_invoice_revision',
+                'type'  => 'date'
+            ],
+        );
 
         CRUD::column(
             [
@@ -325,7 +348,7 @@ class InvoiceClientCrudController extends CrudController
 
         $this->crud->addColumn([
             'name'      => 'row_number',
-            'type'      => 'export',
+            'type'      => 'row_number',
             'label'     => 'No',
             'orderable' => false,
             'wrapper' => [
@@ -337,7 +360,7 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.invoice_number'),
                 'name' => 'invoice_number',
-                'type'  => 'export'
+                'type'  => 'text'
             ],
         );
 
@@ -345,7 +368,22 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.name'),
                 'name' => 'name',
-                'type'  => 'export'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->client_po->job_name;
+                },
+                'orderable' => true,
+                'orderLogic' => function ($query, $column, $columnDir) {
+                    return $query->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id')
+                    ->orderBy('client_po.job_name', $columnDir)
+                    ->select('invoice_clients.*');
+                },
+                'searchable' => true,
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    return $query->orWhereHas('client_po', function ($query) use ($searchTerm) {
+                        $query->where('job_name', 'like', '%' . $searchTerm . '%');
+                    });
+                }
             ],
         );
 
@@ -353,31 +391,8 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
                 'name' => 'invoice_date',
-                'type'  => 'export'
+                'type'  => 'date'
             ],
-        );
-
-        CRUD::column([
-            // 1-n relationship
-            'label' => trans('backpack::crud.invoice_client.column.client_po_id'),
-            'type'      => 'closure',
-            'name'      => 'client_po_id', // the column that contains the ID of that connected entity;
-            'entity'    => 'client_po', // the method that defines the relationship in your Model
-            'attribute' => 'po_number', // foreign key attribute that is shown to user
-            'model'     => "App\Models\ClientPo", // foreign key model
-            'function' => function($entry) {
-                return $entry->client_po->po_number;
-            }
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
-        ]);
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.column.po_date'),
-                'name' => 'po_date',
-                'type' => 'export',
-            ]
         );
 
         CRUD::column([
@@ -394,58 +409,115 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
-                'name' => 'price_total_include_ppn',
-                'type'  => 'export',
-                'prefix' => "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
+                'label' => trans('backpack::crud.invoice_client.field.address.label'),
+                'name' => 'address_po',
+                'type'  => 'text'
             ],
+        );
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.invoice_client.column.client_po_id'),
+            'type'      => 'select',
+            'name'      => 'client_po_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'client_po', // the method that defines the relationship in your Model
+            'attribute' => 'po_number', // foreign key attribute that is shown to user
+            'model'     => "App\Models\ClientPo", // foreign key model
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.invoice_client.field.description.label'),
+                'name' => 'description',
+                'type' => 'text',
+            ]
         );
 
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
                 'name' => 'price_total_exclude_ppn',
-                'type'  => 'export',
-                'prefix' => "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return str_replace('.00', '', $entry->price_total_exclude_ppn);
+                },
             ],
         );
 
         CRUD::column(
             [
-                'label' => 'Nama Item',
-                'name' => 'item_name',
-                'type' => 'export',
-                'function' => function($entry) {
-                    return $entry?->invoice_client_details?->name;
-                }
-            ]
+                'label' => trans('backpack::crud.invoice_client.field.dpp_other.label'),
+                'name' => 'dpp_other',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return str_replace('.00', '', $entry->dpp_other);
+                },
+            ],
         );
 
         CRUD::column(
             [
-                'label' => 'Harga Item',
-                'name' => 'item_price',
-                'type' => 'export',
-                'function' => function($entry) {
-                    return $entry?->invoice_client_details?->price;
-                }
-            ]
+                'label' => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
+                'name' => 'tax_ppn',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return str_replace('.00', '', $entry->tax_ppn);
+                },
+            ],
         );
 
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
+                'name' => 'price_total_include_ppn',
+                'type'  => 'closure',
+                'function' => function($entry){
+                    return str_replace('.00', '', $entry->price_total_include_ppn);
+                },
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.invoice_client.field.kdp.label'),
+                'name' => 'kdp',
+                'type'  => 'text'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => "Tgl Pengiriman Invoice - Normal",
+                'name' => 'send_invoice_normal',
+                'type'  => 'date'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label' => "Tgl Pengiriman Invoice - Revisi",
+                'name' => 'send_invoice_revision',
+                'type'  => 'date'
+            ],
+        );
 
         CRUD::column(
             [
                 'label' => trans('backpack::crud.invoice_client.column.status'),
                 'name' => 'status',
-                'type' => 'export',
+                'type' => 'text',
             ]
         );
+
+        // CRUD::column(
+        //     [
+        //         'label' => trans('backpack::crud.invoice_client.field.item.label'),
+        //         'name' => 'invoice_client_details_edit',
+        //         'type'  => 'text'
+        //     ],
+        // );
 
         $this->crud->query = $this->crud->query
         ->selectRaw("invoice_clients.*, invoice_client_details.name as item_name, invoice_client_details.price as item_price")
@@ -507,8 +579,8 @@ class InvoiceClientCrudController extends CrudController
 
     public function exportExcel(){
 
-        // $this->setupListExport();
-        $this->setupListOperation();
+        $this->setupListExport();
+        // $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();

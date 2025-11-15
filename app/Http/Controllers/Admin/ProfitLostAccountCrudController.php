@@ -179,6 +179,31 @@ class ProfitLostAccountCrudController extends CrudController{
             // ]);
         }
 
+        $this->crud->filter('category77crudTable-project')
+        ->label('Kategori')
+        ->type('select2')
+            ->values([
+            'RUTIN' => 'RUTIN',
+            'NON RUTIN' => 'NON RUTIN',
+        ]);
+
+        // $this->crud->addFilter([
+        //     'name' => 'category77crudTable-project',
+        //     'type' => 'select2',
+        //     'label' => 'Kategori',
+        // ],
+        // [
+        //     'RUTIN' => 'RUTIN',
+        //     'NON RUTIN' => 'NON RUTIN',
+        // ],
+        // function ($value) {
+        //     // $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
+        //     //     $query->where('role_id', '=', $value);
+        //     // });
+        //     dd($value);
+        //     $this->crud->addClause('where', 'category', $value);
+        // });
+
         $this->card->addCard([
             'name' => 'project',
             'line' => 'bottom',
@@ -289,6 +314,7 @@ class ProfitLostAccountCrudController extends CrudController{
                         'label' =>  trans('backpack::crud.actions'),
                     ]
                 ],
+                'filter_table' => collect($this->crud->filters())->slice(0, 2),
                 'route' => url($this->crud->route.'/search?type=project'),
             ]
         ]);
@@ -341,6 +367,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->data['scripts'] = $this->script;
         $list = "crud::list-blank" ?? $this->crud->getListView();
         $this->consolidate_formula();
+
         return view($list, $this->data);
     }
 
@@ -943,6 +970,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'wrapper' => ['class' => 'form-group col-md-6'],
                     ...$job_code_prefix_value,
                 ]);
+                
                 CRUD::addField([
                     'name' => 'price_after_year',
                     'label' =>  trans('backpack::crud.profit_lost.fields.price_after_year.label'),
@@ -1480,8 +1508,8 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::setModel(ProjectProfitLost::class);
                 $this->crud->query = $this->crud->query
-                ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id')
-                ->leftJoin('vouchers', 'vouchers.client_po_id', '=', 'client_po.id');
+                ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
+                // ->leftJoin('vouchers', 'vouchers.client_po_id', '=', 'client_po.id');
 
                 $small_cash = DB::table('account_transactions')
                 ->select([
@@ -1500,10 +1528,24 @@ class ProfitLostAccountCrudController extends CrudController{
                 })
                 ->groupBy('account_transactions.kdp');
 
+                $voucher = DB::table('vouchers')->select(
+                    'client_po_id',
+                    DB::raw("SUM(payment_transfer) as payment_transfer")
+                )->groupBy('client_po_id');
+
+                $this->crud->query = $this->crud->query
+                ->leftJoinSub($voucher, 'vouchers', function($join) {
+                    $join->on('vouchers.client_po_id', '=', 'client_po.id');
+                });
+
                 $this->crud->query = $this->crud->query
                 ->leftJoinSub($small_cash, 'small_cash', function($join) {
                     $join->on('small_cash.kdp', '=', 'client_po.work_code');
                 });
+
+                if($request->has('category')){
+                    $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
+                }
 
                 $this->crud->addColumn([
                     'name'      => 'row_number',

@@ -97,9 +97,11 @@
                     var new_url = updateDatatablesOnFilterChange(filterName, value, true, 0);
 
                     // mark this filter as active in the navbar-filters
-                    if (URI(new_url).hasQuery(filterName, true)) {
-                        $("li[filter-key="+filterKey+"]").addClass('active');
-                    }
+                    // if (URI(new_url).hasQuery(filterName, true)) {
+                    //     $("li[filter-key="+filterKey+"]").addClass('active');
+                    // }
+					$("li[filter-key="+filterKey+"]").addClass('active');
+
 				}).on('select2:unselecting', function (e) {
 
                     updateDatatablesOnFilterChange(filterName, null, true, 0);

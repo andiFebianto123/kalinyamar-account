@@ -40,6 +40,7 @@ class ClientPoCrudController extends CrudController
         CRUD::setModel(ClientPo::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client/po');
         CRUD::setEntityNameStrings(trans('backpack::crud.client_po.title_header'), trans('backpack::crud.client_po.title_header'));
+
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
@@ -192,7 +193,6 @@ class ClientPoCrudController extends CrudController
             'params' => [],
         ]);
 
-
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = "PO Client";
@@ -207,6 +207,7 @@ class ClientPoCrudController extends CrudController
         $this->data['breadcrumbs'] = $breadcrumbs;
 
         $list = "crud::list-blank" ?? $this->crud->getListView();
+
         return view($list, $this->data);
     }
 
@@ -606,9 +607,9 @@ class ClientPoCrudController extends CrudController
             }
 
             if(isset($request->columns[11]['search']['value'])){
-                $search = $request->columns[16]['search']['value'];
+                $search = $request->columns[11]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('category', 'like', '%'.$search.'%');
+                ->where('category', 'like', $search.'%');
             }
         }
 

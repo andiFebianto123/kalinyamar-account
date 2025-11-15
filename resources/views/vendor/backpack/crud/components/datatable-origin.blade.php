@@ -31,7 +31,12 @@
 
         {{-- Backpack List Filters --}}
         @if ($crud->filtersEnabled())
-        @include('crud::inc.filters_navbar')
+            @if (isset($filter_table))
+                @include('crud::inc.filters_navbar', [
+                    'filter_table' => $filter_table,
+                    'table_name' => "crudTable-".$name,
+                ])
+            @endif
         @endif
 
         <div class="{{ backpack_theme_config('classes.tableWrapper') }} andi">
@@ -428,6 +433,7 @@
             return {
                 id: $('#crudTable-{{$name}}'),
                 table: null,
+                route: '{!! $route !!}',
                 eventLoader: function(){
 
                     var instance = this;
@@ -636,9 +642,39 @@
                     @endif
 
                 },
+                filter: function(){
+                    var instance = this;
+                    $("#remove_filters_button_crudTable-{{$name}}").click(function(e) {
+                        e.preventDefault();
+
+                        var new_url = '{{ $route }}';
+                        instance.table.ajax.url(new_url).load();
+
+                        $(".crudTable-{{$name}}-filters li[filter-name]").trigger('filter:clear');
+
+                    });
+
+                    $(".crudTable-{{$name}}-filters li[filter-name]").on('filter:clear', function() {
+                        var anyActiveFilters = false;
+                        console.log($(".crudTable-{{$name}}-filters li[filter-name]"));
+                        $(".crudTable-{{$name}}-filters li[filter-name]").each(function () {
+                            if ($(this).hasClass('active')) {
+                                anyActiveFilters = true;
+                            }
+                        });
+
+                        if (anyActiveFilters == false) {
+                            $('#remove_filters_button_crudTable-{{$name}}').addClass('invisible');
+                        }
+                    });
+
+                },
                 load: function(){
                     var instance = this;
                     instance.eventLoader();
+                    @if (isset($filter_table))
+                        instance.filter();
+                    @endif                        
                 }
             }
         });

@@ -1055,8 +1055,11 @@ return [
             'tax_ppn' => [
                 'label' => 'PPn',
             ],
+            'total_price_ppn' => [
+                'label' => 'Harga PPn',
+            ],
             'total' => [
-                'label' => 'Total',
+                'label' => 'Total Nilai',
             ],
             'pph_23' => [
                 'label' => 'PPh 23',

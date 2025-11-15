@@ -57,6 +57,7 @@ class CustomHelper {
         $spk = Spk::select(DB::raw("
             YEAR(date_spk) as year
         "))->distinct()->get();
+        $results = [];
         foreach($spk as $po){
             $results[] = $po->year;
         }
