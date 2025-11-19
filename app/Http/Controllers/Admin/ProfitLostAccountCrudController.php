@@ -309,6 +309,12 @@ class ProfitLostAccountCrudController extends CrudController{
                         'orderable' => true,
                     ],
                     [
+                        'label'  => trans('backpack::crud.profit_lost.column.invoice_date'),
+                        'type'      => 'text',
+                        'name'      => 'invoice_date',
+                        'orderable' => true,
+                    ],
+                    [
                         'name' => 'action',
                         'type' => 'action',
                         'label' =>  trans('backpack::crud.actions'),
@@ -773,7 +779,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         // $union = $po->unionAll($po_subkon)
         // ->paginate(20);
-        $union = ClientPo::where('po_number', 'like', "%$q%")
+        $union = ClientPo::where('work_code', 'like', "%$q%")
         ->get();
 
         $results = [];
@@ -782,7 +788,8 @@ class ProfitLostAccountCrudController extends CrudController{
                 'data' => $item,
                 'voucher_id' => null,
                 'id' => $item->id,
-                'text' => $item->po_number,
+                'po_number' => $item->po_number,
+                'text' => $item->work_code,
                 'work_code' => $item->work_code,
             ];
         }
@@ -922,7 +929,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
     function validationProject(){
         $rule = [];
-        $rule['client_po_id'] = 'required|unique:project_profit_lost,client_po_id,'.request()->id;
+        $rule['id_client_po'] = 'required|unique:project_profit_lost,client_po_id,'.request()->id;
         $rule['category'] = 'required';
         return $rule;
     }
@@ -946,29 +953,27 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::setValidation($this->validationProject());
                 CRUD::setModel(ProjectProfitLost::class);
 
+                CRUD::addField([
+                    'name' => 'work_code',
+                    'label' => trans('backpack::crud.profit_lost.fields.job_code.label'),
+                    'type' => 'select2_ajax_custom',
+                    'attribute' => 'work_code',
+                    'entity' => 'clientPo',
+                    'data_source' => backpack_url('finance-report/profit-lost/select2-po'), // url to controller search function (with /{id} should return a single entry)
+                    'wrapper' => ['class' => 'form-group col-md-6'],
+                ]);
+
                 CRUD::addField([   // 1-n relationship
                     'label'       => trans('backpack::crud.invoice_client.field.client_po_id.label'), // Table column heading
-                    'type'        => "select2_ajax_custom",
-                    'name'        => 'client_po_id', // the column that contains the ID of that connected entity
-                    'entity'      => 'clientPo', // the method that defines the relationship in your Model
-                    'attribute'   => 'po_number', // foreign key attribute that is shown to user
-                    'data_source' => backpack_url('finance-report/profit-lost/select2-po'), // url to controller search function (with /{id} should return a single entry)
+                    'type'        => "text",
+                    'name'        => 'po_number', // the column that contains the ID of that connected entity
                     'wrapper'   => [
                         'class' => 'form-group col-md-6',
                     ],
-                    'placeholder' => trans('backpack::crud.invoice_client.field.client_po_id.placeholder'),
-                ]);
-
-                CRUD::addField([
-                    'name' => 'job_code',
-                    'label' => trans('backpack::crud.profit_lost.fields.job_code.label'),
-                    'type' => 'text',
                     'attributes' => [
-                        'placeholder' => trans('backpack::crud.profit_lost.fields.job_code.placeholder'),
+                        'placeholder' => trans('backpack::crud.profit_lost.fields.no_po.placeholder'),
                         'disabled' => true,
                     ],
-                    'wrapper' => ['class' => 'form-group col-md-6'],
-                    ...$job_code_prefix_value,
                 ]);
                 
                 CRUD::addField([
@@ -1386,7 +1391,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
             $item = new ProjectProfitLost;
             $item->voucher_id = $request->voucher_id;
-            $item->client_po_id = $request->client_po_id;
+            $item->client_po_id = $request->id_client_po;
             $item->price_after_year = $request->price_after_year;
             $item->price_voucher = $request->price_voucher;
             $item->price_small_cash = $request->price_small_cash;
@@ -1399,7 +1404,7 @@ class ProfitLostAccountCrudController extends CrudController{
             $item->total_project = 0;
             $item->save();
 
-            $po = ClientPo::find($request->client_po_id);
+            $po = ClientPo::find($request->id_client_po);
             $po->price_after_year = $item->price_after_year;
             $po->price_total = $item->price_total;
             $po->profit_and_loss = $item->price_profit_lost_po;
@@ -1509,7 +1514,14 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::setModel(ProjectProfitLost::class);
                 $this->crud->query = $this->crud->query
                 ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
-                // ->leftJoin('vouchers', 'vouchers.client_po_id', '=', 'client_po.id');
+                $invoice = DB::table('invoice_clients')
+                ->select(
+                    'invoice_clients.client_po_id',
+                    DB::raw("GROUP_CONCAT(invoice_clients.invoice_date SEPARATOR ',') AS invoice_date"),
+                    DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
+                    DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
+                )
+                ->groupBy('invoice_clients.client_po_id');
 
                 $small_cash = DB::table('account_transactions')
                 ->select([
@@ -1541,6 +1553,11 @@ class ProfitLostAccountCrudController extends CrudController{
                 $this->crud->query = $this->crud->query
                 ->leftJoinSub($small_cash, 'small_cash', function($join) {
                     $join->on('small_cash.kdp', '=', 'client_po.work_code');
+                });
+
+                $this->crud->query = $this->crud->query
+                ->leftJoinSub($invoice, 'invoice_clients', function($join) {
+                    $join->on('invoice_clients.client_po_id', '=', 'client_po.id');
                 });
 
                 if($request->has('category')){
@@ -1611,7 +1628,14 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::column([
                     'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
                     'name' => 'job_value',
-                    'type'  => 'number',
+                    'type'  => 'closure',
+                    'function' => function($entry) use($settings){
+                        $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
+                        if($entry->invoice_date){
+                            return $currency.number_format($entry->price_job_exlude_ppn, 2, ",", ".");
+                        }
+                        return $currency.number_format($entry->job_value, 2, ",", ".");
+                    },
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
@@ -1624,7 +1648,15 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::column([
                     'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                     'name' => 'job_value_include_ppn',
-                    'type'  => 'number',
+                    'type'  => 'closure',
+                    'function' => function($entry) use($settings){
+                        $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
+                        if($entry->invoice_date){
+                            // dari invoice
+                            return $currency.number_format($entry->price_job_include_ppn, 2, ",", ".");
+                        }
+                        return $currency.number_format($entry->job_value_include_ppn, 2, ",", ".");
+                    },
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
@@ -1728,6 +1760,19 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name'      => 'category',
                 ]);
 
+                CRUD::column([
+                    'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
+                    'type' => 'closure',
+                    'name' => 'invoice_date',
+                    'function' => function($entry){
+                        $tgl = explode(",", $entry->invoice_date);
+                        return implode("<br>", $tgl);
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('invoice_clients.invoice_date', $columnDirection);
+                    }
+                ]);
+
                 // CRUD::column([
                 //     'label'  => trans('backpack::crud.profit_lost.column.contract_value'),
                 //     'name' => 'contract_value',
@@ -1741,6 +1786,9 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::addClause('select', [
                     DB::raw("
                         project_profit_lost.*,
+                        invoice_clients.invoice_date,
+                        invoice_clients.price_job_exlude_ppn,
+                        invoice_clients.price_job_include_ppn,
                         vouchers.payment_transfer as payment_voucher,
                         client_po.work_code as work_code,
                         client_po.po_number as po_number,

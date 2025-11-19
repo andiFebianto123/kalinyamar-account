@@ -69,10 +69,12 @@
 
                     @endif
 
-                    $(form+ ' select[name="client_po_id"]').off('select2:select').on('select2:select', function (e) {
+        
+
+                    $(form+ ' select[name="work_code"]').off('select2:select').on('select2:select', function (e) {
                         var result = e.params.data;
                         var id = result.id;
-                        $(form+' input[name="job_code"]').val(result.work_code);
+                        $(form+' input[name="po_number"]').val(result.po_number);
                         $(form+' input[name="id_client_po"]').val(id);
                         $(form+' input[name="voucher_id"]').val(result.voucher_id);
                         // setInputNumber(form+ ' #total_project_masked', e.params.data.data.reference.price_total);

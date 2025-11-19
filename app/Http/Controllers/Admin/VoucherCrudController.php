@@ -1220,7 +1220,7 @@ class VoucherCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
                     'name' => 'job_name',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
 
@@ -1251,7 +1251,7 @@ class VoucherCrudController extends CrudController {
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.field.account_holder_name.label'),
                 'name' => 'account_holder_name',
-                'type'  => 'text',
+                'type'  => 'wrap_text',
             ]);
 
             CRUD::column(
@@ -1409,7 +1409,7 @@ class VoucherCrudController extends CrudController {
                 [
                     'label' => trans('backpack::crud.voucher.field.no_factur.label'),
                     'name' => 'no_factur',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
 

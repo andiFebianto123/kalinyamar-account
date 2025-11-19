@@ -828,6 +828,7 @@ return [
             'load_general_value' => 'Beban Umum',
             'profit_lost_final' => 'Laba/Rugi Akhir',
             'category' => 'Kategori',
+            'invoice_date' => 'Tgl Invoice',
         ],
         'detail' => [
             'project_profit_and_loss_report' => 'Laporan Laba Rugi Proyek',
