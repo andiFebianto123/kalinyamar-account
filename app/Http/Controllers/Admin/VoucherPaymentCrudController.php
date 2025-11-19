@@ -2505,7 +2505,7 @@ class VoucherPaymentCrudController extends CrudController {
         }
 
         CRUD::addField([
-            'name' => 'voucher',
+            'name' => 'voucher_payment',
             'label' => '',
             'type' => 'voucher-list',
             'value' => $voucherList,
@@ -2562,6 +2562,59 @@ class VoucherPaymentCrudController extends CrudController {
                 ]);
             }
             // return $this->crud->performSaveAction($payment_voucher->getKey());
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function storeSingle(){
+         $this->crud->hasAccessOrFail('create');
+        $request = request();
+        $request->validate([
+            'id' => 'required|exists:vouchers,id',
+        ]);
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try{
+
+            $event = [];
+            $event['crudTable-filter_voucher_payment_plugin_load'] = true;
+
+            $voucher = Voucher::find($request->id);
+            $voucher->payment_status = 'BAYAR';
+            $voucher->payment_date = $request->date;
+            $voucher->save();
+            $type = '';
+            if($voucher->payment_type == 'NON RUTIN'){
+                $type = 'NON RUTIN';
+                $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+            }else{
+                $type = 'SUBKON';
+                $event['crudTable-voucher_payment_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
+            }
+            CustomHelper::voucherPayment($voucher);
+
+            \Alert::success(trans('backpack::crud.insert_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'events' => $event,
+                ]);
+            }
         }catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

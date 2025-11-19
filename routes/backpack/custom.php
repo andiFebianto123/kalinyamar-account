@@ -163,6 +163,7 @@ Route::group([
         Route::crud('voucher-payment', 'VoucherPaymentCrudController');
         Route::post('voucher-payment/export-pdf', [VoucherPaymentCrudController::class, 'exportPdf']);
         Route::post('voucher-payment/export-excel', [VoucherPaymentCrudController::class, 'exportExcel']);
+        Route::post('voucher-payment/single-store', [VoucherPaymentCrudController::class, 'storeSingle']);
 
         Route::post('voucher-payment/{id}/approve', [VoucherPaymentCrudController::class, 'approvedStore']);
         Route::post('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);

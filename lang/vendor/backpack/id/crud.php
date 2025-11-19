@@ -113,6 +113,7 @@ return [
     // global crud - success / error notification bubbles
     'insert_success' => 'Item berhasil ditambahkan.',
     'update_success' => 'Item berhasil diubah.',
+    'insert_error' => 'Terjadi kesalahan saat menambahkan item.',
 
     // CRUD reorder view
     'reorder' => 'Susun ulang',
@@ -1255,6 +1256,12 @@ return [
             'title_voucher_payment' => 'Data',
             'title_voucher_payment_plan' => 'Rencana Bayar',
         ],
+        'field' => [
+            'payment_date' => [
+                'label' => 'Tanggal Bayar',
+                'placeholder' => 'Input Tanggal Bayar',
+            ]
+        ],
         'confirm' => [
             'title' =>  'Menyetujui Pembayaran',
             'confirm_approved_statement' => 'Setujui untuk pembayaran ini?',
@@ -1729,5 +1736,6 @@ return [
     'cancel_submit' => 'Batalkan',
     'save_changes_submit' => 'Simpan Perubahan',
     'approve_submit' => 'Setujui',
+    'title_modal_voucher_payment' => 'Pembayaran Manual',
 
 ];
