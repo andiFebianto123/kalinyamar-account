@@ -188,23 +188,6 @@ class ProfitLostAccountCrudController extends CrudController{
             'NON RUTIN' => 'NON RUTIN',
         ]);
 
-        // $this->crud->addFilter([
-        //     'name' => 'category77crudTable-project',
-        //     'type' => 'select2',
-        //     'label' => 'Kategori',
-        // ],
-        // [
-        //     'RUTIN' => 'RUTIN',
-        //     'NON RUTIN' => 'NON RUTIN',
-        // ],
-        // function ($value) {
-        //     // $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
-        //     //     $query->where('role_id', '=', $value);
-        //     // });
-        //     dd($value);
-        //     $this->crud->addClause('where', 'category', $value);
-        // });
-
         $this->card->addCard([
             'name' => 'project',
             'line' => 'bottom',
@@ -326,6 +309,106 @@ class ProfitLostAccountCrudController extends CrudController{
             ]
         ]);
 
+        $this->card->addCard([
+            'name' => 'profit-lost-plugin',
+            'line' => 'top',
+            'view' => 'crud::components.profit-lost-plugin',
+            'parent_view' => 'crud::components.filter-parent',
+            'params' => [],
+        ]);
+
+    }
+
+    public function get_total_excl_ppn_final_profit(){
+        $request = request();
+        $referenceType = 'App\\Models\\AccountTransaction';      // isi param kamu
+        $castNameLike  = '%kas kecil%';
+        $category      = ($request->has('category')) ? $request->category : null;
+
+        // ============ SUBQUERY: vouchers ===============
+        $vouchers = DB::table('vouchers')
+            ->select('client_po_id', DB::raw('SUM(payment_transfer) AS payment_transfer'))
+            ->groupBy('client_po_id');
+
+        // ============ SUBQUERY: small_cash ===============
+        $smallCash = DB::table('account_transactions')
+            ->select(
+                DB::raw('(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash'),
+                'account_transactions.kdp as kdp'
+            )
+            ->leftJoin('journal_entries', function($join) use ($referenceType) {
+                $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                    ->where('journal_entries.reference_type', '=', $referenceType);
+            })
+            ->whereExists(function($query) use ($castNameLike) {
+                $query->select(DB::raw(1))
+                    ->from('cast_accounts')
+                    ->whereColumn('cast_accounts.id', 'account_transactions.cast_account_id')
+                    ->where('cast_accounts.name', 'LIKE', $castNameLike);
+            })
+            ->groupBy('account_transactions.kdp');
+
+        // ============ SUBQUERY: invoice_clients ===============
+        $invoiceClients = DB::table('invoice_clients')
+            ->select(
+                'client_po_id',
+                DB::raw("GROUP_CONCAT(invoice_date SEPARATOR ',') AS invoice_date"),
+                DB::raw("SUM(price_total_exclude_ppn) AS price_job_exlude_ppn"),
+                DB::raw("SUM(price_total_include_ppn) AS price_job_include_ppn")
+            )
+            ->groupBy('client_po_id');
+
+        // ============ QUERY UTAMA ===============
+        $mainQuery = DB::table('project_profit_lost')
+            ->select([
+                'project_profit_lost.*',
+                'invoice_clients.invoice_date',
+                'invoice_clients.price_job_exlude_ppn',
+                'invoice_clients.price_job_include_ppn',
+                'vouchers.payment_transfer as payment_voucher',
+                'client_po.work_code',
+                'client_po.po_number',
+                'client_po.reimburse_type',
+                'client_po.job_name',
+                'client_po.job_value',
+                'client_po.job_value_include_ppn',
+                DB::raw('IFNULL(small_cash.total_small_cash, 0) as total_small_cash'),
+                DB::raw('(IFNULL(project_profit_lost.price_after_year,0)
+                        + IFNULL(vouchers.payment_transfer,0)
+                        + IFNULL(small_cash.total_small_cash,0)
+                    ) AS price_total_str'),
+                DB::raw('(client_po.job_value_include_ppn -
+                        (IFNULL(project_profit_lost.price_after_year,0)
+                        + IFNULL(vouchers.payment_transfer,0)
+                        + IFNULL(small_cash.total_small_cash,0))
+                    ) AS price_profit_lost_str'),
+                DB::raw('
+                    ((client_po.job_value_include_ppn -
+                        (IFNULL(project_profit_lost.price_after_year,0)
+                        + IFNULL(vouchers.payment_transfer,0)
+                        + IFNULL(small_cash.total_small_cash,0)))
+                    - IFNULL(project_profit_lost.price_general, 0)
+                ) AS price_prift_lost_final_str')
+            ])
+            ->leftJoin('client_po', 'client_po.id', 'project_profit_lost.client_po_id')
+            ->leftJoinSub($vouchers, 'vouchers', 'vouchers.client_po_id', 'client_po.id')
+            ->leftJoinSub($smallCash, 'small_cash', 'small_cash.kdp', 'client_po.work_code')
+            ->leftJoinSub($invoiceClients, 'invoice_clients', 'invoice_clients.client_po_id', 'client_po.id');
+
+        if($category){
+            $mainQuery = $mainQuery->where('client_po.category', $category);
+        }
+        // ============ BUNGKUS SUBQUERY + SUM ===============
+        $result = DB::query()
+            ->fromSub($mainQuery, 't')
+            ->selectRaw('SUM(t.price_job_exlude_ppn) AS total_price_job_exclude_ppn')
+            ->selectRaw('SUM(t.price_prift_lost_final_str) AS total_price_prift_lost_final_str')
+            ->first();
+
+        return response()->json([
+            'total_price_exlude_ppn' => $result->total_price_job_exclude_ppn ?? 0,
+            'total_price_prift_lost_finals' => $result->total_price_prift_lost_final_str ?? 0
+        ]);
     }
 
     public function select2Account(){
@@ -2351,7 +2434,5 @@ class ProfitLostAccountCrudController extends CrudController{
             'message' => 'Download Failure',
         ], 400);
     }
-
-
 
 }

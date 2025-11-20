@@ -729,7 +729,7 @@ return [
         'title_modal_delete_consolidation' => 'Akun Laba Rugi Konsolidasi',
         'title_modal_create_project' => '',
         'title_modal_edit_project' => '',
-
+        "total_profit_lost" => "Jumlah Laba/Rugi Akhir",
         'title_modal_create_project' => 'Tambah Laporan Laba Rugi Proyek',
         'title_modal_delete' => 'Akun Biaya',
         'empty_account' => 'Belum ada akun',

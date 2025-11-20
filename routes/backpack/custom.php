@@ -144,6 +144,7 @@ Route::group([
         Route::post('profit-lost/select2-po', [ProfitLostAccountCrudController::class, 'select2Po']);
         Route::post('profit-lost/select2-account', [ProfitLostAccountCrudController::class, 'select2Account']);
         Route::get('profit-lost/get_client_selected_ajax', [ProfitLostAccountCrudController::class, 'get_client_selected_ajax']);
+        Route::get('profit-lost/total', [ProfitLostAccountCrudController::class, 'get_total_excl_ppn_final_profit']);
         Route::get('profit-lost/report-total', [ProfitLostAccountCrudController::class, 'total_report_account_profit_lost_ajax']);
         Route::post('profit-lost/export-pdf', [ProfitLostAccountCrudController::class, 'exportPdf']);
         Route::post('profit-lost/export-excel', [ProfitLostAccountCrudController::class, 'exportExcel']);

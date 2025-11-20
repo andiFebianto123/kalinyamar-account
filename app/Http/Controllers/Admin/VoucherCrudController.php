@@ -239,8 +239,6 @@ class VoucherCrudController extends CrudController {
             }
         }
 
-
-
         $data = $data
         ->first();
 
