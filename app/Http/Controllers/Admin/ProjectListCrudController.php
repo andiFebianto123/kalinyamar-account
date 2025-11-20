@@ -38,9 +38,10 @@ class ProjectListCrudController extends CrudController {
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW PROJECT',
-            'AKSES SEMUA MENU PROJECT',
-            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+            // 'AKSES SEMUA VIEW PROJECT',
+            // 'AKSES SEMUA MENU PROJECT',
+            // 'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+            'MENU INDEX MONITORING PROYEK DAFTAR PROYEK',
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);

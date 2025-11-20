@@ -31,9 +31,10 @@ class QuotationCheckCrudController extends CrudController {
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW PROJECT',
-            'AKSES SEMUA MENU PROJECT',
-            'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
+            // 'AKSES SEMUA VIEW PROJECT',
+            // 'AKSES SEMUA MENU PROJECT',
+            // 'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
+            'MENU INDEX MONITORING PROYEK PROYEKSI PEKERJAAN'
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);

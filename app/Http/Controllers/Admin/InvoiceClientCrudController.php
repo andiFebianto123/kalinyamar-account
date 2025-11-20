@@ -55,8 +55,9 @@ class InvoiceClientCrudController extends CrudController
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW ACCOUNTING',
-            'AKSES SEMUA MENU ACCOUNTING',
+            // 'AKSES SEMUA VIEW ACCOUNTING',
+            // 'AKSES SEMUA MENU ACCOUNTING',
+            "MENU INDEX INVOICE"
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);

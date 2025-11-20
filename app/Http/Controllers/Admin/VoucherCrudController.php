@@ -45,9 +45,10 @@ class VoucherCrudController extends CrudController {
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW ACCOUNTING',
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU FA'
+            // 'AKSES SEMUA VIEW ACCOUNTING',
+            // 'AKSES SEMUA MENU ACCOUNTING',
+            // 'AKSES MENU FA'
+            "MENU INDEX FA VOUCHER",
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);

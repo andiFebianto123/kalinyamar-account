@@ -40,9 +40,10 @@ class ClientCrudController extends CrudController
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW ACCOUNTING',
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU CLIENT'
+            // 'AKSES SEMUA VIEW ACCOUNTING',
+            // 'AKSES SEMUA MENU ACCOUNTING',
+            // 'AKSES MENU CLIENT'
+            'MENU INDEX CLIENT DAFTAR CLIENT'
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);

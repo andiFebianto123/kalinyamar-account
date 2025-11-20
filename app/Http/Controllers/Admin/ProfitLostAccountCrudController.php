@@ -40,8 +40,9 @@ class ProfitLostAccountCrudController extends CrudController{
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW ACCOUNTING',
-            'AKSES SEMUA MENU ACCOUNTING',
+            // 'AKSES SEMUA VIEW ACCOUNTING',
+            // 'AKSES SEMUA MENU ACCOUNTING',
+            "MENU INDEX LAPORAN KEUANGAN LABA RUGI"
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);

@@ -47,9 +47,10 @@ class SubkonCrudController extends CrudController
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         if($permissions->whereIn('name', [
-            'AKSES SEMUA VIEW ACCOUNTING',
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU VENDOR'
+            // 'AKSES SEMUA VIEW ACCOUNTING',
+            // 'AKSES SEMUA MENU ACCOUNTING',
+            // 'AKSES MENU VENDOR'
+            'MENU INDEX VENDOR DAFTAR SUBKON'
         ])->count() > 0)
         {
             $this->crud->allowAccess(['list', 'show']);
