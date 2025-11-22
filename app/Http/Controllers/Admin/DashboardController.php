@@ -163,21 +163,22 @@ class DashboardController extends CrudController
     }
 
     public function totalJobRealisasion(){
-        $omset_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
-        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+        $omset_rutin = InvoiceClient::selectRaw('
+            COUNT(id) as total_invoice,
+            SUM(price_total_include_ppn) as total_omzet
+        ')
+        ->whereExists(function ($q) {
+            $q->select(DB::raw(1))
+                ->from('client_po')
+                ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
+                ->where('client_po.category', 'RUTIN')
+                ->whereExists(function ($q2) {
+                    $q2->select(DB::raw(1))
+                        ->from('project_profit_lost')
+                        ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+                });
         })
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('project_profit_lost')
-                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        })
-        ->where('client_po.category', 'RUTIN')
-        ->groupBy('client_po.category')
-        ->get();
+        ->first();
 
         $biaya_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
         ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
@@ -190,21 +191,22 @@ class DashboardController extends CrudController
         ->groupBy('client_po.category')
         ->get();
 
-        $omset_non_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
-        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+        $omset_non_rutin = InvoiceClient::selectRaw('
+            COUNT(id) as total_invoice,
+            SUM(price_total_include_ppn) as total_omzet
+        ')
+        ->whereExists(function ($q) {
+            $q->select(DB::raw(1))
+                ->from('client_po')
+                ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
+                ->where('client_po.category', 'NON RUTIN')
+                ->whereExists(function ($q2) {
+                    $q2->select(DB::raw(1))
+                        ->from('project_profit_lost')
+                        ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+                });
         })
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('project_profit_lost')
-                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        })
-        ->where('client_po.category', 'RUTIN')
-        ->groupBy('client_po.category')
-        ->get();
+        ->first();
 
         $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
         ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
@@ -218,9 +220,9 @@ class DashboardController extends CrudController
         ->get();
 
         return [
-            'total_omzet_rutin' => CustomHelper::formatRupiah($omset_rutin[0]?->nilai_biaya ?? 0),
+            'total_omzet_rutin' => CustomHelper::formatRupiah($omset_rutin->total_omzet ?? 0),
             'total_biaya_rutin' => CustomHelper::formatRupiah($biaya_rutin[0]?->nilai_biaya ?? 0),
-            'total_omzet_non_rutin' => CustomHelper::formatRupiah($omset_non_rutin[0]?->nilai_biaya ?? 0),
+            'total_omzet_non_rutin' => CustomHelper::formatRupiah($omset_non_rutin->total_omzet ?? 0),
             'total_biaya_non_rutin' => CustomHelper::formatRupiah($biaya_non_rutin[0]?->nilai_biaya ?? 0),
         ];
     }

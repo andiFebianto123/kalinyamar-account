@@ -63,7 +63,12 @@
         }
     </style>
     <script>
-        function bpFieldInitSelect2(element){
+        async function bpFieldInitSelect2(element){
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(1);
+                }, 100);
+            })
             element.select2({
                 // theme: 'bootstrap-5',
                 width: '100%',

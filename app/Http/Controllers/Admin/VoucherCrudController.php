@@ -3969,7 +3969,7 @@ class VoucherCrudController extends CrudController {
         $voucher->discount_pph_21_str = CustomHelper::formatRupiahWithCurrency($voucher->discount_pph_21);
         $voucher->payment_transfer_str = CustomHelper::formatRupiahWithCurrency($voucher->payment_transfer);
 
-        $pdf = Pdf::loadView('exports.voucher-pdf', [
+        $pdf = Pdf::loadView('exports.voucher-pdf-origin', [
             'voucher' => $voucher,
         ])
         ->setPaper('A4', 'portrait');
