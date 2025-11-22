@@ -3969,6 +3969,38 @@ class VoucherCrudController extends CrudController {
         $voucher->discount_pph_21_str = CustomHelper::formatRupiahWithCurrency($voucher->discount_pph_21);
         $voucher->payment_transfer_str = CustomHelper::formatRupiahWithCurrency($voucher->payment_transfer);
 
+        $voucher->price_ppn_str = ($voucher->bill_value * ($voucher->tax_ppn/100));
+        $voucher->price_ppn_str = CustomHelper::formatRupiahWithCurrency($voucher->price_ppn_str);
+
+        if($voucher->reference == PurchaseOrder::class){
+            $voucher->reference_date_str = $voucher->reference->date_po;
+            $voucher->reference_date_str = Carbon::parse($voucher->reference_date_str)->format('d F Y');
+        }else{
+            $voucher->reference_date_str = $voucher->reference->date_spk;
+            $voucher->reference_date_str = Carbon::parse($voucher->reference_date_str)->format('d F Y');
+        }
+
+        $voucher->date_receipt_bill_str = Carbon::parse($voucher->date_receipt_bill)->format('d F Y');
+        $voucher->date_voucher_str = Carbon::parse($voucher->date_voucher)->format('d F Y');
+        $voucher->due_date_str = Carbon::parse($voucher->due_date)->format('d F Y');
+        $voucher->bill_date_str = Carbon::parse($voucher->bill_date)->format('d F Y');
+
+        $voucher->date_factur_str = '';
+        if($voucher->date_factur){
+            $voucher->date_factur_str = Carbon::parse($voucher->date_factur)->format('d F Y');
+        }
+
+        $voucher->payment_date_str = '';
+        if($voucher->payment_date){
+            $voucher->payment_date_str = Carbon::parse($voucher->payment_date)->format('d F Y');
+        }
+
+        $numberToWords = new \NumberToWords\NumberToWords();
+        $numberTransformer = $numberToWords->getNumberTransformer('id');
+        $voucher->payment_transfer_word = ucwords($numberTransformer->toWords($voucher->payment_transfer));
+
+        $voucher->date_now_str = Carbon::now()->format('d F Y');
+
         $pdf = Pdf::loadView('exports.voucher-pdf-origin', [
             'voucher' => $voucher,
         ])

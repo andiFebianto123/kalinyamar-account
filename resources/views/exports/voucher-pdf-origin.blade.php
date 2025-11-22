@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Voucher - {{$voucher->no_voucher}}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -97,10 +97,10 @@
                 <img src="{{ public_path('kalinyamat-logo-export.jpeg') }}" alt="" style="height: 40px;">
             </td>
             <td style="width: 40%; text-align: center; font-size: 22px;">
-                <b>Nama Rek.</b>
+                <b>{{$voucher->account_source->name}}</b>
             </td>
             <td style="width: 30%; text-align: center;">
-                <small>50102 - Biaya Sewa dan Jasa (tdk final)</small>
+                <small>{{$voucher->account->code}} - {{$voucher->account->name}}</small>
             </td>
         </tr>
     </table>
@@ -112,30 +112,30 @@
     <table width="100%" class="info-table" border="0" cellspacing="0" cellpadding="0" style="font-size:12px;">
         <tr>
             <td style="width: 20%;">Dibayarkan Kepada</td>
-            <td style="width: 30%;">: CV. ANUGRAH CIPTA NADJWA</td>
+            <td style="width: 30%;">: {{$voucher?->subkon?->name}}</td>
             <td style="width: 20%;">No. Rekening</td>
-            <td style="width: 30%;">: 11111111</td>
+            <td style="width: 30%;">: {{$voucher?->subkon?->bank_account}}</td>
         </tr>
 
         <tr>
             <td>NPWP</td>
-            <td>: 000000000000</td>
+            <td>: {{$voucher?->subkon?->npwp}}</td>
             <td>A/N</td>
-            <td>: CV. ANUGRAH CIPTA NADJWA</td>
+            <td>: {{$voucher?->subkon?->account_holder_name}}</td>
         </tr>
 
         <tr>
             <td>Alamat</td>
-            <td>: Jl Raya Jepara</td>
+            <td>: {{$voucher?->subkon?->address}}</td>
             <td>Bank</td>
-            <td>: Mandiri</td>
+            <td>: {{$voucher?->subkon?->bank_name}}</td>
         </tr>
     </table>
 
     <table class="section-title">
         <tr>
-            <td style="width: 20%;">KDP005</td>
-            <td style="width: 30%;">: ASH YARD MANAGEMENT</td>
+            <td style="width: 20%;">{{$voucher?->client_po?->work_code}}</td>
+            <td style="width: 30%;">: {{$voucher?->client_po?->job_name}}</td>
             <td style="width: 20%;"></td>
             <td style="width: 30%;"></td>
         </tr>
@@ -144,27 +144,27 @@
     <div class="section-detail">
         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size:12px;">
             <tr>
-                <td style="width:440px;" valign="top">
+                <td style="width:430px;" valign="top">
                     <table border="0" cellspacing="0" cellpadding="0">
                         <tr>
                             <td width="20%">No. Pengajuan Pembayaran</td>
-                            <td width="5%">:</td>
-                            <td>979</td>
+                            <td style="width: 10px;">:</td>
+                            <td>{{$voucher?->bill_number}}</td>
                         </tr>
                         <tr>
                             <td>Deskripsi Pembayaran</td>
                             <td>:</td>
-                            <td>RENTAL 3 TRUK TANGKI BESERTA DRIVER PERIODE NOVEMBER 2024 - PLN TJB PLN NPS</td>
+                            <td>{{$voucher?->payment_description}}</td>
                         </tr>
                         <tr>
                             <td>PO / SPK</td>
                             <td>:</td>
-                            <td>004/SPK.KP/I/24</td>
+                            <td>{{$voucher?->reference?->po_number ?? $voucher?->reference?->no_spk}}</td>
                         </tr>
                         <tr>
                             <td>Tgl PO / SPK</td>
                             <td>:</td>
-                            <td>2 Januari 2024</td>
+                            <td>{{ $voucher?->reference_date_str }}</td>
                         </tr>
                     </table>
                 </td>
@@ -173,22 +173,22 @@
                         <tr>
                             <td width="40%">Tgl Terima Tagihan</td>
                             <td width="5%">:</td>
-                            <td wdidth="30%">8 Januari 2025</td>
+                            <td wdidth="30%">{{$voucher?->date_receipt_bill_str}}</td>
                         </tr>
                         <tr>
                             <td>No. Voucher</td>
                             <td>:</td>
-                            <td>115/VCH</td>
+                            <td>{{$voucher?->no_voucher}}</td>
                         </tr>
                         <tr>
                             <td>Tgl Voucher</td>
                             <td>:</td>
-                            <td>30 Januari 2025</td>
+                            <td>{{$voucher?->date_voucher_str}}</td>
                         </tr>
                         <tr>
                             <td>Jatuh Tempo Tagihan</td>
                             <td>:</td>
-                            <td>30 Januari 2025</td>
+                            <td>{{$voucher?->due_date_str}}</td>
                         </tr>
                     </table>
                 </td>
@@ -206,22 +206,22 @@
                         <tr>
                             <td>Nomor</td>
                             <td>:</td>
-                            <td>28/I/ACN/2025</td>
+                            <td>{{$voucher?->bill_number}}</td>
                         </tr>
                         <tr>
                             <td>Tanggal</td>
                             <td>:</td>
-                            <td>06 Januari 2025</td>
+                            <td>{{$voucher?->bill_date_str}}</td>
                         </tr>
                         <tr>
                             <td>Nilai Tagihan</td>
                             <td>:</td>
-                            <td>Rp 29.081.634</td>
+                            <td>{{$voucher->bill_value_str}}</td>
                         </tr>
                         <tr>
                             <td>PPn</td>
                             <td>:</td>
-                            <td>Rp 12.000.500</td>
+                            <td>{{$voucher->price_ppn_str}}</td>
                         </tr>
                         <tr>
                             <td style="padding-top:20px;"></td>
@@ -231,7 +231,7 @@
                         <tr>
                             <td>Total Tagihan</td>
                             <td>:</td>
-                            <td>23.000.000</td>
+                            <td>{{$voucher?->total_str}}</td>
                         </tr>
                     </table>
                 </td>
@@ -245,39 +245,39 @@
                         </tr>
                         <tr>
                             <td>PPh Pasal 23</td>
-                            <td><center>2%</center></td>
+                            <td><center>{{($voucher->pph_23 > 0) ? $voucher->pph_23.'%' : ''}}</center></td>
                             <td>:</td>
-                            <td>Rp 230.000.000</td>
+                            <td>{{$voucher->discount_pph_23_str}}</td>
                         </tr>
                         <tr>
                             <td>PPh Pasal 4 (2)</td>
-                            <td><center>10%</center></td>
+                            <td><center>{{($voucher->pph_4 > 0) ? $voucher->pph_4.'%' : ''}}</center></td>
                             <td>:</td>
-                            <td>Rp 20.000.000</td>
+                            <td>{{$voucher->discount_pph_4_str}}</td>
                         </tr>
                         <tr>
                             <td>PPh Pasal 21</td>
-                            <td><center></center></td>
+                            <td><center>{{($voucher->pph_21 > 0) ? $voucher->pph_21.'%' : ''}}</center></td>
                             <td>:</td>
-                            <td>Rp 12.000.000</td>
+                            <td>{{$voucher->discount_pph_21_str}}</td>
                         </tr>
                         <tr>
                             <td>Status Faktur</td>
                             <td></td>
                             <td>:</td>
-                            <td><center>ADA</center></td>
+                            <td><center>{{$voucher?->factur_status}}</center></td>
                         </tr>
                         <tr>
                             <td>No. Faktur</td>
                             <td></td>
                             <td>:</td>
-                            <td>010.009-25.39269585</td>
+                            <td>{{$voucher?->no_factur}}</td>
                         </tr>
                         <tr>
                             <td>Tgl. Faktur</td>
                             <td></td>
                             <td>:</td>
-                            <td>06 Januari 2025</td>
+                            <td>{{$voucher?->date_factur_str}}</td>
                         </tr>
                     </table>
                 </td>
@@ -290,10 +290,10 @@
             <td style="font-weight: bold; width: 75%;">
                 <center>Total Pembayaran</center>
             </td>
-            <td rowspan="2"><center><span>Rp</span> <strong>31.698.981,06</strong></center></td>
+            <td rowspan="2"><center><span></span> <strong>{{$voucher?->payment_transfer_str}}</strong></center></td>
         </tr>
         <tr>
-            <td><center>(Tiga Puluh Satu Juta Enam Ratus Sembilan Puluh Delapan Ribu Sembilan Ratus Delapan Puluh Satu Rupiah)</center></td>
+            <td><center>({{$voucher?->payment_transfer_word}} Rupiah)</center></td>
         </tr>
     </table>
 
@@ -303,7 +303,7 @@
                 <!-- Kolom Keterangan -->
                 <td width="50%" valign="top" height="130">
                     <b>Keterangan :</b><br>
-                    - Belum termasuk lembur
+                    - {{$voucher?->information}}
                 </td>
 
                 <!-- Kolom Tanda Tangan -->
@@ -334,7 +334,7 @@
                                         text-align: center;
                                         padding-top: 8px;
                                     ">
-                                        06 Februari 2025
+                                        {{$voucher?->payment_date_str}}
                                     </div>
                                 </div>
                                 <div>
@@ -354,10 +354,10 @@
                     <span><i>Cetak Tanggal</i></span>
                 </td>
                 <td width="30%">
-                    <i>sesuai tgl cetak voucher</i>
+                    <i>{{$voucher?->date_now_str}}</i>
                 </td>
                 <td width="50%">
-                    <span style="padding-left: 12px;">Status Bayar &nbsp;</span> : &nbsp; <span>BELUM BAYAR</span>
+                    <span style="padding-left: 12px;">Status Bayar &nbsp;</span> : &nbsp; <span>{{$voucher?->payment_status}}</span>
                 </td>
             </tr>
         </table>

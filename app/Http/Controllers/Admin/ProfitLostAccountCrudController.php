@@ -406,8 +406,8 @@ class ProfitLostAccountCrudController extends CrudController{
             ->first();
 
         return response()->json([
-            'total_price_exlude_ppn' => $result->total_price_job_exclude_ppn ?? 0,
-            'total_price_prift_lost_finals' => $result->total_price_prift_lost_final_str ?? 0
+            'total_price_exlude_ppn' => CustomHelper::formatRupiahWithCurrency($result->total_price_job_exclude_ppn ?? 0),
+            'total_price_prift_lost_finals' => CustomHelper::formatRupiahWithCurrency($result->total_price_prift_lost_final_str ?? 0)
         ]);
     }
 
