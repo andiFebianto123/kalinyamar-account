@@ -295,7 +295,7 @@ class DashboardController extends CrudController
         return [
             'total_job_value' => CustomHelper::formatRupiah($monitoring_result_1->job_value ?? 0),
             'total_transfer' => CustomHelper::formatRupiah($monitoring_result_2->total_transfer ?? 0),
-            'total_profit_lost' => CustomHelper::formatRupiah($monitoring_result_1->profit_lost ?? 0), 
+            'total_profit_lost' => CustomHelper::formatRupiah(($monitoring_result_1->job_value - $monitoring_result_2->total_transfer) ?? 0), 
             'total_job' => $monitoring_result_1->total_job
         ];
     }
