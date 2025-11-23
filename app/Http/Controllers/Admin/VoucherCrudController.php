@@ -3977,8 +3977,8 @@ class VoucherCrudController extends CrudController {
             $voucher->reference_date_str = $voucher->reference->date_po;
             $voucher->reference_date_str = Carbon::parse($voucher->reference_date_str)->translatedFormat('d F Y');
         }else{
-            $voucher->reference_date_str = $voucher->reference->date_spk;
-            $voucher->reference_date_str = Carbon::parse($voucher->reference_date_str)->translatedFormat('d F Y');
+            $voucher->reference_date_str = $voucher?->reference?->date_spk;
+            $voucher->reference_date_str = $voucher->reference_date_str ? Carbon::parse($voucher->reference_date_str)->translatedFormat('d F Y') : '';
         }
 
         $voucher->date_receipt_bill_str = Carbon::parse($voucher->date_receipt_bill)->translatedFormat('d F Y');

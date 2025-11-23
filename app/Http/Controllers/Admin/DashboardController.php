@@ -268,24 +268,36 @@ class DashboardController extends CrudController
     }
 
     public function dataNonRutinMonitoring(){
-        $monitoring = ProjectProfitLost::select(
-            DB::raw('COUNT(client_po.id) as total_client'),
-            DB::raw('SUM(client_po.job_value_include_ppn) as total_job_value'),
-            DB::raw('SUM(vouchers.payment_transfer) as total_price_payment')
-        )
-        ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id')
-        ->leftJoin('vouchers', 'vouchers.client_po_id', '=', 'client_po.id')
+        $monitoring_result_1 = ClientPo::selectRaw('
+            SUM(job_value) as job_value, 
+            COUNT(id) as total_job,
+            SUM(profit_and_lost_final) as profit_lost
+        ')
+        ->where('category', 'NON RUTIN')
         ->whereNotExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
                 ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
         })
+        ->first();
+
+        $monitoring_result_2 = DB::table('vouchers')
+        ->leftJoin('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+        ->selectRaw('SUM(vouchers.payment_transfer) as total_transfer')
         ->where('client_po.category', 'NON RUTIN')
-        ->get();
-        foreach($monitoring as $mon){
-            $mon->total_laba = $mon?->total_job_value - $mon?->total_price_payment;
-        }
-        return $monitoring;
+        ->whereNotExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('invoice_clients')
+                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+        })
+        ->first();
+
+        return [
+            'total_job_value' => CustomHelper::formatRupiah($monitoring_result_1->job_value ?? 0),
+            'total_transfer' => CustomHelper::formatRupiah($monitoring_result_2->total_transfer ?? 0),
+            'total_profit_lost' => CustomHelper::formatRupiah($monitoring_result_1->profit_lost ?? 0), 
+            'total_job' => $monitoring_result_1->total_job
+        ];
     }
 
     public function totalAlldashboard(){
