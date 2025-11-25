@@ -47,16 +47,18 @@ class ProjectListCrudController extends CrudController {
             $this->crud->allowAccess(['list', 'show']);
         }
 
-        if($permissions->whereIn('name',[
-            'AKSES SEMUA MENU PROJECT',
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+        if(!$user->hasRole('DIR / MGR')){
+            if($permissions->whereIn('name',[
+                'AKSES SEMUA MENU PROJECT',
+            ])->count() > 0){
+                $this->crud->allowAccess(['create', 'update', 'delete']);
+            }
 
-        if($permissions->whereIn('name', [
-            'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
-        ])){
-            $this->crud->allowAccess(['update']);
+            if($permissions->whereIn('name', [
+                'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
+            ])){
+                $this->crud->allowAccess(['update']);
+            }
         }
     }
 

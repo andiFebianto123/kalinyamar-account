@@ -43,12 +43,15 @@ class QuotationCrudController extends CrudController {
             $this->crud->allowAccess(['list', 'show']);
         }
 
-        if($permissions->whereIn('name',[
-            'AKSES SEMUA MENU PROJECT',
-            'AKSES SEMUA DAFTAR PENAWARAN PROJECT'
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
+        if(!$user->hasRole('DIR / MGR')){
+            if($permissions->whereIn('name',[
+                'AKSES SEMUA MENU PROJECT',
+                'AKSES SEMUA DAFTAR PENAWARAN PROJECT'
+            ])->count() > 0){
+                $this->crud->allowAccess(['create', 'update', 'delete']);
+            }
         }
+
     }
 
     function index(){

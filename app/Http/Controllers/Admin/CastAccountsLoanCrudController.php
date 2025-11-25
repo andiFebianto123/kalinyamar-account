@@ -52,10 +52,12 @@ class CastAccountsLoanCrudController extends CrudController
             $this->crud->allowAccess(['list', 'show']);
         }
 
-        if($permissions->whereIn('name',[
-            'AKSES SEMUA MENU ACCOUNTING',
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
+        if(!$user->hasRole('DIR / MGR')){
+            if($permissions->whereIn('name',[
+                'AKSES SEMUA MENU ACCOUNTING',
+            ])->count() > 0){
+                $this->crud->allowAccess(['create', 'update', 'delete']);
+            }   
         }
     }
 
