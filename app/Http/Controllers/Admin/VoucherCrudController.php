@@ -69,10 +69,6 @@ class VoucherCrudController extends CrudController {
     function total_voucher(){
 
         $request = request();
-        // $user_id = backpack_user()->id;
-        // $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
-        // ->where('id', $user_id)
-        // ->get();
 
         $data = Voucher::selectRaw('
             SUM(bill_value) as jumlah_exclude_ppn,
@@ -90,18 +86,6 @@ class VoucherCrudController extends CrudController {
             $join->on('v_e.voucher_id', '=', 'vouchers.id');
         })
         ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
-
-        // if($user_approval->count() > 0){
-        //     $data = $data
-        //     ->leftJoin('approvals', function ($join) use($user_id){
-        //         $join->on('approvals.model_id', '=', 'voucher_edit.id')
-        //             ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
-        //             ->where('approvals.user_id', $user_id);
-        //     });
-        // }
-        // else{
-
-        // }
 
         $a_p = DB::table('approvals')
         ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
@@ -474,7 +458,6 @@ class VoucherCrudController extends CrudController {
             'parent_view' => 'crud::components.filter-parent',
             'params' => [],
         ]);
-
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
@@ -984,10 +967,6 @@ class VoucherCrudController extends CrudController {
         $settings = Setting::first();
         if($tab == 'voucher'){
             CRUD::setModel(Voucher::class);
-            // $user_id = backpack_user()->id;
-            // $user_approval = \App\Models\User::permission(['APPROVE VOUCHER', 'APPROVE EDIT VOUCHER'])
-            // ->where('id', $user_id)
-            // ->get();
 
             // voucher_edit_terbaru
             $v_e = DB::table('voucher_edit')
@@ -1001,15 +980,6 @@ class VoucherCrudController extends CrudController {
             })
             ->leftJoin('voucher_edit', 'voucher_edit.id', '=', 'v_e.id');
 
-            // if($user_approval->count() > 0){
-            //     $this->crud->query = $this->crud->query
-            //     ->leftJoin('approvals', function ($join) use($user_id){
-            //         $join->on('approvals.model_id', '=', 'voucher_edit.id')
-            //             ->where('approvals.model_type', 'App\\Models\\VoucherEdit')
-            //             ->where('approvals.user_id', $user_id);
-            //     });
-            // }else{
-            // }
             $a_p = DB::table('approvals')
             ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
             ->groupBy('model_type', 'model_id');
@@ -1318,6 +1288,17 @@ class VoucherCrudController extends CrudController {
                 'type'  => 'closure',
                 'function' => function($entry){
                     return str_replace('.00', '', $entry->tax_ppn);
+                },
+            ]);
+
+            CRUD::column([
+                'name' => 'total_price_ppn',
+                'label' => trans('backpack::crud.voucher.field.total_price_ppn.label'),
+                'type'  => 'closure',
+                'function' => function($entry){
+                    $ppn = (int) $entry->tax_ppn;
+                    $total_price_ppn = $entry->bill_value * ($ppn / 100);
+                    return $total_price_ppn;
                 },
             ]);
 

@@ -1112,7 +1112,7 @@ return [
             ],
             'payment_type' => [
                 'label' => 'Jenis Pembayaran',
-                'placeholder' => '- JENIS PEMBAYARAN',
+                'placeholder' => '- JENIS PEKERJAAN',
             ],
             'payment_status' => [
                 'label' => 'Status Bayar',

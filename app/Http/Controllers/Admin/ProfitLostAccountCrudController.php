@@ -330,7 +330,11 @@ class ProfitLostAccountCrudController extends CrudController{
 
         // ============ SUBQUERY: vouchers ===============
         $vouchers = DB::table('vouchers')
-            ->select('client_po_id', DB::raw('SUM(payment_transfer) AS payment_transfer'))
+            ->select(
+                'client_po_id', 
+                DB::raw('SUM(payment_transfer) AS payment_transfer'),
+                DB::raw('SUM(total) AS voucher_biaya')
+            )
             ->groupBy('client_po_id');
 
         // ============ SUBQUERY: small_cash ===============
@@ -369,6 +373,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 'invoice_clients.price_job_exlude_ppn',
                 'invoice_clients.price_job_include_ppn',
                 'vouchers.payment_transfer as payment_voucher',
+                'vouchers.voucher_biaya as voucher_biaya',
                 'client_po.work_code',
                 'client_po.po_number',
                 'client_po.reimburse_type',
@@ -377,18 +382,18 @@ class ProfitLostAccountCrudController extends CrudController{
                 'client_po.job_value_include_ppn',
                 DB::raw('IFNULL(small_cash.total_small_cash, 0) as total_small_cash'),
                 DB::raw('(IFNULL(project_profit_lost.price_after_year,0)
-                        + IFNULL(vouchers.payment_transfer,0)
+                        + IFNULL(vouchers.voucher_biaya,0)
                         + IFNULL(small_cash.total_small_cash,0)
                     ) AS price_total_str'),
                 DB::raw('(client_po.job_value_include_ppn -
                         (IFNULL(project_profit_lost.price_after_year,0)
-                        + IFNULL(vouchers.payment_transfer,0)
+                        + IFNULL(vouchers.voucher_biaya,0)
                         + IFNULL(small_cash.total_small_cash,0))
                     ) AS price_profit_lost_str'),
                 DB::raw('
                     ((client_po.job_value_include_ppn -
                         (IFNULL(project_profit_lost.price_after_year,0)
-                        + IFNULL(vouchers.payment_transfer,0)
+                        + IFNULL(vouchers.voucher_biaya,0)
                         + IFNULL(small_cash.total_small_cash,0)))
                     - IFNULL(project_profit_lost.price_general, 0)
                 ) AS price_prift_lost_final_str')
@@ -1629,7 +1634,8 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 $voucher = DB::table('vouchers')->select(
                     'client_po_id',
-                    DB::raw("SUM(payment_transfer) as payment_transfer")
+                    DB::raw("SUM(payment_transfer) as payment_transfer"),
+                    DB::raw("SUM(total) as biaya")
                 )->groupBy('client_po_id');
 
                 $this->crud->query = $this->crud->query
@@ -1765,14 +1771,14 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::column([
                     'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
-                    'name' => 'payment_voucher',
+                    'name' => 'voucher_biaya',
                     'type'  => 'number',
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
                     'dec_point'     => ',',
                     'thousands_sep' => '.',
                     'orderLogic' => function ($query, $column, $columnDirection) {
-                        $query->orderBy('payment_voucher', $columnDirection);
+                        $query->orderBy('voucher_biaya', $columnDirection);
                     }
                 ]);
 
@@ -1877,6 +1883,7 @@ class ProfitLostAccountCrudController extends CrudController{
                         invoice_clients.price_job_exlude_ppn,
                         invoice_clients.price_job_include_ppn,
                         vouchers.payment_transfer as payment_voucher,
+                        vouchers.biaya as voucher_biaya,
                         client_po.work_code as work_code,
                         client_po.po_number as po_number,
                         client_po.reimburse_type as reimburse_type,
@@ -1884,9 +1891,9 @@ class ProfitLostAccountCrudController extends CrudController{
                         client_po.job_value as job_value,
                         client_po.job_value_include_ppn as job_value_include_ppn,
                         IFNULL(small_cash.total_small_cash, 0) as total_small_cash,
-                        (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.payment_transfer, 0) + IFNULL(small_cash.total_small_cash, 0)) as price_total_str,
-                        (client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.payment_transfer, 0) + IFNULL(small_cash.total_small_cash, 0))) as price_profit_lost_str,
-                        ((client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.payment_transfer, 0) + IFNULL(small_cash.total_small_cash, 0))) - IFNULL(project_profit_lost.price_general, 0)) as price_prift_lost_final_str
+                        (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0)) as price_total_str,
+                        (client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0))) as price_profit_lost_str,
+                        ((client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0))) - IFNULL(project_profit_lost.price_general, 0)) as price_prift_lost_final_str
                    ")
                 ]);
 
@@ -1968,6 +1975,295 @@ class ProfitLostAccountCrudController extends CrudController{
         // CRUD::addButtonFromView('top', 'filter_paid_unpaid', 'filter-paid_unpaid', 'beginning');
 
 
+    }
+
+    protected function setupListExportOperation(){
+        $settings = Setting::first();
+        $request = request();
+        if($request->has('type')){
+            if($request->type == 'project'){
+
+                CRUD::setModel(ProjectProfitLost::class);
+                $this->crud->query = $this->crud->query
+                ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
+                $invoice = DB::table('invoice_clients')
+                ->select(
+                    'invoice_clients.client_po_id',
+                    DB::raw("GROUP_CONCAT(invoice_clients.invoice_date SEPARATOR ',') AS invoice_date"),
+                    DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
+                    DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
+                )
+                ->groupBy('invoice_clients.client_po_id');
+
+                $small_cash = DB::table('account_transactions')
+                ->select([
+                    DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
+                    "account_transactions.kdp as kdp"
+                ])
+                ->leftJoin('journal_entries', function($join) {
+                    $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                        ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+                })
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('cast_accounts')
+                        ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
+                        ->where('cast_accounts.name', 'like', '%kas kecil%');
+                })
+                ->groupBy('account_transactions.kdp');
+
+                $voucher = DB::table('vouchers')->select(
+                    'client_po_id',
+                    DB::raw("SUM(payment_transfer) as payment_transfer"),
+                    DB::raw("SUM(total) as biaya")
+                )->groupBy('client_po_id');
+
+                $this->crud->query = $this->crud->query
+                ->leftJoinSub($voucher, 'vouchers', function($join) {
+                    $join->on('vouchers.client_po_id', '=', 'client_po.id');
+                });
+
+                $this->crud->query = $this->crud->query
+                ->leftJoinSub($small_cash, 'small_cash', function($join) {
+                    $join->on('small_cash.kdp', '=', 'client_po.work_code');
+                });
+
+                $this->crud->query = $this->crud->query
+                ->leftJoinSub($invoice, 'invoice_clients', function($join) {
+                    $join->on('invoice_clients.client_po_id', '=', 'client_po.id');
+                });
+
+                if($request->has('category')){
+                    $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
+                }
+
+                $this->crud->addColumn([
+                    'name'      => 'row_number',
+                    'type'      => 'row_number',
+                    'label'     => 'No',
+                    'orderable' => false,
+                    'wrapper' => [
+                        'element' => 'strong',
+                    ]
+                ])->makeFirstColumn();
+
+                CRUD::column([
+                    // 1-n relationship
+                    'label' => '',
+                    'type'      => 'closure',
+                    'name'      => 'client_po_id',
+                    'function' => function($entry) {
+                        return $entry->clientPo->client->name;
+                    }, // the column that contains the ID of that connected entity;
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
+                            $q->where('name', 'like', '%'.$searchTerm.'%');
+                        });
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.reimburse_type'),
+                    'name' => 'reimburse_type',
+                    'type' => 'text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('client_po.reimburse_type', 'like', '%'.$searchTerm.'%');
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.work_code'),
+                    'name' => 'work_code',
+                    'type' => 'text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('client_po.work_code', 'like', '%'.$searchTerm.'%');
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.po_number'),
+                    'name' => 'po_number',
+                    'type' => 'text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('client_po.po_number', 'like', '%'.$searchTerm.'%');
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.job_name'),
+                    'name' => 'job_name',
+                    'type' => 'wrap_text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('client_po.job_name', 'like', '%'.$searchTerm.'%');
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
+                    'name' => 'job_value',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        if($entry->invoice_date){
+                            // return $currency.number_format($entry->price_job_exlude_ppn, 2, ",", ".");
+                            return str_replace('.00', '', $entry->price_job_exlude_ppn);
+                        }
+                        // return $currency.number_format($entry->job_value, 2, ",", ".");
+                        return str_replace('.00', '', $entry->job_value);
+                    },                    
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('client_po.job_value', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
+                    'name' => 'job_value_include_ppn',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        if($entry->invoice_date){
+                            // dari invoice
+                            // return $currency.number_format($entry->price_job_include_ppn, 2, ",", ".");
+                            return str_replace('.00', '', $entry->price_job_include_ppn);
+                        }
+                        // return $currency.number_format($entry->job_value_include_ppn, 2, ",", ".");
+                        return str_replace('.00', '', $entry->job_value_include_ppn);
+                    },
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('client_po.job_value_include_ppn', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.price_after_year'),
+                    'name' => 'price_after_year',
+                    'type'  => 'closure',
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                    'function' => function($entry){
+                        return str_replace('.00', '', $entry->price_after_year);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
+                    'name' => 'voucher_biaya',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return str_replace('.00', '', $entry->voucher_biaya);
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('voucher_biaya', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.price_small_cash'),
+                    'name' => 'total_small_cash',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return str_replace('.00', '', $entry->total_small_cash);
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('total_small_cash', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.price_total'),
+                    'name' => 'price_total_str',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('price_total_str', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.profit_lost_po'),
+                    'name' => 'price_profit_lost_str',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('price_profit_lost_str', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
+                    'name' => 'price_general',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return str_replace('.00', '', $entry->price_general);
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('price_general', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
+                    'name' => 'price_prift_lost_final_str',
+                    'type'  => 'closure',
+                    'function' => function($entry){
+                        return str_replace('.00', '', $entry->price_prift_lost_final_str);  
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('price_prift_lost_final_str', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.category'),
+                    'type'      => 'text',
+                    'name'      => 'category',
+                ]);
+
+                CRUD::column([
+                    'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
+                    'type' => 'closure',
+                    'name' => 'invoice_date',
+                    'function' => function($entry){
+                        return $entry->invoice_date;
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('invoice_clients.invoice_date', $columnDirection);
+                    }
+                ]);
+
+                CRUD::addClause('select', [
+                    DB::raw("
+                        project_profit_lost.*,
+                        invoice_clients.invoice_date,
+                        invoice_clients.price_job_exlude_ppn,
+                        invoice_clients.price_job_include_ppn,
+                        vouchers.payment_transfer as payment_voucher,
+                        vouchers.biaya as voucher_biaya,
+                        client_po.work_code as work_code,
+                        client_po.po_number as po_number,
+                        client_po.reimburse_type as reimburse_type,
+                        client_po.job_name as job_name,
+                        client_po.job_value as job_value,
+                        client_po.job_value_include_ppn as job_value_include_ppn,
+                        IFNULL(small_cash.total_small_cash, 0) as total_small_cash,
+                        (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0)) as price_total_str,
+                        (client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0))) as price_profit_lost_str,
+                        ((client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0))) - IFNULL(project_profit_lost.price_general, 0)) as price_prift_lost_final_str
+                   ")
+                ]);
+
+            }
+        }
     }
 
     private function setupListExport(){
@@ -2199,7 +2495,8 @@ class ProfitLostAccountCrudController extends CrudController{
 
     public function exportPdf(){
 
-        $this->setupListExport();
+        // $this->setupListExport();
+        $this->setupListExportOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -2242,7 +2539,8 @@ class ProfitLostAccountCrudController extends CrudController{
 
     public function exportExcel(){
 
-        $this->setupListOperation();
+        $this->setupListExportOperation();
+        // $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();

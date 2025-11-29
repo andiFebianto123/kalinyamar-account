@@ -46,7 +46,7 @@ class DashboardController extends CrudController
         }
 
         return [
-            'invoice_first_date' => Carbon::parse($invoice_first->invoice_date)
+            'invoice_first_date' => Carbon::now()
             ->locale(App::getLocale())
             ->translatedFormat('d F Y'),
         ];
@@ -165,7 +165,7 @@ class DashboardController extends CrudController
     public function totalJobRealisasion(){
         $omset_rutin = InvoiceClient::selectRaw('
             COUNT(id) as total_invoice,
-            SUM(price_total_include_ppn) as total_omzet
+            SUM(price_total_exclude_ppn) as total_omzet
         ')
         ->whereExists(function ($q) {
             $q->select(DB::raw(1))
@@ -180,7 +180,7 @@ class DashboardController extends CrudController
         })
         ->first();
 
-        $biaya_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
+        $biaya_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
         ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
         ->whereExists(function ($query) {
             $query->select(DB::raw(1))
@@ -193,7 +193,7 @@ class DashboardController extends CrudController
 
         $omset_non_rutin = InvoiceClient::selectRaw('
             COUNT(id) as total_invoice,
-            SUM(price_total_include_ppn) as total_omzet
+            SUM(price_total_exclude_ppn) as total_omzet
         ')
         ->whereExists(function ($q) {
             $q->select(DB::raw(1))
@@ -208,7 +208,7 @@ class DashboardController extends CrudController
         })
         ->first();
 
-        $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.payment_transfer) as nilai_biaya'))
+        $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
         ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
         ->whereExists(function ($query) {
             $query->select(DB::raw(1))
