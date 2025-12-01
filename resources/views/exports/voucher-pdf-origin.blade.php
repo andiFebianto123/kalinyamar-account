@@ -25,7 +25,7 @@
         .voucher-title {
             background: #dce9f7;
             text-align: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             padding: 6px;
             border: 1px solid #000;
@@ -96,7 +96,7 @@
             <td style="width: 30%; text-align: center;">
                 <img src="{{ public_path('kalinyamat-logo-export.jpeg') }}" alt="" style="height: 40px;">
             </td>
-            <td style="width: 40%; text-align: center; font-size: 22px;">
+            <td style="width: 40%; text-align: center; font-size: 18px;">
                 <b>{{$voucher->account_source->name}}</b>
             </td>
             <td style="width: 30%; text-align: center;">
@@ -135,9 +135,9 @@
     <table class="section-title">
         <tr>
             <td style="width: 20%;">{{$voucher?->client_po?->work_code}}</td>
-            <td style="width: 30%;">: {{$voucher?->client_po?->job_name}}</td>
-            <td style="width: 20%;"></td>
-            <td style="width: 30%;"></td>
+            <td style="width: 30%;" colspan="3">: {{$voucher?->client_po?->job_name}}</td>
+            {{-- <td style="width: 20%;"></td>
+            <td style="width: 30%;"></td> --}}
         </tr>
     </table>
 
@@ -149,7 +149,7 @@
                         <tr>
                             <td width="20%">No. Pengajuan Pembayaran</td>
                             <td style="width: 10px;">:</td>
-                            <td>{{$voucher?->bill_number}}</td>
+                            <td>{{$voucher?->no_payment}}</td>
                         </tr>
                         <tr>
                             <td>Deskripsi Pembayaran</td>

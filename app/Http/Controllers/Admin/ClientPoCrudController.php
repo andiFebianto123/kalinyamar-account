@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Requests\ClientPoRequest;
 use App\Http\Controllers\CrudController;
+use App\Models\InvoiceClient;
 use PhpOffice\PhpSpreadsheet\Writer\Ods\Settings;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -175,6 +176,11 @@ class ClientPoCrudController extends CrudController
                         'type'      => 'text',
                         'label'     => trans('backpack::crud.client_po.column.category'),
                         'orderable' => true,
+                    ],
+                    [
+                        'name' => 'list_invoice',
+                        'type' => 'text',
+                        'label' => trans('backpack::crud.client_po.column.list_invoice'),
                     ],
                     [
                         'name' => 'action',
@@ -502,11 +508,6 @@ class ClientPoCrudController extends CrudController
 
 
 
-        /**
-         * Columns can be defined using the fluent syntax:
-         * - CRUD::column('price')->type('number');
-         */
-
 
         if($request->columns){
 
@@ -788,6 +789,27 @@ class ClientPoCrudController extends CrudController
                 'type'  => 'text'
             ],
         );
+
+        CRUD::addColumn([
+            'name' => 'list_invoice',
+            'label' => trans('backpack::crud.client_po.column.list_invoice'),
+            'type' => 'custom_html',
+            'value' => function($entry){
+                $count_data = $entry->invoices->count();
+                if($count_data > 0){
+                    return $count_data;
+                }
+                return '-';
+            },
+            'orderable'  => true,
+            'orderLogic' => function ($query, $column, $columnDirection) {
+                $invoice = InvoiceClient::select(DB::raw('client_po_id, count(invoice_number) as total_invoice'))
+                ->groupBy('client_po_id');
+                return $query->leftJoinSub($invoice, 'invoices', function($join){
+                    $join->on('client_po.id', 'invoices.client_po_id');
+                })->select('client_po.*')->orderBy('invoices.total_invoice', $columnDirection);
+            }
+        ]);
 
     }
 

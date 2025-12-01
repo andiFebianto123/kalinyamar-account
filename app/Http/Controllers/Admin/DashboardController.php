@@ -253,12 +253,12 @@ class DashboardController extends CrudController
     public function dataLabaCategory(){
         $invoice_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
         ->where('client_po.category', 'RUTIN')
-        ->select(DB::raw("client_po.*, invoice_clients.kdp"))
+        ->select(DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total as price_invoice"))
         ->get();
 
         $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
         ->where('client_po.category', 'NON RUTIN')
-        ->select(DB::raw("client_po.*, invoice_clients.kdp"))
+        ->select(DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total as price_invoice"))
         ->get();
 
         return [

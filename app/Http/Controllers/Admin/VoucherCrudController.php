@@ -1748,10 +1748,7 @@ class VoucherCrudController extends CrudController {
             $rule['payment_date'] = 'nullable|date';
         }
 
-        $rule['job_name'] = 'required';
-
-        // if(request()->has('id')){
-        // }
+        $rule['job_name'] = 'nullable';
 
         return $rule;
     }

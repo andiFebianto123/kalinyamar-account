@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Client;
+use App\Models\InvoiceClient;
 use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,6 +40,10 @@ class ClientPo extends Model
 
     function client(){
         return $this->belongsTo(Client::class, 'client_id');
+    }
+
+    function invoices(){
+        return $this->hasMany(InvoiceClient::class, 'client_po_id');
     }
 
     /*

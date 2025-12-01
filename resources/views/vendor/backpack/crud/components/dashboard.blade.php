@@ -420,6 +420,7 @@
                                 <th>Nama Pekerjaan</th>
                                 <th>Biaya</th>
                                 <th>Laba</th>
+                                <th>Nilai Invoice</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -430,6 +431,7 @@
                                     <td>{{ $laba->job_name }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -456,6 +458,7 @@
                                 <th>Nama Pekerjaan</th>
                                 <th>Biaya</th>
                                 <th>Laba</th>
+                                <th>Nilai Invoice</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -466,6 +469,7 @@
                                     <td>{{ $laba->job_name }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

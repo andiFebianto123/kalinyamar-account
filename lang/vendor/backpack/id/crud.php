@@ -389,6 +389,7 @@ return [
             'load_general_value' => 'Beban Umum',
             'profit_and_lost_final' => 'Laba/Rugi Akhir',
             'category' => 'Kategori',
+            'list_invoice' => 'Jumlah Invoice', 
         ],
         'field' => [
             'client_id' => [
