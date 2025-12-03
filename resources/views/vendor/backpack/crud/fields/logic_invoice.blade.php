@@ -62,7 +62,7 @@
                                 instance.logicFormulaNoPO();
                                 $(form+' input[name="kdp"]').val(respon.work_code);
                                 $(form+' input[name="client_name"]').val(respon.client.name);
-                                $(form+" input[name='po_date']").val(respon.date_invoice);
+                                $(form+" input[name='po_date']").val(respon.date_po_str);
                                 countTotalPrice();
                             }
                         });

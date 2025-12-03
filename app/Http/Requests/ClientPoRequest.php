@@ -76,6 +76,8 @@ class ClientPoRequest extends FormRequest
             $rule['work_code'] = 'nullable|max:30|unique:client_po,work_code,'.$id;
         }
 
+        $rule['date_po'] = 'nullable|date';
+
         return $rule;
     }
 

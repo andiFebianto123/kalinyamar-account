@@ -390,6 +390,7 @@ return [
             'profit_and_lost_final' => 'Laba/Rugi Akhir',
             'category' => 'Kategori',
             'list_invoice' => 'Jumlah Invoice', 
+            'date_po' => 'Tanggal PO',
         ],
         'field' => [
             'client_id' => [
@@ -440,6 +441,10 @@ return [
             'date_invoice' => [
                 'label' => 'Tanggal Invoice',
                 'placeholder' => 'Pilih Tanggal',
+            ],
+            'date_po' => [
+                'label' => 'Tanggal PO',
+                'placeholder' => 'Pilih Tanggal PO',
             ],
             'rap_value' => 'Nilai RAP',
             'job_value_exclude_ppn' => 'Nilai Pekerjaan Excl PPn',
