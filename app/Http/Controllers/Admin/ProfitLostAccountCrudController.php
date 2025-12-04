@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Account;
+use App\Models\Project;
 use App\Models\Setting;
 use App\Models\Voucher;
 use App\Models\ClientPo;
@@ -16,8 +17,10 @@ use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProjectProfitLostLog;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
+use SebastianBergmann\Type\TrueType;
 use App\Http\Exports\ProfitLostExcel;
 use App\Models\ConsolidateIncomeItem;
 use App\Http\Controllers\CrudController;
@@ -835,20 +838,43 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $this->crud->registerFieldEvents();
 
-        // $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+        $this->data['entry'] = $this->crud->getEntryWithLocale($id);
 
-        $this->data['entry'] = Account::leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-            ->select(DB::raw("
-                accounts.id as id,
-                MAX(accounts.code) as code,
-                MAX(accounts.name) as name,
-                MAX(accounts.level) as level,
-                (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
-            "))->where('accounts.id', $id)
-            ->groupBy('accounts.id')
-            ->first();
+        // $this->data['entry'] = Account::leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+        //     ->select(DB::raw("
+        //         accounts.id as id,
+        //         MAX(accounts.code) as code,
+        //         MAX(accounts.name) as name,
+        //         MAX(accounts.level) as level,
+        //         (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+        //     "))->where('accounts.id', $id)
+        //     ->groupBy('accounts.id')
+        //     ->first();
 
         $this->crud->entry = $this->data['entry'];
+        $client_po = $this->data['entry']->clientPo;
+
+        $small_cash = DB::table('account_transactions')
+        ->select([
+            DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
+            "account_transactions.kdp as kdp"
+        ])
+        ->leftJoin('journal_entries', function($join) {
+            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        })
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('cast_accounts')
+                ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
+                ->where('cast_accounts.name', 'like', '%kas kecil%');
+        })
+        ->groupBy('account_transactions.kdp')
+        ->having('account_transactions.kdp', $client_po->work_code)
+        ->first();
+
+        $this->crud->entry->price_small_cash = $small_cash->total_small_cash ?? 0;
+        $this->crud->entry->po_number = $client_po->po_number;
 
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
 
@@ -1028,15 +1054,46 @@ class ProfitLostAccountCrudController extends CrudController{
 
     protected function setupCreateOperation(){
 
-
         $request = request();
 
         $settings = Setting::first();
         $job_code_prefix_value = [];
+        $after_year_attribute = [];
+        $work_code_attribute = [];
+        $price_voucher_attribute = [];
+        $price_small_cash_attribute = [];
+        $price_total_attribute = [];
+        $price_profit_lost_po_attribute = [];
+        $price_prift_lost_final_attribute = [];
+        $category_attribute = [];
         if(!$this->crud->getCurrentEntryId()){
             $job_code_prefix_value = [
                 'value' => $settings?->work_code_prefix,
             ];
+        }else{
+            // edit
+            $job_code_prefix_value = [
+              'disabled' => true,  
+            ];
+            $price_voucher_attribute = [
+                'disabled' => true,
+            ];
+            $price_small_cash_attribute = [
+                'disabled' => true,
+            ];
+            $price_total_attribute = [
+                'disabled' => true,
+            ];
+            $price_profit_lost_po_attribute = [
+                'disabled' => true,
+            ];
+            $price_prift_lost_final_attribute = [
+                'disabled' => true,
+            ];
+            $category_attribute = [
+                'disabled' => true,  
+            ];
+
         }
 
         if($request->has('type')){
@@ -1053,6 +1110,9 @@ class ProfitLostAccountCrudController extends CrudController{
                     'entity' => 'clientPo',
                     'data_source' => backpack_url('finance-report/profit-lost/select2-po'), // url to controller search function (with /{id} should return a single entry)
                     'wrapper' => ['class' => 'form-group col-md-6'],
+                    'attributes' => [
+                        ...$job_code_prefix_value,
+                    ]
                 ]);
 
                 CRUD::addField([   // 1-n relationship
@@ -1082,6 +1142,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'attributes' => [
                         'placeholder' => '000.000',
+                        ...$after_year_attribute,
                     ]
                 ]);
                 CRUD::addField([
@@ -1098,6 +1159,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'attributes' => [
                         'placeholder' => '000.000',
+                        ...$price_voucher_attribute,
                     ]
                 ]);
 
@@ -1115,6 +1177,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'attributes' => [
                         'placeholder' => '000.000',
+                        ...$price_small_cash_attribute,
                     ]
                 ]);
 
@@ -1132,6 +1195,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'attributes' => [
                         'placeholder' => '000.000',
+                        ...$price_total_attribute,
                     ]
                 ]);
 
@@ -1149,6 +1213,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'attributes' => [
                         'placeholder' => '000.000',
+                        ...$price_profit_lost_po_attribute,
                     ]
                 ]);
 
@@ -1183,6 +1248,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'attributes' => [
                         'placeholder' => '000.000',
+                        ...$price_prift_lost_final_attribute,
                     ]
                 ]);
 
@@ -1197,6 +1263,9 @@ class ProfitLostAccountCrudController extends CrudController{
                     ],
                     'wrapper' => [
                         'class' => 'form-group col-md-6'
+                    ],
+                    'attributes' => [
+                        ...$category_attribute,
                     ]
                 ]);
 
@@ -1253,7 +1322,75 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->setupCreateOperation();
     }
 
-    public function update()
+    public function update(){
+        $this->crud->hasAccessOrFail('update');
+        $request = request();
+
+        $request->validate([
+            'price_after_year' => 'nullable',
+            'price_general' => 'nullable',
+        ]);
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try{
+            $events = [];
+
+            $flag_update = 0;
+
+            $project_profit_lost = ProjectProfitLost::find($request->id);
+            $price_after_year_old = price_normalize($project_profit_lost->price_after_year);
+            $price_after_year_new = price_normalize($request->price_after_year);
+            if($price_after_year_old != $price_after_year_new){
+                $flag_update++;
+                $project_profit_lost->price_after_year = $request->price_after_year;
+            }
+
+            $price_general_old = price_normalize($project_profit_lost->price_general);
+            $price_general_new = price_normalize($request->price_general);
+            if($price_general_old != $price_general_new){
+                $flag_update++;
+                $project_profit_lost->price_general = $request->price_general;
+            }
+            if($flag_update > 0){
+                $project_profit_lost->save();
+                // store profit log
+                $new_profit_log = new ProjectProfitLostLog;
+                $new_profit_log->project_profit_lost_id = $project_profit_lost->id;
+                $new_profit_log->user_id = backpack_user()->id;
+                $new_profit_log->price_after_year = $request->price_after_year;
+                $new_profit_log->price_general = $request->price_general;
+                $new_profit_log->save();
+
+                $events['crudTable-filter_profit_lost_plugin_load'] = true;
+                $events['project_create_success'] = true;
+            }
+
+            $item = $project_profit_lost;
+            $this->data['entry'] = $this->crud->entry = $item;
+
+            \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+                'events' => $events
+            ]);
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function updateOld()
     {
         $this->crud->hasAccessOrFail('update');
 
@@ -1601,7 +1738,8 @@ class ProfitLostAccountCrudController extends CrudController{
                 CRUD::removeButton('delete');
                 CRUD::removeButton('show');
 
-                CRUD::addButtonFromView('line', 'show-detail-project', "show-detail-project", 'beginning');
+                CRUD::addButtonFromView('line', 'update-profit-lost', 'update-profit-lost', 'beginning');
+                CRUD::addButtonFromView('line', 'show-detail-project', "show-detail-project", 'end');
 
                 CRUD::setModel(ProjectProfitLost::class);
                 $this->crud->query = $this->crud->query

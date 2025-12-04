@@ -51,7 +51,8 @@
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
 
                     @if ($set_value != null)
-                        // var data_po_spk = {!! json_encode($set_value) !!};
+                        var data_profit_lost = {!! json_encode($set_value) !!};
+                        // console.log(data_profit_lost);
                         // var po_number_text = `${data_po_spk.po_number} (${data_po_spk.type})`;
                         // var work_code_text = `${data_po_spk.work_code} (${data_po_spk.type})`;
 
@@ -66,6 +67,18 @@
                         // setTimeout(() => {
                         //      $(form+ ' input[name="date_po_spk"]').val(data_po_spk.date_po_spk_str);
                         // }, 500);
+
+                        $.ajax({
+                            url: "{{ url($crud->route) }}/get_client_selected_ajax?id=" + data_profit_lost.client_po.id,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                instance.data = data;
+                                setInputNumber(form+ ' #price_voucher_masked', data.price_voucher);
+                                setInputNumber(form+ ' #price_small_cash_masked', data.price_small_cash);
+                                instance.logicFormula(data);
+                            }
+                        });
 
                     @endif
 

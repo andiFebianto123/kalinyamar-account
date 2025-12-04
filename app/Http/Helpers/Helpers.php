@@ -404,3 +404,16 @@ if (! function_exists('is_multidimensional_array')) {
 
     }
 
+    if(!function_exists('price_normalize')){
+        function price_normalize($value)
+        {
+            if (is_null($value)) return null;
+
+            if (is_numeric($value)) {
+                return (float) $value;
+            }
+
+            return trim((string) $value);
+        }
+    }
+
