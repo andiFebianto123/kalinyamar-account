@@ -1157,7 +1157,7 @@ class ClientPoCrudController extends CrudController
         CRUD::addField([
             'name' => 'job_value_include_ppn',
             'label' => trans('backpack::crud.client_po.column.job_value_include_ppn_2'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true

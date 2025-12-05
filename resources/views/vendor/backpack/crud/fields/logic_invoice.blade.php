@@ -17,6 +17,23 @@
 
 @push('crud_fields_scripts')
     <script>
+        if(typeof setInputNumber2 == "undefined"){
+            function formatIdr(angka){
+                const formatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                });
+
+                let hasilFormat = formatter.format(angka);
+                let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+                return tanpaRp;
+            }
+            function setInputNumber2(selected, value){
+                let nominal = formatIdr(value);
+                $(selected).val(nominal).trigger('input');
+            }
+        }
         SIAOPS.setAttribute('logic_invoice', function(){
             return {
                 form_type : "{{ $crud->getActionMethod() }}",
@@ -28,7 +45,8 @@
                     var tax_ppn = getInputNumber(form + ' input[name="tax_ppn"]');
                     var nilai_ppn = (tax_ppn == 0) ? 0 : (nominal_exclude_ppn * (tax_ppn / 100));
                     var total = nominal_exclude_ppn + nilai_ppn;
-                    setInputNumber(form + ' #nominal_include_ppn_masked', total);
+                    // setInputNumber(form + ' #nominal_include_ppn_masked', total);
+                    setInputNumber2(form+' input[name="nominal_include_ppn"]', total);
                     instance.total_price = Number($(form + ' input[name="nominal_exclude_ppn"]').val());
                 },
                 load: function(){
@@ -43,6 +61,7 @@
                             setInputNumber(form+' #dpp_other_masked', entry.price_dpp || 0);
                             $(form+' input[name="tax_ppn"]').val(entry.tax_ppn || 0);
                             setInputNumber(form+' #nominal_include_ppn_masked', entry.price_total_include_ppn || 0);
+                            instance.logicFormulaNoPO();
                         }, 300);
                     }
 

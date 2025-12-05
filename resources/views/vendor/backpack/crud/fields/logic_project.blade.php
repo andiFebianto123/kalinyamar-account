@@ -21,6 +21,23 @@
 
 @push('crud_fields_scripts')
     <script>
+        if(typeof setInputNumber2 == "undefined"){
+            function formatIdr(angka){
+                const formatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                });
+
+                let hasilFormat = formatter.format(angka);
+                let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+                return tanpaRp;
+            }
+            function setInputNumber2(selected, value){
+                let nominal = formatIdr(value);
+                $(selected).val(nominal).trigger('input');
+            }
+        }
         SIAOPS.setAttribute('logic_asset', function(){
             return {
                 form_type : "{{ $crud->getActionMethod() }}",
@@ -31,8 +48,8 @@
 
                     var nilai_ppn = (ppn == 0) ? 0 : (nilai_exclude_ppn * (ppn / 100));
                     var total_with_ppn = nilai_ppn + nilai_exclude_ppn;
-                    setInputNumber(form+' #price_ppn_masked', nilai_ppn);
-                    setInputNumber(form+' #price_total_include_ppn_masked', total_with_ppn);
+                    setInputNumber2(form+' input[name="price_ppn"]', nilai_ppn); 
+                    setInputNumber2(form+' input[name="price_total_include_ppn"]', total_with_ppn);
 
                     var start_date = $(form + ' input[name="start_date"]').val();
                     var end_date = $(form + ' input[name="end_date"]').val();
@@ -70,7 +87,6 @@
 
                     @if ($set_value != null)
                     var data_po_spk = {!! json_encode($set_value) !!};
-                        console.log(data_po_spk);
                         $(form+' input[name="actual_price_ppn"]').val(data_po_spk.actual_price_ppn);
                         $(form+' input[name="actual_price_total_include_ppn"]').val(data_po_spk.actual_price_total_include_ppn);
                         $(form+' input[name="actual_duration"]').val(data_po_spk.actual_duration);
@@ -89,6 +105,9 @@
                             $(form+' .received_po_date').show();
                             $(form+' .space').show();
                         }
+                        setTimeout(() => {
+                            instance.logicFormulaNoPO();
+                        }, 200);
                     @endif
 
                     $(form+ ' select[name="no_po_spk"]').off('select2:select').on('select2:select', function (e) {

@@ -779,7 +779,7 @@ class ProjectListCrudController extends CrudController {
         CRUD::addField([
             'name' => 'price_ppn',
             'label' =>  trans('backpack::crud.project.field.price_ppn.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -797,7 +797,7 @@ class ProjectListCrudController extends CrudController {
         CRUD::addField([
             'name' => 'price_total_include_ppn',
             'label' =>  trans('backpack::crud.project.field.price_total_include_ppn.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true

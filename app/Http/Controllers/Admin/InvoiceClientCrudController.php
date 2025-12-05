@@ -790,7 +790,7 @@ class InvoiceClientCrudController extends CrudController
         CRUD::addField([
             'name' => 'nominal_include_ppn',
             'label' => trans('backpack::crud.invoice_client.field.nominal_include_ppn.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true

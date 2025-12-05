@@ -19,6 +19,23 @@
 
 @push('crud_fields_scripts')
     <script>
+        if(typeof setInputNumber2 == "undefined"){
+            function formatIdr(angka){
+                const formatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                });
+
+                let hasilFormat = formatter.format(angka);
+                let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+                return tanpaRp;
+            }
+            function setInputNumber2(selected, value){
+                let nominal = formatIdr(value);
+                $(selected).val(nominal).trigger('input');
+            }
+        }
         SIAOPS.setAttribute('logic_client_po', function(){
             return {
                 form_type : "{{ $crud->getActionMethod() }}",
@@ -54,7 +71,7 @@
 
                     var nilai_ppn = (ppn == 0) ? 0 : (nilai_pekerjaan * (ppn / 100));
                     var total = nilai_pekerjaan + nilai_ppn;
-                    setInputNumber(form+' #job_value_include_ppn_masked', total);
+                    setInputNumber2(form+' input[name="job_value_include_ppn"]', total);
 
                     var total_biaya =  getInputNumber(form+' #price_total');
                     var laba_rugi_po = nilai_pekerjaan - total_biaya;
@@ -103,6 +120,9 @@
                                 $(form+' input[name="po_number"]').removeAttr('disabled');
                             }
                         });
+                        setTimeout(() => {
+                            instance.logicFormula();
+                        }, 200);
                     }else{
                         $(form+' select[name="status"]').on('select2:select', function (e) {
                             var data = $(this).val();
