@@ -10,6 +10,7 @@ use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class StatusQuotaionCrudController extends CrudController{
@@ -17,30 +18,22 @@ class StatusQuotaionCrudController extends CrudController{
     // use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use PermissionAccess;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['list', 'show']);
         CRUD::setModel(Quotation::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/quotation-status');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.quotation_status'), trans('backpack::crud.menu.quotation_status'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW PROJECT',
-            // 'AKSES SEMUA MENU PROJECT',
-            // 'AKSES SEMUA STATUS PENAWARAN PROJECT'
-            'MENU INDEX MONITORING PROYEK STATUS PENAWARAN',
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        
+        $base = 'INDEX MONITORING PROYEK STATUS PENAWARAN';
+        $viewMenu  = ["MENU $base"];
 
-        // if($permissions->whereIn('name',[
-        //     'AKSES SEMUA MENU PROJECT',
-        // ])->count() > 0){
-        //     // $this->crud->allowAccess(['create', 'update', 'delete']);
-        // }
+        $this->settingPermission([
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
     }
 
     public function listTableQotation(){

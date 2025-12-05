@@ -11,6 +11,7 @@ use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\SubkonRequest;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -26,6 +27,7 @@ class SubkonCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     public $card, $modal, $script;
 
@@ -36,7 +38,7 @@ class SubkonCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
+        // $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\Subkon::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/subkon');
         CRUD::setEntityNameStrings(trans('backpack::crud.subkon.title_header'), trans('backpack::crud.subkon.title_header'));
@@ -44,24 +46,24 @@ class SubkonCrudController extends CrudController
         $this->modal = app('component.modal');
         $this->script = app('component.script');
 
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            // 'AKSES MENU VENDOR'
-            'MENU INDEX VENDOR DAFTAR SUBKON'
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
-
-        if($permissions->whereIn('name',[
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU VENDOR'
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+        $this->settingPermission([
+            'create' => [
+                "CREATE INDEX VENDOR DAFTAR SUBKON",
+            ],
+            'update' => [
+                "UPDATE INDEX VENDOR DAFTAR SUBKON",
+            ],
+            'delete' => [
+                "DELETE INDEX VENDOR DAFTAR SUBKON",
+            ],
+            'list' => [
+                'MENU INDEX VENDOR DAFTAR SUBKON'
+            ],
+            'show' => [
+                'MENU INDEX VENDOR DAFTAR SUBKON'
+            ],
+            'print' => true,
+        ]);
     }
 
     private function setupCard(){

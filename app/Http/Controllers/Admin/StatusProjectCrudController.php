@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 
@@ -23,31 +24,25 @@ class StatusProjectCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-
+    use PermissionAccess;
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Project::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/project-status');
         CRUD::setEntityNameStrings(trans('backpack::crud.project_status.title_header'), trans('backpack::crud.project_status.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW PROJECT',
-            // 'AKSES SEMUA MENU PROJECT',
-            "MENU INDEX MONITORING PROYEK STATUS PROYEK",
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        
+        $base = 'INDEX MONITORING PROYEK STATUS PROYEK';
+        $allAccess = ['AKSES SEMUA MENU PROJECT'];
+        $viewMenu  = ["MENU $base"];
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU PROJECT',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base", ...$allAccess],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
 
     }
 

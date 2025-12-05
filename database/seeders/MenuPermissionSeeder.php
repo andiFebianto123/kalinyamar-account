@@ -45,10 +45,35 @@ class MenuPermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
+            $originPermission = $permission;
+            $createPermission = str_replace('MENU', 'CREATE', $originPermission);
+            $updatePermission = str_replace('MENU', 'UPDATE', $originPermission);
+            $deletePermission = str_replace('MENU', 'DELETE', $originPermission);
             Permission::updateOrCreate(
-                ['name' => $permission],                  // condition (cari berdasarkan nama)
+                ['name' => $originPermission],                  // condition (cari berdasarkan nama)
                 [
-                    'name' => $permission,
+                    'name' => $originPermission,
+                    'guard_name' => 'web'
+                ]                   // jika ketemu, update ini; kalau tidak, buat baru
+            );
+            Permission::updateOrCreate(
+                ['name' => $createPermission],                  // condition (cari berdasarkan nama)
+                [
+                    'name' => $createPermission,
+                    'guard_name' => 'web'
+                ]                   // jika ketemu, update ini; kalau tidak, buat baru
+            );
+            Permission::updateOrCreate(
+                ['name' => $updatePermission],                  // condition (cari berdasarkan nama)
+                [
+                    'name' => $updatePermission,
+                    'guard_name' => 'web'
+                ]                   // jika ketemu, update ini; kalau tidak, buat baru
+            );
+            Permission::updateOrCreate(
+                ['name' => $deletePermission],                  // condition (cari berdasarkan nama)
+                [
+                    'name' => $deletePermission,
                     'guard_name' => 'web'
                 ]                   // jika ketemu, update ini; kalau tidak, buat baru
             );

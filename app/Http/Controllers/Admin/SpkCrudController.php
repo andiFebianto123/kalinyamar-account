@@ -12,6 +12,7 @@ use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -26,6 +27,7 @@ class SpkCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -34,27 +36,39 @@ class SpkCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\Spk::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/spk-trans');
-        CRUD::setEntityNameStrings('SPK', 'SPK');
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
+        CRUD::setEntityNameStrings('SPK', 'SPK');        
+
+        $allAccess = [
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU VENDOR'
+        ];
+
+        $viewMenu = [
             'AKSES SEMUA VIEW ACCOUNTING',
             'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU VENDOR'
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+            'AKSES MENU VENDOR',
+            'MENU INDEX VENDOR SPK',
+        ];
 
-        if($permissions->whereIn('name',[
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU VENDOR'
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX VENDOR SPK',
+                ...$allAccess,
+            ],
+            'update' => [
+                'UPDATE INDEX VENDOR SPK',
+                ...$allAccess,
+            ],
+            'delete' => [
+                'DELETE INDEX VENDOR SPK',
+                ...$allAccess,
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
     }
 
     public function total_price(){

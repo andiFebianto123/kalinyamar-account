@@ -24,6 +24,7 @@ use SebastianBergmann\Type\TrueType;
 use App\Http\Exports\ProfitLostExcel;
 use App\Models\ConsolidateIncomeItem;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Http\Exports\ExportProfitLostConsolidation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -32,32 +33,27 @@ class ProfitLostAccountCrudController extends CrudController{
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use PermissionAccess;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Account::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/finance-report/profit-lost');
         CRUD::setEntityNameStrings(trans('backpack::crud.profit_lost.title_header'), trans('backpack::crud.profit_lost.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            "MENU INDEX LAPORAN KEUANGAN LABA RUGI"
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
+        $base = 'INDEX LAPORAN KEUANGAN LABA RUGI';
+        $allAccess = ['AKSES SEMUA MENU ACCOUNTING'];
+        $viewMenu  = ["MENU $base"];
+
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base", ...$allAccess],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
         
     }
 

@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Validation\Rules\Can;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Http\Requests\InvoiceClientRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -39,7 +40,7 @@ class InvoiceClientCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-
+    use PermissionAccess;
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -47,27 +48,22 @@ class InvoiceClientCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\InvoiceClient::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice-client');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.invoice_client'), trans('backpack::crud.menu.invoice_client'));
-        CRUD::allowAccess('print');
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            "MENU INDEX INVOICE"
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
 
-        if($permissions->whereIn('name',[
-            'AKSES SEMUA MENU ACCOUNTING',
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+        $base = 'INDEX INVOICE';
+        $allAccess = ['AKSES SEMUA MENU ACCOUNTING'];
+        $viewMenu  = ["MENU $base"];
+
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base", ...$allAccess],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
     }
 
     public function select2ClientPo()

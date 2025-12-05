@@ -28,47 +28,52 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class VoucherPaymentCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+    use PermissionAccess;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(PaymentVoucher::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher-payment');
         CRUD::setEntityNameStrings(trans('backpack::crud.voucher_payment.title_header'), trans('backpack::crud.voucher_payment.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            // 'AKSES MENU FA'
+        
+
+        $allAccess = [
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU FA',
+            'APPROVE RENCANA BAYAR'
+        ];
+
+        $viewMenu = [
             "MENU INDEX FA PEMBAYARAN"
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        ];
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-                'AKSES MENU FA'
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX FA PEMBAYARAN',
+                ...$allAccess
+            ],
+            'update' => [
+                'UPDATE INDEX FA PEMBAYARAN',
+                ...$allAccess
+            ],
+            'delete' => [
+                'DELETE INDEX FA PEMBAYARAN',
+                ...$allAccess
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
 
-            if($permissions->whereIn('name', [
-                'APPROVE RENCANA BAYAR'
-            ])){
-                $this->crud->allowAccess(['create']);
-            }
-        }
     }
 
     function total_voucher(){

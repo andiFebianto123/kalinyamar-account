@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Models\InvoiceClient;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use GuzzleHttp\Psr7\Request;
@@ -32,7 +33,7 @@ class CastAccountsCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-
+    use PermissionAccess;
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -40,28 +41,35 @@ class CastAccountsCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(CastAccount::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/cash-flow/cast-accounts');
         CRUD::setEntityNameStrings(trans('backpack::crud.cash_account.title_header'), trans('backpack::crud.cash_account.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            "MENU INDEX ARUS REKENING KAS"
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+                
+        $allAccess = [
+            'AKSES SEMUA MENU ACCOUNTING',
+        ];
 
-        if(!$user->hasRole('DIR / MGR')){ 
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
+        $viewMenu = [
+            "MENU INDEX ARUS REKENING KAS",
+        ];
+
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX ARUS REKENING KAS',
+                ...$allAccess
+            ],
+            'update' => [
+                'UPDATE INDEX ARUS REKENING KAS',
+                ...$allAccess
+            ],
+            'delete' => [
+                'DELETE INDEX ARUS REKENING KAS',
+                ...$allAccess
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
         
     }
 

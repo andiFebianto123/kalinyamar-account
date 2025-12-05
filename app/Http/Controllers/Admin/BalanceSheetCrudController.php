@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class BalanceSheetCrudController extends CrudController{
@@ -22,34 +23,26 @@ class BalanceSheetCrudController extends CrudController{
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use PermissionAccess;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Account::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/finance-report/balance-sheet');
         CRUD::setEntityNameStrings(trans('backpack::crud.balance_sheet.title_header'), trans('backpack::crud.balance_sheet.title_header'));
 
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            "MENU INDEX LAPORAN KEUANGAN NERACA",
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        $base = "INDEX LAPORAN KEUANGAN NERACA";
+        $allAccess = ['AKSES SEMUA MENU ACCOUNTING'];
+        $viewMenu  = ["MENU $base"];
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base", ...$allAccess],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
-
-        CRUD::allowAccess(['print']);
     }
 
     public function listCardComponents(){

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Models\ClientPo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
@@ -25,6 +26,7 @@ class ClientCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -33,28 +35,37 @@ class ClientCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\Client::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client/client-list');
         CRUD::setEntityNameStrings(trans('backpack::crud.client.title_header'), trans('backpack::crud.client.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            // 'AKSES MENU CLIENT'
-            'MENU INDEX CLIENT DAFTAR CLIENT'
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
-
-        if($permissions->whereIn('name',[
+        
+        $allAccess = [
             'AKSES SEMUA MENU ACCOUNTING',
             'AKSES MENU CLIENT'
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+        ];
+
+        $viewMenu = [
+            'MENU INDEX CLIENT DAFTAR CLIENT'
+        ];
+
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX CLIENT DAFTAR CLIENT',
+                ...$allAccess,
+            ],
+            'update' => [
+                'UPDATE INDEX CLIENT DAFTAR CLIENT',
+                ...$allAccess,
+            ],
+            'delete' => [
+                'DELETE INDEX CLIENT DAFTAR CLIENT',
+                ...$allAccess,
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
+
     }
 
      public function index()

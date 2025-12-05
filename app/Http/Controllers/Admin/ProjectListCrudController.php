@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProjectListCrudController extends CrudController {
@@ -27,39 +28,30 @@ class ProjectListCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Project::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/project-list');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.project_list'), trans('backpack::crud.menu.project_list'));
-        CRUD::allowAccess('print');
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW PROJECT',
-            // 'AKSES SEMUA MENU PROJECT',
-            // 'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
-            'MENU INDEX MONITORING PROYEK DAFTAR PROYEK',
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU PROJECT',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
+        $base = 'INDEX MONITORING PROYEK DAFTAR PROYEK';
+        $allAccess = ['AKSES SEMUA MENU PROJECT'];
+        $viewMenu  = ["MENU $base"];
 
-            if($permissions->whereIn('name', [
-                'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
-            ])){
-                $this->crud->allowAccess(['update']);
-            }
-        }
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => [
+                "UPDATE $base",
+                'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT',
+                ...$allAccess
+            ],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
     }
 
     function index(){

@@ -12,6 +12,7 @@ use App\Models\SetupStatusProject;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use PhpOffice\PhpSpreadsheet\Calculation\Category;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -21,31 +22,25 @@ class ProjectSystemSetupCrudController extends CrudController{
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-
+    use PermissionAccess;
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         $this->crud->setModel(CategoryProject::class);
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/monitoring/project-system-setup');
         $this->crud->setEntityNameStrings(trans('backpack::crud.menu.project_system_setup'), trans('backpack::crud.menu.project_system_setup'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW PROJECT',
-            // 'AKSES SEMUA MENU PROJECT',
-            "MENU INDEX MONITORING PROYEK PROYEK SYSTEM SETUP",
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        
+        $base = 'INDEX MONITORING PROYEK PROYEK SYSTEM SETUP';
+        $allAccess = ['AKSES SEMUA MENU PROJECT'];
+        $viewMenu  = ["MENU $base"];
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU PROJECT',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base", ...$allAccess],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
     }
 
     function listCardComponents(){

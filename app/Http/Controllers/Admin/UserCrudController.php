@@ -386,6 +386,11 @@ class UserCrudController extends CrudController
                 ]
             ],
             [
+                'label' => '',
+                'type' => 'style_dependency',
+                'name' => 'style_dependency',
+            ],
+            [
                 // two interconnected entities
                 'label'             => trans('backpack::permissionmanager.user_role_permission'),
                 'field_unique_name' => 'user_role_permission',

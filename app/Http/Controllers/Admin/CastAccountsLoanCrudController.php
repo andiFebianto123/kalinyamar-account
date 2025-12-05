@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -31,7 +32,7 @@ class CastAccountsLoanCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-
+    use PermissionAccess;
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -39,26 +40,35 @@ class CastAccountsLoanCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(CastAccount::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/cash-flow/cast-account-loan');
         CRUD::setEntityNameStrings(trans('backpack::crud.cash_account_loan.title_header'), trans('backpack::crud.cash_account_loan.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            "MENU INDEX ARUS REKENING PINJAMAN"
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        
+        $allAccess = [
+            'AKSES SEMUA MENU ACCOUNTING',
+        ];
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }   
-        }
+        $viewMenu = [
+            'MENU INDEX ARUS REKENING PINJAMAN',
+        ];
+
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX ARUS REKENING PINJAMAN',
+                ...$allAccess
+            ],
+            'update' => [
+                'UPDATE INDEX ARUS REKENING PINJAMAN',
+                ...$allAccess
+            ],
+            'delete' => [
+                'DELETE INDEX ARUS REKENING PINJAMAN',
+                ...$allAccess
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
     }
 
     public function listCardComponents($list = null){

@@ -12,6 +12,7 @@ use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 
@@ -21,33 +22,30 @@ class QuotationCheckCrudController extends CrudController {
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(QuotationCheck::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/quotation-check');
         CRUD::setEntityNameStrings(trans('backpack::crud.quotation_check.title_header'), trans('backpack::crud.quotation_check.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW PROJECT',
-            // 'AKSES SEMUA MENU PROJECT',
-            // 'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
-            'MENU INDEX MONITORING PROYEK PROYEKSI PEKERJAAN'
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU PROJECT',
-                'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'delete']);
-            }
-        }
+        $base = 'INDEX MONITORING PROYEK PROYEKSI PEKERJAAN';
+        $allAccess = [
+            'AKSES SEMUA MENU PROJECT',
+            'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT'
+        ];
+        $viewMenu  = ["MENU $base"];
+
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base"],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
+
     }
 
     function index(){

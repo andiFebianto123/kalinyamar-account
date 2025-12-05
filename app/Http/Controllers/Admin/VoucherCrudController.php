@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Models\PaymentVoucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -34,34 +35,30 @@ class VoucherCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Voucher::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher');
         CRUD::setEntityNameStrings('Voucher', 'Voucher');
-        CRUD::allowAccess('print');
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            // 'AKSES MENU FA'
-            "MENU INDEX FA VOUCHER",
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        $allAccess = [
+            'AKSES SEMUA MENU ACCOUNTING',
+            'AKSES MENU FA'
+        ];
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-                'AKSES MENU FA'
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }  
-        }
+        $viewMenu = [
+            'MENU INDEX FA VOUCHER'
+        ];
+
+        $this->settingPermission([
+            'create' => $allAccess,
+            'update' => $allAccess,
+            'delete' => $allAccess,
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
 
     }
 

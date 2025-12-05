@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ExpenseAccountCrudController extends CrudController{
@@ -20,33 +21,40 @@ class ExpenseAccountCrudController extends CrudController{
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use PermissionAccess;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(Account::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/finance-report/expense-account');
         CRUD::setEntityNameStrings(trans('backpack::crud.expense_account.title_header'), trans('backpack::crud.expense_account.title_header'));
 
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            "MENU INDEX LAPORAN KEUANGAN COA"
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+        $allAccess = [
+            'AKSES SEMUA MENU ACCOUNTING',
+        ];
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
+        $viewMenu = [
+            'MENU INDEX LAPORAN KEUANGAN COA',
+        ];
+
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX LAPORAN KEUANGAN COA',
+                ...$allAccess
+            ],
+            'update' => [
+                'UPDATE INDEX LAPORAN KEUANGAN COA',
+                ...$allAccess
+            ],
+            'delete' => [
+                'DELETE INDEX LAPORAN KEUANGAN COA',
+                ...$allAccess
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
 
     }
 

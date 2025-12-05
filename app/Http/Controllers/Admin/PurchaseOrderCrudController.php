@@ -17,6 +17,7 @@ use App\Http\Controllers\CrudController;
 use App\Http\Requests\PurchaseOrderRequest;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use App\Http\Controllers\Admin\PurchaseOrderTabController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Models\Voucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -32,7 +33,7 @@ class PurchaseOrderCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-
+    use PermissionAccess;
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -40,27 +41,40 @@ class PurchaseOrderCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(\App\Models\PurchaseOrder::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/purchase-order');
         CRUD::setEntityNameStrings('purchase order', 'purchase orders');
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
+
+        $viewMenu = [
             'AKSES SEMUA VIEW ACCOUNTING',
             'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU VENDOR'
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
+            'AKSES MENU VENDOR',
+            'MENU INDEX VENDOR PO',
+        ];
 
-        if($permissions->whereIn('name',[
+        $allAccess = [
             'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU VENDOR'
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+            'AKSES MENU VENDOR',
+        ];
+
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX VENDOR PO',
+                ...$allAccess,
+            ],
+            'update' => [
+                'UPDATE INDEX VENDOR PO',
+                ...$allAccess,
+            ],
+            'delete' => [
+                'DELETE INDEX VENDOR PO',
+                ...$allAccess,
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
+
     }
 
     public function setupTabsCrud($nameTabs){

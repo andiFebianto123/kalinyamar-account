@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class AssetCrudController extends CrudController
@@ -25,6 +26,7 @@ class AssetCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     public function setup()
     {
@@ -32,24 +34,19 @@ class AssetCrudController extends CrudController
         $this->crud->setModel(Asset::class);
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/finance-report/list-asset');
         $this->crud->setEntityNameStrings(trans('backpack::crud.asset.title_header'), trans('backpack::crud.asset.title_header'));
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            "MENU INDEX LAPORAN KEUANGAN DAFTAR ASET",
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
 
-        if(!$user->hasRole('DIR / MGR')){
-            if($permissions->whereIn('name',[
-                'AKSES SEMUA MENU ACCOUNTING',
-            ])->count() > 0){
-                $this->crud->allowAccess(['create', 'update', 'delete']);
-            }
-        }
+        $base = 'INDEX LAPORAN KEUANGAN DAFTAR ASET';
+        $allAccess = ['AKSES SEMUA MENU ACCOUNTING'];
+        $viewMenu  = ["MENU $base"];
+
+        $this->settingPermission([
+            'create' => ["CREATE $base", ...$allAccess],
+            'update' => ["UPDATE $base", ...$allAccess],
+            'delete' => ["DELETE $base", ...$allAccess],
+            'list'   => $viewMenu,
+            'show'   => $viewMenu,
+            'print'  => true,
+        ]);
     }
 
     public function index()

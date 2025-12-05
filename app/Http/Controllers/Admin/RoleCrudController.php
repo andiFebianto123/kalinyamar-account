@@ -301,6 +301,12 @@ class RoleCrudController extends CrudController
         }
 
         $this->crud->addField([
+            'label' => '',
+            'type' => 'style_dependency',
+            'name' => 'style_dependency_role',
+        ]);
+
+        $this->crud->addField([
             'label'     => mb_ucfirst(trans('backpack::permissionmanager.permission_plural')),
             'type'      => 'checklist',
             'name'      => 'permissions',

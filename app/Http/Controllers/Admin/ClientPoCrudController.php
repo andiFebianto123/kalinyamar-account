@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Requests\ClientPoRequest;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Models\InvoiceClient;
 use PhpOffice\PhpSpreadsheet\Writer\Ods\Settings;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -29,6 +30,7 @@ class ClientPoCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use PermissionAccess;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -37,29 +39,36 @@ class ClientPoCrudController extends CrudController
      */
     public function setup()
     {
-        $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         CRUD::setModel(ClientPo::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client/po');
         CRUD::setEntityNameStrings(trans('backpack::crud.client_po.title_header'), trans('backpack::crud.client_po.title_header'));
 
-        $user = backpack_user();
-        $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
-            // 'AKSES SEMUA VIEW ACCOUNTING',
-            // 'AKSES SEMUA MENU ACCOUNTING',
-            // 'AKSES MENU CLIENT'
-            'MENU INDEX CLIENT PO'
-        ])->count() > 0)
-        {
-            $this->crud->allowAccess(['list', 'show']);
-        }
-
-        if($permissions->whereIn('name',[
+        $allAccess = [
             'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU CLIENT'
-        ])->count() > 0){
-            $this->crud->allowAccess(['create', 'update', 'delete']);
-        }
+            'AKSES MENU CLIENT',
+        ];
+
+        $viewMenu = [
+            'MENU INDEX CLIENT PO',
+        ];
+
+        $this->settingPermission([
+            'create' => [
+                'CREATE INDEX CLIENT PO',
+                ...$allAccess
+            ],
+            'update' => [
+                'UPDATE INDEX CLIENT PO',
+                ...$allAccess
+            ],
+            'delete' => [
+                'DELETE INDEX CLIENT PO',
+                ...$allAccess
+            ],
+            'list' => $viewMenu,
+            'show' => $viewMenu,
+            'print' => true,
+        ]);
     }
 
     public function index()
