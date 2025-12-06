@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Requests\ClientPoRequest;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use App\Models\InvoiceClient;
 use PhpOffice\PhpSpreadsheet\Writer\Ods\Settings;
@@ -31,6 +32,7 @@ class ClientPoCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
+    use FormaterExport;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -492,6 +494,12 @@ class ClientPoCrudController extends CrudController
         $settings = Setting::first();
 
 
+        $status_file = '';
+        if(strpos(url()->current(), 'excel')){
+            $status_file = 'excel';
+        }else{
+            $status_file = 'pdf';
+        }
 
 
         if($request->columns){
@@ -660,8 +668,11 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.rap_value'),
                 'name' => 'rap_value',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->rap_value);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -672,8 +683,11 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
                 'name' => 'job_value',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->job_value);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -684,8 +698,11 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                 'name' => 'job_value_include_ppn',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->job_value_include_ppn);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
