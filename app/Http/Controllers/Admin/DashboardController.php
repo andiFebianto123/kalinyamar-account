@@ -226,6 +226,7 @@ class DashboardController extends CrudController
         $total_laba_non_rutin = $total_omzet_non_rutin - $total_biaya_non_rutin;
 
         $total_all_laba = $total_laba_rutin + $total_laba_non_rutin;
+        $total_all_omzet = $total_omzet_rutin + $total_omzet_non_rutin;
 
         return [
             'total_omzet_rutin' => CustomHelper::formatRupiah($total_omzet_rutin),
@@ -235,6 +236,7 @@ class DashboardController extends CrudController
             'total_laba_rutin' => CustomHelper::formatRupiah($total_laba_rutin),
             'total_laba_non_rutin' => CustomHelper::formatRupiah($total_laba_non_rutin),
             'total_all_laba' => CustomHelper::formatRupiah($total_all_laba),
+            'total_all_omzet' => CustomHelper::formatRupiah($total_all_omzet),
         ];
     }
 

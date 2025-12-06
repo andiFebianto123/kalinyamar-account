@@ -360,7 +360,8 @@
                             $('#laba_rutin_total').html('Rp'+result.total_job_realisasion.total_laba_rutin);
                             $('#laba_non_rutin_total').html('Rp'+result.total_job_realisasion.total_laba_non_rutin);
 
-                            $('#omzet_all_total').html('Rp'+result.total_omzet_all.total_omzet);
+                            // $('#omzet_all_total').html('Rp'+result.total_omzet_all.total_omzet);
+                            $('#omzet_all_total').html('Rp'+result.total_job_realisasion.total_all_omzet);
 
                             var total_project = result.total_projects.list_projects;
                             $('#Unpaid_total').html('Rp'+total_project.UNPAID);
