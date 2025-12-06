@@ -143,6 +143,8 @@ class DashboardController extends CrudController
     }
 
     public function totalLabaAll(){
+        // $voucher = Voucher::select(DB::raw("SUM(bill_value) as total"))->get();
+        // $invoice = ClientPo::select(DB::raw("SUM(job_value) as total"))->get();
         $invoice = ClientPo::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
@@ -215,11 +217,24 @@ class DashboardController extends CrudController
         ->groupBy('client_po.category')
         ->get();
 
+        $total_omzet_rutin = $omset_rutin->total_omzet ?? 0;
+        $total_biaya_rutin = $biaya_rutin[0]?->nilai_biaya ?? 0;
+        $total_omzet_non_rutin = $omset_non_rutin->total_omzet ?? 0;
+        $total_biaya_non_rutin = $biaya_non_rutin[0]?->nilai_biaya ?? 0;
+
+        $total_laba_rutin = $total_omzet_rutin - $total_biaya_rutin;
+        $total_laba_non_rutin = $total_omzet_non_rutin - $total_biaya_non_rutin;
+
+        $total_all_laba = $total_laba_rutin + $total_laba_non_rutin;
+
         return [
-            'total_omzet_rutin' => CustomHelper::formatRupiah($omset_rutin->total_omzet ?? 0),
-            'total_biaya_rutin' => CustomHelper::formatRupiah($biaya_rutin[0]?->nilai_biaya ?? 0),
-            'total_omzet_non_rutin' => CustomHelper::formatRupiah($omset_non_rutin->total_omzet ?? 0),
-            'total_biaya_non_rutin' => CustomHelper::formatRupiah($biaya_non_rutin[0]?->nilai_biaya ?? 0),
+            'total_omzet_rutin' => CustomHelper::formatRupiah($total_omzet_rutin),
+            'total_biaya_rutin' => CustomHelper::formatRupiah($total_biaya_rutin),
+            'total_omzet_non_rutin' => CustomHelper::formatRupiah($total_omzet_non_rutin),
+            'total_biaya_non_rutin' => CustomHelper::formatRupiah($total_biaya_non_rutin),
+            'total_laba_rutin' => CustomHelper::formatRupiah($total_laba_rutin),
+            'total_laba_non_rutin' => CustomHelper::formatRupiah($total_laba_non_rutin),
+            'total_all_laba' => CustomHelper::formatRupiah($total_all_laba),
         ];
     }
 

@@ -354,10 +354,13 @@
 
                             $('#laba_all_total').html('Rp'+result.total_laba_all.total_laba);
 
-                            $('#laba_rutin_total').html('Rp'+result.total_laba_category.total_laba_rutin);
-                            $('#laba_non_rutin_total').html('Rp'+result.total_laba_category.total_laba_non_rutin);
+                            // $('#laba_rutin_total').html('Rp'+result.total_laba_category.total_laba_rutin);
+                            // $('#laba_non_rutin_total').html('Rp'+result.total_laba_category.total_laba_non_rutin);
 
-                            $('#omzet_all_total').html('Rp'+result.total_omzet_all.total_omzet);
+                            $('#laba_rutin_total').html('Rp'+result.total_job_realisasion.total_laba_rutin);
+                            $('#laba_non_rutin_total').html('Rp'+result.total_job_realisasion.total_laba_non_rutin);
+
+                            $('#omzet_all_total').html('Rp'+result.total_job_realisasion.total_all_laba);
 
                             var total_project = result.total_projects.list_projects;
                             $('#Unpaid_total').html('Rp'+total_project.UNPAID);
