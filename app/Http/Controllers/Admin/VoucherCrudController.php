@@ -15,6 +15,7 @@ use App\Models\VoucherEdit;
 use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
+use App\Models\PaymentVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
@@ -24,9 +25,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
-use App\Http\Controllers\Operation\PermissionAccess;
-use App\Models\PaymentVoucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class VoucherCrudController extends CrudController {
@@ -2875,9 +2875,6 @@ class VoucherCrudController extends CrudController {
 
             $event['crudTable-voucher_create_success'] = $item;
             $event['crudTable-history_edit_voucher_create_success'] = $item;
-
-            // $item = $aset;
-            // $this->data['entry'] = $this->crud->entry = $item;
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 

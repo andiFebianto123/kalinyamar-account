@@ -833,22 +833,21 @@ class CustomHelper {
     public static function voucherCreate($voucher_id, $invoice_not_exists = false){
         $log_payment = [];
         $voucher = Voucher::where('id', $voucher_id)->first();
-        $po = $voucher->reference;
-        $po_type = $voucher->reference_type;
         $invoice = InvoiceClient::where('client_po_id', $voucher->client_po_id)->first();
         $client_po = $voucher->client_po;
+        $payment_transfer = $voucher->payment_transfer;
 
         if($client_po->status == 'TANPA PO'){
             // ada po
             $account = Account::where('code', "50222")->first();
-            $price_general_loan = $client_po->load_general_value;
+
             $trans_1 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account->id,
                 'reference_id' => $client_po->id,
                 'reference_type' => ClientPo::class,
                 'description' => "Transaksi tanpa PO ".$client_po->work_code,
                 'date' => Carbon::now(),
-                'debit' => $price_general_loan,
+                'debit' => $payment_transfer,
                 // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
                 'account_id' => $account->id,
@@ -862,7 +861,7 @@ class CustomHelper {
                 'reference_type' => ClientPo::class,
                 'description' => "Transaksi tanpa PO ".$client_po->work_code,
                 'date' => Carbon::now(),
-                'debit' => $price_general_loan,
+                'debit' => $payment_transfer,
                 'type' => JournalEntry::class,
             ];
         }
@@ -871,7 +870,6 @@ class CustomHelper {
         if($voucher->reference_type == "App\Models\PurchaseOrder" || $voucher->reference_type == "App\Models\Spk"){
             if($invoice == null || $invoice_not_exists == true){
                 $account = Account::where('code', "50401")->first();
-                $payment_transfer = $voucher->payment_transfer;
                 $trans_2 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher_id,
