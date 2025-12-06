@@ -77,6 +77,14 @@ class ClientPoCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('list');
 
+        $this->crud->filter('status_invoice11crudTable-client_po')
+        ->label(trans('backpack::crud.client_po.column.list_invoice'))
+        ->type('select2')
+            ->values([
+            '1' => 'ADA',
+            '0' => 'TIDAK ADA',
+        ]);
+
         $this->card->addCard([
             'name' => 'client_po',
             'line' => 'top',
@@ -175,6 +183,7 @@ class ClientPoCrudController extends CrudController
                         'label' =>  trans('backpack::crud.actions'),
                     ]
                 ],
+                'filter_table' => collect($this->crud->filters())->slice(0, 2),
                 'route' => backpack_url('/client/po/search'),
             ]
         ]);
@@ -208,6 +217,22 @@ class ClientPoCrudController extends CrudController
     public function countAllPPn(){
         $request = request();
         $client_po = ClientPo::select(DB::raw("SUM(job_value) as total_job_value, SUM(job_value_include_ppn) as total_job_value_ppn"));
+
+        // filter
+        if($request->has('status_invoice')){
+            $invoice = InvoiceClient::select(DB::raw('client_po_id, count(invoice_number) as total_invoice'))
+                ->groupBy('client_po_id');
+            $client_po = $client_po->leftJoinSub($invoice, 'invoices', function($join){
+                    $join->on('client_po.id', 'invoices.client_po_id');
+            });
+            if($request->status_invoice == 1){
+                $client_po = $client_po
+            ->where('invoices.total_invoice', '>=', $request->status_invoice);
+            }else{
+                $client_po = $client_po
+            ->whereNull('invoices.total_invoice');
+            }
+        }
 
         if($request->has('search')){
             if(isset($request->search[1])){
@@ -491,9 +516,6 @@ class ClientPoCrudController extends CrudController
         $request = request();
         CRUD::disableResponsiveTable();
 
-        $settings = Setting::first();
-
-
         $status_file = '';
         if(strpos(url()->current(), 'excel')){
             $status_file = 'excel';
@@ -608,7 +630,21 @@ class ClientPoCrudController extends CrudController
             }
         }
 
-
+        // filter
+        if($request->has('status_invoice')){
+            $invoice = InvoiceClient::select(DB::raw('client_po_id, count(invoice_number) as total_invoice'))
+                ->groupBy('client_po_id');
+            $this->crud->query = $this->crud->query->leftJoinSub($invoice, 'invoices', function($join){
+                    $join->on('client_po.id', 'invoices.client_po_id');
+            });
+            if($request->status_invoice == 1){
+                $this->crud->query = $this->crud->query
+            ->where('invoices.total_invoice', '>=', $request->status_invoice);
+            }else{
+                $this->crud->query = $this->crud->query
+            ->whereNull('invoices.total_invoice');
+            }
+        }
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -746,9 +782,9 @@ class ClientPoCrudController extends CrudController
             'value' => function($entry){
                 $count_data = $entry->invoices->count();
                 if($count_data > 0){
-                    return $count_data;
+                    return "ADA";
                 }
-                return '-';
+                return 'TIDAK ADA';
             },
             'orderable'  => true,
             'orderLogic' => function ($query, $column, $columnDirection) {

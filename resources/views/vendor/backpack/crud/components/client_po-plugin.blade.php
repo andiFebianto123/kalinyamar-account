@@ -11,12 +11,21 @@
                         instance.refresh();
                     });
                 },
+                filterParameters: function(){
+                    var getI = SIAOPS.getAttribute('crudTable-client_po');
+                    var get_url = getI.table.ajax.url();
+                    const params = new URL(get_url).searchParams;
+                    const obj = Object.fromEntries(params.entries());
+                    return obj;
+                },
                 refresh: function(){
+                    var instance = this;
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
                         data: {
                             search: window.filterValues,
+                            ...instance.filterParameters()
                         },
                         typeData: 'json',
                         success: function (result) {
@@ -37,7 +46,10 @@
                 load: function(){
                     var instance = this;
                     instance.eventLoader()
-                    instance.refresh();
+                    // instance.refresh();
+                    setTimeout(() => {
+                        $("#crudTable-client_po thead tr.filters th").eq(13).children('input').remove();
+                    }, 400);
                 }
             }
         });

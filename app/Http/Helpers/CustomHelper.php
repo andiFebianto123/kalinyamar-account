@@ -843,22 +843,22 @@ class CustomHelper {
 
             $trans_1 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account->id,
-                'reference_id' => $client_po->id,
-                'reference_type' => ClientPo::class,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
                 'description' => "Transaksi tanpa PO ".$client_po->work_code,
                 'date' => Carbon::now(),
                 'debit' => $payment_transfer,
                 // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
                 'account_id' => $account->id,
-                'reference_id' => $client_po->id,
-                'reference_type' => ClientPo::class,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
             ]);
             $log_payment[] = [
                 'id' => $trans_1->id,
                 'account_id' => $account->id,
-                'reference_id' => $client_po->id,
-                'reference_type' => ClientPo::class,
+                'reference_id' => $voucher_id,
+                'reference_type' => Voucher::class,
                 'description' => "Transaksi tanpa PO ".$client_po->work_code,
                 'date' => Carbon::now(),
                 'debit' => $payment_transfer,
