@@ -37,13 +37,12 @@ class DashboardController extends CrudController
     }
 
     public function firstInvoice(){
-        $invoice_first = InvoiceClient::orderBy('id', 'ASC')->first();
 
-        if($invoice_first == null){
-            return [
-                'invoice_first_date' => '',
-            ];
-        }
+        // if($invoice_first == null){
+        //     return [
+        //         'invoice_first_date' => '',
+        //     ];
+        // }
 
         return [
             'invoice_first_date' => Carbon::now()
