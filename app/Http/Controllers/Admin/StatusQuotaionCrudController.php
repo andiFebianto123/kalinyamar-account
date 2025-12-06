@@ -10,6 +10,7 @@ use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -19,6 +20,7 @@ class StatusQuotaionCrudController extends CrudController{
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use PermissionAccess;
+    use FormaterExport;
 
     public function setup()
     {
@@ -423,6 +425,14 @@ class StatusQuotaionCrudController extends CrudController{
     {
         $type = request()->type;
         $settings = Setting::first();
+
+        $status_file = '';
+        if(strpos(url()->current(), 'excel')){
+            $status_file = 'excel';
+        }else{
+            $status_file = 'pdf';
+        }
+
         CRUD::disableResponsiveTable();
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
@@ -451,19 +461,25 @@ class StatusQuotaionCrudController extends CrudController{
             ],
         );
         CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
+            'label' => trans('backpack::crud.quotation.column.rab.label'),
             'name' => 'rab',
-            'type'  => 'number',
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'type'  => 'closure',
+            'function' => function($entry) use($status_file){
+                return $this->priceFormatExport($status_file, $entry->rab);
+            },
+            // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
         ]);
         CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
+            'label' => trans('backpack::crud.quotation.column.rap.label'),
             'name' => 'rap',
-            'type'  => 'number',
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'type'  => 'closure',
+            'function' => function($entry) use($status_file){
+                return $this->priceFormatExport($status_file, $entry->rap);
+            },
+            //'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',

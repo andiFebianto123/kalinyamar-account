@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -26,6 +27,7 @@ class ProjectListReportCrudController extends CrudController {
     // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
+    use FormaterExport;
 
     public function setup()
     {
@@ -84,6 +86,13 @@ class ProjectListReportCrudController extends CrudController {
         CRUD::disableResponsiveTable();
         $settings = Setting::first();
 
+        $status_file = '';
+        if(strpos(url()->current(), 'excel')){
+            $status_file = 'excel';
+        }else{
+            $status_file = 'pdf';
+        }
+
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         $this->crud->file_title_export_pdf = "Laporan_project-report.pdf";
         $this->crud->file_title_export_excel = "Laporan_project-report.xlsx";
@@ -137,8 +146,11 @@ class ProjectListReportCrudController extends CrudController {
         CRUD::column([
             'label'  => trans('backpack::crud.project_report.column.price_total_include_ppn.label'),
             'name' => 'price_total_include_ppn',
-            'type'  => 'number',
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'type'  => 'closure',
+            'function' => function($entry) use($status_file){
+                return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
+            },
+            // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',

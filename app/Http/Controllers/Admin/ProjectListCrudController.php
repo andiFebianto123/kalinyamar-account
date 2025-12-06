@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -29,6 +30,7 @@ class ProjectListCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
+    use FormaterExport;
 
     public function setup()
     {
@@ -301,6 +303,14 @@ class ProjectListCrudController extends CrudController {
     {
         $settings = Setting::first();
         $type = request()->tab;
+
+        $status_file = '';
+        if(strpos(url()->current(), 'excel')){
+            $status_file = 'excel';
+        }else{
+            $status_file = 'pdf';
+        }
+
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
@@ -359,8 +369,11 @@ class ProjectListCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
                 'name' => 'price_total_exclude_ppn',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->price_total_exclude_ppn);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -368,8 +381,11 @@ class ProjectListCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.project.column.project.price_ppn.label'),
                 'name' => 'price_ppn',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->price_ppn);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -384,8 +400,11 @@ class ProjectListCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',

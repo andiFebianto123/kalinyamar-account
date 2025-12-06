@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -25,6 +26,7 @@ class QuotationCrudController extends CrudController {
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
+    use FormaterExport;
 
     public function setup()
     {
@@ -479,6 +481,13 @@ class QuotationCrudController extends CrudController {
         $type = request()->tab;
          $settings = Setting::first();
 
+         $status_file = '';
+        if(strpos(url()->current(), 'excel')){
+            $status_file = 'excel';
+        }else{
+            $status_file = 'pdf';
+        }
+
         if(!request()->has('tab')){
             $type = 'quotation';
         }
@@ -514,8 +523,11 @@ class QuotationCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.quotation.column.rab.label'),
                 'name' => 'rab',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->rab);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -523,8 +535,11 @@ class QuotationCrudController extends CrudController {
             CRUD::column([
                                     'label' => trans('backpack::crud.quotation.column.rap.label'),
                 'name' => 'rap',
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+                'type'  => 'closure',
+                'function' => function($entry) use($status_file){
+                    return $this->priceFormatExport($status_file, $entry->rap);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
