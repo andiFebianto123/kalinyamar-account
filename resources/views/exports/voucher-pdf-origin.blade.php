@@ -135,7 +135,7 @@
     <table class="section-title">
         <tr>
             <td style="width: 20%;">{{$voucher?->client_po?->work_code}}</td>
-            <td style="width: 30%;" colspan="3">: {{$voucher?->client_po?->job_name}}</td>
+            <td style="width: 30%;" colspan="3">: {{$voucher?->job_name}}</td>
             {{-- <td style="width: 20%;"></td>
             <td style="width: 30%;"></td> --}}
         </tr>
