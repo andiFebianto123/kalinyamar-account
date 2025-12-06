@@ -130,11 +130,7 @@ class DashboardController extends CrudController
     }
 
     public function totalOmzetAll(){
-        $invoice = ClientPo::whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereRaw('invoice_clients.client_po_id = client_po.id');
-        })->select(DB::raw("SUM(job_value) as total"))->get();
+        $invoice = ClientPo::select(DB::raw("SUM(job_value) as total"))->get();
 
         if($invoice->count() == 0){
             $total_invoice = 0;
