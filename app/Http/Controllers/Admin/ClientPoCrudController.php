@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Setting;
 use App\Models\Voucher;
 use App\Models\ClientPo;
+use App\Models\InvoiceClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
@@ -13,10 +14,9 @@ use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Requests\ClientPoRequest;
 use App\Http\Controllers\CrudController;
+use PhpOffice\PhpSpreadsheet\Writer\Ods\Settings;
 use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
-use App\Models\InvoiceClient;
-use PhpOffice\PhpSpreadsheet\Writer\Ods\Settings;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -391,7 +391,7 @@ class ClientPoCrudController extends CrudController
         if($request->status == 'TANPA PO'){
             $request->merge([
                 'po_number' => $setting->work_code_prefix,
-                'category' => 'RUTIN',
+                // 'category' => 'RUTIN',
             ]);
         }
 

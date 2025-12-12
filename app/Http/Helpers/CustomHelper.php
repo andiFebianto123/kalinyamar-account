@@ -790,7 +790,7 @@ class CustomHelper {
         $transaksi->cast_account_id = $voucher->account_source_id;
         $transaksi->reference_type = Voucher::class;
         $transaksi->reference_id = $voucher->id;
-        $transaksi->date_transaction = Carbon::now()->format('Y-m-d');
+        $transaksi->date_transaction = $voucher->payment_date;
         $transaksi->nominal_transaction = $voucher->payment_transfer;
         $transaksi->total_saldo_before = 0;
         $transaksi->total_saldo_after = 0;

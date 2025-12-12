@@ -51,7 +51,7 @@
                         $(form+' #start_date_end_date').attr('disabled', true);
                         $(form+' select[name="reimburse_type"]').attr('disabled', true);
                         $(form+' input[name="document_path"]').attr('disabled', true);
-                        $(form+' select[name="category"]').attr('disabled', true);
+                        // $(form+' select[name="category"]').attr('disabled', true);
                     }else{
                         $(form+' select[name="client_id"]').removeAttr('disabled');
                         $(form+' input[name="job_name"]').removeAttr('disabled');
@@ -61,7 +61,7 @@
                         $(form+' #start_date_end_date').removeAttr('disabled');
                         $(form+' select[name="reimburse_type"]').removeAttr('disabled');
                         $(form+' input[name="document_path"]').removeAttr('disabled');
-                        $(form+' select[name="category"]').removeAttr('disabled');
+                        // $(form+' select[name="category"]').removeAttr('disabled');
                     }
                 },
                 logicFormula: function(){

@@ -52,9 +52,12 @@ class VoucherCrudController extends CrudController {
         ];
 
         $this->settingPermission([
-            'create' => $allAccess,
-            'update' => $allAccess,
-            'delete' => $allAccess,
+            'create' => [
+                ...$allAccess,
+                "CREATE INDEX FA VOUCHER",
+            ],
+            'update' => [...$allAccess, "UPDATE INDEX FA VOUCHER"],
+            'delete' => [...$allAccess, "DELETE INDEX FA VOUCHER"],
             'list' => $viewMenu,
             'show' => $viewMenu,
             'print' => true,
