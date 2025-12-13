@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -28,7 +29,8 @@ use App\Http\Controllers\Operation\PermissionAccess;
 use App\Http\Exports\ExportProfitLostConsolidation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ProfitLostAccountCrudController extends CrudController{
+class ProfitLostAccountCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -54,69 +56,69 @@ class ProfitLostAccountCrudController extends CrudController{
             'show'   => $viewMenu,
             'print'  => true,
         ]);
-        
     }
 
-    public function total_report_account_profit_lost_ajax_old(){
+    public function total_report_account_profit_lost_ajax_old()
+    {
         $acct_1 = Account::where('accounts.code', 109)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_2 = Account::where('accounts.code', 401)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_3 = Account::where('accounts.code', 402)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_4 = Account::where('accounts.code', 110)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_5 = Account::where('accounts.code', 11001)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_6 = Account::where('accounts.code', 11002)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_7 = Account::where('accounts.code', 111)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_8 = Account::where('accounts.code', 112)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_9 = Account::where('accounts.code', 40201)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_10 = Account::where('accounts.code', 113)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_11 = Account::where('accounts.code', 11301)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_12 = Account::where('accounts.code', 108)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $total_acct_1 = $acct_1->balance + $acct_2->balance;
         $total_acct_4 =  $acct_5->balance + $acct_6->balance;
@@ -139,14 +141,16 @@ class ProfitLostAccountCrudController extends CrudController{
         ]);
     }
 
-    public function total_report_account_profit_lost_ajax(){
+    public function total_report_account_profit_lost_ajax()
+    {
         return $this->consolidate_formula();
     }
 
-    public function listCardComponents($type){
+    public function listCardComponents($type)
+    {
         $dataset = Account::where('type', $type)
-        ->whereIn('level', [2])
-        ->where('is_active', 1)->orderBy('code', 'asc')->get();
+            ->whereIn('level', [2])
+            ->where('is_active', 1)->orderBy('code', 'asc')->get();
 
         $this->card->addCard([
             'name' => 'report_profit_lost',
@@ -154,11 +158,11 @@ class ProfitLostAccountCrudController extends CrudController{
             'view' => 'crud::components.card-report-account-profit',
             'params' => [
                 'crud' => $this->crud,
-                'route' => url($this->crud->route.'/report-total'),
+                'route' => url($this->crud->route . '/report-total'),
             ]
         ]);
 
-        if($dataset->count() > 0){
+        if ($dataset->count() > 0) {
             // foreach($dataset as $account){
             //     $this->card->addCard([
             //         'name' => 'account_'.$account->id,
@@ -171,7 +175,7 @@ class ProfitLostAccountCrudController extends CrudController{
             //         ]
             //     ]);
             // }
-        }else{
+        } else {
             // $this->card->addCard([
             //     'name' => 'blank_account',
             //     'line' => 'top',
@@ -183,12 +187,12 @@ class ProfitLostAccountCrudController extends CrudController{
         }
 
         $this->crud->filter('category77crudTable-project')
-        ->label('Kategori')
-        ->type('select2')
+            ->label('Kategori')
+            ->type('select2')
             ->values([
-            'RUTIN' => 'RUTIN',
-            'NON RUTIN' => 'NON RUTIN',
-        ]);
+                'RUTIN' => 'RUTIN',
+                'NON RUTIN' => 'NON RUTIN',
+            ]);
 
         $this->card->addCard([
             'name' => 'project',
@@ -307,7 +311,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     ]
                 ],
                 'filter_table' => collect($this->crud->filters())->slice(0, 2),
-                'route' => url($this->crud->route.'/search?type=project'),
+                'route' => url($this->crud->route . '/search?type=project'),
             ]
         ]);
 
@@ -318,10 +322,10 @@ class ProfitLostAccountCrudController extends CrudController{
             'parent_view' => 'crud::components.filter-parent',
             'params' => [],
         ]);
-
     }
 
-    public function get_total_excl_ppn_final_profit(){
+    public function get_total_excl_ppn_final_profit()
+    {
         $request = request();
         $referenceType = 'App\\Models\\AccountTransaction';      // isi param kamu
         $castNameLike  = '%kas kecil%';
@@ -330,7 +334,7 @@ class ProfitLostAccountCrudController extends CrudController{
         // ============ SUBQUERY: vouchers ===============
         $vouchers = DB::table('vouchers')
             ->select(
-                'client_po_id', 
+                'client_po_id',
                 DB::raw('SUM(payment_transfer) AS payment_transfer'),
                 DB::raw('SUM(total) AS voucher_biaya')
             )
@@ -342,11 +346,11 @@ class ProfitLostAccountCrudController extends CrudController{
                 DB::raw('(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash'),
                 'account_transactions.kdp as kdp'
             )
-            ->leftJoin('journal_entries', function($join) use ($referenceType) {
+            ->leftJoin('journal_entries', function ($join) use ($referenceType) {
                 $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
                     ->where('journal_entries.reference_type', '=', $referenceType);
             })
-            ->whereExists(function($query) use ($castNameLike) {
+            ->whereExists(function ($query) use ($castNameLike) {
                 $query->select(DB::raw(1))
                     ->from('cast_accounts')
                     ->whereColumn('cast_accounts.id', 'account_transactions.cast_account_id')
@@ -371,8 +375,8 @@ class ProfitLostAccountCrudController extends CrudController{
                 'invoice_clients.invoice_date',
                 'invoice_clients.price_job_exlude_ppn',
                 'invoice_clients.price_job_include_ppn',
-                'vouchers.payment_transfer as payment_voucher',
-                'vouchers.voucher_biaya as voucher_biaya',
+                'vouchers_logic.payment_transfer as payment_voucher',
+                'vouchers_logic.voucher_biaya as voucher_biaya',
                 'client_po.work_code',
                 'client_po.po_number',
                 'client_po.reimburse_type',
@@ -381,28 +385,28 @@ class ProfitLostAccountCrudController extends CrudController{
                 'client_po.job_value_include_ppn',
                 DB::raw('IFNULL(small_cash.total_small_cash, 0) as total_small_cash'),
                 DB::raw('(IFNULL(project_profit_lost.price_after_year,0)
-                        + IFNULL(vouchers.voucher_biaya,0)
+                        + IFNULL(vouchers_logic.voucher_biaya,0)
                         + IFNULL(small_cash.total_small_cash,0)
                     ) AS price_total_str'),
                 DB::raw('(client_po.job_value_include_ppn -
                         (IFNULL(project_profit_lost.price_after_year,0)
-                        + IFNULL(vouchers.voucher_biaya,0)
+                        + IFNULL(vouchers_logic.voucher_biaya,0)
                         + IFNULL(small_cash.total_small_cash,0))
                     ) AS price_profit_lost_str'),
                 DB::raw('
                     ((client_po.job_value_include_ppn -
                         (IFNULL(project_profit_lost.price_after_year,0)
-                        + IFNULL(vouchers.voucher_biaya,0)
+                        + IFNULL(vouchers_logic.voucher_biaya,0)
                         + IFNULL(small_cash.total_small_cash,0)))
                     - IFNULL(project_profit_lost.price_general, 0)
                 ) AS price_prift_lost_final_str')
             ])
             ->leftJoin('client_po', 'client_po.id', 'project_profit_lost.client_po_id')
-            ->leftJoinSub($vouchers, 'vouchers', 'vouchers.client_po_id', 'client_po.id')
+            ->leftJoinSub($vouchers, 'vouchers_logic', 'vouchers_logic.client_po_id', 'client_po.id')
             ->leftJoinSub($smallCash, 'small_cash', 'small_cash.kdp', 'client_po.work_code')
             ->leftJoinSub($invoiceClients, 'invoice_clients', 'invoice_clients.client_po_id', 'client_po.id');
 
-        if($category){
+        if ($category) {
             $mainQuery = $mainQuery->where('client_po.category', $category);
         }
         // ============ BUNGKUS SUBQUERY + SUM ===============
@@ -418,13 +422,14 @@ class ProfitLostAccountCrudController extends CrudController{
         ]);
     }
 
-    public function select2Account(){
+    public function select2Account()
+    {
         $search = request()->input('q');
         $dataset = \App\Models\Account::select(['id', 'code', 'name'])
             // ->where('level', ">", 2)
-            ->where(function($q) use($search){
+            ->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%$search%")
-                ->orWhere('code', 'LIKE', "%$search%");
+                    ->orWhere('code', 'LIKE', "%$search%");
             })
             ->orderBy('code', 'ASC')
             ->paginate(10);
@@ -433,7 +438,7 @@ class ProfitLostAccountCrudController extends CrudController{
         foreach ($dataset as $item) {
             $results[] = [
                 'id' => $item->id,
-                'text' => $item->code.' - '.$item->name,
+                'text' => $item->code . ' - ' . $item->name,
             ];
         }
         return response()->json(['results' => $results]);
@@ -468,54 +473,55 @@ class ProfitLostAccountCrudController extends CrudController{
         return view($list, $this->data);
     }
 
-    public function total_detail_project($id, $pure = 0){
+    public function total_detail_project($id, $pure = 0)
+    {
         $profitLost = ProjectProfitLost::where('id', $id)->first();
         $po = $profitLost->clientPo;
         $account_material = Account::where('code', 50101)->first();
         $price_po_excl_ppn = $po->job_value; //
-        $material_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+        $material_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
             $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
                 ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
         })
-        ->where('journal_entries.account_id', $account_material->id)
-        ->where('account_transactions.kdp', $po->work_code)
-        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-        ->get()->sum('total_material'); //
+            ->where('journal_entries.account_id', $account_material->id)
+            ->where('account_transactions.kdp', $po->work_code)
+            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+            ->get()->sum('total_material'); //
 
         $account_subkon = Account::whereIn('code', [50102, 50103])->get()
-        ->pluck('id')->toArray();
+            ->pluck('id')->toArray();
 
-        $subkon_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+        $subkon_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
             $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
                 ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
         })
-        ->whereIn('journal_entries.account_id', $account_subkon)
-        ->where('account_transactions.kdp', $po->work_code)
-        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_subkon")
-        ->get()->sum('total_subkon'); //
+            ->whereIn('journal_entries.account_id', $account_subkon)
+            ->where('account_transactions.kdp', $po->work_code)
+            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_subkon")
+            ->get()->sum('total_subkon'); //
 
 
         $account_btkl = Account::where('code', 50104)->first();
-        $btkl_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+        $btkl_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
             $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
                 ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
         })
-        ->where('journal_entries.account_id', $account_btkl->id)
-        ->where('account_transactions.kdp', $po->work_code)
-        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-        ->get()->sum('total_material'); //
+            ->where('journal_entries.account_id', $account_btkl->id)
+            ->where('account_transactions.kdp', $po->work_code)
+            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+            ->get()->sum('total_material'); //
 
         $account_price_other = Account::whereNotIn('code', [50101, 50102, 50103, 50104])
-        ->where('code', 'LIKE', '501%')->get()
-        ->pluck('id')->toArray();
-        $price_other_data = AccountTransaction::leftJoin('journal_entries', function($join) {
+            ->where('code', 'LIKE', '501%')->get()
+            ->pluck('id')->toArray();
+        $price_other_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
             $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
                 ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
         })
-        ->whereIn('journal_entries.account_id', $account_price_other)
-        ->where('account_transactions.kdp', $po->work_code)
-        ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-        ->get()->sum('total_material'); //
+            ->whereIn('journal_entries.account_id', $account_price_other)
+            ->where('account_transactions.kdp', $po->work_code)
+            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+            ->get()->sum('total_material'); //
 
         $price_profit_lost = $profitLost->price_after_year; //
 
@@ -538,7 +544,7 @@ class ProfitLostAccountCrudController extends CrudController{
         //     $price_general,
         //     $price_profit_final);
 
-        if($pure){
+        if ($pure) {
             return [
                 'price_po_excl_ppn' => CustomHelper::formatRupiahWithCurrency($price_po_excl_ppn),
                 'price_material' => CustomHelper::formatRupiahWithCurrency($material_data),
@@ -565,14 +571,14 @@ class ProfitLostAccountCrudController extends CrudController{
             'price_general' => CustomHelper::formatRupiah($price_general),
             'price_profit_final' => CustomHelper::formatRupiah($price_profit_final)
         ];
-
     }
 
-    public function consolidate_formula(){
+    public function consolidate_formula()
+    {
 
         $dataset = [];
         $consolidate_income_header = DB::table('consolidate_income_headers')
-        ->orderBy('id', 'asc')->get();
+            ->orderBy('id', 'asc')->get();
         // dd($consolidate_income_header);
 
         // $contract_income = JournalEntry::whereExists(function ($query) {
@@ -586,7 +592,7 @@ class ProfitLostAccountCrudController extends CrudController{
         // pendapatan kontrak
         $contract_income_number = 0;
 
-        if($consolidate_income_header[0]){
+        if ($consolidate_income_header[0]) {
             $data = [
                 'name' => $consolidate_income_header[0]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($contract_income_number),
@@ -594,9 +600,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[0]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[0]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
@@ -618,7 +624,7 @@ class ProfitLostAccountCrudController extends CrudController{
         // ->first();
         // beban usaha
         $cost_expense_number = 0;
-        if($consolidate_income_header[1]){
+        if ($consolidate_income_header[1]) {
             $data = [
                 'name' => $consolidate_income_header[1]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($cost_expense_number),
@@ -626,9 +632,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[1]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[1]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
@@ -640,16 +646,16 @@ class ProfitLostAccountCrudController extends CrudController{
         }
         // laba usaha
         $cost_profit_expense_number = $contract_income_number - $cost_expense_number;
-        if($consolidate_income_header[2]){
+        if ($consolidate_income_header[2]) {
             $data = [
                 'name' => $consolidate_income_header[2]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($cost_profit_expense_number),
                 'item' => [],
             ];
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[2]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[2]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -659,7 +665,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         // pendapatan lain - lain
         $cost_other_number = 0;
-        if($consolidate_income_header[3]){
+        if ($consolidate_income_header[3]) {
             $data = [
                 'name' => $consolidate_income_header[3]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($cost_other_number),
@@ -667,9 +673,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[3]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[3]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
@@ -682,7 +688,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         // beban lain - lain
         $expense_other_number = 0;
-        if($consolidate_income_header[4]){
+        if ($consolidate_income_header[4]) {
             $data = [
                 'name' => $consolidate_income_header[4]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($expense_other_number),
@@ -690,9 +696,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[4]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[4]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
@@ -705,7 +711,7 @@ class ProfitLostAccountCrudController extends CrudController{
         // laba sebelum pajak
         $profit_before_tax = $cost_profit_expense_number + $cost_other_number - $expense_other_number;
 
-        if($consolidate_income_header[5]){
+        if ($consolidate_income_header[5]) {
             $data = [
                 'name' => $consolidate_income_header[5]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($profit_before_tax),
@@ -713,9 +719,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[5]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[5]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -725,7 +731,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         // beban pajak
         $expense_tax_number = 0;
-        if($consolidate_income_header[6]){
+        if ($consolidate_income_header[6]) {
             $data = [
                 'name' => $consolidate_income_header[6]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency(0),
@@ -733,9 +739,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[6]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[6]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
@@ -748,7 +754,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         // laba bersih
         $net_profit = $profit_before_tax - $expense_tax_number;
-        if($consolidate_income_header[7]){
+        if ($consolidate_income_header[7]) {
             $data = [
                 'name' => $consolidate_income_header[7]->name,
                 'total' => CustomHelper::formatRupiahWithCurrency($net_profit),
@@ -756,9 +762,9 @@ class ProfitLostAccountCrudController extends CrudController{
             ];
             $totalAll = 0;
             $items = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
-            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[7]->id)
-            ->select(DB::raw("accounts.*"))->get();
-            foreach($items as $item){
+                ->where('consolidate_income_account_items.header_id', $consolidate_income_header[7]->id)
+                ->select(DB::raw("accounts.*"))->get();
+            foreach ($items as $item) {
                 $total_account = CustomHelper::balanceAccount($item->code);
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -769,7 +775,8 @@ class ProfitLostAccountCrudController extends CrudController{
         return $dataset;
     }
 
-    public function detail($id){
+    public function detail($id)
+    {
         $this->crud->hasAccessOrFail('list');
         $this->data['is_disabled_list'] = true;
         $profitLost = ProjectProfitLost::where('id', $id)->first();
@@ -819,7 +826,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -851,23 +858,23 @@ class ProfitLostAccountCrudController extends CrudController{
         $client_po = $this->data['entry']->clientPo;
 
         $small_cash = DB::table('account_transactions')
-        ->select([
-            DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
-            "account_transactions.kdp as kdp"
-        ])
-        ->leftJoin('journal_entries', function($join) {
-            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-        })
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('cast_accounts')
-                ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
-                ->where('cast_accounts.name', 'like', '%kas kecil%');
-        })
-        ->groupBy('account_transactions.kdp')
-        ->having('account_transactions.kdp', $client_po->work_code)
-        ->first();
+            ->select([
+                DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
+                "account_transactions.kdp as kdp"
+            ])
+            ->leftJoin('journal_entries', function ($join) {
+                $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                    ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+            })
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('cast_accounts')
+                    ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
+                    ->where('cast_accounts.name', 'like', '%kas kecil%');
+            })
+            ->groupBy('account_transactions.kdp')
+            ->having('account_transactions.kdp', $client_po->work_code)
+            ->first();
 
         $this->crud->entry->price_small_cash = $small_cash->total_small_cash ?? 0;
         $this->crud->entry->po_number = $client_po->po_number;
@@ -876,7 +883,7 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -884,7 +891,8 @@ class ProfitLostAccountCrudController extends CrudController{
         ]);
     }
 
-    function select2Po(){
+    function select2Po()
+    {
         $q = request()->q;
         // $po = ClientPo::select(DB::raw("id, po_number, 'client' as type"))->where('po_number', 'like', "%$q%");
 
@@ -894,7 +902,7 @@ class ProfitLostAccountCrudController extends CrudController{
         // $union = $po->unionAll($po_subkon)
         // ->paginate(20);
         $union = ClientPo::where('work_code', 'like', "%$q%")
-        ->get();
+            ->get();
 
         $results = [];
         foreach ($union as $item) {
@@ -910,7 +918,8 @@ class ProfitLostAccountCrudController extends CrudController{
         return response()->json(['results' => $results]);
     }
 
-    function get_client_selected_ajax(){
+    function get_client_selected_ajax()
+    {
         $id = request()->id;
         $voucher = Voucher::where('client_po_id', $id)->first();
 
@@ -921,15 +930,15 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $total_small_cash = 0;
 
-        if($cast_account){
-            $journal_small_cash = AccountTransaction::leftJoin('journal_entries', function($join) {
+        if ($cast_account) {
+            $journal_small_cash = AccountTransaction::leftJoin('journal_entries', function ($join) {
                 $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
                     ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
             })
-            ->where('account_transactions.cast_account_id', $cast_account->id)
-            ->where('account_transactions.kdp', $work_code)
-            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_small_cash")
-            ->get();
+                ->where('account_transactions.cast_account_id', $cast_account->id)
+                ->where('account_transactions.kdp', $work_code)
+                ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_small_cash")
+                ->get();
 
             $total_small_cash = $journal_small_cash->sum('total_small_cash');
         }
@@ -942,10 +951,11 @@ class ProfitLostAccountCrudController extends CrudController{
         ]);
     }
 
-    private function ruleAccount(){
+    private function ruleAccount()
+    {
         $id = request()->id;
         $rule = [
-            'name' => 'required|max:100|unique:accounts,name,'.$id,
+            'name' => 'required|max:100|unique:accounts,name,' . $id,
             'balance' => 'required|numeric|min:0',
         ];
         $rule['code'] = [
@@ -953,46 +963,46 @@ class ProfitLostAccountCrudController extends CrudController{
             'min:3',
             'max:20',
             Rule::unique('accounts', 'code')->ignore($id),
-            function($attribute, $value, $fail) use($id){
+            function ($attribute, $value, $fail) use ($id) {
                 $parent = null;
                 for ($i = 1; $i < strlen($value); $i++) {
                     $prefix = substr($value, 0, $i);
                     $account = Account::where('code', $prefix)
-                    ->where('level', '>=', 2)->first();
-                    if($account && $account->type != Account::INCOME){
+                        ->where('level', '>=', 2)->first();
+                    if ($account && $account->type != Account::INCOME) {
                         $fail(trans('backpack::crud.expense_account.field.code.errors.depedency'));
                     }
                 }
                 return $parent;
             }
         ];
-        if($id){
+        if ($id) {
             $rule['code'] = [
                 'required',
                 'min:3',
                 'max:20',
                 Rule::unique('accounts', 'code')->ignore($id),
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $old_code = Account::where('id', $id)->first()->code;
 
                     $parent = null;
-                    if($value != $old_code){
+                    if ($value != $old_code) {
                         for ($i = 1; $i < strlen($value); $i++) {
                             $prefix = substr($value, 0, $i);
                             $account = Account::where('code', $prefix)
-                            ->where('level', '>=', 2)->first();
-                            if($account && $account->type != Account::INCOME){
+                                ->where('level', '>=', 2)->first();
+                            if ($account && $account->type != Account::INCOME) {
                                 $fail(trans('backpack::crud.expense_account.field.code.errors.depedency'));
                             }
                         }
                     }
 
-                    if($value != $old_code){
+                    if ($value != $old_code) {
                         $child = Account::where('code', 'LIKE', "$old_code%")
-                        ->where('type', Account::INCOME)
-                        ->where('id', '!=', $id)
-                        ->count();
-                        if($child > 0){
+                            ->where('type', Account::INCOME)
+                            ->where('id', '!=', $id)
+                            ->count();
+                        if ($child > 0) {
                             $fail(trans('backpack::crud.expense_account.field.code.errors.depedency'));
                         }
                     }
@@ -1003,33 +1013,32 @@ class ProfitLostAccountCrudController extends CrudController{
                 'required',
                 'numeric',
                 'min:0',
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $old_balance = Account::leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-                    ->select(DB::raw("
+                        ->select(DB::raw("
                         (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
                     "))->where('accounts.id', $id)
-                    ->groupBy('accounts.id')
-                    ->first();
+                        ->groupBy('accounts.id')
+                        ->first();
 
                     $old_balance = $old_balance->balance ?? 0;
 
-                    if($value != $old_balance){
+                    if ($value != $old_balance) {
                         $journal = JournalEntry::where('account_id', $id)
-                        ->whereNot('reference_type', Account::class)
-                        ->count();
-                        if($journal > 0){
+                            ->whereNot('reference_type', Account::class)
+                            ->count();
+                        if ($journal > 0) {
                             $fail(trans('backpack::crud.expense_account.field.code.errors.not_change_balance'));
                         }
                     }
-
-
                 }
             ];
         }
         return $rule;
     }
 
-    private function ruleConsolidateItem(){
+    private function ruleConsolidateItem()
+    {
         $rule = [
             'account_id' => [
                 'required',
@@ -1041,14 +1050,16 @@ class ProfitLostAccountCrudController extends CrudController{
         return $rule;
     }
 
-    function validationProject(){
+    function validationProject()
+    {
         $rule = [];
-        $rule['id_client_po'] = 'required|unique:project_profit_lost,client_po_id,'.request()->id;
+        $rule['id_client_po'] = 'required|unique:project_profit_lost,client_po_id,' . request()->id;
         $rule['category'] = 'required';
         return $rule;
     }
 
-    protected function setupCreateOperation(){
+    protected function setupCreateOperation()
+    {
 
         $request = request();
 
@@ -1062,14 +1073,14 @@ class ProfitLostAccountCrudController extends CrudController{
         $price_profit_lost_po_attribute = [];
         $price_prift_lost_final_attribute = [];
         $category_attribute = [];
-        if(!$this->crud->getCurrentEntryId()){
+        if (!$this->crud->getCurrentEntryId()) {
             $job_code_prefix_value = [
                 'value' => $settings?->work_code_prefix,
             ];
-        }else{
+        } else {
             // edit
             $job_code_prefix_value = [
-              'disabled' => true,  
+                'disabled' => true,
             ];
             $price_voucher_attribute = [
                 'disabled' => true,
@@ -1087,13 +1098,12 @@ class ProfitLostAccountCrudController extends CrudController{
                 'disabled' => true,
             ];
             $category_attribute = [
-                'disabled' => true,  
+                'disabled' => true,
             ];
-
         }
 
-        if($request->has('type')){
-            if($request->type == 'project'){
+        if ($request->has('type')) {
+            if ($request->type == 'project') {
 
                 CRUD::setValidation($this->validationProject());
                 CRUD::setModel(ProjectProfitLost::class);
@@ -1123,7 +1133,7 @@ class ProfitLostAccountCrudController extends CrudController{
                         'disabled' => true,
                     ],
                 ]);
-                
+
                 CRUD::addField([
                     'name' => 'price_after_year',
                     'label' =>  trans('backpack::crud.profit_lost.fields.price_after_year.label'),
@@ -1269,15 +1279,14 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'logic_profit_lost',
                     'type' => 'logic_profit_lost'
                 ]);
-
             }
-        }else{
+        } else {
             CRUD::setValidation($this->ruleConsolidateItem());
             CRUD::setModel(ConsolidateIncomeItem::class);
             $consolidate_header = DB::table('consolidate_income_headers')
-            ->get();
+                ->get();
             $optionHeader = [];
-            foreach($consolidate_header as $header){
+            foreach ($consolidate_header as $header) {
                 $optionHeader[$header->id] = $header->name;
             }
 
@@ -1306,11 +1315,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'placeholder' => trans('backpack::crud.voucher.field.account_id.placeholder'),
                 ]
             ]);
-
         }
-
-
-
     }
 
     protected function setupUpdateOperation()
@@ -1318,7 +1323,8 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->setupCreateOperation();
     }
 
-    public function update(){
+    public function update()
+    {
         $this->crud->hasAccessOrFail('update');
         $request = request();
 
@@ -1330,7 +1336,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
             $events = [];
 
             $flag_update = 0;
@@ -1338,18 +1344,18 @@ class ProfitLostAccountCrudController extends CrudController{
             $project_profit_lost = ProjectProfitLost::find($request->id);
             $price_after_year_old = price_normalize($project_profit_lost->price_after_year);
             $price_after_year_new = price_normalize($request->price_after_year);
-            if($price_after_year_old != $price_after_year_new){
+            if ($price_after_year_old != $price_after_year_new) {
                 $flag_update++;
                 $project_profit_lost->price_after_year = $request->price_after_year;
             }
 
             $price_general_old = price_normalize($project_profit_lost->price_general);
             $price_general_new = price_normalize($request->price_general);
-            if($price_general_old != $price_general_new){
+            if ($price_general_old != $price_general_new) {
                 $flag_update++;
                 $project_profit_lost->price_general = $request->price_general;
             }
-            if($flag_update > 0){
+            if ($flag_update > 0) {
                 $project_profit_lost->save();
                 // store profit log
                 $new_profit_log = new ProjectProfitLostLog;
@@ -1376,7 +1382,7 @@ class ProfitLostAccountCrudController extends CrudController{
                 'data' => $item,
                 'events' => $events
             ]);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1395,7 +1401,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $old_account = Account::find($request->id);
             $rootParent_1 = $this->getRootParentAccount($old_account->code);
@@ -1405,8 +1411,8 @@ class ProfitLostAccountCrudController extends CrudController{
             for ($i = 1; $i <= strlen($new_code); $i++) {
                 $prefix = substr($new_code, 0, $i);
                 $account = Account::where('code', $prefix)->first();
-                if($account){
-                    if($account->code != $old_account->code){
+                if ($account) {
+                    if ($account->code != $old_account->code) {
                         $new_parent = $account;
                     }
                 }
@@ -1417,20 +1423,20 @@ class ProfitLostAccountCrudController extends CrudController{
             $item = Account::where('id', $request->id)->first();
             $item->code = $new_code;
             $item->name = $request->name;
-            if($new_parent){
+            if ($new_parent) {
                 $item->level = $new_parent->level + 1;
             }
             $item->save();
 
-            if($request->balance > 0){
+            if ($request->balance > 0) {
                 $journal = JournalEntry::where('account_id', $item->id)
-                ->where('reference_type', Account::class)
-                ->first();
-                if($journal){
+                    ->where('reference_type', Account::class)
+                    ->first();
+                if ($journal) {
                     $journal->debit = $request->balance;
                     $journal->credit = 0;
                     $journal->save();
-                }else{
+                } else {
                     CustomHelper::updateOrCreateJournalEntry([
                         'account_id' => $item->id,
                         'reference_id' => $item->id,
@@ -1448,14 +1454,14 @@ class ProfitLostAccountCrudController extends CrudController{
             $events = [];
             $dataEvents = [];
 
-            if($rootParent_1){
+            if ($rootParent_1) {
                 $dataEvents[] = $rootParent_1;
-                $events['account_'.$rootParent_1->id.'_update_success'] = ($item->level == 2) ? $rootParent_1 : $item;
+                $events['account_' . $rootParent_1->id . '_update_success'] = ($item->level == 2) ? $rootParent_1 : $item;
             }
 
-            if($rootParant_2){
+            if ($rootParant_2) {
                 $dataEvents[] = $rootParant_2;
-                $events['account_'.$rootParant_2->id.'_update_success'] = ($item->level == 2) ? $rootParant_2 : $item;
+                $events['account_' . $rootParant_2->id . '_update_success'] = ($item->level == 2) ? $rootParant_2 : $item;
             }
 
             // if(count($dataEvents) > 0){
@@ -1476,7 +1482,7 @@ class ProfitLostAccountCrudController extends CrudController{
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1486,14 +1492,15 @@ class ProfitLostAccountCrudController extends CrudController{
         }
     }
 
-    public function getRootParentAccount($code){
+    public function getRootParentAccount($code)
+    {
         $parent = null;
         for ($i = 1; $i <= strlen($code); $i++) {
             $prefix = substr($code, 0, $i);
             $account = Account::where('code', $prefix)
-            // ->where('type', Account::INCOME)
-            ->whereIn('level', [1, 2])->first();
-            if($account){
+                // ->where('type', Account::INCOME)
+                ->whereIn('level', [1, 2])->first();
+            if ($account) {
                 $parent = $account;
             }
         }
@@ -1509,7 +1516,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $header_id = $request->header_id;
             $account_id = $request->account_id;
@@ -1529,7 +1536,7 @@ class ProfitLostAccountCrudController extends CrudController{
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1539,7 +1546,8 @@ class ProfitLostAccountCrudController extends CrudController{
         }
     }
 
-    public function storeProjectOld(){
+    public function storeProjectOld()
+    {
         $this->crud->hasAccessOrFail('create');
         CRUD::setValidation($this->validationProject());
 
@@ -1548,7 +1556,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $voucher_id = $request->voucher_id;
             $client_po_id = $request->client_po_id;
@@ -1592,8 +1600,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'project_create_success' => $item,
                 ]
             ]);
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1603,7 +1610,8 @@ class ProfitLostAccountCrudController extends CrudController{
         }
     }
 
-    public function storeProject(){
+    public function storeProject()
+    {
         $this->crud->hasAccessOrFail('create');
         CRUD::setValidation($this->validationProject());
 
@@ -1612,7 +1620,7 @@ class ProfitLostAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $item = new ProjectProfitLost;
             $item->voucher_id = $request->voucher_id;
@@ -1652,8 +1660,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'project_create_success' => $item,
                 ]
             ]);
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1672,11 +1679,11 @@ class ProfitLostAccountCrudController extends CrudController{
             $item = $this->crud->model::findOrFail($id);
             $parent_account = null;
 
-            if($item){
+            if ($item) {
                 $child_exists = Account::where('code', 'LIKE', "{$item->code}%")
-                ->where('id', '!=', $item->id)->count();
+                    ->where('id', '!=', $item->id)->count();
 
-                if($child_exists > 0){
+                if ($child_exists > 0) {
                     return response()->json([
                         'error' => [
                             trans('backpack::crud.expense_account.field.code.errors.delete')
@@ -1689,8 +1696,8 @@ class ProfitLostAccountCrudController extends CrudController{
 
             $events = [];
 
-            if($parent_account){
-                $events['account_'.$parent_account->id.'_update_success'] = true;
+            if ($parent_account) {
+                $events['account_' . $parent_account->id . '_update_success'] = true;
             }
 
             JournalEntry::where('account_id', $item->id)->delete();
@@ -1700,7 +1707,7 @@ class ProfitLostAccountCrudController extends CrudController{
             DB::commit();
             return response()->json([
                 'success' => [
-                    '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message'),
+                    '<strong>' . trans('backpack::crud.delete_confirmation_title') . '</strong><br>' . trans('backpack::crud.delete_confirmation_message'),
                 ],
                 'events' => $events,
             ]);
@@ -1727,8 +1734,8 @@ class ProfitLostAccountCrudController extends CrudController{
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
 
-        if($request->has('type')){
-            if($request->type == 'project'){
+        if ($request->has('type')) {
+            if ($request->type == 'project') {
                 // CRUD::removeButton('create');
                 CRUD::removeButton('update');
                 CRUD::removeButton('delete');
@@ -1739,32 +1746,32 @@ class ProfitLostAccountCrudController extends CrudController{
 
                 CRUD::setModel(ProjectProfitLost::class);
                 $this->crud->query = $this->crud->query
-                ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
+                    ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
                 $invoice = DB::table('invoice_clients')
-                ->select(
-                    'invoice_clients.client_po_id',
-                    DB::raw("GROUP_CONCAT(invoice_clients.invoice_date SEPARATOR ',') AS invoice_date"),
-                    DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
-                    DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
-                )
-                ->groupBy('invoice_clients.client_po_id');
+                    ->select(
+                        'invoice_clients.client_po_id',
+                        DB::raw("GROUP_CONCAT(invoice_clients.invoice_date SEPARATOR ',') AS invoice_date"),
+                        DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
+                        DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
+                    )
+                    ->groupBy('invoice_clients.client_po_id');
 
                 $small_cash = DB::table('account_transactions')
-                ->select([
-                    DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
-                    "account_transactions.kdp as kdp"
-                ])
-                ->leftJoin('journal_entries', function($join) {
-                    $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                        ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-                })
-                ->whereExists(function ($query) {
-                    $query->select(DB::raw(1))
-                        ->from('cast_accounts')
-                        ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
-                        ->where('cast_accounts.name', 'like', '%kas kecil%');
-                })
-                ->groupBy('account_transactions.kdp');
+                    ->select([
+                        DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
+                        "account_transactions.kdp as kdp"
+                    ])
+                    ->leftJoin('journal_entries', function ($join) {
+                        $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                            ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+                    })
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('cast_accounts')
+                            ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
+                            ->where('cast_accounts.name', 'like', '%kas kecil%');
+                    })
+                    ->groupBy('account_transactions.kdp');
 
                 $voucher = DB::table('vouchers')->select(
                     'client_po_id',
@@ -1773,21 +1780,21 @@ class ProfitLostAccountCrudController extends CrudController{
                 )->groupBy('client_po_id');
 
                 $this->crud->query = $this->crud->query
-                ->leftJoinSub($voucher, 'vouchers', function($join) {
-                    $join->on('vouchers.client_po_id', '=', 'client_po.id');
-                });
+                    ->leftJoinSub($voucher, 'vouchers', function ($join) {
+                        $join->on('vouchers.client_po_id', '=', 'client_po.id');
+                    });
 
                 $this->crud->query = $this->crud->query
-                ->leftJoinSub($small_cash, 'small_cash', function($join) {
-                    $join->on('small_cash.kdp', '=', 'client_po.work_code');
-                });
+                    ->leftJoinSub($small_cash, 'small_cash', function ($join) {
+                        $join->on('small_cash.kdp', '=', 'client_po.work_code');
+                    });
 
                 $this->crud->query = $this->crud->query
-                ->leftJoinSub($invoice, 'invoice_clients', function($join) {
-                    $join->on('invoice_clients.client_po_id', '=', 'client_po.id');
-                });
+                    ->leftJoinSub($invoice, 'invoice_clients', function ($join) {
+                        $join->on('invoice_clients.client_po_id', '=', 'client_po.id');
+                    });
 
-                if($request->has('category')){
+                if ($request->has('category')) {
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
                 }
 
@@ -1806,12 +1813,12 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label' => '',
                     'type'      => 'closure',
                     'name'      => 'client_po_id',
-                    'function' => function($entry) {
+                    'function' => function ($entry) {
                         return $entry->clientPo->client->name;
                     }, // the column that contains the ID of that connected entity;
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
-                            $q->where('name', 'like', '%'.$searchTerm.'%');
+                            $q->where('name', 'like', '%' . $searchTerm . '%');
                         });
                     }
                 ]);
@@ -1821,7 +1828,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'reimburse_type',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.reimburse_type', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.reimburse_type', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -1830,7 +1837,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'work_code',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.work_code', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.work_code', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -1839,7 +1846,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'po_number',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.po_number', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.po_number', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -1848,7 +1855,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'job_name',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.job_name', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.job_name', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -1856,12 +1863,12 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
                     'name' => 'job_value',
                     'type'  => 'closure',
-                    'function' => function($entry) use($settings){
+                    'function' => function ($entry) use ($settings) {
                         $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
-                        if($entry->invoice_date){
-                            return $currency.number_format($entry->price_job_exlude_ppn, 2, ",", ".");
+                        if ($entry->invoice_date) {
+                            return $currency . number_format($entry->price_job_exlude_ppn, 2, ",", ".");
                         }
-                        return $currency.number_format($entry->job_value, 2, ",", ".");
+                        return $currency . number_format($entry->job_value, 2, ",", ".");
                     },
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -1876,13 +1883,13 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                     'name' => 'job_value_include_ppn',
                     'type'  => 'closure',
-                    'function' => function($entry) use($settings){
+                    'function' => function ($entry) use ($settings) {
                         $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
-                        if($entry->invoice_date){
+                        if ($entry->invoice_date) {
                             // dari invoice
-                            return $currency.number_format($entry->price_job_include_ppn, 2, ",", ".");
+                            return $currency . number_format($entry->price_job_include_ppn, 2, ",", ".");
                         }
-                        return $currency.number_format($entry->job_value_include_ppn, 2, ",", ".");
+                        return $currency . number_format($entry->job_value_include_ppn, 2, ",", ".");
                     },
                     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                     'decimals'      => 2,
@@ -1991,7 +1998,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
                     'type' => 'closure',
                     'name' => 'invoice_date',
-                    'function' => function($entry){
+                    'function' => function ($entry) {
                         $tgl = explode(",", $entry->invoice_date);
                         return implode("<br>", $tgl);
                     },
@@ -2030,9 +2037,8 @@ class ProfitLostAccountCrudController extends CrudController{
                         ((client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0))) - IFNULL(project_profit_lost.price_general, 0)) as price_prift_lost_final_str
                    ")
                 ]);
-
             }
-        }else{
+        } else {
 
             CRUD::removeButton('create');
             CRUD::removeButton('update');
@@ -2052,10 +2058,10 @@ class ProfitLostAccountCrudController extends CrudController{
                 'name' => 'name_',
                 'label' => trans('backpack::crud.expense_account.column.name'),
                 'type' => 'custom_html',
-                'value' => function($entry){
-                    if($entry->level_ > 2){
+                'value' => function ($entry) {
+                    if ($entry->level_ > 2) {
                         $space = str_repeat('&nbsp;', $entry->level_);
-                        return $space.'&bull; '.$entry->name_;
+                        return $space . '&bull; ' . $entry->name_;
                     }
                     return $entry->name_;
                 }
@@ -2066,18 +2072,18 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'balance',
                     'label' => trans('backpack::crud.expense_account.column.balance'),
                     'type' => 'custom_html',
-                    'value' => function($entry) {
+                    'value' => function ($entry) {
                         return CustomHelper::formatRupiahWithCurrency($entry->balance);
                     },
                 ],
             );
 
-            if(request()->has('_id')){
+            if (request()->has('_id')) {
                 $id = request()->_id;
                 $code = Account::find($id);
 
                 $this->crud->query = $this->crud->query
-                ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
+                    ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
 
                 CRUD::addClause('select', [
                     DB::raw("
@@ -2091,18 +2097,18 @@ class ProfitLostAccountCrudController extends CrudController{
                 ]);
 
 
-                if($code->level == 1){
+                if ($code->level == 1) {
                     $this->crud->query = $this->crud->query
-                    ->where('code', 'LIKE', "{$code->code}");
-                }else{
+                        ->where('code', 'LIKE', "{$code->code}");
+                } else {
                     $this->crud->query = $this->crud->query
-                    ->where('code', 'LIKE', "{$code->code}%");
+                        ->where('code', 'LIKE', "{$code->code}%");
                 }
 
 
                 $this->crud->query = $this->crud->query
-                ->orderBy('code', 'asc')
-                ->groupBy('accounts.id');
+                    ->orderBy('code', 'asc')
+                    ->groupBy('accounts.id');
             }
         }
 
@@ -2111,40 +2117,41 @@ class ProfitLostAccountCrudController extends CrudController{
 
     }
 
-    protected function setupListExportOperation(){
+    protected function setupListExportOperation()
+    {
         $settings = Setting::first();
         $request = request();
-        if($request->has('type')){
-            if($request->type == 'project'){
+        if ($request->has('type')) {
+            if ($request->type == 'project') {
 
                 CRUD::setModel(ProjectProfitLost::class);
                 $this->crud->query = $this->crud->query
-                ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
+                    ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
                 $invoice = DB::table('invoice_clients')
-                ->select(
-                    'invoice_clients.client_po_id',
-                    DB::raw("GROUP_CONCAT(invoice_clients.invoice_date SEPARATOR ',') AS invoice_date"),
-                    DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
-                    DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
-                )
-                ->groupBy('invoice_clients.client_po_id');
+                    ->select(
+                        'invoice_clients.client_po_id',
+                        DB::raw("GROUP_CONCAT(invoice_clients.invoice_date SEPARATOR ',') AS invoice_date"),
+                        DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
+                        DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
+                    )
+                    ->groupBy('invoice_clients.client_po_id');
 
                 $small_cash = DB::table('account_transactions')
-                ->select([
-                    DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
-                    "account_transactions.kdp as kdp"
-                ])
-                ->leftJoin('journal_entries', function($join) {
-                    $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                        ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-                })
-                ->whereExists(function ($query) {
-                    $query->select(DB::raw(1))
-                        ->from('cast_accounts')
-                        ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
-                        ->where('cast_accounts.name', 'like', '%kas kecil%');
-                })
-                ->groupBy('account_transactions.kdp');
+                    ->select([
+                        DB::raw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) AS total_small_cash"),
+                        "account_transactions.kdp as kdp"
+                    ])
+                    ->leftJoin('journal_entries', function ($join) {
+                        $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+                            ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+                    })
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('cast_accounts')
+                            ->whereColumn('cast_accounts.id', '=', 'account_transactions.cast_account_id')
+                            ->where('cast_accounts.name', 'like', '%kas kecil%');
+                    })
+                    ->groupBy('account_transactions.kdp');
 
                 $voucher = DB::table('vouchers')->select(
                     'client_po_id',
@@ -2153,21 +2160,21 @@ class ProfitLostAccountCrudController extends CrudController{
                 )->groupBy('client_po_id');
 
                 $this->crud->query = $this->crud->query
-                ->leftJoinSub($voucher, 'vouchers', function($join) {
-                    $join->on('vouchers.client_po_id', '=', 'client_po.id');
-                });
+                    ->leftJoinSub($voucher, 'vouchers', function ($join) {
+                        $join->on('vouchers.client_po_id', '=', 'client_po.id');
+                    });
 
                 $this->crud->query = $this->crud->query
-                ->leftJoinSub($small_cash, 'small_cash', function($join) {
-                    $join->on('small_cash.kdp', '=', 'client_po.work_code');
-                });
+                    ->leftJoinSub($small_cash, 'small_cash', function ($join) {
+                        $join->on('small_cash.kdp', '=', 'client_po.work_code');
+                    });
 
                 $this->crud->query = $this->crud->query
-                ->leftJoinSub($invoice, 'invoice_clients', function($join) {
-                    $join->on('invoice_clients.client_po_id', '=', 'client_po.id');
-                });
+                    ->leftJoinSub($invoice, 'invoice_clients', function ($join) {
+                        $join->on('invoice_clients.client_po_id', '=', 'client_po.id');
+                    });
 
-                if($request->has('category')){
+                if ($request->has('category')) {
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
                 }
 
@@ -2186,12 +2193,12 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label' => '',
                     'type'      => 'closure',
                     'name'      => 'client_po_id',
-                    'function' => function($entry) {
+                    'function' => function ($entry) {
                         return $entry->clientPo->client->name;
                     }, // the column that contains the ID of that connected entity;
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
-                            $q->where('name', 'like', '%'.$searchTerm.'%');
+                            $q->where('name', 'like', '%' . $searchTerm . '%');
                         });
                     }
                 ]);
@@ -2201,7 +2208,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'reimburse_type',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.reimburse_type', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.reimburse_type', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -2210,7 +2217,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'work_code',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.work_code', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.work_code', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -2219,7 +2226,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'po_number',
                     'type' => 'text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.po_number', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.po_number', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -2228,7 +2235,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'name' => 'job_name',
                     'type' => 'wrap_text',
                     'searchLogic' => function ($query, $column, $searchTerm) {
-                        $query->orWhere('client_po.job_name', 'like', '%'.$searchTerm.'%');
+                        $query->orWhere('client_po.job_name', 'like', '%' . $searchTerm . '%');
                     }
                 ]);
 
@@ -2236,14 +2243,14 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
                     'name' => 'job_value',
                     'type'  => 'closure',
-                    'function' => function($entry){
-                        if($entry->invoice_date){
+                    'function' => function ($entry) {
+                        if ($entry->invoice_date) {
                             // return $currency.number_format($entry->price_job_exlude_ppn, 2, ",", ".");
                             return str_replace('.00', '', $entry->price_job_exlude_ppn);
                         }
                         // return $currency.number_format($entry->job_value, 2, ",", ".");
                         return str_replace('.00', '', $entry->job_value);
-                    },                    
+                    },
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.job_value', $columnDirection);
                     }
@@ -2253,8 +2260,8 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                     'name' => 'job_value_include_ppn',
                     'type'  => 'closure',
-                    'function' => function($entry){
-                        if($entry->invoice_date){
+                    'function' => function ($entry) {
+                        if ($entry->invoice_date) {
                             // dari invoice
                             // return $currency.number_format($entry->price_job_include_ppn, 2, ",", ".");
                             return str_replace('.00', '', $entry->price_job_include_ppn);
@@ -2278,7 +2285,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'decimals'      => 2,
                     'dec_point'     => ',',
                     'thousands_sep' => '.',
-                    'function' => function($entry){
+                    'function' => function ($entry) {
                         return str_replace('.00', '', $entry->price_after_year);
                     }
                 ]);
@@ -2287,7 +2294,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.price_voucher'),
                     'name' => 'voucher_biaya',
                     'type'  => 'closure',
-                    'function' => function($entry){
+                    'function' => function ($entry) {
                         return str_replace('.00', '', $entry->voucher_biaya);
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
@@ -2299,7 +2306,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.price_small_cash'),
                     'name' => 'total_small_cash',
                     'type'  => 'closure',
-                    'function' => function($entry){
+                    'function' => function ($entry) {
                         return str_replace('.00', '', $entry->total_small_cash);
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
@@ -2337,7 +2344,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.load_general_value'),
                     'name' => 'price_general',
                     'type'  => 'closure',
-                    'function' => function($entry){
+                    'function' => function ($entry) {
                         return str_replace('.00', '', $entry->price_general);
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
@@ -2349,8 +2356,8 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label'  => trans('backpack::crud.profit_lost.column.profit_lost_final'),
                     'name' => 'price_prift_lost_final_str',
                     'type'  => 'closure',
-                    'function' => function($entry){
-                        return str_replace('.00', '', $entry->price_prift_lost_final_str);  
+                    'function' => function ($entry) {
+                        return str_replace('.00', '', $entry->price_prift_lost_final_str);
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('price_prift_lost_final_str', $columnDirection);
@@ -2367,7 +2374,7 @@ class ProfitLostAccountCrudController extends CrudController{
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
                     'type' => 'closure',
                     'name' => 'invoice_date',
-                    'function' => function($entry){
+                    'function' => function ($entry) {
                         return $entry->invoice_date;
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
@@ -2395,19 +2402,19 @@ class ProfitLostAccountCrudController extends CrudController{
                         ((client_po.job_value_include_ppn - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(small_cash.total_small_cash, 0))) - IFNULL(project_profit_lost.price_general, 0)) as price_prift_lost_final_str
                    ")
                 ]);
-
             }
         }
     }
 
-    private function setupListExport(){
+    private function setupListExport()
+    {
         $settings = Setting::first();
         CRUD::setModel(ProjectProfitLost::class);
         $this->crud->query = $this->crud->query
-        ->leftJoin('vouchers', function($join){
-            $join->on('vouchers.reference_id', '=', 'project_profit_lost.client_po_id')
-            ->where('vouchers.reference_type', 'App\\Models\\ClientPo');
-        })->leftJoin('client_po', 'client_po.id', '=', 'vouchers.reference_id');
+            ->leftJoin('vouchers', function ($join) {
+                $join->on('vouchers.reference_id', '=', 'project_profit_lost.client_po_id')
+                    ->where('vouchers.reference_type', 'App\\Models\\ClientPo');
+            })->leftJoin('client_po', 'client_po.id', '=', 'vouchers.reference_id');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -2424,12 +2431,12 @@ class ProfitLostAccountCrudController extends CrudController{
             'label' => trans('backpack::crud.profit_lost.column.client_po_id'),
             'type'      => 'closure',
             'name'      => 'client_po_id',
-            'function' => function($entry) {
+            'function' => function ($entry) {
                 return $entry->clientPo->client->name;
             }, // the column that contains the ID of that connected entity;
             'searchLogic' => function ($query, $column, $searchTerm) {
                 $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
-                    $q->where('name', 'like', '%'.$searchTerm.'%');
+                    $q->where('name', 'like', '%' . $searchTerm . '%');
                 });
             }
         ]);
@@ -2610,7 +2617,7 @@ class ProfitLostAccountCrudController extends CrudController{
             $subQuery = $query_clone->cloneWithout(['limit', 'offset']);
 
             $totalEntryCount = $outer_query->select(DB::raw('count(*) as total_rows'))
-            ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
+                ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
             $filteredEntryCount = $totalEntryCount;
 
             // $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
@@ -2627,7 +2634,8 @@ class ProfitLostAccountCrudController extends CrudController{
         return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         // $this->setupListExport();
         $this->setupListExportOperation();
@@ -2639,10 +2647,10 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -2667,11 +2675,12 @@ class ProfitLostAccountCrudController extends CrudController{
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         $this->setupListExportOperation();
         // $this->setupListOperation();
@@ -2683,10 +2692,10 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -2699,9 +2708,11 @@ class ProfitLostAccountCrudController extends CrudController{
 
         $name = 'DAFTAR SPK';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -2713,7 +2724,8 @@ class ProfitLostAccountCrudController extends CrudController{
         ], 400);
     }
 
-    public function exportDetailPdf(){
+    public function exportDetailPdf()
+    {
 
         $id = request()->id;
         $profitLost = ProjectProfitLost::where('id', $id)->first();
@@ -2729,20 +2741,23 @@ class ProfitLostAccountCrudController extends CrudController{
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportDetailExcel(){
+    public function exportDetailExcel()
+    {
         $id = request()->id;
         $profitLost = ProjectProfitLost::where('id', $id)->first();
         $report = $this->total_detail_project($id, 1);
 
         $name = "Laporan-laba-rugi.xlsx";
 
-        return response()->streamDownload(function () use($profitLost, $report, $name){
+        return response()->streamDownload(function () use ($profitLost, $report, $name) {
             echo Excel::raw(new ProfitLostExcel(
-                $profitLost, $report), \Maatwebsite\Excel\Excel::XLSX);
+                $profitLost,
+                $report
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -2754,66 +2769,67 @@ class ProfitLostAccountCrudController extends CrudController{
         ], 400);
     }
 
-    public function total_report_account_profit_lost(){
+    public function total_report_account_profit_lost()
+    {
         $acct_1 = Account::where('accounts.code', 109)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_2 = Account::where('accounts.code', 401)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_3 = Account::where('accounts.code', 402)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_4 = Account::where('accounts.code', 110)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_5 = Account::where('accounts.code', 11001)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_6 = Account::where('accounts.code', 11002)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_7 = Account::where('accounts.code', 111)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_8 = Account::where('accounts.code', 112)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_9 = Account::where('accounts.code', 40201)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_10 = Account::where('accounts.code', 113)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_11 = Account::where('accounts.code', 11301)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $acct_12 = Account::where('accounts.code', 108)
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-        ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
-        ->first();
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
+            ->select(DB::raw('SUM(journal_entries.debit - journal_entries.credit) as balance'))
+            ->first();
 
         $total_acct_1 = $acct_1->balance + $acct_2->balance;
         $total_acct_4 =  $acct_5->balance + $acct_6->balance;
@@ -2836,7 +2852,8 @@ class ProfitLostAccountCrudController extends CrudController{
         ];
     }
 
-    public function exportConsolidationPdf(){
+    public function exportConsolidationPdf()
+    {
 
         $pdf = Pdf::loadView('exports.profit-lost-consolidation-pdf', [
             'data' => $this->total_report_account_profit_lost_ajax(),
@@ -2848,16 +2865,17 @@ class ProfitLostAccountCrudController extends CrudController{
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportConsolidationExcel(){
+    public function exportConsolidationExcel()
+    {
         $data = $this->total_report_account_profit_lost_ajax();
 
         $name = "Laporan-laba-rugi.xlsx";
 
-        return response()->streamDownload(function () use($data, $name){
+        return response()->streamDownload(function () use ($data, $name) {
             echo Excel::raw(new ExportProfitLostConsolidation($data), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -2869,5 +2887,4 @@ class ProfitLostAccountCrudController extends CrudController{
             'message' => 'Download Failure',
         ], 400);
     }
-
 }

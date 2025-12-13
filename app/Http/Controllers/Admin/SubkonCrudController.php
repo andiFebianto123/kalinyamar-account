@@ -66,7 +66,8 @@ class SubkonCrudController extends CrudController
         ]);
     }
 
-    private function setupCard(){
+    private function setupCard()
+    {
         // $this->card->addCard([
         //     'name' => 'first card',
         //     'line' => 'top',
@@ -79,7 +80,8 @@ class SubkonCrudController extends CrudController
         // ]);
     }
 
-    private function setupModal(){
+    private function setupModal()
+    {
         // $this->modal->addModal([
         //     'name' => 'first_modal',
         //     'title' => 'judul modal',
@@ -87,7 +89,8 @@ class SubkonCrudController extends CrudController
         // ]);
     }
 
-    public function setupComponent(){
+    public function setupComponent()
+    {
         $this->setupCard();
         $this->setupModal();
     }
@@ -186,18 +189,18 @@ class SubkonCrudController extends CrudController
             'name'     => 'list_po_count',
             'label'    => trans('backpack::crud.subkon.column.count_po'),
             'type'     => 'custom_html',
-            'value' => function($entry) {
+            'value' => function ($entry) {
                 $count_data = $entry->purchase_orders->count();
-                if($count_data > 0){
-                    return "<a href='".url('admin/vendor/purchase-order')."'>".$count_data."</a>";
+                if ($count_data > 0) {
+                    return "<a href='" . url('admin/vendor/purchase-order') . "'>" . $count_data . "</a>";
                 }
                 return '-';
             },
             'orderable'  => true,
             'orderLogic' => function ($query, $column, $columnDirection) {
                 $po = PurchaseOrder::select(DB::raw('subkon_id, count(po_number) as total_po'))
-                ->groupBy('subkon_id');
-                return $query->leftJoinSub($po, 'po', function($join){
+                    ->groupBy('subkon_id');
+                return $query->leftJoinSub($po, 'po', function ($join) {
                     $join->on('po.subkon_id', 'subkons.id');
                 })->select('subkons.*')->orderBy('po.total_po', $columnDirection);
             }
@@ -223,170 +226,46 @@ class SubkonCrudController extends CrudController
             'name'     => 'list_spk_count',
             'label'    => trans('backpack::crud.subkon.column.count_spk'),
             'type'     => 'custom_html',
-            'value' => function($entry) {
+            'value' => function ($entry) {
                 $count_data = $entry->spks->count();
-                if($count_data > 0){
-                    return "<a href='".url('admin/vendor/spk-trans')."'>".$count_data."</a>";
+                if ($count_data > 0) {
+                    return "<a href='" . url('admin/vendor/spk-trans') . "'>" . $count_data . "</a>";
                 }
                 return '-';
             },
             'orderable'  => true,
             'orderLogic' => function ($query, $column, $columnDirection) {
                 $spk = Spk::select(DB::raw('subkon_id, count(no_spk) as total_spk'))
-                ->groupBy('subkon_id');
-                return $query->leftJoinSub($spk, 'spk', function($join){
+                    ->groupBy('subkon_id');
+                return $query->leftJoinSub($spk, 'spk', function ($join) {
                     $join->on('spk.subkon_id', 'subkons.id');
                 })->select('subkons.*')->orderBy('spk.total_spk', $columnDirection);
             }
         ]);
 
-        if($request->has('filter_year')){
-            if($request->filter_year != 'all'){
+        if ($request->has('filter_year')) {
+            if ($request->filter_year != 'all') {
                 $filterYear = $request->filter_year;
                 $this->crud->query = $this->crud->query
-                ->where(function($query) use($filterYear){
-                    $query->whereHas('purchase_orders', function($q) use($filterYear){
-                        $q->where(DB::raw("YEAR(date_po)"), $filterYear);
-                    })
-                    ->orWhereHas('spks', function($q) use($filterYear){
-                        $q->where(DB::raw("YEAR(date_spk)"), $filterYear);
+                    ->where(function ($query) use ($filterYear) {
+                        $query->whereHas('purchase_orders', function ($q) use ($filterYear) {
+                            $q->where(DB::raw("YEAR(date_po)"), $filterYear);
+                        })
+                            ->orWhereHas('spks', function ($q) use ($filterYear) {
+                                $q->where(DB::raw("YEAR(date_spk)"), $filterYear);
+                            });
                     });
-                });
             }
         }
-
     }
 
-    private function setupListExport(){
+    private function setupListExport()
+    {
         $this->setupListOperation();
-        // $this->crud->addColumn([
-        //     'name'      => 'row_number',
-        //     'type'      => 'export',
-        //     'label'     => 'No',
-        //     'orderable' => false,
-        //     'wrapper' => [
-        //         'element' => 'strong',
-        //     ]
-        // ])->makeFirstColumn();
-
-        // CRUD::addColumn([
-        //     'name'  => 'name',
-        //     'label' => trans('backpack::crud.subkon.column.name'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'  => 'address',
-        //     'label' => trans('backpack::crud.subkon.column.address'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'  => 'npwp',
-        //     'label' => trans('backpack::crud.subkon.column.npwp'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'  => 'phone',
-        //     'label' => trans('backpack::crud.subkon.column.phone'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'  => 'bank_name',
-        //     'label' => trans('backpack::crud.subkon.column.bank_name'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'  => 'bank_account',
-        //     'label' => trans('backpack::crud.subkon.column.bank_account'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'  => 'account_holder_name',
-        //     'label' => trans('backpack::crud.subkon.column.account_holder_name'),
-        //     'type'  => 'export',
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'     => 'list_po_number',
-        //     'label'    => trans('backpack::crud.subkon.column.list_po'),
-        //     'type'     => 'closure',
-        //     'function' => function($entry) {
-        //         return "".$entry->purchase_orders->map(function($item, $key){
-        //             return "-".$item->po_number;
-        //         })->implode("\n")."";
-        //     },
-        //     'searchLogic' => function ($query, $column, $searchTerm) {
-        //         $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
-        //             $q->where('po_number', 'like', '%'.$searchTerm.'%');
-        //         });
-        //     }
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'     => 'list_po_count',
-        //     'label'    => trans('backpack::crud.subkon.column.count_po'),
-        //     'type'     => 'closure',
-        //     'function' => function($entry) {
-        //         $count_data = $entry->purchase_orders->count();
-        //         if($count_data > 0){
-        //             return $count_data;
-        //         }
-        //         return '-';
-        //     },
-        //     'orderable'  => true,
-        //     'orderLogic' => function ($query, $column, $columnDirection) {
-        //         $po = PurchaseOrder::select(DB::raw('subkon_id, count(po_number) as total_po'))
-        //         ->groupBy('subkon_id');
-        //         return $query->leftJoinSub($po, 'po', function($join){
-        //             $join->on('po.subkon_id', 'subkons.id');
-        //         })->select('subkons.*')->orderBy('po.total_po', $columnDirection);
-        //     }
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'     => 'list_spk_number',
-        //     'label'    => trans('backpack::crud.subkon.column.list_spk'),
-        //     'type'     => 'closure',
-        //     'function' => function($entry) {
-        //         return "".$entry->spks->map(function($item, $key){
-        //             return "-".$item->no_spk;
-        //         })->implode("\n")."";
-        //     },
-        //     'searchLogic' => function ($query, $column, $searchTerm) {
-        //         $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
-        //             $q->where('no_spk', 'like', '%'.$searchTerm.'%');
-        //         });
-        //     }
-        // ]);
-
-        // CRUD::addColumn([
-        //     'name'     => 'list_spk_count',
-        //     'label'    => trans('backpack::crud.subkon.column.count_spk'),
-        //     'type'     => 'closure',
-        //     'function' => function($entry) {
-        //         $count_data = $entry->spks->count();
-        //         if($count_data > 0){
-        //             return $count_data;
-        //         }
-        //         return '-';
-        //     },
-        //     'orderable'  => true,
-        //     'orderLogic' => function ($query, $column, $columnDirection) {
-        //         $spk = Spk::select(DB::raw('subkon_id, count(no_spk) as total_spk'))
-        //         ->groupBy('subkon_id');
-        //         return $query->leftJoinSub($spk, 'spk', function($join){
-        //             $join->on('spk.subkon_id', 'subkons.id');
-        //         })->select('subkons.*')->orderBy('spk.total_spk', $columnDirection);
-        //     }
-        // ]);
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         $this->setupListExport();
 
@@ -397,10 +276,10 @@ class SubkonCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -425,11 +304,12 @@ class SubkonCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         $this->setupListExport();
 
@@ -440,10 +320,10 @@ class SubkonCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -456,9 +336,11 @@ class SubkonCrudController extends CrudController
 
         $name = 'DAFTAR SUBKON';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -502,7 +384,7 @@ class SubkonCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
 
         return response()->json([
@@ -519,7 +401,7 @@ class SubkonCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
             $this->data['entry'] = $this->crud->entry = $item;
@@ -530,8 +412,7 @@ class SubkonCrudController extends CrudController
 
             DB::commit();
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -555,7 +436,7 @@ class SubkonCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -572,7 +453,7 @@ class SubkonCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $item = $this->crud->update(
                 $request->get($this->crud->model->getKeyName()),
@@ -587,8 +468,7 @@ class SubkonCrudController extends CrudController
             DB::commit();
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -675,7 +555,6 @@ class SubkonCrudController extends CrudController
                 'class' => 'form-group col-md-6'
             ],
         ]);
-
     }
 
     /**
@@ -822,7 +701,7 @@ class SubkonCrudController extends CrudController
             'type'  => 'text',
         ]);
 
-         CRUD::addColumn([
+        CRUD::addColumn([
             'name'  => 'account_holder_name',
             'label' => trans('backpack::crud.subkon.column.account_holder_name'),
             'type'  => 'text',
@@ -832,14 +711,14 @@ class SubkonCrudController extends CrudController
             'name'     => 'list_po',
             'label'    => trans('backpack::crud.subkon.column.list_po'),
             'type'     => 'custom_html',
-            'value' => function($entry) {
-                return "".$entry->purchase_orders->map(function($item, $key){
-                    return "<li>".$item->po_number."</li>";
-                })->implode('')."";
+            'value' => function ($entry) {
+                return "" . $entry->purchase_orders->map(function ($item, $key) {
+                    return "<li>" . $item->po_number . "</li>";
+                })->implode('') . "";
             },
             'searchLogic' => function ($query, $column, $searchTerm) {
                 $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
-                    $q->where('po_number', 'like', '%'.$searchTerm.'%');
+                    $q->where('po_number', 'like', '%' . $searchTerm . '%');
                 });
             }
         ]);
@@ -848,14 +727,14 @@ class SubkonCrudController extends CrudController
             'name'     => 'list_spk',
             'label'    => trans('backpack::crud.subkon.column.list_spk'),
             'type'     => 'custom_html',
-            'value' => function($entry) {
-                return "".$entry->spks->map(function($item, $key){
-                    return "<li>".$item->no_spk."</li>";
-                })->implode('')."";
+            'value' => function ($entry) {
+                return "" . $entry->spks->map(function ($item, $key) {
+                    return "<li>" . $item->no_spk . "</li>";
+                })->implode('') . "";
             },
             'searchLogic' => function ($query, $column, $searchTerm) {
                 $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
-                    $q->where('no_spk', 'like', '%'.$searchTerm.'%');
+                    $q->where('no_spk', 'like', '%' . $searchTerm . '%');
                 });
             }
         ]);
@@ -864,10 +743,10 @@ class SubkonCrudController extends CrudController
             'name'     => 'list_po_count',
             'label'    => trans('backpack::crud.subkon.column.count_po'),
             'type'     => 'custom_html',
-            'value' => function($entry) {
+            'value' => function ($entry) {
                 $count_data = $entry->purchase_orders->count();
-                if($count_data > 0){
-                    return "<a href='".url('admin/vendor/purchase-order')."'>".$count_data."</a>";
+                if ($count_data > 0) {
+                    return "<a href='" . url('admin/vendor/purchase-order') . "'>" . $count_data . "</a>";
                 }
                 return '-';
             },
@@ -877,16 +756,14 @@ class SubkonCrudController extends CrudController
             'name'     => 'list_spk_count',
             'label'    => trans('backpack::crud.subkon.column.count_spk'),
             'type'     => 'custom_html',
-            'value' => function($entry) {
+            'value' => function ($entry) {
                 $count_data = $entry->spks->count();
-                if($count_data > 0){
-                    return "<a href='".url('admin/vendor/spk-trans')."'>".$count_data."</a>";
+                if ($count_data > 0) {
+                    return "<a href='" . url('admin/vendor/spk-trans') . "'>" . $count_data . "</a>";
                 }
                 return '-';
             },
         ]);
-
-
     }
 
 
@@ -907,7 +784,7 @@ class SubkonCrudController extends CrudController
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         // return view($this->crud->getShowView(), $this->data);
@@ -915,5 +792,4 @@ class SubkonCrudController extends CrudController
             'html' => view($this->crud->getShowView(), $this->data)->render()
         ]);
     }
-
 }

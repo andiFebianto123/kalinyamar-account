@@ -422,9 +422,9 @@
                                 <th>No.</th>
                                 <th>KDP</th>
                                 <th>Nama Pekerjaan</th>
+                                <th>Nilai Invoice</th>
                                 <th>Biaya</th>
                                 <th>Laba</th>
-                                <th>Nilai Invoice</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -433,9 +433,9 @@
                                     <td>{{ $key + 1 }}</td>
                                     <td>{{ $laba->kdp }}</td>
                                     <td>{{ $laba->job_name }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -460,9 +460,9 @@
                                 <th>No.</th>
                                 <th>KDP</th>
                                 <th>Nama Pekerjaan</th>
+                                <th>Nilai Invoice</th>
                                 <th>Biaya</th>
                                 <th>Laba</th>
-                                <th>Nilai Invoice</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -471,9 +471,9 @@
                                     <td>{{ $key + 1 }}</td>
                                     <td>{{ $laba->kdp }}</td>
                                     <td>{{ $laba->job_name }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

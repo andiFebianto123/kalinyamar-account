@@ -87,7 +87,8 @@ class InvoiceClientCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
-    public function selectedClientPo(){
+    public function selectedClientPo()
+    {
         $this->crud->hasAccessOrFail('create');
         $id = request()->id;
         $entry = ClientPo::where('id', $id)->first();
@@ -129,7 +130,7 @@ class InvoiceClientCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -163,7 +164,7 @@ class InvoiceClientCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -231,8 +232,8 @@ class InvoiceClientCrudController extends CrudController
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDir) {
                     return $query->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id')
-                    ->orderBy('client_po.job_name', $columnDir)
-                    ->select('invoice_clients.*');
+                        ->orderBy('client_po.job_name', $columnDir)
+                        ->select('invoice_clients.*');
                 },
                 'searchable' => true,
                 'searchLogic' => function ($query, $column, $searchTerm) {
@@ -276,7 +277,7 @@ class InvoiceClientCrudController extends CrudController
             'label' => trans('backpack::crud.invoice_client.column.client_id'),
             'type'      => 'closure',
             'name'      => 'client_name',
-            'function' => function($entry) {
+            'function' => function ($entry) {
                 return $entry->client_po->client->name;
             } // the column that contains the ID of that connected entity;
             // OPTIONAL
@@ -332,13 +333,12 @@ class InvoiceClientCrudController extends CrudController
         );
 
         $request = request();
-        if($request->has('filter_paid_status')){
-            if($request->filter_paid_status != 'all'){
+        if ($request->has('filter_paid_status')) {
+            if ($request->filter_paid_status != 'all') {
                 $this->crud->query = $this->crud->query
-            ->where('status', $request->filter_paid_status);
+                    ->where('status', $request->filter_paid_status);
             }
         }
-
     }
 
     private function setupListExport()
@@ -373,8 +373,8 @@ class InvoiceClientCrudController extends CrudController
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDir) {
                     return $query->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id')
-                    ->orderBy('client_po.job_name', $columnDir)
-                    ->select('invoice_clients.*');
+                        ->orderBy('client_po.job_name', $columnDir)
+                        ->select('invoice_clients.*');
                 },
                 'searchable' => true,
                 'searchLogic' => function ($query, $column, $searchTerm) {
@@ -398,7 +398,7 @@ class InvoiceClientCrudController extends CrudController
             'label' => trans('backpack::crud.invoice_client.column.client_id'),
             'type'      => 'closure',
             'name'      => 'client_name',
-            'function' => function($entry) {
+            'function' => function ($entry) {
                 return $entry->client_po->client->name;
             } // the column that contains the ID of that connected entity;
             // OPTIONAL
@@ -446,7 +446,7 @@ class InvoiceClientCrudController extends CrudController
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
                 'name' => 'price_total_exclude_ppn',
                 'type'  => 'closure',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return str_replace('.00', '', $entry->price_total_exclude_ppn);
                 },
             ],
@@ -457,7 +457,7 @@ class InvoiceClientCrudController extends CrudController
                 'label' => trans('backpack::crud.invoice_client.field.dpp_other.label'),
                 'name' => 'dpp_other',
                 'type'  => 'closure',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return str_replace('.00', '', $entry->dpp_other);
                 },
             ],
@@ -468,7 +468,7 @@ class InvoiceClientCrudController extends CrudController
                 'label' => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
                 'name' => 'tax_ppn',
                 'type'  => 'closure',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return str_replace('.00', '', $entry->tax_ppn);
                 },
             ],
@@ -479,7 +479,7 @@ class InvoiceClientCrudController extends CrudController
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return str_replace('.00', '', $entry->price_total_include_ppn);
                 },
             ],
@@ -526,19 +526,19 @@ class InvoiceClientCrudController extends CrudController
         // );
 
         $this->crud->query = $this->crud->query
-        ->selectRaw("invoice_clients.*");
+            ->selectRaw("invoice_clients.*");
 
         $request = request();
-        if($request->has('filter_paid_status')){
-            if($request->filter_paid_status != 'all'){
+        if ($request->has('filter_paid_status')) {
+            if ($request->filter_paid_status != 'all') {
                 $this->crud->query = $this->crud->query
-            ->where('invoice_clients.status', $request->filter_paid_status);
+                    ->where('invoice_clients.status', $request->filter_paid_status);
             }
         }
-
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -550,10 +550,10 @@ class InvoiceClientCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -578,11 +578,12 @@ class InvoiceClientCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         $this->setupListExport();
         // $this->setupListOperation();
@@ -594,10 +595,10 @@ class InvoiceClientCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -610,9 +611,11 @@ class InvoiceClientCrudController extends CrudController
 
         $name = 'DAFTAR INVOICE';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -635,7 +638,7 @@ class InvoiceClientCrudController extends CrudController
         CRUD::setValidation(InvoiceClientRequest::class);
         $settings = Setting::first();
         $inv_prefix_value = [];
-        if(!$this->crud->getCurrentEntryId()){
+        if (!$this->crud->getCurrentEntryId()) {
             $inv_prefix_value = [
                 'value' => $settings?->invoice_prefix,
             ];
@@ -775,7 +778,7 @@ class InvoiceClientCrudController extends CrudController
             'name' => 'tax_ppn',
             'label' => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -862,7 +865,7 @@ class InvoiceClientCrudController extends CrudController
             'type'        => 'select_from_array',
             'options'     => ['' => trans('backpack::crud.invoice_client.field.status.placeholder'), 'Paid' => 'Paid', 'Unpaid' => 'Unpaid'],
             'allows_null' => false,
-             'wrapper'   => [
+            'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
             'attributes' => [
@@ -906,7 +909,7 @@ class InvoiceClientCrudController extends CrudController
 
         $id = request()->segment(3);
 
-        if($id != 'create'){
+        if ($id != 'create') {
             CRUD::addField([
                 'name' => 'invoice_client_details_edit',
                 'label' => trans('backpack::crud.invoice_client.field.item.label'),
@@ -936,7 +939,7 @@ class InvoiceClientCrudController extends CrudController
                     ],
                 ]
             ]);
-        }else{
+        } else {
             CRUD::addField([
                 'name' => 'invoice_client_details',
                 'label' => trans('backpack::crud.invoice_client.field.item.label'),
@@ -998,11 +1001,12 @@ class InvoiceClientCrudController extends CrudController
 
         $po = ClientPo::find(request()->client_po_id);
 
-        if($po != null){
-             request()->merge([
-                'nominal_exclude_ppn' => $po->job_value,
-                'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
-                // 'nominal_include_ppn' => 0,
+        $request = request();
+
+        if ($po != null) {
+            request()->merge([
+                // 'nominal_exclude_ppn' => $po->job_value,
+                'nominal_include_ppn' => (int) $request->nominal_exclude_ppn + ($request->nominal_exclude_ppn * $request->tax_ppn / 100),
             ]);
         }
 
@@ -1011,19 +1015,19 @@ class InvoiceClientCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $total_price = 0;
-            if($request->dpp_other){
+            if ($request->dpp_other) {
                 $total_price += $request->dpp_other;
             }
-            if($request->nominal_include_ppn){
+            if ($request->nominal_include_ppn) {
                 $total_price += $request->nominal_include_ppn;
             }
 
             $items = $request->invoice_client_details;
             $total_item_price = 0;
-            foreach($items as $item){
+            foreach ($items as $item) {
                 $total_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
                 $total_item_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
             }
@@ -1048,8 +1052,8 @@ class InvoiceClientCrudController extends CrudController
             $invoice->price_total = $total_price;
             $invoice->save();
 
-            if($total_item_price > 0){
-                foreach($items as $item){
+            if ($total_item_price > 0) {
+                foreach ($items as $item) {
                     $invoice_item = new InvoiceClientDetail();
                     $invoice_item->invoice_client_id = $invoice->id;
                     $invoice_item->name = $item['name'];
@@ -1069,7 +1073,7 @@ class InvoiceClientCrudController extends CrudController
 
             DB::commit();
             return $this->crud->performSaveAction($invoice->getKey());
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1085,10 +1089,11 @@ class InvoiceClientCrudController extends CrudController
 
         $po = ClientPo::find(request()->client_po_id);
 
-        if($po != null){
+        $request = request();
+
+        if ($po != null) {
             request()->merge([
-                'nominal_exclude_ppn' => $po->job_value,
-                'nominal_include_ppn' => (int) $po->job_value + ($po->job_value * request()->tax_ppn / 100),
+                'nominal_include_ppn' => (int) $request->nominal_exclude_ppn + ($request->nominal_exclude_ppn * $request->tax_ppn / 100),
             ]);
         }
 
@@ -1100,21 +1105,21 @@ class InvoiceClientCrudController extends CrudController
 
         // update the row in the db
         DB::beginTransaction();
-        try{
+        try {
 
             // $old_invoice = InvoiceClient::find($id);
 
             $total_price = 0;
-            if($request->dpp_other){
+            if ($request->dpp_other) {
                 $total_price += $request->dpp_other;
             }
-            if($request->nominal_include_ppn){
+            if ($request->nominal_include_ppn) {
                 $total_price += $request->nominal_include_ppn;
             }
 
             $items = $request->invoice_client_details_edit;
             $total_item_price = 0;
-            foreach($items as $item){
+            foreach ($items as $item) {
                 $total_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
                 $total_item_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
             }
@@ -1140,8 +1145,8 @@ class InvoiceClientCrudController extends CrudController
 
             InvoiceClientDetail::where('invoice_client_id', $id)->delete();
 
-            if($total_item_price > 0){
-                foreach($items as $item){
+            if ($total_item_price > 0) {
+                foreach ($items as $item) {
                     $invoice_item = new InvoiceClientDetail();
                     $invoice_item->invoice_client_id = $invoice->id;
                     $invoice_item->name = $item['name'];
@@ -1167,7 +1172,7 @@ class InvoiceClientCrudController extends CrudController
             // save the redirect choice for next time
             $this->crud->setSaveAction();
             return $this->crud->performSaveAction($invoice);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1177,7 +1182,8 @@ class InvoiceClientCrudController extends CrudController
         }
     }
 
-    public function applyInvoicePaymentToAccount($invoice){
+    public function applyInvoicePaymentToAccount($invoice)
+    {
         // $approval_voucher = Approval::where('model_type', 'App\\Models\\PaymentVoucherPlan')
         // ->whereExists(function ($query) use ($invoice) {
         //     $query->select(DB::raw(1))
@@ -1198,7 +1204,8 @@ class InvoiceClientCrudController extends CrudController
         // })->orderBy('id', 'desc')->first();
     }
 
-    protected function setupShowOperation(){
+    protected function setupShowOperation()
+    {
         CRUD::addField([
             'name' => 'invoice_number',
             'label' => trans('backpack::crud.invoice_client.field.invoice_number.label'),
@@ -1342,7 +1349,7 @@ class InvoiceClientCrudController extends CrudController
             'name' => 'tax_ppn',
             'label' => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -1417,7 +1424,7 @@ class InvoiceClientCrudController extends CrudController
             'type'        => 'select_from_array',
             'options'     => ['' => trans('backpack::crud.invoice_client.field.status.placeholder'), 'Paid' => 'Paid', 'Unpaid' => 'Unpaid'],
             'allows_null' => false,
-             'wrapper'   => [
+            'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
         ]);
@@ -1467,7 +1474,7 @@ class InvoiceClientCrudController extends CrudController
             'label' => trans('backpack::crud.invoice_client.column.client_id'),
             'type'      => 'closure',
             'name'      => 'client_name',
-            'function' => function($entry) {
+            'function' => function ($entry) {
                 return $entry->client_po->client->name;
             } // the column that contains the ID of that connected entity;
             // OPTIONAL
@@ -1526,7 +1533,7 @@ class InvoiceClientCrudController extends CrudController
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
-                'name' => 'dpp_other',
+                'name' => 'price_dpp',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,
@@ -1594,7 +1601,6 @@ class InvoiceClientCrudController extends CrudController
                 'type' => 'list-invoice',
             ]
         );
-
     }
 
     public function show($id)
@@ -1614,7 +1620,7 @@ class InvoiceClientCrudController extends CrudController
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         // return view($this->crud->getShowView(), $this->data);
@@ -1636,7 +1642,8 @@ class InvoiceClientCrudController extends CrudController
     }
 
 
-    public function printInvoice($id){
+    public function printInvoice($id)
+    {
 
         $data = [];
         $data['header'] = InvoiceClient::where('id', $id)->first();
@@ -1646,5 +1653,4 @@ class InvoiceClientCrudController extends CrudController
         return $pdf->stream('invoice.pdf');
         return view('exports.invoice-client-pdf-new');
     }
-
 }
