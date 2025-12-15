@@ -78,12 +78,12 @@ class ClientPoCrudController extends CrudController
         $this->crud->hasAccessOrFail('list');
 
         $this->crud->filter('status_invoice11crudTable-client_po')
-        ->label(trans('backpack::crud.client_po.column.list_invoice'))
-        ->type('select2')
+            ->label(trans('backpack::crud.client_po.column.list_invoice'))
+            ->type('select2')
             ->values([
-            '1' => 'ADA',
-            '0' => 'TIDAK ADA',
-        ]);
+                '1' => 'ADA',
+                '0' => 'TIDAK ADA',
+            ]);
 
         $this->card->addCard([
             'name' => 'client_po',
@@ -214,91 +214,92 @@ class ClientPoCrudController extends CrudController
         return view($list, $this->data);
     }
 
-    public function countAllPPn(){
+    public function countAllPPn()
+    {
         $request = request();
         $client_po = ClientPo::select(DB::raw("SUM(job_value) as total_job_value, SUM(job_value_include_ppn) as total_job_value_ppn"));
 
         // filter
-        if($request->has('status_invoice')){
+        if ($request->has('status_invoice')) {
             $invoice = InvoiceClient::select(DB::raw('client_po_id, count(invoice_number) as total_invoice'))
                 ->groupBy('client_po_id');
-            $client_po = $client_po->leftJoinSub($invoice, 'invoices', function($join){
-                    $join->on('client_po.id', 'invoices.client_po_id');
+            $client_po = $client_po->leftJoinSub($invoice, 'invoices', function ($join) {
+                $join->on('client_po.id', 'invoices.client_po_id');
             });
-            if($request->status_invoice == 1){
+            if ($request->status_invoice == 1) {
                 $client_po = $client_po
-            ->where('invoices.total_invoice', '>=', $request->status_invoice);
-            }else{
+                    ->where('invoices.total_invoice', '>=', $request->status_invoice);
+            } else {
                 $client_po = $client_po
-            ->whereNull('invoices.total_invoice');
+                    ->whereNull('invoices.total_invoice');
             }
         }
 
-        if($request->has('search')){
-            if(isset($request->search[1])){
+        if ($request->has('search')) {
+            if (isset($request->search[1])) {
                 $search = trim($request->search[1]);
                 $client_po = $client_po
-                ->where('work_code', 'like', '%'.$search.'%');
+                    ->where('work_code', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->search[2])){
+            if (isset($request->search[2])) {
                 $search = $request->search[2];
                 $client_po = $client_po
-                ->WhereExists(function($q) use($search){
-                    $q->from('clients')
-                    ->whereColumn('clients.id', 'client_po.client_id')
-                    ->where('clients.name', 'like', '%'.$search.'%');
-                });
+                    ->WhereExists(function ($q) use ($search) {
+                        $q->from('clients')
+                            ->whereColumn('clients.id', 'client_po.client_id')
+                            ->where('clients.name', 'like', '%' . $search . '%');
+                    });
             }
 
             if (isset($request->search[3])) {
                 $search = $request->search[3];
-                $client_po = $client_po->where('reimburse_type', 'like', $search.'%');
+                $client_po = $client_po->where('reimburse_type', 'like', $search . '%');
             }
 
             // filter po_number (kolom 4)
             if (isset($request->search[4])) {
                 $search = $request->search[4];
-                $client_po = $client_po->where('po_number', 'like', '%'.$search.'%');
+                $client_po = $client_po->where('po_number', 'like', '%' . $search . '%');
             }
 
             // filter job_name (kolom 5)
             if (isset($request->search[5])) {
                 $search = $request->search[5];
-                $client_po = $client_po->where('job_name', 'like', '%'.$search.'%');
+                $client_po = $client_po->where('job_name', 'like', '%' . $search . '%');
             }
 
             // filter rap_value (kolom 6)
             if (isset($request->search[6])) {
                 $search = $request->search[6];
-                $client_po = $client_po->where('rap_value', 'like', '%'.$search.'%');
+                $client_po = $client_po->where('rap_value', 'like', '%' . $search . '%');
             }
 
             // filter job_value (kolom 7)
             if (isset($request?->search[7])) {
                 $search = $request->search[7];
-                $client_po = $client_po->where('job_value', 'like', '%'.$search.'%');
+                $client_po = $client_po->where('job_value', 'like', '%' . $search . '%');
             }
 
             // filter job_value_include_ppn (kolom 8)
             if (isset($request?->search[8])) {
                 $search = $request->search[8];
-                $client_po = $client_po->where('job_value_include_ppn', 'like', '%'.$search.'%');
+                $client_po = $client_po->where('job_value_include_ppn', 'like', '%' . $search . '%');
             }
 
             // filter start_date / end_date (kolom 9)
             if (isset($request?->search[9])) {
                 $search = $request->search[9];
-                $client_po = $client_po->where(function($query) use ($search) {
-                    $query->where('start_date', 'like', '%'.$search.'%')
-                        ->orWhere('end_date', 'like', '%'.$search.'%');
+                $client_po = $client_po->where(function ($query) use ($search) {
+                    $query->where('start_date', 'like', '%' . $search . '%')
+                        ->orWhere('end_date', 'like', '%' . $search . '%');
                 });
             }
         }
 
 
         $client_po = $client_po->get();
-        if($client_po->count() > 0){
+        if ($client_po->count() > 0) {
             return response()->json([
                 'total_job_value' => CustomHelper::formatRupiahWithCurrency($client_po[0]->total_job_value),
                 'total_job_value_ppn' => CustomHelper::formatRupiahWithCurrency($client_po[0]->total_job_value_ppn)
@@ -316,7 +317,7 @@ class ClientPoCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -342,9 +343,10 @@ class ClientPoCrudController extends CrudController
         return response()->json(['results' => $results]);
     }
 
-    public function select_count_without_po(){
+    public function select_count_without_po()
+    {
         $po = ClientPo::select(DB::raw("COUNT(id) as count"))
-        ->where('status', 'TANPA PO')->first();
+            ->where('status', 'TANPA PO')->first();
         return response()->json([
             'count' => $po->count + 1,
         ]);
@@ -386,9 +388,9 @@ class ClientPoCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         $calculate = $this->calculateClientPo($request);
-        request()->merge($calculate);
+        $request->merge($calculate);
 
-        if($request->status == 'TANPA PO'){
+        if ($request->status == 'TANPA PO') {
             $request->merge([
                 'po_number' => $setting->work_code_prefix,
                 // 'category' => 'RUTIN',
@@ -396,7 +398,7 @@ class ClientPoCrudController extends CrudController
         }
 
         DB::beginTransaction();
-        try{
+        try {
 
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
             $this->data['entry'] = $this->crud->entry = $item;
@@ -418,8 +420,7 @@ class ClientPoCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -443,7 +444,7 @@ class ClientPoCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -458,12 +459,12 @@ class ClientPoCrudController extends CrudController
         $request = $this->crud->validateRequest();
 
         $calculate = $this->calculateClientPo($request);
-        request()->merge($calculate);
+        $request->merge($calculate);
 
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $item = $this->crud->update(
                 $request->get($this->crud->model->getKeyName()),
@@ -485,8 +486,7 @@ class ClientPoCrudController extends CrudController
                 ]
             ]);
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -517,74 +517,74 @@ class ClientPoCrudController extends CrudController
         CRUD::disableResponsiveTable();
 
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
 
-        if($request->columns){
+        if ($request->columns) {
 
-            if(isset($request->columns[1]['search']['value'])){
+            if (isset($request->columns[1]['search']['value'])) {
                 $search = $request->columns[1]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('work_code', 'like', '%'.$search.'%');
+                    ->where('work_code', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[2]['search']['value'])){
+            if (isset($request->columns[2]['search']['value'])) {
                 $search = $request->columns[2]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->WhereExists(function($q) use($search){
-                    $q->from('clients')
-                    ->whereColumn('clients.id', 'client_po.client_id')
-                    ->where('clients.name', 'like', '%'.$search.'%');
-                });
+                    ->WhereExists(function ($q) use ($search) {
+                        $q->from('clients')
+                            ->whereColumn('clients.id', 'client_po.client_id')
+                            ->where('clients.name', 'like', '%' . $search . '%');
+                    });
             }
 
-            if(isset($request->columns[3]['search']['value'])){
+            if (isset($request->columns[3]['search']['value'])) {
                 $search = $request->columns[3]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('reimburse_type', 'like', $search.'%');
+                    ->where('reimburse_type', 'like', $search . '%');
             }
 
-            if(isset($request->columns[4]['search']['value'])){
+            if (isset($request->columns[4]['search']['value'])) {
                 $search = $request->columns[4]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('po_number', 'like', '%'.$search.'%');
+                    ->where('po_number', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[5]['search']['value'])){
+            if (isset($request->columns[5]['search']['value'])) {
                 $search = $request->columns[5]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('job_name', 'like', '%'.$search.'%');
+                    ->where('job_name', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[6]['search']['value'])){
+            if (isset($request->columns[6]['search']['value'])) {
                 $search = $request->columns[6]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('rap_value', 'like', '%'.$search.'%');
+                    ->where('rap_value', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[7]['search']['value'])){
+            if (isset($request->columns[7]['search']['value'])) {
                 $search = $request->columns[7]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('job_value', 'like', '%'.$search.'%');
+                    ->where('job_value', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[8]['search']['value'])){
+            if (isset($request->columns[8]['search']['value'])) {
                 $search = $request->columns[8]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('job_value_include_ppn', 'like', '%'.$search.'%');
+                    ->where('job_value_include_ppn', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[9]['search']['value'])){
+            if (isset($request->columns[9]['search']['value'])) {
                 $search = $request->columns[9]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where(function($query) use($search){
-                    $query->where('start_date', 'like', '%'.$search.'%')
-                    ->orWhere('end_date', 'like', '%'.$search.'%');
-                });
+                    ->where(function ($query) use ($search) {
+                        $query->where('start_date', 'like', '%' . $search . '%')
+                            ->orWhere('end_date', 'like', '%' . $search . '%');
+                    });
             }
 
             // if(trim($request->columns[10]['search']['value']) != ''){
@@ -617,32 +617,32 @@ class ClientPoCrudController extends CrudController
             //     ->where('profit_and_lost_final', 'like', '%'.$search.'%');
             // }
 
-            if(isset($request->columns[10]['search']['value'])){
+            if (isset($request->columns[10]['search']['value'])) {
                 $search = $request->columns[15]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('document_path', 'like', '%'.$search.'%');
+                    ->where('document_path', 'like', '%' . $search . '%');
             }
 
-            if(isset($request->columns[11]['search']['value'])){
+            if (isset($request->columns[11]['search']['value'])) {
                 $search = $request->columns[11]['search']['value'];
                 $this->crud->query = $this->crud->query
-                ->where('category', 'like', $search.'%');
+                    ->where('category', 'like', $search . '%');
             }
         }
 
         // filter
-        if($request->has('status_invoice')){
+        if ($request->has('status_invoice')) {
             $invoice = InvoiceClient::select(DB::raw('client_po_id, count(invoice_number) as total_invoice'))
                 ->groupBy('client_po_id');
-            $this->crud->query = $this->crud->query->leftJoinSub($invoice, 'invoices', function($join){
-                    $join->on('client_po.id', 'invoices.client_po_id');
+            $this->crud->query = $this->crud->query->leftJoinSub($invoice, 'invoices', function ($join) {
+                $join->on('client_po.id', 'invoices.client_po_id');
             });
-            if($request->status_invoice == 1){
+            if ($request->status_invoice == 1) {
                 $this->crud->query = $this->crud->query
-            ->where('invoices.total_invoice', '>=', $request->status_invoice);
-            }else{
+                    ->where('invoices.total_invoice', '>=', $request->status_invoice);
+            } else {
                 $this->crud->query = $this->crud->query
-            ->whereNull('invoices.total_invoice');
+                    ->whereNull('invoices.total_invoice');
             }
         }
 
@@ -705,7 +705,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.rap_value'),
                 'name' => 'rap_value',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->rap_value);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -720,7 +720,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.job_value_exclude_ppn'),
                 'name' => 'job_value',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->job_value);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -735,7 +735,7 @@ class ClientPoCrudController extends CrudController
                 'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
                 'name' => 'job_value_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->job_value_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -779,9 +779,9 @@ class ClientPoCrudController extends CrudController
             'name' => 'list_invoice',
             'label' => trans('backpack::crud.client_po.column.list_invoice'),
             'type' => 'custom_html',
-            'value' => function($entry){
+            'value' => function ($entry) {
                 $count_data = $entry->invoices->count();
-                if($count_data > 0){
+                if ($count_data > 0) {
                     return "ADA";
                 }
                 return 'TIDAK ADA';
@@ -789,17 +789,17 @@ class ClientPoCrudController extends CrudController
             'orderable'  => true,
             'orderLogic' => function ($query, $column, $columnDirection) {
                 $invoice = InvoiceClient::select(DB::raw('client_po_id, count(invoice_number) as total_invoice'))
-                ->groupBy('client_po_id');
-                return $query->leftJoinSub($invoice, 'invoices', function($join){
+                    ->groupBy('client_po_id');
+                return $query->leftJoinSub($invoice, 'invoices', function ($join) {
                     $join->on('client_po.id', 'invoices.client_po_id');
                 })->select('client_po.*')->orderBy('invoices.total_invoice', $columnDirection);
             }
         ]);
-
     }
 
-    private function setupListExport(){
-         $this->crud->addColumn([
+    private function setupListExport()
+    {
+        $this->crud->addColumn([
             'name'      => 'row_number',
             'type'      => 'export',
             'label'     => 'No',
@@ -918,7 +918,8 @@ class ClientPoCrudController extends CrudController
         );
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -930,10 +931,10 @@ class ClientPoCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -958,11 +959,12 @@ class ClientPoCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -974,10 +976,10 @@ class ClientPoCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -990,9 +992,11 @@ class ClientPoCrudController extends CrudController
 
         $name = 'DAFTAR CLIENT PO';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -1023,24 +1027,24 @@ class ClientPoCrudController extends CrudController
         $po_number_disabled = [
             'disabled' => true,
         ];
-        if(!$this->crud->getCurrentEntryId()){
-            if($settings?->po_prefix){
+        if (!$this->crud->getCurrentEntryId()) {
+            if ($settings?->po_prefix) {
                 $po_prefix = [
                     'value' => $settings->po_prefix,
                 ];
             }
-            if($settings?->work_code_prefix){
+            if ($settings?->work_code_prefix) {
                 $work_code_prefix = [
                     'value' => $settings->work_code_prefix,
                 ];
             }
             $work_code_disabled = [];
             $po_number_disabled = [];
-        }else{
+        } else {
             $id = $this->crud->getCurrentEntryId();
             $voucher_exists = Voucher::where('client_po_id', $id)
-            ->first();
-            if($voucher_exists){
+                ->first();
+            if ($voucher_exists) {
                 $work_code_disabled = [
                     'disabled' => true,
                 ];
@@ -1119,7 +1123,7 @@ class ClientPoCrudController extends CrudController
         //     ]
         // ]);
 
-         CRUD::addField([
+        CRUD::addField([
             'name' => 'job_name',
             'label' => trans('backpack::crud.client_po.field.job_name.label'),
             'type' => 'text',
@@ -1169,7 +1173,7 @@ class ClientPoCrudController extends CrudController
             'name' => 'tax_ppn',
             'label' => trans('backpack::crud.client_po.field.tax_ppn.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -1215,7 +1219,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-              // optionals
+            // optionals
             'attributes' => [
                 'disabled' => true,
             ], // allow decimals
@@ -1260,7 +1264,7 @@ class ClientPoCrudController extends CrudController
             'type'        => 'select_from_array',
             'options'     => ['' => trans('backpack::crud.client_po.field.reimburse_type.placeholder'), 'REIMBURSE' => 'REIMBURSE', 'NON REIMBURSE' => 'NON REIMBURSE'],
             'allows_null' => false,
-             'wrapper'   => [
+            'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
             // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
@@ -1360,7 +1364,7 @@ class ClientPoCrudController extends CrudController
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
-             'withFiles' => [
+            'withFiles' => [
                 'disk' => 'public',
                 'path' => 'document_client_po',
                 'deleteWhenEntryIsDeleted' => true,
@@ -1515,7 +1519,7 @@ class ClientPoCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-              // optionals
+            // optionals
             'attributes' => [
                 'disabled' => true,
             ], // allow decimals
@@ -1548,7 +1552,7 @@ class ClientPoCrudController extends CrudController
             'type'        => 'select_from_array',
             'options'     => ['' => trans('backpack::crud.client_po.field.reimburse_type.placeholder'), 'REIMBURSE' => 'REIMBURSE', 'NON REIMBURSE' => 'NON REIMBURSE'],
             'allows_null' => false,
-             'wrapper'   => [
+            'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
             // 'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
@@ -1631,7 +1635,7 @@ class ClientPoCrudController extends CrudController
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
-             'withFiles' => [
+            'withFiles' => [
                 'disk' => 'public',
                 'path' => 'document_client_po',
                 'deleteWhenEntryIsDeleted' => true,
@@ -1779,11 +1783,11 @@ class ClientPoCrudController extends CrudController
             'label'  => trans('backpack::crud.client_po.field.document_path.label'),
             'name' => 'document_path',
             'type'  => 'text',
-                'wrapper'   => [
+            'wrapper'   => [
                 'element' => 'a', // the element will default to "a" so you can skip it here
                 'href' => function ($crud, $column, $entry, $related_key) {
-                    if($entry->document_path != ''){
-                        return url('storage/document_client_po/'.$entry->document_path);
+                    if ($entry->document_path != '') {
+                        return url('storage/document_client_po/' . $entry->document_path);
                     }
                     return "javascript:void(0)";
                 },
@@ -1799,7 +1803,6 @@ class ClientPoCrudController extends CrudController
                 'type'  => 'text'
             ],
         );
-
     }
 
     public function show($id)
@@ -1819,7 +1822,7 @@ class ClientPoCrudController extends CrudController
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         // return view($this->crud->getShowView(), $this->data);
