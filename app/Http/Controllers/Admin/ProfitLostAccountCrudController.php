@@ -371,7 +371,6 @@ class ProfitLostAccountCrudController extends CrudController
         // ============ QUERY UTAMA ===============
         $mainQuery = DB::table('project_profit_lost')
             ->select([
-                'project_profit_lost.*',
                 'invoice_clients.invoice_date',
                 'invoice_clients.price_job_exlude_ppn',
                 'invoice_clients.price_job_include_ppn',
@@ -406,18 +405,39 @@ class ProfitLostAccountCrudController extends CrudController
             ->leftJoinSub($smallCash, 'small_cash', 'small_cash.kdp', 'client_po.work_code')
             ->leftJoinSub($invoiceClients, 'invoice_clients', 'invoice_clients.client_po_id', 'client_po.id');
 
+        $client_po_query_exclude_ppn = DB::table("client_po")
+            ->leftJoinSub($invoiceClients, 'invoice', function ($join) {
+                $join->on('invoice.client_po_id', '=', 'client_po.id');
+            })->select(
+                "client_po.id as client_po_id",
+                "client_po.category as category",
+                DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic")
+            );
+
+        $total_excl_ppn_logic = DB::table('project_profit_lost')
+            ->leftJoinSub($client_po_query_exclude_ppn, 'dummy_query', function ($join) {
+                $join->on('dummy_query.client_po_id', '=', 'project_profit_lost.client_po_id');
+            })
+            ->select(
+                DB::raw("SUM(dummy_query.price_job_exlude_ppn_logic) as total_excl_ppn_logic")
+            );
+
+
         if ($category) {
             $mainQuery = $mainQuery->where('client_po.category', $category);
+            $total_excl_ppn_logic = $total_excl_ppn_logic->where('dummy_query.category', $category);
         }
+
+        $total_excl_ppn_logic = $total_excl_ppn_logic->first();
+
         // ============ BUNGKUS SUBQUERY + SUM ===============
         $result = DB::query()
             ->fromSub($mainQuery, 't')
-            ->selectRaw('SUM(t.price_job_exlude_ppn) AS total_price_job_exclude_ppn')
             ->selectRaw('SUM(t.price_prift_lost_final_str) AS total_price_prift_lost_final_str')
             ->first();
 
         return response()->json([
-            'total_price_exlude_ppn' => CustomHelper::formatRupiahWithCurrency($result->total_price_job_exclude_ppn ?? 0),
+            'total_price_exlude_ppn' => CustomHelper::formatRupiahWithCurrency($total_excl_ppn_logic->total_excl_ppn_logic ?? 0),
             'total_price_prift_lost_finals' => CustomHelper::formatRupiahWithCurrency($result->total_price_prift_lost_final_str ?? 0)
         ]);
     }
@@ -1747,6 +1767,7 @@ class ProfitLostAccountCrudController extends CrudController
                 CRUD::setModel(ProjectProfitLost::class);
                 $this->crud->query = $this->crud->query
                     ->leftJoin('client_po', 'client_po.id', '=', 'project_profit_lost.client_po_id');
+
                 $invoice = DB::table('invoice_clients')
                     ->select(
                         'invoice_clients.client_po_id',
