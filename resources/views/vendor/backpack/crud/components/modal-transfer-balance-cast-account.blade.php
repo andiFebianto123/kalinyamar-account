@@ -39,7 +39,7 @@
                 <div class="form-group col-md-6">
                     <input type="hidden" class="form-control" name="date_move_balance">
                     <label>
-                        Tanggal
+                        {{trans('backpack::crud.cash_account.field_transfer.date.label')}}
                     </label>
                     <div class="input-group date">
                         <input

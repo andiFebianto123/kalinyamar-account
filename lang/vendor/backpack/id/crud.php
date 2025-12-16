@@ -389,7 +389,7 @@ return [
             'load_general_value' => 'Beban Umum',
             'profit_and_lost_final' => 'Laba/Rugi Akhir',
             'category' => 'Kategori',
-            'list_invoice' => 'Status Invoice', 
+            'list_invoice' => 'Status Invoice',
             'date_po' => 'Tanggal PO',
         ],
         'field' => [
@@ -643,7 +643,7 @@ return [
                 'enter' => 'MASUK',
                 'out' => 'KELUAR',
             ]
-            ],
+        ],
         'field_transfer' => [
             'nominal_transfer' => [
                 'label' => 'Nominal Yang Ingin Dipindahkan',
@@ -656,6 +656,9 @@ return [
             'to_account' => [
                 'label' => 'Rekening Tujuan',
                 'placeholder' => '-REKENING TUJUAN'
+            ],
+            'date' => [
+                'label' => 'Tanggal',
             ],
             'errors' => [
                 'nominal_transfer_to_more' => 'Nominal tidak boleh melebihi jumlah saldo.',
