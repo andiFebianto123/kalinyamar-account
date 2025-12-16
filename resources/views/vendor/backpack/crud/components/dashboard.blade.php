@@ -434,8 +434,8 @@
                                     <td>{{ $laba->kdp }}</td>
                                     <td>{{ $laba->job_name }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_voucher) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_laba) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -472,8 +472,8 @@
                                     <td>{{ $laba->kdp }}</td>
                                     <td>{{ $laba->job_name }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->profit_and_lost_final) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_voucher) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_laba) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

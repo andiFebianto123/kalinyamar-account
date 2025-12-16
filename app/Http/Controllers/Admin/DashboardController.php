@@ -18,17 +18,16 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class DashboardController extends CrudController
 {
-        use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 
     public function setup()
     {
         $this->crud->denyAllAccess(['create', 'update', 'delete', 'list', 'show']);
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
+        if ($permissions->whereIn('name', [
             'MENU INDEX DASHBOARD'
-        ])->count() > 0)
-        {
+        ])->count() > 0) {
             $this->crud->allowAccess(['list', 'show']);
         }
         CRUD::setModel(Project::class);
@@ -36,7 +35,8 @@ class DashboardController extends CrudController
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.dashboard'), trans('backpack::crud.menu.dashboard'));
     }
 
-    public function firstInvoice(){
+    public function firstInvoice()
+    {
 
         // if($invoice_first == null){
         //     return [
@@ -46,12 +46,13 @@ class DashboardController extends CrudController
 
         return [
             'invoice_first_date' => Carbon::now()
-            ->locale(App::getLocale())
-            ->translatedFormat('d F Y'),
+                ->locale(App::getLocale())
+                ->translatedFormat('d F Y'),
         ];
     }
 
-    public function totalProjects(){
+    public function totalProjects()
+    {
         $project_status = [
             'CLOSE' => 0,
             'RETENSI' => 0,
@@ -65,34 +66,34 @@ class DashboardController extends CrudController
             status_po as status
         '))->get();
 
-        foreach($projects as $prj){
+        foreach ($projects as $prj) {
             $project_status[str_replace(' ', '_', $prj->status)] = CustomHelper::formatRupiah($prj->total);
         }
 
         $projects_unpaid_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-        ->where('status_po', 'Unpaid')
-        ->where('category', 'RUTIN')
-        ->get();
+            ->where('status_po', 'Unpaid')
+            ->where('category', 'RUTIN')
+            ->get();
         $projects_unpaid_non_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-        ->where('status_po', 'Unpaid')
-        ->where('category', 'NON RUTIN')
-        ->get();
+            ->where('status_po', 'Unpaid')
+            ->where('category', 'NON RUTIN')
+            ->get();
         $projects_Tertunda_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-        ->where('status_po', 'Tertunda')
-        ->where('category', 'RUTIN')
-        ->get();
+            ->where('status_po', 'Tertunda')
+            ->where('category', 'RUTIN')
+            ->get();
         $projects_Tertunda_non_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-        ->where('status_po', 'Tertunda')
-        ->where('category', 'NON RUTIN')
-        ->get();
+            ->where('status_po', 'Tertunda')
+            ->where('category', 'NON RUTIN')
+            ->get();
         return [
             'list_projects' => $project_status,
             'total_unpaid_rutin' => CustomHelper::formatRupiah($projects_unpaid_rutin[0]->total ?? 0),
@@ -102,12 +103,13 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalQuotations(){
+    public function totalQuotations()
+    {
         $quotations = Quotation::groupBy('status')
-        ->select(DB::raw("SUM(rab) as total, status"))->get();
+            ->select(DB::raw("SUM(rab) as total, status"))->get();
 
         $quotation_type = Quotation::select(DB::raw("status"))
-        ->groupBy('status')->get();
+            ->groupBy('status')->get();
 
         $quotation_total = [
             strtoupper('HPS') => 0,
@@ -115,11 +117,11 @@ class DashboardController extends CrudController
             strtoupper('CLOSE') => 0,
         ];
 
-        foreach($quotation_type as $quotation_status){
+        foreach ($quotation_type as $quotation_status) {
             $quotation_total[strtoupper($quotation_status->status)] = 0;
         }
 
-        foreach($quotations as $quotation){
+        foreach ($quotations as $quotation) {
             $quotation_total[strtoupper(str_replace(' ', '_', $quotation->status))] = CustomHelper::formatRupiah($quotation->total);
         }
 
@@ -128,12 +130,13 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalOmzetAll(){
+    public function totalOmzetAll()
+    {
         $invoice = ClientPo::select(DB::raw("SUM(job_value) as total"))->get();
 
-        if($invoice->count() == 0){
+        if ($invoice->count() == 0) {
             $total_invoice = 0;
-        }else{
+        } else {
             $total_invoice = $invoice[0]->total;
         }
         return [
@@ -141,7 +144,8 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalLabaAll(){
+    public function totalLabaAll()
+    {
         // $voucher = Voucher::select(DB::raw("SUM(bill_value) as total"))->get();
         // $invoice = ClientPo::select(DB::raw("SUM(job_value) as total"))->get();
         $invoice = ClientPo::whereExists(function ($query) {
@@ -149,9 +153,9 @@ class DashboardController extends CrudController
                 ->from('invoice_clients')
                 ->whereRaw('invoice_clients.client_po_id = client_po.id');
         })->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
-        if($invoice->count() == 0){
+        if ($invoice->count() == 0) {
             $total_invoice = 0;
-        }else{
+        } else {
             $total_invoice = $invoice[0]->total;
         }
         return [
@@ -159,62 +163,63 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalJobRealisasion(){
+    public function totalJobRealisasion()
+    {
         $omset_rutin = InvoiceClient::selectRaw('
             COUNT(id) as total_invoice,
             SUM(price_total_exclude_ppn) as total_omzet
         ')
-        ->whereExists(function ($q) {
-            $q->select(DB::raw(1))
-                ->from('client_po')
-                ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
-                ->where('client_po.category', 'RUTIN')
-                ->whereExists(function ($q2) {
-                    $q2->select(DB::raw(1))
-                        ->from('project_profit_lost')
-                        ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-                });
-        })
-        ->first();
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('client_po')
+                    ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
+                    ->where('client_po.category', 'RUTIN')
+                    ->whereExists(function ($q2) {
+                        $q2->select(DB::raw(1))
+                            ->from('project_profit_lost')
+                            ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+                    });
+            })
+            ->first();
 
         $biaya_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
-        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('project_profit_lost')
-                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        })
-        ->where('client_po.category', 'RUTIN')
-        ->groupBy('client_po.category')
-        ->get();
+            ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('project_profit_lost')
+                    ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+            })
+            ->where('client_po.category', 'RUTIN')
+            ->groupBy('client_po.category')
+            ->get();
 
         $omset_non_rutin = InvoiceClient::selectRaw('
             COUNT(id) as total_invoice,
             SUM(price_total_exclude_ppn) as total_omzet
         ')
-        ->whereExists(function ($q) {
-            $q->select(DB::raw(1))
-                ->from('client_po')
-                ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
-                ->where('client_po.category', 'NON RUTIN')
-                ->whereExists(function ($q2) {
-                    $q2->select(DB::raw(1))
-                        ->from('project_profit_lost')
-                        ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-                });
-        })
-        ->first();
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('client_po')
+                    ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
+                    ->where('client_po.category', 'NON RUTIN')
+                    ->whereExists(function ($q2) {
+                        $q2->select(DB::raw(1))
+                            ->from('project_profit_lost')
+                            ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+                    });
+            })
+            ->first();
 
         $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
-        ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('project_profit_lost')
-                ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        })
-        ->where('client_po.category', 'RUTIN')
-        ->groupBy('client_po.category')
-        ->get();
+            ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('project_profit_lost')
+                    ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
+            })
+            ->where('client_po.category', 'RUTIN')
+            ->groupBy('client_po.category')
+            ->get();
 
         $total_omzet_rutin = $omset_rutin->total_omzet ?? 0;
         $total_biaya_rutin = $biaya_rutin[0]?->nilai_biaya ?? 0;
@@ -239,22 +244,23 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalLabaCategory(){
+    public function totalLabaCategory()
+    {
         $invoice_rutin = ClientPo::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
                 ->whereRaw('invoice_clients.client_po_id = client_po.id');
         })
-        ->where('client_po.category', 'RUTIN')
-        ->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
+            ->where('client_po.category', 'RUTIN')
+            ->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
 
         $invoice_non_rutin = ClientPo::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('invoice_clients')
                 ->whereRaw('invoice_clients.client_po_id = client_po.id');
         })
-        ->where('client_po.category', 'NON RUTIN')
-        ->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
+            ->where('client_po.category', 'NON RUTIN')
+            ->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
 
         return [
             'total_laba_rutin' => CustomHelper::formatRupiah($invoice_rutin[0]->total),
@@ -262,16 +268,33 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function dataLabaCategory(){
+    public function dataLabaCategory()
+    {
+
+        $voucher_query = DB::table('vouchers')
+            ->select("client_po_id", DB::raw("SUM(total) as total"))
+            ->groupBy("client_po_id");
+
         $invoice_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
-        ->where('client_po.category', 'RUTIN')
-        ->select(DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total as price_invoice"))
-        ->get();
+            ->leftJoinSub($voucher_query, 'voucher', function ($join) {
+                $join->on('voucher.client_po_id', '=', 'client_po.id');
+            })
+            ->where('client_po.category', 'RUTIN')
+            ->select(
+                DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total_exclude_ppn as price_invoice, voucher.total as total_voucher"),
+                DB::raw("(IFNULL(invoice_clients.price_total_exclude_ppn,0) - IFNULL(voucher.total,0)) as total_laba")
+            )
+            ->get();
 
         $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
-        ->where('client_po.category', 'NON RUTIN')
-        ->select(DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total as price_invoice"))
-        ->get();
+            ->leftJoinSub($voucher_query, 'voucher', function ($join) {
+                $join->on('voucher.client_po_id', '=', 'client_po.id');
+            })
+            ->where('client_po.category', 'NON RUTIN')
+            ->select(
+                DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total_exclude_ppn as price_invoice, voucher.total as total_voucher"),
+                DB::raw("(IFNULL(invoice_clients.price_total_exclude_ppn,0) - IFNULL(voucher.total,0)) as total_laba")
+            )->get();
 
         return [
             'data_laba_rutin' => $invoice_rutin,
@@ -279,40 +302,42 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function dataNonRutinMonitoring(){
+    public function dataNonRutinMonitoring()
+    {
         $monitoring_result_1 = ClientPo::selectRaw('
             SUM(job_value) as job_value, 
             COUNT(id) as total_job,
             SUM(profit_and_lost_final) as profit_lost
         ')
-        ->where('category', 'NON RUTIN')
-        ->whereNotExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
-        })
-        ->first();
+            ->where('category', 'NON RUTIN')
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+            })
+            ->first();
 
         $monitoring_result_2 = DB::table('vouchers')
-        ->leftJoin('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        ->selectRaw('SUM(vouchers.payment_transfer) as total_transfer')
-        ->where('client_po.category', 'NON RUTIN')
-        ->whereNotExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
-        })
-        ->first();
+            ->leftJoin('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+            ->selectRaw('SUM(vouchers.payment_transfer) as total_transfer')
+            ->where('client_po.category', 'NON RUTIN')
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+            })
+            ->first();
 
         return [
             'total_job_value' => CustomHelper::formatRupiah($monitoring_result_1->job_value ?? 0),
             'total_transfer' => CustomHelper::formatRupiah($monitoring_result_2->total_transfer ?? 0),
-            'total_profit_lost' => CustomHelper::formatRupiah(($monitoring_result_1->job_value - $monitoring_result_2->total_transfer) ?? 0), 
+            'total_profit_lost' => CustomHelper::formatRupiah(($monitoring_result_1->job_value - $monitoring_result_2->total_transfer) ?? 0),
             'total_job' => $monitoring_result_1->total_job
         ];
     }
 
-    public function totalAlldashboard(){
+    public function totalAlldashboard()
+    {
         return [
             'first_invoice' => $this->firstInvoice(),
             'total_projects' => $this->totalProjects(),
@@ -324,7 +349,8 @@ class DashboardController extends CrudController
         ];
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         // dd($this->totalInvoice());
@@ -363,5 +389,4 @@ class DashboardController extends CrudController
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
     }
-
 }
