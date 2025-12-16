@@ -696,7 +696,7 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.job_name'),
                 'name' => 'job_name',
-                'type'  => 'text'
+                'type'  => 'wrap_text'
             ],
         );
 
@@ -1468,7 +1468,7 @@ class ClientPoCrudController extends CrudController
         CRUD::addField([
             'name' => 'job_name',
             'label' => trans('backpack::crud.client_po.field.job_name.label'),
-            'type' => 'text',
+            'type' => 'wrap_text',
             'wrapper'   => [
                 'class' => 'form-group col-md-12',
             ],
