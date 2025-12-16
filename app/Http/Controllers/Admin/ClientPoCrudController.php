@@ -1685,7 +1685,7 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.job_name'),
                 'name' => 'job_name',
-                'type'  => 'text'
+                'type'  => 'wrap_text'
             ],
         );
         CRUD::column(
