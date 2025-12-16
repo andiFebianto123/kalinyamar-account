@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -23,7 +24,8 @@ use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ProjectListCrudController extends CrudController {
+class ProjectListCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -56,7 +58,8 @@ class ProjectListCrudController extends CrudController {
         ]);
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         $this->card->addCard([
@@ -207,9 +210,9 @@ class ProjectListCrudController extends CrudController {
                                 ]
                             ],
                             'route' => backpack_url('/monitoring/project-list/search?tab=project'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=project'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=project'),
                             'title_export_pdf' => 'Daftar-project.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=project'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=project'),
                             'title_export_excel' => 'Daftar-project.xlsx',
                         ],
                     ],
@@ -252,9 +255,9 @@ class ProjectListCrudController extends CrudController {
                                 ],
                             ],
                             'route' => backpack_url('/monitoring/project-list/search?tab=project_edit'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=project_edit'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=project_edit'),
                             'title_export_pdf' => 'Daftar-project-edit.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=project_edit'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=project_edit'),
                             'title_export_excel' => 'Daftar-project-edit.xlsx',
                         ]
                     ]
@@ -292,7 +295,7 @@ class ProjectListCrudController extends CrudController {
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -305,9 +308,9 @@ class ProjectListCrudController extends CrudController {
         $type = request()->tab;
 
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
@@ -315,25 +318,25 @@ class ProjectListCrudController extends CrudController {
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
 
-        if($type == 'project'){
+        if ($type == 'project') {
             CRUD::setModel(Project::class);
             CRUD::disableResponsiveTable();
 
-            if(request()->has('filter_category')){
-                if(request()->filter_category != 'all'){
+            if (request()->has('filter_category')) {
+                if (request()->filter_category != 'all') {
                     $this->crud->addClause('where', 'category', request()->filter_category);
                 }
             }
 
-            if(request()->has('filter_client')){
-                if(request()->filter_client != 'all'){
+            if (request()->has('filter_client')) {
+                if (request()->filter_client != 'all') {
                     $this->crud->query = $this->crud->query
-                    ->whereExists(function ($query) {
-                        $query->select(DB::raw(1))
-                        ->from('setup_clients')
-                        ->whereRaw('setup_clients.id = projects.client_id')
-                        ->where('setup_clients.id', request()->filter_client);
-                    });
+                        ->whereExists(function ($query) {
+                            $query->select(DB::raw(1))
+                                ->from('setup_clients')
+                                ->whereRaw('setup_clients.id = projects.client_id')
+                                ->where('setup_clients.id', request()->filter_client);
+                        });
                 }
             }
 
@@ -348,29 +351,29 @@ class ProjectListCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
+                    'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
                     'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.name.label'),
+                    'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.po_date.label'),
+                'label' => trans('backpack::crud.project.column.project.po_date.label'),
                 'name' => 'po_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
+                'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
                 'name' => 'price_total_exclude_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_exclude_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -379,10 +382,10 @@ class ProjectListCrudController extends CrudController {
                 'thousands_sep' => '.',
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.price_ppn.label'),
+                'label' => trans('backpack::crud.project.column.project.price_ppn.label'),
                 'name' => 'price_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -392,16 +395,16 @@ class ProjectListCrudController extends CrudController {
             ]);
 
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.tax_ppn.label'),
+                'label' => trans('backpack::crud.project.column.project.tax_ppn.label'),
                 'name' => 'tax_ppn',
                 'type'  => 'number',
                 'suffix' => '%',
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
+                'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -421,7 +424,7 @@ class ProjectListCrudController extends CrudController {
                 'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
+                'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
                 'name' => 'received_po_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
@@ -439,67 +442,67 @@ class ProjectListCrudController extends CrudController {
                     'name' => 'duration',
                     'type'  => 'closure',
                     'value' => function ($row) {
-                        if(strtoupper($row->status_po) == 'UNPAID'){
+                        if (strtoupper($row->status_po) == 'UNPAID') {
                             $total_day = $this->hitungDurasiHari($row->invoice_date);
                             $day = ($row->invoice_date) ? $total_day : '0';
-                            return $day.' Hari';
+                            return $day . ' Hari';
                         }
                         $total_day = $this->hitungDurasiHari($row->actual_end_date);
                         $day = ($row->actual_end_date) ? $total_day : '0';
-                        return $day.' Hari';
+                        return $day . ' Hari';
                     }
                 ],
             );
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.actual_start_date.label'),
+                'label' => trans('backpack::crud.project.column.project.actual_start_date.label'),
                 'name' => 'actual_start_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project.actual_end_date.label'),
+                'label' => trans('backpack::crud.project.column.project.actual_end_date.label'),
                 'name' => 'actual_end_date',
                 'type'  => 'date',
                 'format' => 'D MMM Y'
             ]);
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.status_po.label'),
+                    'label' => trans('backpack::crud.project.column.project.status_po.label'),
                     'name' => 'status_po',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.progress.label'),
+                    'label' => trans('backpack::crud.project.column.project.progress.label'),
                     'name' => 'progress',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.pic.label'),
+                    'label' => trans('backpack::crud.project.column.project.pic.label'),
                     'name' => 'pic',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.user.label'),
+                    'label' => trans('backpack::crud.project.column.project.user.label'),
                     'name' => 'user',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.category.label'),
+                    'label' => trans('backpack::crud.project.column.project.category.label'),
                     'name' => 'category',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project.information.label'),
+                    'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
                     'type'  => 'wrap_text'
                 ],
@@ -509,11 +512,11 @@ class ProjectListCrudController extends CrudController {
                 'label'  => 'Dokumen Proyek',
                 'name' => 'document_path',
                 'type'  => 'text',
-                    'wrapper'   => [
+                'wrapper'   => [
                     'element' => 'a', // the element will default to "a" so you can skip it here
                     'href' => function ($crud, $column, $entry, $related_key) {
-                        if($entry->document_path != ''){
-                            return url('storage/'.$entry->document_path);
+                        if ($entry->document_path != '') {
+                            return url('storage/' . $entry->document_path);
                         }
                         return "javascript:void(0)";
                     },
@@ -521,15 +524,14 @@ class ProjectListCrudController extends CrudController {
                     // 'class' => 'some-class',
                 ],
             ]);
-
-        }else if($type == 'project_edit'){
+        } else if ($type == 'project_edit') {
             CRUD::setModel(ProjectHistory::class);
             CRUD::disableResponsiveTable();
 
-            if(request()->has('filter_category')){
-                if(request()->filter_category != 'all'){
+            if (request()->has('filter_category')) {
+                if (request()->filter_category != 'all') {
                     $filter_category = request()->filter_category;
-                    $this->crud->addClause('whereExists', function ($query) use($filter_category){
+                    $this->crud->addClause('whereExists', function ($query) use ($filter_category) {
                         $query->select(DB::raw(1))
                             ->from('projects')
                             ->whereRaw('projects.id = project_history.project_id')
@@ -538,20 +540,20 @@ class ProjectListCrudController extends CrudController {
                 }
             }
 
-            if(request()->has('filter_client')){
-                if(request()->filter_client != 'all'){
+            if (request()->has('filter_client')) {
+                if (request()->filter_client != 'all') {
                     $this->crud->query = $this->crud->query
-                    ->whereExists(function ($query) {
-                        $query->select(DB::raw(1))
-                        ->from('projects')
-                        ->whereRaw('projects.id = project_history.project_id')
                         ->whereExists(function ($query) {
                             $query->select(DB::raw(1))
-                            ->from('setup_clients')
-                            ->whereRaw('setup_clients.id = projects.client_id')
-                            ->where('setup_clients.id', request()->filter_client);
+                                ->from('projects')
+                                ->whereRaw('projects.id = project_history.project_id')
+                                ->whereExists(function ($query) {
+                                    $query->select(DB::raw(1))
+                                        ->from('setup_clients')
+                                        ->whereRaw('setup_clients.id = projects.client_id')
+                                        ->where('setup_clients.id', request()->filter_client);
+                                });
                         });
-                    });
                 }
             }
 
@@ -566,14 +568,14 @@ class ProjectListCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.project.column.project_edit.name.label'),
+                    'label' => trans('backpack::crud.project.column.project_edit.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
                 // 1-n relationship
-                                    'label' => trans('backpack::crud.project.column.project_edit.user_id.label'),
+                'label' => trans('backpack::crud.project.column.project_edit.user_id.label'),
                 'type'      => 'select',
                 'name'      => 'user_id', // the column that contains the ID of that connected entity;
                 'entity'    => 'user', // the method that defines the relationship in your Model
@@ -583,21 +585,21 @@ class ProjectListCrudController extends CrudController {
                 // 'limit' => 32, // Limit the number of characters shown
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project_edit.date_update.label'),
+                'label' => trans('backpack::crud.project.column.project_edit.date_update.label'),
                 'name' => 'date_update',
                 'type'  => 'date',
                 'format' => 'DD MMM YYYY HH:mm'
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.project.column.project_edit.history_update.label'),
+                'label' => trans('backpack::crud.project.column.project_edit.history_update.label'),
                 'name' => 'history_update',
                 'type'  => 'wrap_text',
             ]);
-
         }
     }
 
-    function ruleValidation(){
+    function ruleValidation()
+    {
 
         $rule = [
             'name' => 'required',
@@ -612,9 +614,9 @@ class ProjectListCrudController extends CrudController {
             'actual_end_date' => 'nullable|date|after_or_equal:actual_start_date'
         ];
 
-        if(request()->has('po_status')){
+        if (request()->has('po_status')) {
             $po_status = request()->po_status;
-            if($po_status == 0){
+            if ($po_status == 0) {
                 $rule['no_po_spk'] = 'required|max:100';
                 $rule['po_date'] = 'required|date';
                 $rule['received_po_date'] = 'required|date';
@@ -623,35 +625,36 @@ class ProjectListCrudController extends CrudController {
         return $rule;
     }
 
-    protected function setupCreateOperation(){
+    protected function setupCreateOperation()
+    {
 
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
         $total_permission = $permissions->whereIn('name', [
             'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
         ])->count();
-        if($total_permission){
+        if ($total_permission) {
             CRUD::setValidation([
                 'progress' => 'nullable|numeric',
                 'information' => 'nullable',
             ]);
             $edit_column_progress_and_information = true;
-        }else{
+        } else {
             CRUD::setValidation($this->ruleValidation());
             $edit_column_progress_and_information = false;
         }
 
-       $attributes_added = [];
-       if($edit_column_progress_and_information){
+        $attributes_added = [];
+        if ($edit_column_progress_and_information) {
             $attributes_added = [
                 'disabled' => true,
             ];
-       }
+        }
 
 
         $settings = Setting::first();
         $po_prefix_value = [];
-        if(!$this->crud->getCurrentEntryId()){
+        if (!$this->crud->getCurrentEntryId()) {
             $po_prefix_value = [
                 'value' => $settings?->po_prefix,
             ];
@@ -776,7 +779,7 @@ class ProjectListCrudController extends CrudController {
         $tax_ppn_option = [
             '' => trans('backpack::crud.project.field.tax_ppn.placeholder'),
             ...$tarif_ppn->map(function ($value, $key) {
-                $name = number_format($value, 0, '.', ',').' %';
+                $name = number_format($value, 0, '.', ',') . ' %';
                 return $name;
             }),
         ];
@@ -853,7 +856,7 @@ class ProjectListCrudController extends CrudController {
             'name' => 'duration',
             'label' => trans('backpack::crud.project.field.duration.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => [
                 "step" => "any",
                 'disabled' => true,
@@ -926,7 +929,7 @@ class ProjectListCrudController extends CrudController {
             '' => trans('backpack::crud.project.field.client_id.placeholder'),
         ];
 
-        foreach($client as $c){
+        foreach ($client as $c) {
             $client_option[$c->id] = $c->name;
         }
 
@@ -970,7 +973,7 @@ class ProjectListCrudController extends CrudController {
             'name' => 'progress',
             'label' => trans('backpack::crud.project.field.progress.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -1027,7 +1030,7 @@ class ProjectListCrudController extends CrudController {
             'attributes' => [
                 ...$attributes_added,
             ],
-             'withFiles' => [
+            'withFiles' => [
                 'disk' => 'public',
                 'path' => 'document_proyek',
                 'deleteWhenEntryIsDeleted' => true,
@@ -1038,7 +1041,6 @@ class ProjectListCrudController extends CrudController {
             'name' => 'logic_project',
             'type' => 'logic_project',
         ]);
-
     }
 
     protected function setupUpdateOperation()
@@ -1056,7 +1058,8 @@ class ProjectListCrudController extends CrudController {
         return $endDate->diffInDays($today);
     }
 
-    function calculateAll($request){
+    function calculateAll($request)
+    {
         $excludePpn = floatval($request->input('price_total_exclude_ppn')); // harga belum termasuk ppn
         $ppn = floatval($request->input('tax_ppn')); // nilai ppn dalam persen, misalnya 11
 
@@ -1093,7 +1096,7 @@ class ProjectListCrudController extends CrudController {
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $event = [];
 
@@ -1104,7 +1107,7 @@ class ProjectListCrudController extends CrudController {
             $item = new Project;
             $item->name = $request->name;
 
-            if($po_status == 0){
+            if ($po_status == 0) {
                 // $item->reference_type = ($request->no_type == 'po') ? PurchaseOrder::class : Spk::class;
                 // $item->reference_id = $request->no_po_spk;
                 $item->no_po_spk = $request->no_po_spk;
@@ -1184,8 +1187,7 @@ class ProjectListCrudController extends CrudController {
                 ]);
             }
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1219,7 +1221,7 @@ class ProjectListCrudController extends CrudController {
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -1227,13 +1229,14 @@ class ProjectListCrudController extends CrudController {
         ]);
     }
 
-    public function updateProgress(){
+    public function updateProgress()
+    {
         $request = $this->crud->validateRequest();
 
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
             $item = Project::find($this->crud->getCurrentEntryId());
@@ -1249,7 +1252,7 @@ class ProjectListCrudController extends CrudController {
             }
             $item->save();
 
-            if(isset($flag_update)){
+            if (isset($flag_update)) {
                 $project_history = new ProjectHistory;
                 $project_history->project_id = $item->id;
                 $project_history->name = $item->name;
@@ -1278,8 +1281,7 @@ class ProjectListCrudController extends CrudController {
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1287,7 +1289,6 @@ class ProjectListCrudController extends CrudController {
                 'error' => $e->getMessage(),
             ]);
         }
-
     }
 
     public function update()
@@ -1296,9 +1297,9 @@ class ProjectListCrudController extends CrudController {
 
         $user = backpack_user();
         $permissions = $user->getAllPermissions();
-        if($permissions->whereIn('name', [
+        if ($permissions->whereIn('name', [
             'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
-        ])->count() > 0){
+        ])->count() > 0) {
             return $this->updateProgress();
         }
 
@@ -1308,22 +1309,22 @@ class ProjectListCrudController extends CrudController {
 
 
         DB::beginTransaction();
-        try{
+        try {
 
             $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
             $item = Project::where('id', $this->crud->getCurrentEntryId())->first();
 
             $item->name = $request->name;
-            if($old->name != $item->name){
+            if ($old->name != $item->name) {
                 $flag_update = true;
             }
             $po_status = $request->po_status;
-            if($old->po_status != $item->po_status){
+            if ($old->po_status != $item->po_status) {
                 $flag_update = true;
             }
             $calculate = $this->calculateAll($request);
 
-            if($po_status == 0){
+            if ($po_status == 0) {
                 // $item->reference_type = ($request->no_type == 'po') ? PurchaseOrder::class : Spk::class;
                 // if($old->reference_type != $item->reference_type){
                 //     $flag_update = true;
@@ -1333,11 +1334,11 @@ class ProjectListCrudController extends CrudController {
                 //     $flag_update = true;
                 // }
                 $item->po_date = $request->po_date;
-                if($old->po_date != $item->po_date){
+                if ($old->po_date != $item->po_date) {
                     $flag_update = true;
                 }
                 $item->received_po_date = $request->received_po_date;
-                if($old->received_po_date != $item->received_po_date){
+                if ($old->received_po_date != $item->received_po_date) {
                     $flag_update = true;
                 }
 
@@ -1365,21 +1366,21 @@ class ProjectListCrudController extends CrudController {
                 //     "))->where('spk.id',  $request->no_po_spk)->first();
                 // }
                 $item->no_po_spk = $request->no_po_spk;
-                if($old->no_po_spk != $item->no_po_spk){
+                if ($old->no_po_spk != $item->no_po_spk) {
                     $flag_update = true;
                 }
             }
 
             $item->po_status = $po_status;
-            if($old->po_status != $item->po_status){
+            if ($old->po_status != $item->po_status) {
                 $flag_update = true;
             }
             $item->price_total_exclude_ppn = $request->price_total_exclude_ppn;
-            if($old->price_total_exclude_ppn != $item->price_total_exclude_ppn){
+            if ($old->price_total_exclude_ppn != $item->price_total_exclude_ppn) {
                 $flag_update = true;
             }
             $item->tax_ppn = $request->tax_ppn;
-            if($old->tax_ppn != $item->tax_ppn){
+            if ($old->tax_ppn != $item->tax_ppn) {
                 $flag_update = true;
             }
             $item->price_ppn = $calculate['actual_price_ppn'];
@@ -1453,7 +1454,7 @@ class ProjectListCrudController extends CrudController {
             }
             $item->save();
 
-            if(isset($flag_update)){
+            if (isset($flag_update)) {
                 $project_history = new ProjectHistory;
                 $project_history->project_id = $item->id;
                 $project_history->name = $item->name;
@@ -1484,8 +1485,7 @@ class ProjectListCrudController extends CrudController {
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1495,7 +1495,8 @@ class ProjectListCrudController extends CrudController {
         }
     }
 
-    protected function setupShowOperation(){
+    protected function setupShowOperation()
+    {
         $this->setupCreateOperation();
         CRUD::field('received_po_date')->remove();
         CRUD::field([   // date_picker
@@ -1669,11 +1670,11 @@ class ProjectListCrudController extends CrudController {
             'label'  => 'Dokumen Proyek',
             'name' => 'document_path',
             'type'  => 'text',
-                'wrapper'   => [
+            'wrapper'   => [
                 'element' => 'a', // the element will default to "a" so you can skip it here
                 'href' => function ($crud, $column, $entry, $related_key) {
-                    if($entry->document_path != ''){
-                        return url('storage/document_proyek/'.$entry->document_path);
+                    if ($entry->document_path != '') {
+                        return url('storage/document_proyek/' . $entry->document_path);
                     }
                     return "javascript:void(0)";
                 },
@@ -1698,7 +1699,7 @@ class ProjectListCrudController extends CrudController {
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view($this->crud->getShowView(), $this->data)->render()
@@ -1740,7 +1741,8 @@ class ProjectListCrudController extends CrudController {
         }
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -1752,10 +1754,10 @@ class ProjectListCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -1766,7 +1768,7 @@ class ProjectListCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $title = 'Daftar Project - '.$type;
+        $title = 'Daftar Project - ' . $type;
 
         $pdf = Pdf::loadView('exports.table-pdf', [
             'columns' => $columns,
@@ -1780,11 +1782,12 @@ class ProjectListCrudController extends CrudController {
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -1795,10 +1798,10 @@ class ProjectListCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -1809,11 +1812,13 @@ class ProjectListCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $name = 'Status Project - '.$type;
+        $name = 'Status Project - ' . $type;
 
-        return response()->streamDownload(function () use($type, $columns, $items, $all_items){
+        return response()->streamDownload(function () use ($type, $columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -1823,7 +1828,5 @@ class ProjectListCrudController extends CrudController {
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
-
 }

@@ -1,6 +1,3 @@
-{{-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#rekeningModal">
-  Lihat Rekening
-</button> --}}
 
 <div>
     <p style="font-size: 15px;">
@@ -37,28 +34,11 @@
                 </tr>
             </thead>
             <tbody>
-                {{-- <tr>
-                <td>3 Feb 2025</td>
-                <td>Rp3.000.000</td>
-                <td>PO001</td>
-                <td>INV33/55/55</td>
-                <td>Masuk</td>
-                </tr> --}}
             </tbody>
         </table>
     </div>
 </div>
 
-{{-- <a href="javascript:void(0)"
-    onclick="editEntry(this)"
-    data-route="{{ url($crud->route.'/'.$entry->getKey().'/edit?_type=category_project&edit=1') }}"
-    data-route-action="{{ url($crud->route.'/'.$entry->getKey().'?_type=category_project&edit=1') }}"
-    data-bs-toggle="modal"
-    data-bs-target="#modalEdit"
-    data-title-edit="{{ trans('backpack::crud.project_system_setup.card.setup_category_project_title_edit') }}"
-    bp-button="update" class="btn btn-sm btn-primary">
-        <i class="la la-pen"></i>
-</a> --}}
 
 @push('inline_scripts')
     @once

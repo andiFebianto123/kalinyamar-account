@@ -217,7 +217,7 @@ class DashboardController extends CrudController
                     ->from('project_profit_lost')
                     ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
             })
-            ->where('client_po.category', 'RUTIN')
+            ->where('client_po.category', 'NON RUTIN')
             ->groupBy('client_po.category')
             ->get();
 

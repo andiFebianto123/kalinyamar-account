@@ -34,6 +34,98 @@
                     <label>{{trans('backpack::crud.cash_account.field_transfer.description.label')}}</label>
                     <textarea name="description" placeholder="{{trans('backpack::crud.cash_account.field_transfer.description.placeholder')}}" class="form-control"></textarea>
                 </div>
+                {{-- <div class="form-group col-md-6">
+                </div>
+                <div class="form-group col-md-6">
+                    <input type="hidden" class="form-control" name="date_move_balance">
+                    <label>
+                        Tanggal
+                    </label>
+                    <div class="input-group date">
+                        <input
+                            id="date_move_balance"
+                            data-bs-name="date_move_balance"
+                            type="text"
+                            data-init-datepicker="bpFieldInitDatePickerElement"
+                            @include('crud::fields.inc.attributes')
+                            >
+                        <span class="input-group-text" id="basic-addon1"><span class="la la-calendar"></span></span>
+                    </div>
+                </div>
+                <script>
+                    SIAOPS.loadCSS("{{ asset('packages/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css') }}");
+                </script>
+                <script>
+                    SIAOPS.loadScript([
+                        "{{ asset('packages/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"
+                    ], {
+                        async: false, // Load secara synchronous
+                        defer: true,
+                    });
+                </script>
+                <script>
+                    var dateFormat=function(){var a=/d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,b=/\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,c=/[^-+\dA-Z]/g,d=function(a,b){for(a=String(a),b=b||2;a.length<b;)a="0"+a;return a};return function(e,f,g){var h=dateFormat;if(1!=arguments.length||"[object String]"!=Object.prototype.toString.call(e)||/\d/.test(e)||(f=e,e=void 0),e=e?new Date(e):new Date,isNaN(e))throw SyntaxError("invalid date");f=String(h.masks[f]||f||h.masks.default),"UTC:"==f.slice(0,4)&&(f=f.slice(4),g=!0);var i=g?"getUTC":"get",j=e[i+"Date"](),k=e[i+"Day"](),l=e[i+"Month"](),m=e[i+"FullYear"](),n=e[i+"Hours"](),o=e[i+"Minutes"](),p=e[i+"Seconds"](),q=e[i+"Milliseconds"](),r=g?0:e.getTimezoneOffset(),s={d:j,dd:d(j),ddd:h.i18n.dayNames[k],dddd:h.i18n.dayNames[k+7],m:l+1,mm:d(l+1),mmm:h.i18n.monthNames[l],mmmm:h.i18n.monthNames[l+12],yy:String(m).slice(2),yyyy:m,h:n%12||12,hh:d(n%12||12),H:n,HH:d(n),M:o,MM:d(o),s:p,ss:d(p),l:d(q,3),L:d(q>99?Math.round(q/10):q),t:n<12?"a":"p",tt:n<12?"am":"pm",T:n<12?"A":"P",TT:n<12?"AM":"PM",Z:g?"UTC":(String(e).match(b)||[""]).pop().replace(c,""),o:(r>0?"-":"+")+d(100*Math.floor(Math.abs(r)/60)+Math.abs(r)%60,4),S:["th","st","nd","rd"][j%10>3?0:(j%100-j%10!=10)*j%10]};return f.replace(a,function(a){return a in s?s[a]:a.slice(1,a.length-1)})}}();dateFormat.masks={default:"ddd mmm dd yyyy HH:MM:ss",shortDate:"m/d/yy",mediumDate:"mmm d, yyyy",longDate:"mmmm d, yyyy",fullDate:"dddd, mmmm d, yyyy",shortTime:"h:MM TT",mediumTime:"h:MM:ss TT",longTime:"h:MM:ss TT Z",isoDate:"yyyy-mm-dd",isoTime:"HH:MM:ss",isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"},dateFormat.i18n={dayNames:["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],monthNames:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","May","June","July","August","September","October","November","December"]},Date.prototype.format=function(a,b){return dateFormat(this,a,b)};
+                    async function bpFieldInitDatePickerElement(element) {
+                        await new Promise((resolve) => {
+                            setTimeout(() => {
+                                resolve(1);
+                            }, 100);
+                        });
+                        var $fake = element;
+                        if (jQuery.ui) {
+                                var datepicker = $.fn.datepicker.noConflict();
+                                $.fn.bootstrapDP = datepicker;
+                            } else {
+                                $.fn.bootstrapDP = $.fn.datepicker;
+                            }
+
+                            $field = $fake.closest('.input-group').parent().children('input[type="hidden"]');
+
+                            $customConfig = $.extend({
+                                format: 'dd/mm/yyyy',
+                            }, $fake.data('bs-datepicker'));
+                            $picker = $fake.bootstrapDP($customConfig);
+
+                            var $existingVal = $field.val();
+
+                            if( $existingVal && $existingVal.length ){
+                                var parts = $existingVal.split('-');
+                                var year = parts[0];
+                                var month = parts[1] - 1; // Date constructor expects a zero-indexed month
+                                var day = parts[2];
+                                preparedDate = new Date(year, month, day).format($customConfig.format);
+                                $fake.val(preparedDate);
+                                $picker.bootstrapDP('update', preparedDate);
+                            }
+
+                            $picker.on('show hide change', function(e){
+                                if( e.date ){
+                                    var sqlDate = e.format('yyyy-mm-dd');
+                                } else {
+                                    try {
+                                        var sqlDate = $fake.val();
+
+                                        if( $customConfig.format === 'dd/mm/yyyy' ){
+                                            sqlDate = new Date(sqlDate.split('/')[2], sqlDate.split('/')[1] - 1, sqlDate.split('/')[0]).format('yyyy-mm-dd');
+                                        }
+                                    } catch(e){
+                                        if( $fake.val() ){
+                                                new Noty({
+                                                    type: "error",
+                                                    text: "<strong>Whoops!</strong><br>Sorry we did not recognise that date format, please make sure it uses a yyyy mm dd combination"
+                                                }).show();
+                                            }
+                                        }
+                                }
+                                $field = $fake.closest('.input-group').parent().children('input[type="hidden"]');
+                                $field.val(sqlDate);
+                            });
+                    }
+                    $('input[data-init-datepicker]').each(function() {
+                        var initFunction = $(this).data('init-datepicker');
+                        window[initFunction]($(this));
+                    });
+                </script> --}}
                 <script>
                     SIAOPS.loadScript([
                         "{{ asset('packages/jquery-mask-plugin-master/dist/jquery.mask.min.js') }}"
@@ -148,6 +240,9 @@
                                 setLoadingButton('.btn-transfer-balance', false);
                                 if(data.success){
                                     $('#form-transfer-balance-cast-account')[0].reset();
+                                    if($('#date_move_balance').length){
+                                        $('#date_move_balance').datepicker('clearDates');
+                                    }
                                     swal({
                                         title: "Success",
                                         text: "{!! trans('backpack::crud.insert_success') !!}",
