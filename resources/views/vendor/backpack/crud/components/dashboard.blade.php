@@ -449,7 +449,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header justify-content-center">
-                <h5 class="modal-title text-center w-100" id="modalTitleCentered">Tabel Pekerjaan Rutin</h5>
+                <h5 class="modal-title text-center w-100" id="modalTitleCentered">Tabel Pekerjaan Non Rutin</h5>
                 <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
