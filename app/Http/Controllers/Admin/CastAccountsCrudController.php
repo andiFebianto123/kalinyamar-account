@@ -1568,8 +1568,8 @@ class CastAccountsCrudController extends CrudController
         $this->crud->registerFieldEvents();
         DB::beginTransaction();
 
-        // $date_transfer = ($request->has('date_move_balance')) ? $request->date_move_balance : Carbon::now()->format('Y-m-d');
-        $date_transfer = Carbon::now();
+        $date_transfer = ($request->has('date_move_balance')) ? $request->date_move_balance : Carbon::now()->format('Y-m-d');
+        // $date_transfer = Carbon::now();
 
         try {
             $old_saldo = $balance;

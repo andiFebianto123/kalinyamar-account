@@ -34,7 +34,7 @@
                     <label>{{trans('backpack::crud.cash_account.field_transfer.description.label')}}</label>
                     <textarea name="description" placeholder="{{trans('backpack::crud.cash_account.field_transfer.description.placeholder')}}" class="form-control"></textarea>
                 </div>
-                {{-- <div class="form-group col-md-6">
+                <div class="form-group col-md-6">
                 </div>
                 <div class="form-group col-md-6">
                     <input type="hidden" class="form-control" name="date_move_balance">
@@ -125,7 +125,7 @@
                         var initFunction = $(this).data('init-datepicker');
                         window[initFunction]($(this));
                     });
-                </script> --}}
+                </script>
                 <script>
                     SIAOPS.loadScript([
                         "{{ asset('packages/jquery-mask-plugin-master/dist/jquery.mask.min.js') }}"
