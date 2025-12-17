@@ -186,6 +186,11 @@ class DashboardController extends CrudController
             ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+            })
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
                     ->from('project_profit_lost')
                     ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
             })
@@ -212,6 +217,11 @@ class DashboardController extends CrudController
 
         $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
             ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+            })
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('project_profit_lost')
