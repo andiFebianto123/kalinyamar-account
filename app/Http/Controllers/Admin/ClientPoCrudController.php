@@ -587,44 +587,20 @@ class ClientPoCrudController extends CrudController
                     });
             }
 
-            // if(trim($request->columns[10]['search']['value']) != ''){
-            //     $search = $request->columns[10]['search']['value'];
-            //     $this->crud->query = $this->crud->query
-            //     ->where('price_after_year', 'like', '%'.$search.'%');
-            // }
-
-            // if(trim($request->columns[11]['search']['value']) != ''){
-            //     $search = $request->columns[11]['search']['value'];
-            //     $this->crud->query = $this->crud->query
-            //     ->where('price_total', 'like', '%'.$search.'%');
-            // }
-
-            // if(trim($request->columns[12]['search']['value']) != ''){
-            //     $search = $request->columns[12]['search']['value'];
-            //     $this->crud->query = $this->crud->query
-            //     ->where('profit_and_loss', 'like', '%'.$search.'%');
-            // }
-
-            // if(trim($request->columns[13]['search']['value']) != ''){
-            //     $search = $request->columns[13]['search']['value'];
-            //     $this->crud->query = $this->crud->query
-            //     ->where('load_general_value', 'like', '%'.$search.'%');
-            // }
-
-            // if(trim($request->columns[14]['search']['value']) != ''){
-            //     $search = $request->columns[14]['search']['value'];
-            //     $this->crud->query = $this->crud->query
-            //     ->where('profit_and_lost_final', 'like', '%'.$search.'%');
-            // }
-
             if (isset($request->columns[10]['search']['value'])) {
-                $search = $request->columns[15]['search']['value'];
+                $search = $request->columns[10]['search']['value'];
                 $this->crud->query = $this->crud->query
-                    ->where('document_path', 'like', '%' . $search . '%');
+                    ->where('date_po', 'like', '%' . $search . '%');
             }
 
             if (isset($request->columns[11]['search']['value'])) {
                 $search = $request->columns[11]['search']['value'];
+                $this->crud->query = $this->crud->query
+                    ->where('document_path', 'like', $search . '%');
+            }
+
+            if (isset($request->columns[12]['search']['value'])) {
+                $search = $request->columns[12]['search']['value'];
                 $this->crud->query = $this->crud->query
                     ->where('category', 'like', $search . '%');
             }

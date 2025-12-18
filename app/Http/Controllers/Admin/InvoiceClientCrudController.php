@@ -286,8 +286,8 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
-                'name' => 'price_total_include_ppn',
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
+                'name' => 'price_total_exclude_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,
@@ -298,8 +298,8 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
-                'name' => 'price_total_exclude_ppn',
+                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
+                'name' => 'price_total_include_ppn',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,

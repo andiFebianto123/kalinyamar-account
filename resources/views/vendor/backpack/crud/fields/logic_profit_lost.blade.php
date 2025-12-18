@@ -19,6 +19,23 @@
 
 @push('crud_fields_scripts')
     <script>
+        if(typeof setInputNumber2 == "undefined"){
+            function formatIdr(angka){
+                const formatter = new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                });
+
+                let hasilFormat = formatter.format(angka);
+                let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+                return tanpaRp;
+            }
+            function setInputNumber2(selected, value){
+                let nominal = formatIdr(value);
+                $(selected).val(nominal).trigger('input');
+            }
+        }
         SIAOPS.setAttribute('logic_asset', function(){
             return {
                 data: {},
@@ -32,19 +49,21 @@
                     var price_after_year = getInputNumber(form+' input[name="price_after_year"]');
 
                     setInputNumber(form+ ' #price_voucher_masked', price_voucher);
-                    setInputNumber(form+ ' #price_small_cash_masked', price_small_cash);
+                    // setInputNumber(form+ ' #price_small_cash_masked', price_small_cash);
 
                     var total_price = price_after_year + price_voucher + price_small_cash;
 
-                    setInputNumber(form+ ' #price_total_masked', total_price);
+                    console.log(total_price, price_excl_ppn_po);
+
+                    setInputNumber2(form+ ' input[name="price_total"]', total_price);
 
                     var laba_rugi = price_excl_ppn_po - total_price;
-                    setInputNumber(form+ ' #price_profit_lost_po_masked', laba_rugi);
+                    setInputNumber2(form+ ' input[name="price_profit_lost_po"]', laba_rugi);
 
                     var general_price = getInputNumber(form+' input[name="price_general"]');
                     var laba_rugi_akhir = laba_rugi - general_price;
 
-                    setInputNumber(form+ ' #price_prift_lost_final_masked', laba_rugi_akhir);
+                    setInputNumber2(form+ ' input[name="price_prift_lost_final"]', laba_rugi_akhir);
                 },
                 load: function(){
                     var instance = this;
@@ -75,7 +94,7 @@
                             success: function (data) {
                                 instance.data = data;
                                 setInputNumber(form+ ' #price_voucher_masked', data.price_voucher);
-                                setInputNumber(form+ ' #price_small_cash_masked', data.price_small_cash);
+                                // setInputNumber(form+ ' #price_small_cash_masked', data.price_small_cash);
                                 instance.logicFormula(data);
                             }
                         });
@@ -98,7 +117,7 @@
                             success: function (data) {
                                 instance.data = data;
                                 setInputNumber(form+ ' #price_voucher_masked', data.price_voucher);
-                                setInputNumber(form+ ' #price_small_cash_masked', data.price_small_cash);
+                                // setInputNumber(form+ ' #price_small_cash_masked', data.price_small_cash);
                                 instance.logicFormula(data);
                             }
                         })

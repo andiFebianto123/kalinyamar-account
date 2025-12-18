@@ -431,10 +431,10 @@
                             @foreach ($data_laba['data_laba_rutin'] as $key => $laba)
                                 <tr>
                                     <td>{{ $key + 1 }}</td>
-                                    <td>{{ $laba->kdp }}</td>
+                                    <td>{{ $laba->work_code }}</td>
                                     <td>{{ $laba->job_name }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_invoice) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_voucher) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->invoice_price_job_exlude_ppn) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total_str) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_laba) }}</td>
                                 </tr>
                             @endforeach
