@@ -474,70 +474,82 @@ class ProfitLostAccountCrudController extends CrudController
         $po = $profitLost->clientPo;
         $account_material = Account::where('code', 50101)->first();
         $price_po_excl_ppn = $po->job_value; //
-        $material_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
-            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-        })
-            ->where('journal_entries.account_id', $account_material->id)
-            ->where('account_transactions.kdp', $po->work_code)
-            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-            ->get()->sum('total_material'); //
+
+        $profit_lost_all_price = CustomHelper::profitLostRepository()
+            ->where('project_profit_lost.client_po_id', $po->id)
+            ->first();
+
+        // $material_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
+        //     $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+        //         ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        // })
+        //     ->where('journal_entries.account_id', $account_material->id)
+        //     ->where('account_transactions.kdp', $po->work_code)
+        //     ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+        //     ->get()->sum('total_material'); //
+        $material_data = Voucher::where('client_po_id', $po->id)
+            ->where('account_id', $account_material->id)
+            ->select(DB::raw("SUM(total) as biaya"))->groupBy('client_po_id')->get()->sum('biaya'); //
+
 
         $account_subkon = Account::whereIn('code', [50102, 50103])->get()
             ->pluck('id')->toArray();
 
-        $subkon_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
-            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-        })
-            ->whereIn('journal_entries.account_id', $account_subkon)
-            ->where('account_transactions.kdp', $po->work_code)
-            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_subkon")
-            ->get()->sum('total_subkon'); //
+        // $subkon_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
+        //     $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+        //         ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        // })
+        //     ->whereIn('journal_entries.account_id', $account_subkon)
+        //     ->where('account_transactions.kdp', $po->work_code)
+        //     ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_subkon")
+        //     ->get()->sum('total_subkon'); //
+
+        $subkon_data = Voucher::where('client_po_id', $po->id)
+            ->whereIn('account_id', $account_subkon)
+            ->select(DB::raw("SUM(total) as subkon"))->groupBy('client_po_id')->get()->sum('subkon'); //
 
 
         $account_btkl = Account::where('code', 50104)->first();
-        $btkl_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
-            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-        })
-            ->where('journal_entries.account_id', $account_btkl->id)
-            ->where('account_transactions.kdp', $po->work_code)
-            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-            ->get()->sum('total_material'); //
+
+        // $btkl_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
+        //     $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+        //         ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        // })
+        //     ->where('journal_entries.account_id', $account_btkl->id)
+        //     ->where('account_transactions.kdp', $po->work_code)
+        //     ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+        //     ->get()->sum('total_material'); //
+
+        $btkl_data = Voucher::where('client_po_id', $po->id)
+            ->where('account_id', $account_btkl->id)
+            ->select(DB::raw("SUM(total) as btkl"))->groupBy('client_po_id')->get()->sum('btkl'); //
 
         $account_price_other = Account::whereNotIn('code', [50101, 50102, 50103, 50104])
             ->where('code', 'LIKE', '501%')->get()
             ->pluck('id')->toArray();
-        $price_other_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
-            $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-                ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-        })
-            ->whereIn('journal_entries.account_id', $account_price_other)
-            ->where('account_transactions.kdp', $po->work_code)
-            ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-            ->get()->sum('total_material'); //
+
+        // $price_other_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
+        //     $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
+        //         ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
+        // })
+        //     ->whereIn('journal_entries.account_id', $account_price_other)
+        //     ->where('account_transactions.kdp', $po->work_code)
+        //     ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
+        //     ->get()->sum('total_material'); //
+
+        $price_other_data = Voucher::where('client_po_id', $po->id)
+            ->whereIn('account_id', $account_price_other)
+            ->select(DB::raw("SUM(total) as price_other"))->groupBy('client_po_id')->get()->sum('price_other'); //
 
         $price_profit_lost = $profitLost->price_after_year; //
 
         $price_total = $material_data + $subkon_data + $btkl_data + $price_other_data + $price_profit_lost; //
 
-        $price_profit_lost_po = $po->profit_and_loss; //
+        $price_profit_lost_po = $profit_lost_all_price->price_profit_lost_str; //
 
-        $price_general = $profitLost->price_general; //
+        $price_general = $profit_lost_all_price->price_general; //
 
-        $price_profit_final = $po->profit_and_lost_final; //
-
-        // dd($price_po_excl_ppn,
-        //     $material_data,
-        //     $subkon_data,
-        //     $btkl_data,
-        //     $price_other_data,
-        //     $price_profit_lost,
-        //     $price_total,
-        //     $price_profit_lost_po,
-        //     $price_general,
-        //     $price_profit_final);
+        $price_profit_final = $profit_lost_all_price->price_prift_lost_final_str; //
 
         if ($pure) {
             return [

@@ -1066,6 +1066,8 @@ class CustomHelper
         });
         $profitLost = $profitLost->select(
             DB::raw("
+                project_profit_lost.price_after_year,
+                project_profit_lost.price_general,
                 vouchers.payment_transfer as payment_voucher,
                 vouchers.biaya as voucher_biaya,
                 client_po.invoice_price_job_exlude_ppn,

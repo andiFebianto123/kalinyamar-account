@@ -313,19 +313,27 @@ class DashboardController extends CrudController
             $profit_rutin->total_laba = ($profit_rutin->invoice_price_job_exlude_ppn ?? 0) - ($profit_rutin->price_total_str ?? 0);
         }
 
-        $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
-            ->leftJoinSub($voucher_query, 'voucher', function ($join) {
-                $join->on('voucher.client_po_id', '=', 'client_po.id');
-            })
+        // $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
+        //     ->leftJoinSub($voucher_query, 'voucher', function ($join) {
+        //         $join->on('voucher.client_po_id', '=', 'client_po.id');
+        //     })
+        //     ->where('client_po.category', 'NON RUTIN')
+        //     ->select(
+        //         DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total_exclude_ppn as price_invoice, voucher.total as total_voucher"),
+        //         DB::raw("(IFNULL(invoice_clients.price_total_exclude_ppn,0) - IFNULL(voucher.total,0)) as total_laba")
+        //     )->get();
+
+        $profit_lost_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
-            ->select(
-                DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total_exclude_ppn as price_invoice, voucher.total as total_voucher"),
-                DB::raw("(IFNULL(invoice_clients.price_total_exclude_ppn,0) - IFNULL(voucher.total,0)) as total_laba")
-            )->get();
+            ->get();
+
+        foreach ($profit_lost_non_rutin as $profit_non_rutin) {
+            $profit_non_rutin->total_laba = ($profit_non_rutin->invoice_price_job_exlude_ppn ?? 0) - ($profit_non_rutin->price_total_str ?? 0);
+        }
 
         return [
             'data_laba_rutin' => $profit_lost_rutin,
-            'data_laba_non_rutin' => $invoice_non_rutin
+            'data_laba_non_rutin' => $profit_lost_non_rutin
         ];
     }
 
