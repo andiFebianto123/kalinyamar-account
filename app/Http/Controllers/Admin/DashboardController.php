@@ -226,7 +226,7 @@ class DashboardController extends CrudController
         $omset_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
             ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
-            ->get();
+            ->first();
 
         // $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
         //     ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
@@ -247,12 +247,12 @@ class DashboardController extends CrudController
         $biaya_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
-            ->get();
+            ->first();
 
-        $total_omzet_rutin = $omset_rutin->total_omzet ?? 0;
-        $total_biaya_rutin = $biaya_rutin[0]?->nilai_biaya ?? 0;
-        $total_omzet_non_rutin = $omset_non_rutin->total_omzet ?? 0;
-        $total_biaya_non_rutin = $biaya_non_rutin[0]?->nilai_biaya ?? 0;
+        $total_omzet_rutin = $omset_rutin?->total_omzet ?? 0;
+        $total_biaya_rutin = $biaya_rutin?->nilai_biaya ?? 0;
+        $total_omzet_non_rutin = $omset_non_rutin?->total_omzet ?? 0;
+        $total_biaya_non_rutin = $biaya_non_rutin?->nilai_biaya ?? 0;
 
         $total_laba_rutin = $total_omzet_rutin - $total_biaya_rutin;
         $total_laba_non_rutin = $total_omzet_non_rutin - $total_biaya_non_rutin;
@@ -299,9 +299,9 @@ class DashboardController extends CrudController
     public function dataLabaCategory()
     {
 
-        $voucher_query = DB::table('vouchers')
-            ->select("client_po_id", DB::raw("SUM(total) as total"))
-            ->groupBy("client_po_id");
+        // $voucher_query = DB::table('vouchers')
+        //     ->select("client_po_id", DB::raw("SUM(total) as total"))
+        //     ->groupBy("client_po_id");
 
         // $invoice_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
         //     ->leftJoinSub($voucher_query, 'voucher', function ($join) {
@@ -318,10 +318,6 @@ class DashboardController extends CrudController
             ->where('client_po.category', 'RUTIN')
             ->get();
 
-        foreach ($profit_lost_rutin as $profit_rutin) {
-            $profit_rutin->total_laba = ($profit_rutin->invoice_price_job_exlude_ppn ?? 0) - ($profit_rutin->price_total_str ?? 0);
-        }
-
         // $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
         //     ->leftJoinSub($voucher_query, 'voucher', function ($join) {
         //         $join->on('voucher.client_po_id', '=', 'client_po.id');
@@ -335,10 +331,6 @@ class DashboardController extends CrudController
         $profit_lost_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
             ->get();
-
-        foreach ($profit_lost_non_rutin as $profit_non_rutin) {
-            $profit_non_rutin->total_laba = ($profit_non_rutin->invoice_price_job_exlude_ppn ?? 0) - ($profit_non_rutin->price_total_str ?? 0);
-        }
 
         return [
             'data_laba_rutin' => $profit_lost_rutin,

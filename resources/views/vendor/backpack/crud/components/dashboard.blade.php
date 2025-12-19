@@ -433,9 +433,9 @@
                                     <td>{{ $key + 1 }}</td>
                                     <td>{{ $laba->work_code }}</td>
                                     <td>{{ $laba->job_name }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->invoice_price_job_exlude_ppn) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_job_exlude_ppn_logic) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total_str) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_laba) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_profit_lost_str) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -471,9 +471,9 @@
                                     <td>{{ $key + 1 }}</td>
                                     <td>{{ $laba->kdp }}</td>
                                     <td>{{ $laba->job_name }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->invoice_price_job_exlude_ppn) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_job_exlude_ppn_logic) }}</td>
                                     <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_total_str) }}</td>
-                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->total_laba) }}</td>
+                                    <td>Rp{{ \App\Http\Helpers\CustomHelper::formatRupiah($laba->price_profit_lost_str) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
