@@ -272,30 +272,6 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalLabaCategory()
-    {
-        $invoice_rutin = ClientPo::whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereRaw('invoice_clients.client_po_id = client_po.id');
-        })
-            ->where('client_po.category', 'RUTIN')
-            ->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
-
-        $invoice_non_rutin = ClientPo::whereExists(function ($query) {
-            $query->select(DB::raw(1))
-                ->from('invoice_clients')
-                ->whereRaw('invoice_clients.client_po_id = client_po.id');
-        })
-            ->where('client_po.category', 'NON RUTIN')
-            ->select(DB::raw("SUM(profit_and_lost_final) as total"))->get();
-
-        return [
-            'total_laba_rutin' => CustomHelper::formatRupiah($invoice_rutin[0]->total),
-            'total_laba_non_rutin' => CustomHelper::formatRupiah($invoice_non_rutin[0]->total),
-        ];
-    }
-
     public function dataLabaCategory()
     {
 
@@ -381,7 +357,6 @@ class DashboardController extends CrudController
             'total_omzet_all' => $this->totalOmzetAll(),
             'total_laba_all' => $this->totalLabaAll(),
             'total_job_realisasion' => $this->totalJobRealisasion(),
-            'total_laba_category' => $this->totalLabaCategory(),
         ];
     }
 
