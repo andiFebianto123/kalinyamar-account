@@ -1853,10 +1853,6 @@ class ProfitLostAccountCrudController extends CrudController
                         $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
                         return $currency . number_format($entry->price_job_exlude_ppn_logic, 2, ",", ".");
                     },
-                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
-                    'decimals'      => 2,
-                    'dec_point'     => ',',
-                    'thousands_sep' => '.',
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.price_job_exlude_ppn_logic', $columnDirection);
                     }
@@ -1870,10 +1866,6 @@ class ProfitLostAccountCrudController extends CrudController
                         $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
                         return $currency . number_format($entry->job_value_include_ppn, 2, ",", ".");
                     },
-                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
-                    'decimals'      => 2,
-                    'dec_point'     => ',',
-                    'thousands_sep' => '.',
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.job_value_include_ppn', $columnDirection);
                     }
