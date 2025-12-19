@@ -85,6 +85,10 @@ class ClientPoCrudController extends CrudController
                 '0' => 'TIDAK ADA',
             ]);
 
+        $this->crud->filter('date_po11crudTable-client_po')
+            ->label(trans('backpack::crud.client_po.column.date_po'))
+            ->type('date');
+
         $this->card->addCard([
             'name' => 'client_po',
             'line' => 'top',
@@ -233,6 +237,11 @@ class ClientPoCrudController extends CrudController
                 $client_po = $client_po
                     ->whereNull('invoices.total_invoice');
             }
+        }
+
+        if ($request->has('date_po')) {
+            $client_po = $client_po
+                ->where('date_po', 'like', '%' . $request->date_po . '%');
         }
 
         if ($request->has('search')) {
@@ -587,12 +596,6 @@ class ClientPoCrudController extends CrudController
                     });
             }
 
-            if (isset($request->columns[10]['search']['value'])) {
-                $search = $request->columns[10]['search']['value'];
-                $this->crud->query = $this->crud->query
-                    ->where('date_po', 'like', '%' . $search . '%');
-            }
-
             if (isset($request->columns[11]['search']['value'])) {
                 $search = $request->columns[11]['search']['value'];
                 $this->crud->query = $this->crud->query
@@ -620,6 +623,11 @@ class ClientPoCrudController extends CrudController
                 $this->crud->query = $this->crud->query
                     ->whereNull('invoices.total_invoice');
             }
+        }
+
+        if ($request->has('date_po')) {
+            $this->crud->query = $this->crud->query
+                ->where('date_po', 'like', '%' . $request->date_po . '%');
         }
 
         $this->crud->addColumn([

@@ -72,23 +72,31 @@
 		    	// behaviour for ajax table
 				var ajax_table = $('#crudTable').DataTable();
 				var current_url = ajax_table.ajax.url();
-				var new_url = addOrUpdateUriParameter(current_url, parameter, value);
+
+				// var new_url = addOrUpdateUriParameter(current_url, parameter, value);
+				var new_url = updateDatatablesOnFilterChange(parameter, value, true, 0);
+
 
 				// replace the datatables ajax url with new_url and reload it
 				new_url = normalizeAmpersand(new_url.toString());
-				ajax_table.ajax.url(new_url).load();
+				// ajax_table.ajax.url(new_url).load();
 
 				// add filter to URL
-				crud.updateUrl(new_url);
+				// crud.updateUrl(new_url);
+
+				if(value == ''){
+					return true;
+				}
 
 				// mark this filter as active in the navbar-filters
-				if (URI(new_url).hasQuery('{{ $filter->name }}', true)) {
-					$('li[filter-key={{ $filter->key }}]').removeClass('active').addClass('active');
-				}
+				// if (URI(new_url).hasQuery('{{ $filter->name }}', true)) {
+				$('li[filter-key={{ $filter->key }}]').removeClass('active').addClass('active');
+				// }
 			});
 
 			$('li[filter-key={{ $filter->key }}]').on('filter:clear', function(e) {
-				// console.log('date filter cleared');
+				var parameter = '{{ $filter->name }}';
+
 				$('li[filter-key={{ $filter->key }}]').removeClass('active');
 				$('#datepicker-{{ $filter->key }}').datepicker('update', '');
 				$('#datepicker-{{ $filter->key }}').trigger('changeDate');

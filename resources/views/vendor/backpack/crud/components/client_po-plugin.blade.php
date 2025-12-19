@@ -20,6 +20,10 @@
                 },
                 refresh: function(){
                     var instance = this;
+                    setTimeout(() => {
+                        $("#crudTable-client_po thead tr.filters th").eq(10).children('input').remove();
+                        $("#crudTable-client_po thead tr.filters th").eq(13).children('input').remove();
+                    }, 400);
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
@@ -47,9 +51,6 @@
                     var instance = this;
                     instance.eventLoader()
                     // instance.refresh();
-                    setTimeout(() => {
-                        $("#crudTable-client_po thead tr.filters th").eq(13).children('input').remove();
-                    }, 400);
                 }
             }
         });
