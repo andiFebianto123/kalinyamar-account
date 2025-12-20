@@ -1967,7 +1967,7 @@ class ProfitLostAccountCrudController extends CrudController
                     'name' => 'invoice_date',
                     'function' => function ($entry) {
                         $tgl = explode(",", $entry->invoice_date);
-                        return implode("<br>", $tgl);
+                        return implode(", ", $tgl);
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.invoice_date', $columnDirection);
