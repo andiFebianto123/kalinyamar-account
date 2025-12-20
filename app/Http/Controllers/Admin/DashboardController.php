@@ -183,6 +183,11 @@ class DashboardController extends CrudController
         //     ->first();
         $omset_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'RUTIN')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
             ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
             ->first();
 
@@ -203,6 +208,11 @@ class DashboardController extends CrudController
         //     ->get();
         $biaya_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'RUTIN')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
 
@@ -225,6 +235,11 @@ class DashboardController extends CrudController
 
         $omset_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
             ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
             ->first();
 
@@ -246,6 +261,11 @@ class DashboardController extends CrudController
 
         $biaya_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
 
@@ -292,6 +312,11 @@ class DashboardController extends CrudController
 
         $profit_lost_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'RUTIN')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
             ->get();
 
         // $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
@@ -306,6 +331,11 @@ class DashboardController extends CrudController
 
         $profit_lost_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
             ->get();
 
         return [
@@ -316,35 +346,27 @@ class DashboardController extends CrudController
 
     public function dataNonRutinMonitoring()
     {
-        $monitoring_result_1 = ClientPo::selectRaw('
-            SUM(job_value) as job_value, 
-            COUNT(id) as total_job,
-            SUM(profit_and_lost_final) as profit_lost
-        ')
-            ->where('category', 'NON RUTIN')
-            ->whereNotExists(function ($query) {
-                $query->select(DB::raw(1))
-                    ->from('invoice_clients')
-                    ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
-            })
-            ->first();
 
-        $monitoring_result_2 = DB::table('vouchers')
-            ->leftJoin('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-            ->selectRaw('SUM(vouchers.payment_transfer) as total_transfer')
+        $monitoring_result = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
-            ->whereNotExists(function ($query) {
+            ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
-                    ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
+            ->select(
+                DB::raw("SUM(client_po.job_value) as job_value"),
+                DB::raw("SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_total_str"),
+                DB::raw("SUM((client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)))) as price_profit_lost_str"),
+                DB::raw("COUNT(client_po.client_po_id) as total_job")
+            )
             ->first();
 
         return [
-            'total_job_value' => CustomHelper::formatRupiah($monitoring_result_1->job_value ?? 0),
-            'total_transfer' => CustomHelper::formatRupiah($monitoring_result_2->total_transfer ?? 0),
-            'total_profit_lost' => CustomHelper::formatRupiah(($monitoring_result_1->job_value - $monitoring_result_2->total_transfer) ?? 0),
-            'total_job' => $monitoring_result_1->total_job
+            'job_value' => CustomHelper::formatRupiah($monitoring_result->job_value ?? 0),
+            'price_total_str' => CustomHelper::formatRupiah($monitoring_result->price_total_str ?? 0),
+            'price_profit_lost_str' => CustomHelper::formatRupiah($monitoring_result->price_profit_lost_str ?? 0),
+            'total_job' => $monitoring_result->total_job
         ];
     }
 

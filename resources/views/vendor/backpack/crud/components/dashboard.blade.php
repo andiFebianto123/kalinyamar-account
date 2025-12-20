@@ -108,9 +108,9 @@
                             </thead>
                             <tbody>
                                 {{-- @foreach ($data_monitoring as $item) --}}
-                                    <th>Rp{{ $data_monitoring['total_job_value'] }}</th>
-                                    <th>Rp{{ $data_monitoring['total_transfer'] }}</th>
-                                    <th>Rp{{ $data_monitoring['total_profit_lost'] }}</th>
+                                    <th>Rp{{ $data_monitoring['job_value'] }}</th>
+                                    <th>Rp{{ $data_monitoring['price_total_str'] }}</th>
+                                    <th>Rp{{ $data_monitoring['price_profit_lost_str'] }}</th>
                                     <th>{{ $data_monitoring['total_job'] }}</th>
                                 {{-- @endforeach --}}
                             </tbody>
