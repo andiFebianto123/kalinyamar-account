@@ -304,6 +304,16 @@ class ClientPoCrudController extends CrudController
                         ->orWhere('end_date', 'like', '%' . $search . '%');
                 });
             }
+
+            if (isset($request->search[11])) {
+                $search = $request->search[11];
+                $client_po = $client_po->where('document_path', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->search[12])) {
+                $search = $request->search[12];
+                $client_po = $client_po->where('category', 'like', '%' . $search . '%');
+            }
         }
 
 
