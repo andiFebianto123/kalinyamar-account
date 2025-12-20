@@ -292,7 +292,6 @@ class DashboardController extends CrudController
             'total_laba_non_rutin' => CustomHelper::formatRupiah($total_laba_non_rutin),
             'total_all_laba' => CustomHelper::formatRupiah($total_all_laba),
             'total_all_omzet' => CustomHelper::formatRupiah($total_all_omzet),
-            'total_job_value_non_rutin' => CustomHelper::formatRupiah($omset_non_rutin?->total_job_value ?? 0),
         ];
     }
 
@@ -359,7 +358,7 @@ class DashboardController extends CrudController
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
             ->select(
-                DB::raw("SUM(client_po.job_value) as job_value"),
+                DB::raw("SUM(client_po.job_value_include_ppn) as total_job_value"),
                 DB::raw("SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_total_str"),
                 DB::raw("SUM((client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)))) as price_profit_lost_str"),
                 DB::raw("COUNT(client_po.client_po_id) as total_job")
@@ -367,7 +366,7 @@ class DashboardController extends CrudController
             ->first();
 
         return [
-            'job_value' => CustomHelper::formatRupiah($monitoring_result->job_value ?? 0),
+            'total_job_value' => CustomHelper::formatRupiah($monitoring_result->total_job_value ?? 0),
             'price_total_str' => CustomHelper::formatRupiah($monitoring_result->price_total_str ?? 0),
             'price_profit_lost_str' => CustomHelper::formatRupiah($monitoring_result->price_profit_lost_str ?? 0),
             'total_job' => $monitoring_result->total_job

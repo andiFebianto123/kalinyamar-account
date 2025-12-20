@@ -1040,7 +1040,7 @@ class CastAccountsLoanCrudController extends CrudController
                 $acctTransactionLoan->total_saldo_after = $total_saldo_loan_after;
                 $acctTransactionLoan->status = $status;
                 $acctTransactionLoan->account_id = $cast_account_loan->account_id;
-                $acctTransactionLoan->description = $cast_account_destination_id;
+                $acctTransactionLoan->description = $request->description;
                 $acctTransactionLoan->save();
 
                 $cast_account_loan->total_saldo = $total_saldo_loan_after;
@@ -1050,7 +1050,7 @@ class CastAccountsLoanCrudController extends CrudController
                     'account_id' => $acctTransactionLoan->account_id,
                     'reference_id' => $acctTransactionLoan->id,
                     'reference_type' => AccountTransaction::class,
-                    'description' => '',
+                    'description' => $request->description,
                     'date' => Carbon::now(),
                     'debit' => $nominal_transaction,
                     'credit' => 0,
@@ -1286,6 +1286,7 @@ class CastAccountsLoanCrudController extends CrudController
             $accountTransaction->total_saldo_after = $new_saldo;
             $accountTransaction->status = CastAccount::OUT;
             $accountTransaction->account_id = $castAccount->account_id;
+            $accountTransaction->description = $request->description;
             $accountTransaction->save();
 
             $castAccount->total_saldo = $new_saldo;
@@ -1303,6 +1304,7 @@ class CastAccountsLoanCrudController extends CrudController
             $accountTransactionDestination->total_saldo_before = $saldo_before;
             $accountTransactionDestination->total_saldo_after = $new_saldo;
             $accountTransactionDestination->status = CastAccount::ENTER;
+            $accountTransactionDestination->description = $request->description;
             $accountTransactionDestination->save();
 
             $cast_account_destination->total_saldo = $new_saldo;
@@ -1312,7 +1314,7 @@ class CastAccountsLoanCrudController extends CrudController
                 'account_id' => $castAccount->account_id,
                 'reference_id' => $accountTransaction->id,
                 'reference_type' => AccountTransaction::class,
-                'description' => '',
+                'description' => $request->description,
                 'date' => Carbon::now(),
                 'debit' => 0,
                 'credit' => $accountTransaction->nominal_transaction,
@@ -1374,7 +1376,8 @@ class CastAccountsLoanCrudController extends CrudController
         foreach ($detail as $entry) {
             $entry->date_transaction_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
             $entry->nominal_transaction_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
-            $entry->description_str = ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
+            $entry->destination_str = ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : AccountTransaction::BANK_LOAN;
+            $entry->description_str = $entry->description ?? '-';
             $entry->kdp_str = $entry->kdp ?? '-';
             $entry->job_name_str = $entry->job_name ?? '-';
             $entry->account_id_str = ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-';

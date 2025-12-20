@@ -103,6 +103,7 @@
                     <th>{{trans('backpack::crud.cash_account.field_transaction.date_transaction.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account.field_transaction.nominal.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.description.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account.field_transaction.status.label')}}</th>
                     </tr>
                 </thead>
@@ -168,6 +169,7 @@
                                     <tr>
                                         <td>${value.date_transaction_str}</td>
                                         <td>${value.nominal_transaction_str}</td>
+                                        <td>${value.destination_str}</td>
                                         <td>${value.description_str}</td>
                                         <td>${value.status_str}</td>
                                     </tr>`);

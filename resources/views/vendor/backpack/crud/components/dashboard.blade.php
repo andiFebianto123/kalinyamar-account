@@ -108,7 +108,7 @@
                             </thead>
                             <tbody>
                                 {{-- @foreach ($data_monitoring as $item) --}}
-                                    <th id="total_job_value_non_rutin"></th>
+                                    <th>Rp{{ $data_monitoring['total_job_value'] }}</th>
                                     <th>Rp{{ $data_monitoring['price_total_str'] }}</th>
                                     <th>Rp{{ $data_monitoring['price_profit_lost_str'] }}</th>
                                     <th>{{ $data_monitoring['total_job'] }}</th>
@@ -351,7 +351,7 @@
                             $('#rp_non_rutin_omzet_total').html('Rp'+result.total_job_realisasion.total_omzet_non_rutin);
                             $('#rp_rutin_biaya_total').html('Rp'+result.total_job_realisasion.total_biaya_rutin);
                             $('#rp_non_rutin_biaya_total').html('Rp'+result.total_job_realisasion.total_biaya_non_rutin);
-                            $('#total_job_value_non_rutin').html('Rp'+result.total_job_realisasion.total_job_value_non_rutin);
+                            // $('#total_job_value_non_rutin').html('Rp'+result.total_job_realisasion.total_job_value_non_rutin);
 
                             $('#laba_all_total').html('Rp'+result.total_job_realisasion.total_all_laba);
 
