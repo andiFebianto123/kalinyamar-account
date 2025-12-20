@@ -358,7 +358,7 @@ class DashboardController extends CrudController
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
             ->select(
-                DB::raw("SUM(client_po.job_value_include_ppn) as total_job_value"),
+                DB::raw("SUM(client_po.job_value) as total_job_value"),
                 DB::raw("SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_total_str"),
                 DB::raw("SUM((client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)))) as price_profit_lost_str"),
                 DB::raw("COUNT(client_po.client_po_id) as total_job")
