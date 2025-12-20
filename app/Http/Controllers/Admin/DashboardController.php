@@ -349,7 +349,7 @@ class DashboardController extends CrudController
 
         $monitoring_result = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
-            ->whereExists(function ($query) {
+            ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
