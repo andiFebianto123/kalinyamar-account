@@ -240,7 +240,10 @@ class DashboardController extends CrudController
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
-            ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
+            ->select(
+                DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'),
+                DB::raw("SUM(client_po.job_value) as total_job_value")
+            )
             ->first();
 
         // $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
@@ -289,6 +292,7 @@ class DashboardController extends CrudController
             'total_laba_non_rutin' => CustomHelper::formatRupiah($total_laba_non_rutin),
             'total_all_laba' => CustomHelper::formatRupiah($total_all_laba),
             'total_all_omzet' => CustomHelper::formatRupiah($total_all_omzet),
+            'total_job_value_non_rutin' => CustomHelper::formatRupiah($omset_non_rutin?->total_job_value ?? 0),
         ];
     }
 

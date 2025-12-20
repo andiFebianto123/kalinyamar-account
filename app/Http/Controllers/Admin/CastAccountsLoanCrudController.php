@@ -7,8 +7,6 @@ use App\Models\Account;
 use App\Models\Setting;
 use App\Models\CastAccount;
 use App\Models\JournalEntry;
-use PhpParser\Node\Expr\Cast;
-use App\Imports\AccountImport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
@@ -43,7 +41,7 @@ class CastAccountsLoanCrudController extends CrudController
         CRUD::setModel(CastAccount::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/cash-flow/cast-account-loan');
         CRUD::setEntityNameStrings(trans('backpack::crud.cash_account_loan.title_header'), trans('backpack::crud.cash_account_loan.title_header'));
-        
+
         $allAccess = [
             'AKSES SEMUA MENU ACCOUNTING',
         ];
@@ -71,36 +69,37 @@ class CastAccountsLoanCrudController extends CrudController
         ]);
     }
 
-    public function listCardComponents($list = null){
-        if($list && ($list->count() > 0)){
+    public function listCardComponents($list = null)
+    {
+        if ($list && ($list->count() > 0)) {
 
-            foreach($list as $l){
-                $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($l){
+            foreach ($list as $l) {
+                $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($l) {
                     $q->where('cast_account_id', $l->id);
-                })->orWhereHasMorph('reference', CastAccount::class, function($q) use($l){
+                })->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($l) {
                     $q->where('id', $l->id);
                 })
-                ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
-                ->first();
+                    ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+                    ->first();
 
                 $l->saldo = ($journal_) ? $journal_->total : 0;
                 $l->account = Account::find($l->account_id);
 
                 $this->card->addCard([
-                    'name' => 'card_cast_account'.$l->id,
+                    'name' => 'card_cast_account' . $l->id,
                     'line' => 'top',
                     'view' => 'crud::components.cast_account_card',
                     'params' => [
                         'access' => $l->informations,
                         'detail' => $l,
                         'crud' => $this->crud,
-                        'name' => 'card_cast_account'.$l->id,
-                        'route_edit' => url($this->crud->route."/".$l->id."/edit?type=cast_account"),
-                        'route_update' => url($this->crud->route."/".$l->id."?type=cast_account"),
+                        'name' => 'card_cast_account' . $l->id,
+                        'route_edit' => url($this->crud->route . "/" . $l->id . "/edit?type=cast_account"),
+                        'route_update' => url($this->crud->route . "/" . $l->id . "?type=cast_account"),
                     ]
                 ]);
             }
-        }else{
+        } else {
             $this->card->addCard([
                 'name' => 'blank_cast_account',
                 'line' => 'top',
@@ -119,9 +118,10 @@ class CastAccountsLoanCrudController extends CrudController
         $this->data['is_disabled_list'] = true;
 
         $listCashAccounts = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
-        ->where('cast_accounts.status', CastAccount::LOAN)
-        ->groupBy('cast_accounts.id')
-        ->orderBy('id', 'ASC')->select(DB::raw('
+            ->where('cast_accounts.status', CastAccount::LOAN)
+            ->groupBy('cast_accounts.id')
+            ->orderBy('id', 'ASC')->select(DB::raw(
+                '
             cast_accounts.id,
             MAX(cast_accounts.name) as name,
             MAX(cast_accounts.bank_name) as bank_name,
@@ -131,7 +131,7 @@ class CastAccountsLoanCrudController extends CrudController
             SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
             SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
         '
-        ))->get();
+            ))->get();
         $this->listCardComponents($listCashAccounts);
 
         $this->data['crud'] = $this->crud;
@@ -171,12 +171,13 @@ class CastAccountsLoanCrudController extends CrudController
         CRUD::addButtonFromView('top', 'filter_cash_account_order', 'filter-cash-account-order', 'beginning');
     }
 
-    private function setupListExport(){
+    private function setupListExport()
+    {
         $settings = Setting::first();
         $this->crud->query = $this->crud->query->leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
-        ->where('cast_accounts.status', CastAccount::LOAN)
-        ->groupBy('cast_accounts.id')
-        ->orderBy('id', 'ASC')->select(DB::raw('
+            ->where('cast_accounts.status', CastAccount::LOAN)
+            ->groupBy('cast_accounts.id')
+            ->orderBy('id', 'ASC')->select(DB::raw('
             cast_accounts.id,
             MAX(cast_accounts.name) as name,
             MAX(cast_accounts.bank_name) as bank_name,
@@ -221,7 +222,7 @@ class CastAccountsLoanCrudController extends CrudController
         );
 
         CRUD::column([
-                'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
+            'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
             'name' => 'saldo',
             'type'  => 'number',
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -231,16 +232,17 @@ class CastAccountsLoanCrudController extends CrudController
         ]);
     }
 
-    private function setuplistExportTrans(){
+    private function setuplistExportTrans()
+    {
         $id = request()->id;
         CRUD::setModel(AccountTransaction::class);
 
         $castAccount = CastAccount::where('id', $id)->first();
 
         $this->crud->query = $this->crud->query
-        ->where('cast_account_id', $id)
-        ->where('is_first', 0)
-        ->orderBy('date_transaction', 'ASC');
+            ->where('cast_account_id', $id)
+            ->where('is_first', 0)
+            ->orderBy('date_transaction', 'ASC');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -273,7 +275,7 @@ class CastAccountsLoanCrudController extends CrudController
                 'label'  => trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label'),
                 'name' => 'cast_account_destination_id',
                 'type'  => 'closure',
-                'function' => function($entry) {
+                'function' => function ($entry) {
                     return ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
                 }
             ],
@@ -284,8 +286,8 @@ class CastAccountsLoanCrudController extends CrudController
                 'label'  => trans('backpack::crud.cash_account.field_transaction.nominal_transaction.label'),
                 'name' => 'status',
                 'type'  => 'closure',
-                'function' => function($entry) {
-                    return ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
+                'function' => function ($entry) {
+                    return ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status)));
                 }
             ],
         );
@@ -293,7 +295,8 @@ class CastAccountsLoanCrudController extends CrudController
         return $castAccount;
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         $this->setupListExport();
 
@@ -304,10 +307,10 @@ class CastAccountsLoanCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -332,11 +335,12 @@ class CastAccountsLoanCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         $this->setupListExport();
 
@@ -347,10 +351,10 @@ class CastAccountsLoanCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -363,9 +367,11 @@ class CastAccountsLoanCrudController extends CrudController
 
         $name = 'DAFTAR SPK';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -377,7 +383,8 @@ class CastAccountsLoanCrudController extends CrudController
         ], 400);
     }
 
-     public function exportTransPdf(){
+    public function exportTransPdf()
+    {
         $cast = $this->setuplistExportTrans();
 
         $columns = $this->crud->columns();
@@ -386,10 +393,10 @@ class CastAccountsLoanCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -399,7 +406,7 @@ class CastAccountsLoanCrudController extends CrudController
             $all_items[] = $row_items;
         }
 
-        $title = "DAFTAR TRANSAKSI REKENING PINJAMAN ".$cast?->name;
+        $title = "DAFTAR TRANSAKSI REKENING PINJAMAN " . $cast?->name;
 
         $pdf = Pdf::loadView('exports.table-pdf', [
             'columns' => $columns,
@@ -413,11 +420,12 @@ class CastAccountsLoanCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportTransExcel(){
+    public function exportTransExcel()
+    {
         $this->setuplistExportTrans();
 
         $columns = $this->crud->columns();
@@ -427,10 +435,10 @@ class CastAccountsLoanCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -442,9 +450,11 @@ class CastAccountsLoanCrudController extends CrudController
 
         $name = 'DAFTAR SPK';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -456,13 +466,14 @@ class CastAccountsLoanCrudController extends CrudController
         ], 400);
     }
 
-    function ruleValidation(){
+    function ruleValidation()
+    {
         $id = request('id') ?? '';
         // 'name' => 'required|min:5|max:255'
         return [
-            'name' => 'required|max:100|unique:cast_accounts,name,'.$id,
+            'name' => 'required|max:100|unique:cast_accounts,name,' . $id,
             'bank_name' => 'required|max:50',
-            'no_account' => 'required|max:100|unique:cast_accounts,no_account,'.$id,
+            'no_account' => 'required|max:100|unique:cast_accounts,no_account,' . $id,
             'account_id' => 'required|exists:accounts,id',
             'total_saldo' => 'required|numeric|min:0',
             'status' => 'required|in:loan',
@@ -470,7 +481,8 @@ class CastAccountsLoanCrudController extends CrudController
     }
 
 
-    function ruleValidationTransaction(){
+    function ruleValidationTransaction()
+    {
         $cast_account_id = request()->cast_account_id;
         $status = request()->status;
         $cast_account_destination_id = request()->cast_account_destination_id;
@@ -481,13 +493,12 @@ class CastAccountsLoanCrudController extends CrudController
                 'numeric',
                 'min:1000',
                 function ($attribute, $value, $fail) use ($cast_account_id, $status, $cast_account_destination_id) {
-                    if($status == CastAccount::ENTER)
-                    {
+                    if ($status == CastAccount::ENTER) {
                         $balance = CustomHelper::total_balance_cast_account($cast_account_destination_id, CastAccount::CASH);
-                        if($value > $balance){
+                        if ($value > $balance) {
                             $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
                         }
-                    }else if($status == CastAccount::OUT){
+                    } else if ($status == CastAccount::OUT) {
                         $balance = CustomHelper::total_balance_cast_account($cast_account_id, CastAccount::LOAN);
                         if ($value > $balance) {
                             $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
@@ -503,9 +514,9 @@ class CastAccountsLoanCrudController extends CrudController
             'status' => [
                 'required',
                 'in:enter,out',
-                function($attr, $value, $fail) use($cast_account_destination_id){
-                    if($cast_account_destination_id == AccountTransaction::BANK_LOAN){
-                        if($value != CastAccount::ENTER){
+                function ($attr, $value, $fail) use ($cast_account_destination_id) {
+                    if ($cast_account_destination_id == AccountTransaction::BANK_LOAN) {
+                        if ($value != CastAccount::ENTER) {
                             $fail(trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.bank_loan_alert'));
                         }
                     }
@@ -513,15 +524,16 @@ class CastAccountsLoanCrudController extends CrudController
             ],
         ];
 
-        if($cast_account_destination_id == AccountTransaction::BANK_LOAN){
-            $rule['cast_account_destination_id'] = 'required|in:'.AccountTransaction::BANK_LOAN;
+        if ($cast_account_destination_id == AccountTransaction::BANK_LOAN) {
+            $rule['cast_account_destination_id'] = 'required|in:' . AccountTransaction::BANK_LOAN;
             $rule['nominal_transaction'] = 'required|numeric|min:1000';
         }
         return $rule;
     }
 
 
-    function ruleValidationMoveTransfer(){
+    function ruleValidationMoveTransfer()
+    {
         $cast_account_id = request()->cast_account_id;
         $cast_account_destination_id = request()->cast_account_destination_id;
         return [
@@ -542,7 +554,8 @@ class CastAccountsLoanCrudController extends CrudController
     }
 
 
-    function account_select2(){
+    function account_select2()
+    {
         $this->crud->hasAccessOrFail('create');
 
         $search = request()->input('q');
@@ -556,13 +569,14 @@ class CastAccountsLoanCrudController extends CrudController
         foreach ($dataset as $item) {
             $results[] = [
                 'id' => $item->id,
-                'text' => $item->code.' - '.$item->name,
+                'text' => $item->code . ' - ' . $item->name,
             ];
         }
         return response()->json(['results' => $results]);
     }
 
-    function createTransactionOperation($id = null){
+    function createTransactionOperation($id = null)
+    {
 
         CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationTransaction());
@@ -633,9 +647,9 @@ class CastAccountsLoanCrudController extends CrudController
             'options'   => array_replace([
                 '' => trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.placeholder'),
                 trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.bank_loan') => trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.bank_loan_placeholder'),
-                ], CastAccount::whereHas('informations', function($q){
-                            $q->where('additional_informations.id', 2);
-                        })->pluck('name', 'id')->all()),
+            ], CastAccount::whereHas('informations', function ($q) {
+                $q->where('additional_informations.id', 2);
+            })->pluck('name', 'id')->all()),
             'wrapper' => [
                 'class' => 'form-group col-md-6'
             ]
@@ -645,6 +659,27 @@ class CastAccountsLoanCrudController extends CrudController
             'name' => 'space_3',
             'type' => 'hidden',
             'value' => 'space_3',
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'description',
+            'label' => trans('backpack::crud.cash_account.field_transaction.description.label'),
+            'type' => 'textarea',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.cash_account.field_transaction.description.placeholder'),
+            ],
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_4',
+            'type' => 'hidden',
+            'value' => 'space_4',
             'wrapper' => [
                 'class' => 'form-group col-md-6'
             ]
@@ -667,7 +702,8 @@ class CastAccountsLoanCrudController extends CrudController
         ]);
     }
 
-    function createMoveTransactionOperation($id = null){
+    function createMoveTransactionOperation($id = null)
+    {
         CRUD::setModel(AccountTransaction::class);
         CRUD::setValidation($this->ruleValidationMoveTransfer());
         $settings = Setting::first();
@@ -715,20 +751,40 @@ class CastAccountsLoanCrudController extends CrudController
             ]
         ]);
 
+        CRUD::addField([
+            'name' => 'description',
+            'label' => trans('backpack::crud.cash_account.field_transaction.description.label'),
+            'type' => 'textarea',
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.cash_account.field_transaction.description.placeholder'),
+            ],
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'space_3',
+            'type' => 'hidden',
+            'value' => 'space_3',
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ]
+        ]);
+
         CRUD::field([  // Select2
             'label'     => trans('backpack::crud.cash_account.field_transfer.to_account.label'),
             'type'      => 'select2_array',
             'name'      => 'cast_account_destination_id',
             'options'   => array_replace([
                 '' => trans('backpack::crud.cash_account.field_transfer.to_account.placeholder'),
-                ], CastAccount::whereHas('informations', function($q){
-                            $q->where('additional_informations.id', 2);
-                        })->pluck('name', 'id')->all()),
+            ], CastAccount::whereHas('informations', function ($q) {
+                $q->where('additional_informations.id', 2);
+            })->pluck('name', 'id')->all()),
             'wrapper' => [
                 'class' => 'form-group col-md-6'
             ]
         ]);
-
     }
 
     /**
@@ -744,22 +800,22 @@ class CastAccountsLoanCrudController extends CrudController
 
         $request = request();
 
-        if($request->has('_id') && $request?->type == null){
+        if ($request->has('_id') && $request?->type == null) {
             $this->createTransactionOperation($request->_id);
             return;
         }
 
-        if($request->has('type')){
-            if($request->has('_id')){
-                if($request->type == 'move'){
+        if ($request->has('type')) {
+            if ($request->has('_id')) {
+                if ($request->type == 'move') {
                     $this->createMoveTransactionOperation($request->_id);
                     return;
                 }
             }
-            if($request->type == 'cast_account'){
+            if ($request->type == 'cast_account') {
                 $id = $request->id ?? '';
                 CRUD::setValidation([
-                    'name' => 'required|max:100|unique:cast_accounts,name,'.$id,
+                    'name' => 'required|max:100|unique:cast_accounts,name,' . $id,
                 ]);
                 CRUD::addField([
                     'name' => 'name',
@@ -771,7 +827,7 @@ class CastAccountsLoanCrudController extends CrudController
                 ]);
                 return;
             }
-        }else{
+        } else {
             CRUD::setValidation($this->ruleValidation());
             CRUD::addField([
                 'name' => 'name',
@@ -853,7 +909,6 @@ class CastAccountsLoanCrudController extends CrudController
                     'class' => 'form-group col-md-6'
                 ]
             ]);
-
         }
     }
 
@@ -874,7 +929,7 @@ class CastAccountsLoanCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -895,7 +950,7 @@ class CastAccountsLoanCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -912,7 +967,7 @@ class CastAccountsLoanCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
 
             $this->data['entry'] = $this->crud->entry = $item;
@@ -944,8 +999,7 @@ class CastAccountsLoanCrudController extends CrudController
                     'cast_account_store_success' => $item,
                 ]
             ]);
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -965,7 +1019,7 @@ class CastAccountsLoanCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $cast_account_id = $request->cast_account_id;
             $date_transaction = $request->date_transaction;
@@ -976,7 +1030,7 @@ class CastAccountsLoanCrudController extends CrudController
             $cast_account_loan = CastAccount::find($cast_account_id);
             $total_saldo_loan_before = $cast_account_loan->total_saldo;
 
-            if($cast_account_destination_id == AccountTransaction::BANK_LOAN){
+            if ($cast_account_destination_id == AccountTransaction::BANK_LOAN) {
                 $total_saldo_loan_after = $total_saldo_loan_before + $nominal_transaction;
                 $acctTransactionLoan = new AccountTransaction;
                 $acctTransactionLoan->cast_account_id = $cast_account_id;
@@ -1004,9 +1058,8 @@ class CastAccountsLoanCrudController extends CrudController
                     'reference_id' => $acctTransactionLoan->id,
                     'reference_type' => AccountTransaction::class,
                 ]);
-
-            }else{
-                if($status == CastAccount::ENTER){
+            } else {
+                if ($status == CastAccount::ENTER) {
                     $total_saldo_loan_after = $total_saldo_loan_before + $nominal_transaction;
                     $acctTransactionLoan = new AccountTransaction;
                     $acctTransactionLoan->cast_account_id = $cast_account_id;
@@ -1051,7 +1104,7 @@ class CastAccountsLoanCrudController extends CrudController
                         'reference_id' => $acctTransactionLoan->id,
                         'reference_type' => AccountTransaction::class,
                     ]);
-                }else if($status == CastAccount::OUT){
+                } else if ($status == CastAccount::OUT) {
                     $total_saldo_loan_after = $total_saldo_loan_before - $nominal_transaction;
                     $acctTransactionLoan = new AccountTransaction;
                     $acctTransactionLoan->cast_account_id = $cast_account_id;
@@ -1115,15 +1168,14 @@ class CastAccountsLoanCrudController extends CrudController
                     'success' => true,
                     'data' => $item,
                     'events' => [
-                        'card_cast_account'.$cast_account_id.'_create_success' => $item,
-                        'card_cast_account'.$cast_account_id.'_store_move_success' => $item
+                        'card_cast_account' . $cast_account_id . '_create_success' => $item,
+                        'card_cast_account' . $cast_account_id . '_store_move_success' => $item
                     ]
                 ]);
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1142,11 +1194,11 @@ class CastAccountsLoanCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $event = [];
 
-            if($request->type == 'cast_account'){
+            if ($request->type == 'cast_account') {
                 $item = CastAccount::find($request->id);
                 $item->name = $request->name;
                 $item->save();
@@ -1195,7 +1247,7 @@ class CastAccountsLoanCrudController extends CrudController
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1215,7 +1267,7 @@ class CastAccountsLoanCrudController extends CrudController
         $this->crud->registerFieldEvents();
         DB::beginTransaction();
 
-        try{
+        try {
 
             $cast_account_id = $request->cast_account_id;
             $nominal_move = $request->nominal_move;
@@ -1281,13 +1333,12 @@ class CastAccountsLoanCrudController extends CrudController
                 return response()->json([
                     'success' => true,
                     'events' => [
-                        'card_cast_account'.$castAccount->id.'_store_move_success' => $item,
+                        'card_cast_account' . $castAccount->id . '_store_move_success' => $item,
                     ]
                 ]);
             }
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1303,44 +1354,46 @@ class CastAccountsLoanCrudController extends CrudController
 
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
-        $journal = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function($q) use($id){
+        $journal = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id) {
             $q->where('cast_account_id', $id)
-            ->orWhere('cast_account_destination_id', $id);
-        })->orWhereHasMorph('reference', CastAccount::class, function($q) use($id){
+                ->orWhere('cast_account_destination_id', $id);
+        })->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($id) {
             $q->where('id', $id);
         })->delete();
 
         return $this->crud->delete($id);
     }
 
-    public function showTransaction(){
+    public function showTransaction()
+    {
         $id = request()->_id;
         $castAccount = CastAccount::where('id', $id)->first();
         $detail = AccountTransaction::where('cast_account_id', $id)
-        ->where('is_first', 0)
-        ->orderBy('date_transaction', 'ASC')->get();
-        foreach($detail as $entry){
+            ->where('is_first', 0)
+            ->orderBy('date_transaction', 'ASC')->get();
+        foreach ($detail as $entry) {
             $entry->date_transaction_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
             $entry->nominal_transaction_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
             $entry->description_str = ($entry->cast_account_destination_id) ? $entry->cast_account_destination->name : ($entry->description ?? '-');
             $entry->kdp_str = $entry->kdp ?? '-';
             $entry->job_name_str = $entry->job_name ?? '-';
-            $entry->account_id_str = ($entry->account_id) ? $entry->account->code.' - '.$entry->account->name : '-';
+            $entry->account_id_str = ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-';
             $entry->no_invoice_str = ($entry->no_invoice) ? $entry->no_invoice : '-';
-            $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.'.$entry->status)));
+            $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status)));
         }
         $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($castAccount->total_saldo);
         return response()->json([
             'status' => true,
-            'result'=> [
+            'result' => [
                 'cast_account' => $castAccount,
                 'detail' => $detail,
             ]
         ]);
     }
 
-    public function getSelectToAccount(){
-        $castAccounts = CastAccount::whereHas('informations', function($q){
+    public function getSelectToAccount()
+    {
+        $castAccounts = CastAccount::whereHas('informations', function ($q) {
             $q->where("additional_informations.id", 2)->select(DB::raw("1"));
         })->where('status', CastAccount::CASH)->get(['id', 'name']);
         return response()->json([
@@ -1348,5 +1401,4 @@ class CastAccountsLoanCrudController extends CrudController
             'result' => $castAccounts,
         ]);
     }
-
 }
