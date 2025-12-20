@@ -1963,12 +1963,13 @@ class ProfitLostAccountCrudController extends CrudController
 
                 CRUD::column([
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
-                    'type' => 'closure',
+                    'type' => 'date-multiple',
                     'name' => 'invoice_date',
-                    'function' => function ($entry) {
-                        $tgl = explode(",", $entry->invoice_date);
-                        return implode(", ", $tgl);
-                    },
+                    'format' => 'DD MMM YYYY',
+                    // 'function' => function ($entry) {
+                    //     $tgl = explode(",", $entry->invoice_date);
+                    //     return implode(", ", $tgl);
+                    // },
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.invoice_date', $columnDirection);
                     }
@@ -2314,11 +2315,12 @@ class ProfitLostAccountCrudController extends CrudController
 
                 CRUD::column([
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
-                    'type' => 'closure',
+                    'type' => 'date-multiple',
                     'name' => 'invoice_date',
-                    'function' => function ($entry) {
-                        return $entry->invoice_date;
-                    },
+                    'format' => 'DD MMM YYYY',
+                    // 'function' => function ($entry) {
+                    //     return $entry->invoice_date;
+                    // },
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.invoice_date', $columnDirection);
                     }
