@@ -475,6 +475,8 @@ return [
             'price_total_exclude_ppn' => 'Nilai Exclude PPn',
             'price_total_include_ppn' => 'Nilai Include PPn',
             'status' => 'Status',
+            'send_invoice_normal' => "Tgl Pengiriman Invoice - Normal",
+            'send_invoice_revision' => "Tgl Pengiriman Invoice - Revisi",
         ],
         'field' => [
             'invoice_number' => [

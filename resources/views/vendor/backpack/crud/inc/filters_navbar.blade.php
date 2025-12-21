@@ -39,6 +39,9 @@
   @if (isset($filter_table))
     @basset('https://cdn.jsdelivr.net/npm/urijs@1.19.11/src/URI.min.js')
     <script>
+      if(window.filter_tables == undefined){
+        window.filter_tables = {};
+      }
       window.filter_table_name = '{{ $table_name }}';
 
       var normalizeAmpersand = function(string) {
@@ -55,7 +58,6 @@
           let name_table = filterName.replace(/.*\d+/, '');
           let filter_name_origin = filterName.match(/^[^\d]+/)[0];
 
-          console.log(name_table, filter_name_origin);
 
           var current_url = SIAOPS.getAttribute(name_table).table.ajax.url();
           var new_url = addOrUpdateUriParameter(current_url, filter_name_origin, filterValue, name_table);
@@ -66,7 +68,11 @@
           // crud.updateUrl(new_url);
           SIAOPS.getAttribute(name_table).table.ajax.url(new_url);
           if(update_url) {
-              callFunctionOnce(function() { refreshDatatablesOnFilterChange(new_url, name_table) }, debounce, 'refreshDatatablesOnFilterChange');
+            callFunctionOnce(function() { refreshDatatablesOnFilterChange(new_url, name_table) }, debounce, 'refreshDatatablesOnFilterChange');
+          }
+          window.filter_tables[filter_name_origin] = filterValue;
+          if(filterValue == ''){
+            delete window.filter_tables[filter_name_origin];
           }
           return new_url;
       }

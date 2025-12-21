@@ -68,7 +68,7 @@ Route::group([
         Route::post('system/updated-system', [SettingSystemCrudController::class, 'updateSystem']);
         Route::post('system/updated-company', [SettingSystemCrudController::class, 'updateCompany']);
     });
-    Route::prefix('vendor')->group(function(){
+    Route::prefix('vendor')->group(function () {
         Route::crud('subkon', 'SubkonCrudController');
         Route::post('subkon/export-pdf', [SubkonCrudController::class, 'exportPdf']);
         Route::post('subkon/export-excel', [SubkonCrudController::class, 'exportExcel']);
@@ -84,7 +84,7 @@ Route::group([
         Route::post('download-po-pdf', 'PurchaseOrderCrudController@exportPdf');
     });
 
-    Route::prefix('client')->group(function(){
+    Route::prefix('client')->group(function () {
         Route::crud('client-list', 'ClientCrudController');
         Route::post('client-list/export-pdf', [ClientCrudController::class, 'exportPdf']);
         Route::post('client-list/export-excel', [ClientCrudController::class, 'exportExcel']);
@@ -101,8 +101,9 @@ Route::group([
     Route::get('invoice-client/{id}/print', [InvoiceClientCrudController::class, 'printInvoice']);
     Route::post('invoice-client/select2-client-po', [InvoiceClientCrudController::class, 'select2ClientPo']);
     Route::get('invoice-client/get-client-po', [InvoiceClientCrudController::class, 'selectedClientPo']);
+    Route::get('invoice-client/total', [InvoiceClientCrudController::class, 'total_price']);
 
-    Route::prefix('cash-flow')->group(function(){
+    Route::prefix('cash-flow')->group(function () {
         Route::crud('cast-accounts', 'CastAccountsCrudController');
         Route::post('cast-accounts/export-pdf', [CastAccountsCrudController::class, 'exportPdf']);
         Route::post('cast-accounts/export-excel', [CastAccountsCrudController::class, 'exportExcel']);
@@ -126,7 +127,7 @@ Route::group([
         Route::get('cast-account-loan-show', [CastAccountsLoanCrudController::class, 'showTransaction']);
     });
 
-    Route::prefix('finance-report')->group(function(){
+    Route::prefix('finance-report')->group(function () {
         Route::crud('expense-account', 'ExpenseAccountCrudController');
         Route::post('expense-account/export-pdf', [ExpenseAccountCrudController::class, 'exportPdf']);
         Route::post('expense-account/export-excel', [ExpenseAccountCrudController::class, 'exportExcel']);
@@ -154,7 +155,7 @@ Route::group([
         Route::post('profit-lost/export-consolidation-excel', [ProfitLostAccountCrudController::class, 'exportConsolidationExcel']);
     });
 
-    Route::prefix('fa')->group(function(){
+    Route::prefix('fa')->group(function () {
         Route::crud('voucher', 'VoucherCrudController');
         Route::post('voucher/select2-po-spk', [VoucherCrudController::class, 'select2_no_po_spk']);
         Route::post('voucher/{id}/approve', [VoucherCrudController::class, 'approvedStore']);
@@ -180,7 +181,7 @@ Route::group([
         Route::post('voucher-payment-plan/export-excel', [VoucherPaymentPlanCrudController::class, 'exportExcel']);
     });
 
-    Route::prefix('monitoring')->group(function(){
+    Route::prefix('monitoring')->group(function () {
         Route::crud('project-system-setup', 'ProjectSystemSetupCrudController');
         Route::post('project-system-setup/export-pdf', [ProjectSystemSetupCrudController::class, 'exportPdf']);
         Route::post('project-system-setup/export-excel', [ProjectSystemSetupCrudController::class, 'exportExcel']);
@@ -210,8 +211,6 @@ Route::group([
 
     Route::post('account/select2-account', [CastAccountsCrudController::class, 'account_select2']);
     Route::post('account/select2-account-child', [CastAccountsCrudController::class, 'account_child_select2']);
-
-
 }); // this should be the absolute last line of this file
 
 /**

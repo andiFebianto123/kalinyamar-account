@@ -585,6 +585,7 @@
                         //     $("#crudTable-{{$name}}").removeClass('has-hidden-columns').addClass('has-hidden-columns');
                         // }
 
+                        // memanggil plugin apapun dalam SIAOPS yang mengandung crudTable-filter
                         forEachFlexible(eventEmitter.events, function(key, data){
                             if(key.includes("crudTable-filter")){
                                 eventEmitter.emit(key, true);
@@ -648,15 +649,12 @@
                         e.preventDefault();
 
                         var new_url = '{{ $route }}';
-                        instance.table.ajax.url(new_url).load();
-
                         $(".crudTable-{{$name}}-filters li[filter-name]").trigger('filter:clear');
-
                     });
 
                     $(".crudTable-{{$name}}-filters li[filter-name]").on('filter:clear', function() {
                         var anyActiveFilters = false;
-                        console.log($(".crudTable-{{$name}}-filters li[filter-name]"));
+                        // console.log($(".crudTable-{{$name}}-filters li[filter-name]"));
                         $(".crudTable-{{$name}}-filters li[filter-name]").each(function () {
                             if ($(this).hasClass('active')) {
                                 anyActiveFilters = true;

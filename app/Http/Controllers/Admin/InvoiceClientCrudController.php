@@ -3,29 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
-// use Backpack\CRUD\app\Http\Controllers\CrudController;
-use App\Models\Account;
 use App\Models\Setting;
-use App\Models\Voucher;
-use App\Models\Approval;
 use App\Models\ClientPo;
-use App\Models\CastAccount;
 use App\Models\InvoiceClient;
-use App\Models\PurchaseOrder;
-use App\Models\PaymentVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
-use App\Models\AccountTransaction;
-use App\Models\PaymentVoucherPlan;
 use Illuminate\Support\Facades\DB;
 use App\Models\InvoiceClientDetail;
 use Illuminate\Support\Facades\App;
-use Illuminate\Validation\Rules\Can;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
-use App\Http\Controllers\Operation\PermissionAccess;
 use App\Http\Requests\InvoiceClientRequest;
+use App\Http\Controllers\Operation\FormaterExport;
+use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -41,6 +32,7 @@ class InvoiceClientCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
+    use FormaterExport;
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      *
@@ -103,24 +95,273 @@ class InvoiceClientCrudController extends CrudController
         ]);
     }
 
+    private function getComponent()
+    {
+        $this->crud->filter('invoice_date11crudTable-invoice')
+            ->label(trans('backpack::crud.invoice_client.column.invoice_date'))
+            ->type('date');
+
+        $this->crud->filter('po_date11crudTable-invoice')
+            ->label(trans('backpack::crud.invoice_client.column.po_date'))
+            ->type('date');
+
+        $this->crud->filter('send_invoice_normal11crudTable-invoice')
+            ->label(trans('backpack::crud.invoice_client.column.send_invoice_normal'))
+            ->type('date');
+
+        $this->crud->filter('send_invoice_revision11crudTable-invoice')
+            ->label(trans('backpack::crud.invoice_client.column.send_invoice_revision'))
+            ->type('date');
+
+        $this->card->addCard([
+            'name' => 'invoice',
+            'line' => 'top',
+            'view' => 'crud::components.datatable-origin',
+            'params' => [
+                'filter' => true,
+                'crud_custom' => $this->crud,
+                'hide_title' => true,
+                'columns' => [
+                    [
+                        'name'      => 'row_number',
+                        'type'      => 'row_number',
+                        'label'     => 'No',
+                        'orderable' => false,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.invoice_number'),
+                        'name' => 'invoice_number',
+                        'type'  => 'text',
+                        'orderlable' => true,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.field.kdp.label'),
+                        'name' => 'kdp',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.name'),
+                        'name' => 'name',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
+                        'name' => 'invoice_date',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.client_po_id'),
+                        'name' => 'client_po_id',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.column.po_date'),
+                        'name' => 'po_date',
+                        'type' => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.column.client_id'),
+                        'type' => 'text',
+                        'name' => 'client_name',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
+                        'name' => 'price_total_exclude_ppn',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
+                        'name' => 'price_total_include_ppn',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.column.send_invoice_normal'),
+                        'name' => 'send_invoice_normal',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.column.send_invoice_revision'),
+                        'name' => 'send_invoice_revision',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.column.status'),
+                        'name' => 'status',
+                        'type' => 'text',
+                    ],
+                    [
+                        'name' => 'action',
+                        'type' => 'action',
+                        'label' =>  trans('backpack::crud.actions'),
+                    ]
+                ],
+                'filter_table' => collect($this->crud->filters())->slice(0, 4),
+                'route' => backpack_url('invoice-client/search'),
+            ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'invoice-plugin',
+            'line' => 'top',
+            'view' => 'crud::components.invoice-plugin',
+            'parent_view' => 'crud::components.filter-parent',
+            'params' => [],
+        ]);
+    }
+
+    public function total_price()
+    {
+        $total_price = InvoiceClient::select(
+            DB::raw("SUM(price_total_exclude_ppn) as total_price_exclude_ppn"),
+            DB::raw("SUM(price_total_include_ppn) as total_price_include_ppn")
+        );
+
+        $request = request();
+
+        if ($request->search) {
+            if (isset($request->search[1])) {
+                $search = trim($request->search[1]);
+                $total_price = $total_price
+                    ->where('invoice_clients.invoice_number', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->search[2])) {
+                $search = trim($request->search[2]);
+                $total_price = $total_price
+                    ->where('invoice_clients.kdp', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->search[3])) {
+                $search = trim($request->search[3]);
+                $total_price = $total_price->orWhereHas('client_po', function ($query) use ($search) {
+                    $query->where('job_name', 'like', '%' . $search . '%');
+                });
+            }
+
+            // if (isset($request->search[4])) {
+            //     $search = trim($request->search[4]);
+            //     $total_price = $total_price
+            //         ->where('invoice_clients.invoice_date', 'like', '%' . $search . '%');
+            // }
+
+            if (isset($request->search[5])) {
+                $search = trim($request->search[5]);
+                $total_price = $total_price->orWhereHas('client_po', function ($query) use ($search) {
+                    $query->where('po_number', 'like', '%' . $search . '%');
+                });
+            }
+
+            // if (isset($request->search[6])) {
+            //     $search = trim($request->search[6]);
+            //     $total_price = $total_price
+            //         ->where('invoice_clients.po_date', 'like', '%' . $search . '%');
+            // }
+
+            if (isset($request->search[7])) {
+                $search = trim($request->search[7]);
+                $total_price = $total_price->orWhereHas('client_po.client', function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%');
+                });
+            }
+
+            if (isset($request->search[8])) {
+                $search = trim($request->search[8]);
+                $total_price = $total_price
+                    ->where('invoice_clients.price_total_exclude_ppn', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->search[9])) {
+                $search = trim($request->search[9]);
+                $total_price = $total_price
+                    ->where('invoice_clients.price_total_include_ppn', 'like', '%' . $search . '%');
+            }
+
+            // if (isset($request->search[10])) {
+            //     $search = trim($request->search[10]);
+            //     $total_price = $total_price
+            //         ->where('invoice_clients.send_invoice_normal_date', 'like', '%' . $search . '%');
+            // }
+
+            // if (isset($request->search[11])) {
+            //     $search = trim($request->search[11]);
+            //     $total_price = $total_price
+            //         ->where('invoice_clients.send_invoice_revision_date', 'like', '%' . $search . '%');
+            // }
+
+            // if (isset($request->search[12])) {
+            //     $search = trim($request->search[12]);
+            //     $total_price = $total_price
+            //         ->where('invoice_clients.status', 'like', '%' . $search . '%');
+            // }
+        }
+
+        if ($request->has('invoice_date')) {
+            $total_price = $total_price
+                ->where('invoice_clients.invoice_date', $request->invoice_date);
+        }
+
+        if ($request->has('po_date')) {
+            $total_price = $total_price
+                ->where('invoice_clients.po_date', $request->po_date);
+        }
+
+        if ($request->has('send_invoice_normal')) {
+            $total_price = $total_price
+                ->where('invoice_clients.send_invoice_normal_date', $request->send_invoice_normal);
+        }
+
+        if ($request->has('send_invoice_revision')) {
+            $total_price = $total_price
+                ->where('invoice_clients.send_invoice_revision_date', $request->send_invoice_revision);
+        }
+
+        if ($request->has('filter_paid_status')) {
+            if ($request->filter_paid_status != 'all') {
+                $total_price = $total_price
+                    ->where('invoice_clients.status', $request->filter_paid_status);
+            }
+        }
+
+        $total_price = $total_price->first();
+
+        return response()->json([
+            'total_price_exclude_ppn' => CustomHelper::formatRupiahWithCurrency($total_price->total_price_exclude_ppn),
+            'total_price_include_ppn' => CustomHelper::formatRupiahWithCurrency($total_price->total_price_include_ppn),
+        ]);
+    }
 
     public function index()
     {
         $this->crud->hasAccessOrFail('list');
+
+        $this->crud->param_uri_export = "?export=1";
+
+        $this->getComponent();
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
         $this->data['title_modal_create'] = trans('backpack::crud.invoice_client.title_modal_create');
         $this->data['title_modal_edit'] = trans('backpack::crud.invoice_client.title_modal_edit');
         $this->data['title_modal_delete'] = trans('backpack::crud.invoice_client.title_modal_delete');
+        $this->data['cards'] = $this->card;
 
-        // $breadcrumbs = [
-        //     'Client' => backpack_url('vendor'),
-        //     trans('backpack::crud.menu.list_client') => backpack_url($this->crud->route)
-        // ];
-        // $this->data['breadcrumbs'] = $breadcrumbs;
+        $breadcrumbs = [
+            'Invoice (client)' => backpack_url('invoice-client'),
+            // trans('backpack::crud.menu.list_client') => backpack_url($this->crud->route)
+        ];
+        $this->data['breadcrumbs'] = $breadcrumbs;
 
-        $list = "crud::list-custom" ?? $this->crud->getListView();
+        $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
     }
 
@@ -195,6 +436,13 @@ class InvoiceClientCrudController extends CrudController
         CRUD::addButtonFromView('line', 'print', 'print', 'end');
         CRUD::addButtonFromView('line', 'delete', 'delete', 'end');
 
+        $status_file = '';
+        if (strpos(url()->current(), 'excel')) {
+            $status_file = 'excel';
+        } else {
+            $status_file = 'pdf';
+        }
+
         $this->crud->addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -235,12 +483,12 @@ class InvoiceClientCrudController extends CrudController
                         ->orderBy('client_po.job_name', $columnDir)
                         ->select('invoice_clients.*');
                 },
-                'searchable' => true,
-                'searchLogic' => function ($query, $column, $searchTerm) {
-                    return $query->orWhereHas('client_po', function ($query) use ($searchTerm) {
-                        $query->where('job_name', 'like', '%' . $searchTerm . '%');
-                    });
-                }
+                // 'searchable' => true,
+                // 'searchLogic' => function ($query, $column, $searchTerm) {
+                //     return $query->orWhereHas('client_po', function ($query) use ($searchTerm) {
+                //         $query->where('job_name', 'like', '%' . $searchTerm . '%');
+                //     });
+                // }
             ],
         );
 
@@ -288,11 +536,10 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
                 'name' => 'price_total_exclude_ppn',
-                'type'  => 'number',
-                'prefix' => "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->price_total_exclude_ppn);
+                },
             ],
         );
 
@@ -300,26 +547,25 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
                 'name' => 'price_total_include_ppn',
-                'type'  => 'number',
-                'prefix' => "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
+                },
             ],
         );
 
         CRUD::column(
             [
-                'label' => "Tgl Pengiriman Invoice - Normal",
-                'name' => 'send_invoice_normal',
+                'label' => trans('backpack::crud.invoice_client.column.send_invoice_normal'),
+                'name' => 'send_invoice_normal_date',
                 'type'  => 'date'
             ],
         );
 
         CRUD::column(
             [
-                'label' => "Tgl Pengiriman Invoice - Revisi",
-                'name' => 'send_invoice_revision',
+                'label' => trans('backpack::crud.invoice_client.column.send_invoice_revision'),
+                'name' => 'send_invoice_revision_date',
                 'type'  => 'date'
             ],
         );
@@ -333,206 +579,108 @@ class InvoiceClientCrudController extends CrudController
         );
 
         $request = request();
+
+        if ($request->columns) {
+            if (isset($request->columns[1]['search']['value'])) {
+                $search = $request->columns[1]['search']['value'];
+                $this->crud->query = $this->crud->query
+                    ->where('invoice_clients.invoice_number', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->columns[2]['search']['value'])) {
+                $search = trim($request->columns[2]['search']['value']);
+                $this->crud->query = $this->crud->query
+                    ->where('invoice_clients.kdp', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->columns[3]['search']['value'])) {
+                $search = trim($request->columns[3]['search']['value']);
+                $this->crud->query = $this->crud->query->orWhereHas('client_po', function ($query) use ($search) {
+                    $query->where('job_name', 'like', '%' . $search . '%');
+                });
+            }
+
+            // if (isset($request->columns[4]['search']['value'])) {
+            //     $search = trim($request->columns[4]['search']['value']);
+            //     $this->crud->query = $this->crud->query
+            //         ->where('invoice_clients.invoice_date', 'like', '%' . $search . '%');
+            // }
+
+            if (isset($request->columns[5]['search']['value'])) {
+                $search = trim($request->columns[5]['search']['value']);
+                $this->crud->query = $this->crud->query->orWhereHas('client_po', function ($query) use ($search) {
+                    $query->where('po_number', 'like', '%' . $search . '%');
+                });
+            }
+
+            // if (isset($request->columns[6]['search']['value'])) {
+            //     $search = trim($request->columns[6]['search']['value']);
+            //     $this->crud->query = $this->crud->query
+            //         ->where('invoice_clients.po_date', 'like', '%' . $search . '%');
+            // }
+
+            if (isset($request->columns[7]['search']['value'])) {
+                $search = trim($request->columns[7]['search']['value']);
+                $this->crud->query = $this->crud->query->orWhereHas('client_po.client', function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%');
+                });
+            }
+
+            if (isset($request->columns[8]['search']['value'])) {
+                $search = trim($request->columns[8]['search']['value']);
+                $this->crud->query = $this->crud->query
+                    ->where('invoice_clients.price_total_exclude_ppn', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->columns[9]['search']['value'])) {
+                $search = trim($request->columns[9]['search']['value']);
+                $this->crud->query = $this->crud->query
+                    ->where('invoice_clients.price_total_include_ppn', 'like', '%' . $search . '%');
+            }
+
+            // if (isset($request->columns[10]['search']['value'])) {
+            //     $search = trim($request->columns[10]['search']['value']);
+            //     $this->crud->query = $this->crud->query
+            //         ->where('invoice_clients.send_invoice_normal_date', 'like', '%' . $search . '%');
+            // }
+
+            // if (isset($request->columns[11]['search']['value'])) {
+            //     $search = trim($request->columns[11]['search']['value']);
+            //     $this->crud->query = $this->crud->query
+            //         ->where('invoice_clients.send_invoice_revision_date', 'like', '%' . $search . '%');
+            // }
+
+            // if (isset($request->columns[12]['search']['value'])) {
+            //     $search = trim($request->columns[12]['search']['value']);
+            //     $this->crud->query = $this->crud->query
+            //         ->where('invoice_clients.status', 'like', '%' . $search . '%');
+            // }
+        }
+
+        if ($request->has('invoice_date')) {
+            $this->crud->query = $this->crud->query
+                ->where('invoice_clients.invoice_date', $request->invoice_date);
+        }
+
+        if ($request->has('po_date')) {
+            $this->crud->query = $this->crud->query
+                ->where('invoice_clients.po_date', $request->po_date);
+        }
+
+        if ($request->has('send_invoice_normal')) {
+            $this->crud->query = $this->crud->query
+                ->where('invoice_clients.send_invoice_normal_date', $request->send_invoice_normal);
+        }
+
+        if ($request->has('send_invoice_revision')) {
+            $this->crud->query = $this->crud->query
+                ->where('invoice_clients.send_invoice_revision_date', $request->send_invoice_revision);
+        }
+
         if ($request->has('filter_paid_status')) {
             if ($request->filter_paid_status != 'all') {
                 $this->crud->query = $this->crud->query
                     ->where('status', $request->filter_paid_status);
-            }
-        }
-    }
-
-    private function setupListExport()
-    {
-
-        $this->crud->addColumn([
-            'name'      => 'row_number',
-            'type'      => 'row_number',
-            'label'     => 'No',
-            'orderable' => false,
-            'wrapper' => [
-                'element' => 'strong',
-            ]
-        ])->makeFirstColumn();
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.invoice_client.column.invoice_number'),
-                'name' => 'invoice_number',
-                'type'  => 'text'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.invoice_client.column.name'),
-                'name' => 'name',
-                'type'  => 'closure',
-                'function' => function ($entry) {
-                    return $entry->client_po->job_name;
-                },
-                'orderable' => true,
-                'orderLogic' => function ($query, $column, $columnDir) {
-                    return $query->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id')
-                        ->orderBy('client_po.job_name', $columnDir)
-                        ->select('invoice_clients.*');
-                },
-                'searchable' => true,
-                'searchLogic' => function ($query, $column, $searchTerm) {
-                    return $query->orWhereHas('client_po', function ($query) use ($searchTerm) {
-                        $query->where('job_name', 'like', '%' . $searchTerm . '%');
-                    });
-                }
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
-                'name' => 'invoice_date',
-                'type'  => 'date'
-            ],
-        );
-
-        CRUD::column([
-            // 1-n relationship
-            'label' => trans('backpack::crud.invoice_client.column.client_id'),
-            'type'      => 'closure',
-            'name'      => 'client_name',
-            'function' => function ($entry) {
-                return $entry->client_po->client->name;
-            } // the column that contains the ID of that connected entity;
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
-        ]);
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.field.address.label'),
-                'name' => 'address_po',
-                'type'  => 'text'
-            ],
-        );
-
-        CRUD::column([
-            // 1-n relationship
-            'label' => trans('backpack::crud.invoice_client.column.client_po_id'),
-            'type'      => 'select',
-            'name'      => 'client_po_id', // the column that contains the ID of that connected entity;
-            'entity'    => 'client_po', // the method that defines the relationship in your Model
-            'attribute' => 'po_number', // foreign key attribute that is shown to user
-            'model'     => "App\Models\ClientPo", // foreign key model
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
-        ]);
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.invoice_client.column.po_date'),
-                'name' => 'po_date',
-                'type'  => 'date'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.field.description.label'),
-                'name' => 'description',
-                'type' => 'text',
-            ]
-        );
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_exclude_ppn'),
-                'name' => 'price_total_exclude_ppn',
-                'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->price_total_exclude_ppn);
-                },
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.field.dpp_other.label'),
-                'name' => 'dpp_other',
-                'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->dpp_other);
-                },
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
-                'name' => 'tax_ppn',
-                'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->tax_ppn);
-                },
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
-                'name' => 'price_total_include_ppn',
-                'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->price_total_include_ppn);
-                },
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.field.kdp.label'),
-                'name' => 'kdp',
-                'type'  => 'text'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => "Tgl Pengiriman Invoice - Normal",
-                'name' => 'send_invoice_normal',
-                'type'  => 'date'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => "Tgl Pengiriman Invoice - Revisi",
-                'name' => 'send_invoice_revision',
-                'type'  => 'date'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label' => trans('backpack::crud.invoice_client.column.status'),
-                'name' => 'status',
-                'type' => 'text',
-            ]
-        );
-
-        // CRUD::column(
-        //     [
-        //         'label' => trans('backpack::crud.invoice_client.field.item.label'),
-        //         'name' => 'invoice_client_details_edit',
-        //         'type'  => 'text'
-        //     ],
-        // );
-
-        $this->crud->query = $this->crud->query
-            ->selectRaw("invoice_clients.*");
-
-        $request = request();
-        if ($request->has('filter_paid_status')) {
-            if ($request->filter_paid_status != 'all') {
-                $this->crud->query = $this->crud->query
-                    ->where('invoice_clients.status', $request->filter_paid_status);
             }
         }
     }
@@ -585,8 +733,8 @@ class InvoiceClientCrudController extends CrudController
     public function exportExcel()
     {
 
-        $this->setupListExport();
-        // $this->setupListOperation();
+        // $this->setupListExport();
+        $this->setupListOperation();
 
         $columns = $this->crud->columns();
         $items =  $this->crud->getEntries();
@@ -1072,6 +1220,16 @@ class InvoiceClientCrudController extends CrudController
             $this->crud->setSaveAction();
 
             DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $invoice,
+                    'events' => [
+                        'crudTable-filter_invoice_plugin_load' => true,
+                        'crudTable-invoice_create_success' => true
+                    ],
+                ]);
+            }
             return $this->crud->performSaveAction($invoice->getKey());
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1171,7 +1329,15 @@ class InvoiceClientCrudController extends CrudController
             \Alert::success(trans('backpack::crud.update_success'))->flash();
             // save the redirect choice for next time
             $this->crud->setSaveAction();
-            return $this->crud->performSaveAction($invoice);
+            return response()->json([
+                'success' => true,
+                'data' => $invoice,
+                'events' => [
+                    'crudTable-filter_invoice_plugin_load' => true,
+                    'crudTable-invoice_updated_success' => true
+                ]
+            ]);
+            // return $this->crud->performSaveAction($invoice);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -1638,7 +1804,13 @@ class InvoiceClientCrudController extends CrudController
         $id = $this->crud->getCurrentEntryId() ?? $id; // id invoice
         CustomHelper::rollbackPayment(InvoiceClient::class, $id);
 
-        return $this->crud->delete($id);
+        $this->crud->delete($id);
+        $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+        $messages['events'] = [
+            'crudTable-filter_invoice_plugin_load' => true,
+            'crudTable-invoice_create_success' => true,
+        ];
+        return response()->json($messages);
     }
 
 

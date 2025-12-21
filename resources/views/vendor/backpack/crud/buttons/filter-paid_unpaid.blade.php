@@ -26,10 +26,24 @@
                         $('#filterPaidUnpaid .dropdown-menu li a').removeClass('active');
                         let value = $(this).data('value');
                         $(this).addClass('active');
-                        var route = "{!! url($crud->route.'/search') !!}";
-                        route += "?filter_paid_status="+value;
-                        crud.table.ajax.url(route).load();
+                        // var route = "{!! url($crud->route.'/search') !!}";
+                        // route += "?filter_paid_status="+value;
+                        // crud.table.ajax.url(route).load();
                         window.filter_tables.filter_paid_status = value;
+                        forEachFlexible(SIAOPS.getAllAttributes(), function(key, item){
+                            if(key.includes("crudTable")){
+                                var filter_paid_status = $('#filterPaidUnpaid .dropdown-menu li a.active').data('value');
+                                var url_route = item.route;
+                                forEachFlexible(window.filter_tables, function(key, value){
+                                    var url_sign = "?";
+                                    if(url_route.includes("?")){
+                                        url_sign = "&";
+                                    }
+                                    url_route += url_sign+key+"="+value;
+                                });
+                                item.table.ajax.url(url_route).load();
+                            }
+                        });
                     });
                 });
             }

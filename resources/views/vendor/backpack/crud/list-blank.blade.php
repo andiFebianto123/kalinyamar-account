@@ -101,7 +101,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('backpack::crud.cancel_submit') }}</button>
-                    <button type="button" id="btn-submit-create" class="btn btn-primary">
+                    <button type="button" id="btn-submit-create" class="btn btn-primary save-block">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         {{ trans('backpack::crud.save_submit') }}
                     </button>
@@ -121,7 +121,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('backpack::crud.cancel_submit') }}</button>
-                    <button type="button" id="btn-submit-edit" class="btn btn-primary">
+                    <button type="button" id="btn-submit-edit" class="btn btn-primary save-block">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         {{ trans('backpack::crud.save_submit') }}
                     </button>
