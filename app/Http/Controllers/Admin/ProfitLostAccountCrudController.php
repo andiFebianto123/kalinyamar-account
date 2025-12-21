@@ -524,17 +524,11 @@ class ProfitLostAccountCrudController extends CrudController
             ->where('account_id', $account_btkl->id)
             ->select(DB::raw("SUM(total) as btkl"))->groupBy('client_po_id')->get()->sum('btkl'); //
 
-        // $price_other_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
-        //     $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
-        //         ->where('journal_entries.reference_type', '=', 'App\\Models\\AccountTransaction');
-        // })
-        //     ->whereIn('journal_entries.account_id', $account_price_other)
-        //     ->where('account_transactions.kdp', $po->work_code)
-        //     ->selectRaw("(SUM(journal_entries.debit) - SUM(journal_entries.credit)) as total_material")
-        //     ->get()->sum('total_material'); //
+        $account_other = Account::whereIn('code', [50101, 50102, 50103, 50104])->get()
+            ->pluck('id')->toArray();
 
         $price_other_data = Voucher::where('client_po_id', $po->id)
-            ->whereNotIn('account_id', [50101, 50102, 50103, 50104])
+            ->whereNotIn('account_id', $account_other)
             ->select(DB::raw("SUM(total) as price_other"))->groupBy('client_po_id')->get()->sum('price_other'); //
 
         $price_profit_lost = $profitLost->price_after_year; //
