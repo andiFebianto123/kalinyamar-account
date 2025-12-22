@@ -1680,7 +1680,10 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.name'),
                 'name' => 'description',
-                'type'  => 'text'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->description;
+                },
             ],
         );
 
