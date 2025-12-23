@@ -1,0 +1,482 @@
+body {
+    background: #e4e7eb !important;
+}
+
+.bg-light {
+    background: linear-gradient(141.55deg, rgba(240, 244, 243, 0) 3.46%, #f0f4f3 99.86%) !important;
+}
+
+/* COLOR THEME CUSTOM */
+.btn-primary {
+  background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%), #145388 !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background: linear-gradient(141.55deg, #0e3b61 3.46%, #0e3b61 99.86%) !important; /* versi gelapnya */
+  color: #fff !important;
+  box-shadow: none;
+}
+
+.btn-outline-primary {
+  background: transparent !important;
+  border: 1px solid #145388 !important;
+  color: #145388 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none;
+}
+
+
+.text-primary {
+  color: #145388 !important;
+}
+
+.border-primary {
+  border-color: #145388 !important;
+}
+
+.bg-primary {
+  background-color: #145388 !important;
+  color: #fff !important;
+}
+
+.btn-link, a {
+  color: #145388;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-link, a:hover,
+.btn-link, a:focus {
+  color: #0e3b61; /* warna versi lebih gelap untuk efek hover */
+  /* text-decoration: underline; atau none jika tidak mau garis bawah */
+}
+
+.dataTables_paginate .active .page-link{
+    z-index: 3;
+    color: #fff !important;
+    background-color: #145388 !important;
+    border-color: #145388 !important;
+}
+
+
+.form-select:focus {
+  border-color: #145388 !important;
+  box-shadow: 0 0 0 0.2rem rgba(20, 83, 136, 0.25) !important;
+  outline: none !important;
+}
+
+.form-control:focus {
+  border-color: #145388 !important;
+  box-shadow: 0 0 0 0.2rem rgba(20, 83, 136, 0.25) !important;
+  outline: none !important;
+}
+
+
+
+/* HEADER */
+.header .custom-flex{
+    display: flex !important;
+}
+.custom-flex .nav-item .dropdown-toggle::after {
+    margin-top: 15px !important;
+}
+
+
+/* SIDEBAR */
+
+.sidebar,
+.sidebar .nav {
+  background-color: #ffffff !important; /* putih */
+  color: #212529; /* warna teks gelap */
+}
+
+/* Warna teks menu */
+.sidebar .nav-link {
+  color: #212529 !important;
+  border-radius: 12px;
+}
+
+.simplebar-content .nav-root {
+    margin-bottom: 8px;
+}
+
+/* .simplebar-content .nav-root.active > .nav-link i {
+    color: #ffffff !important;
+} */
+
+.simplebar-content .nav-root.active > .nav-link,
+/* .simplebar-content .show > .nav-link, */
+.nav-root:hover > .nav-link{
+    background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%), #145388;
+    color: #fff !important;
+}
+
+.nav-root:hover .nav-group-toggle::after{
+    background-color: #fff !important;
+}
+
+.nav-root > .nav-link.active {
+    background: linear-gradient(141.55deg, #145388 3.46%, #145388 99.86%), #145388;
+    color: #fff !important;
+}
+
+.sidebar-nav .nav-link {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    font-weight: 600 !important;
+}
+/* .nav-root > .nav-link.active i {
+    color: #fff !important;
+} */
+
+/* .simplebar-content .show:hover {
+
+} */
+
+/* .simplebar-content .show > .nav-link i{
+    color: #fff !important;
+} */
+
+/* .sidebar .nav-link:hover i {
+    color: #fff !important;
+} */
+
+.nav-dropdown-items .nav-item:hover a,
+.nav-dropdown-items .nav-item:hover i,
+.nav-group-toggle:hover,
+.nav-group-toggle:hover i,
+.nav-dropdown-items .nav-item:hover .nav-link .nav-icon{
+    color: #145388 !important;
+    font-weight: 600 !important;
+}
+
+.nav-dropdown-items .nav-icon {
+    font-size: 0.80rem !important;
+    margin-top: 0.75rem !important;
+    margin-left: calc(4rem * -0.80) !important;
+}
+
+.nav-dropdown-items .nav-item .active {
+    color: #145388 !important;
+    font-weight: bold !important;
+}
+
+.nav-dropdown-items .nav-link {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+
+
+/* IKON kotak di sidebar */
+.dash-micon {
+    font-size: 18px !important;
+    color: #525b69;
+    stroke: #525b69;
+    fill: #f2f2f2;
+    margin-right: 15px;
+    border-radius: 12px;
+    height: 35px;
+    width: 35px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    background-color: #fff;
+    box-shadow: -3px 4px 23px rgba(0, 0, 0, 0.1);
+    /* font-weight: 600; */
+}
+
+
+/* Ikon menu (jika pakai ikon) */
+.sidebar .nav-link i {
+  color: #6c757d !important; /* abu-abu gelap */
+}
+
+/* Judul menu atau header dalam sidebar */
+.sidebar .nav-title {
+  color: #6c757d !important; /* abu-abu gelap */
+}
+
+/* Bagian sidebar-brand (logo atau brand name di sidebar) */
+.sidebar-brand {
+  background-color: #ffffff !important; /* putih */
+  color: #212529 !important;            /* teks gelap agar terbaca */
+  padding: 1rem;                        /* beri jarak */
+  border-bottom: 1px solid transparent !important;     /* garis bawah opsional untuk pemisah */
+  text-align: center;                   /* posisikan ke tengah (opsional) */
+  font-weight: bold;                    /* agar terlihat jelas */
+}
+
+.sidebar-brand img {
+  max-width: 100%;
+  height: auto;
+  filter: none; /* pastikan tidak tergelap jika sebelumnya pakai filter invert */
+}
+
+
+
+.sidebar-nav .nav-group-toggle::after {
+    display: block;
+    flex: 0 12px;
+    height: 14px;
+    -webkit-margin-start: auto;
+    margin-inline-start: auto;
+    content: "";
+    background-color: #333333 !important;
+    -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708'/%3e%3c/svg%3e") !important;
+    mask-image: var("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708'/%3e%3c/svg%3e") !important;
+    transition: transform 0.15s;
+    font-weight: 600;
+    transform: rotate(-90deg);
+}
+
+.nav-root.active > .nav-group-toggle::after {
+    background-color: #fff !important;
+}
+
+.sidebar-nav .nav-group.show>.nav-group-toggle::after {
+    transform: rotate(0deg) !important;
+}
+
+/* .sidebar-nav .nav-group-toggle::after {
+    color: #333333;
+} */
+
+.sidebar-nav .nav-group.show {
+    background: transparent !important;
+}
+
+.header {
+    margin: 12px 12px 12px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: -2.61824px 26px 49px rgba(182, 186, 203, 0.3);
+}
+
+.simplebar-content {
+    padding: 12px !important;
+}
+
+.header > div {
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+}
+
+.sidebar.show {
+    padding-top: 0px !important;
+}
+.sidebar {
+    padding-top: 15px !important;
+    /* padding-right: 15px !important; */
+    width: 270px !important;
+    background-color: transparent !important;
+    box-shadow: -3px -7px 49px rgba(182, 186, 203, 0.3);
+}
+
+.sidebar-brand {
+    padding: 0px !important;
+    margin-left: 20px !important;
+    background-color:#fff !important;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+    box-shadow: -1px -4px 19px 0px rgba(182, 186, 203, 0.3);
+}
+
+.sidebar-nav {
+    margin-left: 20px;
+    box-shadow: -3px -15px 20px -20px rgba(182, 186, 203, 0.3);
+}
+
+.simplebar-mask {
+    background-color: #fff;
+    height: 820px !important;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    box-shadow: 16px -19px 49px 16px rgba(182, 186, 203, 0.3);
+}
+
+.show .simplebar-mask {
+    /* border-top-left-radius: 20px;
+    border-top-right-radius: 20px; */
+    height: auto !important;
+    border-radius: 0px !important;
+}
+.show .sidebar-nav {
+    margin-left: 0px !important;
+}
+
+.andi-test.hide{
+    margin-left: -400px !important;
+}
+
+.wrapper {
+    padding-left: 17rem !important;
+}
+
+.andi-test.hide + .wrapper {
+    padding-left: 0 !important;
+}
+
+.header-toggler {
+    display: none !important;
+}
+
+@media (max-width: 767.98px) {
+    .wrapper {
+        padding-left: 0 !important;
+    }
+    .sidebar {
+        margin-left: -400px !important;
+    }
+    .header-toggler {
+        display: inline !important;
+    }
+    div.dataTables_wrapper div.dataTables_info {
+        display: block !important;
+    }
+}
+
+.sidebar.show {
+    margin-left: 0 !important;
+}
+
+.card {
+    border-radius: 10px !important;
+    box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
+}
+
+.btn-secondary i,
+.btn-danger,
+.btn-danger i {
+    color: #fff !important;
+}
+
+/* DATATABLE */
+.datatable-widget-stack div.dataTables_length select {
+    width: auto;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+div.dataTables_wrapper div.dataTables_info {
+    padding-top: 0 !important;
+    justify-content: flex-end !important;
+    display: flex;
+}
+
+table.dataTable>tbody > tr{
+    border-color: transparent !important;
+}
+
+table.dataTable {
+    border-color: transparent !important;
+}
+
+/* PAGINATION DATATABLE */
+div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+    justify-content: flex-start !important;
+}
+
+div.dataTables_wrapper div.dataTables_paginate ul.pagination li a {
+    border: 1px solid #dee2e6 !important;
+}
+
+div.dataTables_wrapper div.dataTables_paginate ul.pagination li.active a {
+    border: 1px solid #145388 !important;
+}
+
+
+div.dataTables_wrapper div.dataTables_paginate ul.pagination li.previous a{
+    border-top-left-radius: 4px !important;
+    border-bottom-left-radius: 4px !important;
+}
+
+div.dataTables_wrapper div.dataTables_paginate ul.pagination li.next a{
+    border-top-right-radius: 4px !important;
+    border-bottom-right-radius: 4px !important;
+}
+
+.pagination li a {
+    border-radius: 0px !important;
+}
+
+/* BUTTON FOR FILTER */
+.filter-btn {}
+
+.filter-btn::after {
+    display: none !important;
+}
+
+.dropdown-item:hover{
+    color: #14203b;
+    text-decoration: none;
+    background-color: #e3ebf3;
+}
+
+.dropdown-item:focus {
+    color: #fff;
+    background-color: #145388;
+}
+
+.dropdown-item.active {
+    background-color: #145388 !important;
+}
+.dropdown-item.active:hover {
+    color: #fff !important;
+}
+
+.menu_hover_custom
+.sidebar {
+    width: 95px !important;
+}
+
+.menu_hover_custom .sidebar .nav-root.show .nav-dropdown-items {
+    display: none !important;
+}
+
+.menu_hover_custom .sidebar .dash-micon + span,
+.menu_hover_custom .sidebar .nav-icon + span {
+    display: none !important;
+}
+
+.menu_hover_custom .sidebar .dash-micon {
+    height: 24px !important;
+    width: 50px !important;
+    margin-right: 0px !important;
+    border-radius: 11px !important;
+}
+
+.menu_hover_custom .simplebar-content {
+    padding-right: 7px !important;
+}
+.menu_hover_custom .sidebar .nav-link {
+    padding: 10px !important;
+}
+.menu_hover_custom .sidebar .sidebar-nav .nav-group-toggle::after {
+    display: none !important;
+}
+
+.menu_hover_custom .wrapper {
+    padding-left: 6rem !important;
+}
+
+.menu_hover_custom .sidebar .sidebar-brand {
+    overflow: hidden !important;
+}
+
+.menu_hover_custom .sidebar .sidebar-brand img {
+    margin-left: 160px !important;
+    max-width: none !important;
+}
