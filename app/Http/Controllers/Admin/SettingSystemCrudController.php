@@ -2,17 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Carbon\Carbon;
 use App\Models\User;
-use App\Models\Project;
 use App\Models\Setting;
-use App\Models\ClientPo;
-use App\Models\Quotation;
 use Illuminate\Http\Request;
-use App\Models\InvoiceClient;
-use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\CrudController;
@@ -21,8 +14,8 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class SettingSystemCrudController extends CrudController
 {
-        use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-        use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 
 
     public function setup()
@@ -32,7 +25,8 @@ class SettingSystemCrudController extends CrudController
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.setting_system'), trans('backpack::crud.menu.setting_system'));
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         $this->card->addCard([
@@ -64,7 +58,8 @@ class SettingSystemCrudController extends CrudController
     }
 
 
-    function update_personal(Request $request){
+    function update_personal(Request $request)
+    {
 
         $user = backpack_user();
 
@@ -78,7 +73,7 @@ class SettingSystemCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $user = User::find($user->id);
             $user->name = $request->name;
@@ -103,8 +98,7 @@ class SettingSystemCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($user->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -114,8 +108,9 @@ class SettingSystemCrudController extends CrudController
         }
     }
 
-    function update_password(Request $request){
-         $user = backpack_user();
+    function update_password(Request $request)
+    {
+        $user = backpack_user();
 
         CRUD::setValidation([
             'old_password' => ['required'],
@@ -127,7 +122,7 @@ class SettingSystemCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             if (!Hash::check($request->old_password, $user->password)) {
                 return response()->json([
@@ -136,8 +131,8 @@ class SettingSystemCrudController extends CrudController
                 ], 422);
             }
 
-           $user->password = Hash::make($request->new_password);
-           $user->save();
+            $user->password = Hash::make($request->new_password);
+            $user->save();
 
             $this->data['entry'] = $this->crud->entry = $user;
 
@@ -157,8 +152,7 @@ class SettingSystemCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($user->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -190,7 +184,7 @@ class SettingSystemCrudController extends CrudController
 
         DB::beginTransaction();
 
-        try{
+        try {
 
             $settings = Setting::first();
 
@@ -212,8 +206,7 @@ class SettingSystemCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($settings->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -221,10 +214,10 @@ class SettingSystemCrudController extends CrudController
                 'error' => $e->getMessage(),
             ]);
         }
-
     }
 
-    function updateCompany(){
+    function updateCompany()
+    {
 
         CRUD::setValidation([
             'name_company'          => 'nullable|string|max:100',
@@ -246,7 +239,7 @@ class SettingSystemCrudController extends CrudController
 
         DB::beginTransaction();
 
-        try{
+        try {
 
             $settings = Setting::first();
 
@@ -269,8 +262,7 @@ class SettingSystemCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($settings->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -278,10 +270,10 @@ class SettingSystemCrudController extends CrudController
                 'error' => $e->getMessage(),
             ]);
         }
-
     }
 
-    function updateLogo(){
+    function updateLogo()
+    {
         CRUD::setValidation([
             'logo_dark'  => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'logo_light' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -294,7 +286,7 @@ class SettingSystemCrudController extends CrudController
 
         DB::beginTransaction();
 
-        try{
+        try {
 
             $settings = Setting::first();
 
@@ -347,8 +339,7 @@ class SettingSystemCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($settings->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -356,7 +347,5 @@ class SettingSystemCrudController extends CrudController
                 'error' => $e->getMessage(),
             ]);
         }
-
     }
-
 }
