@@ -182,7 +182,7 @@
             <tr>
                 @php
                     // $total_price = (int) $total_price + $header->price_dpp + $price_ppn;
-                    $total_price = (int) $header->price_total_exclude_ppn + $header->price_dpp + $price_ppn;
+                    $total_price = (int) $header->price_total_exclude_ppn + $price_ppn;
                 @endphp
                 <th colspan="2" class="text-right remove-border border-item border-bottom">Total</th>
                 <th class="remove-border border-item border-bottom">

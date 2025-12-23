@@ -1166,9 +1166,9 @@ class InvoiceClientCrudController extends CrudController
         try {
 
             $total_price = 0;
-            if ($request->dpp_other) {
-                $total_price += $request->dpp_other;
-            }
+            // if ($request->dpp_other) {
+            //     $total_price += $request->dpp_other;
+            // }
             if ($request->nominal_include_ppn) {
                 $total_price += $request->nominal_include_ppn;
             }
@@ -1268,9 +1268,9 @@ class InvoiceClientCrudController extends CrudController
             // $old_invoice = InvoiceClient::find($id);
 
             $total_price = 0;
-            if ($request->dpp_other) {
-                $total_price += $request->dpp_other;
-            }
+            // if ($request->dpp_other) {
+            //     $total_price += $request->dpp_other;
+            // }
             if ($request->nominal_include_ppn) {
                 $total_price += $request->nominal_include_ppn;
             }
