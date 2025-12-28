@@ -184,7 +184,7 @@ return [
         'close' => 'Tutup',
         'bank_name' => 'Nama Bank',
         'no_account' => 'Nomor Rekening',
-        'transfer_balance' => 'Pindah Saldo',
+        'transfer_balance' => 'Pembayaran tagihan pinjaman',
         'move' => 'Pindah',
         'cancel' => 'Batalkan',
     ],
@@ -579,6 +579,7 @@ return [
         'title_modal_edit' => 'Akun Rekening Kas',
         'title_modal_delete' => 'Akun Rekening Kas',
         'title_modal_create_transaction' => 'Data Transaksi',
+        'title_modal_create_transaction_loan' => 'Data Transaksi Pinjaman',
         'field' => [
             'name' => [
                 'label' => 'Nama Rekening',
@@ -601,6 +602,21 @@ return [
             ]
         ],
         'field_transaction' => [
+            'kode' => [
+                'label' => 'Code Pinjaman',
+            ],
+            'date' => [
+                'label' => 'Tanggal',
+            ],
+            'loan' => [
+                'label' => 'Pinjaman',
+            ],
+            'nominal' => [
+                'label' => 'Nominal',
+            ],
+            'status_loan' => [
+                'label' => 'Status',
+            ],
             'date_transaction' => [
                 'label' => 'Tanggal Transaksi',
                 'placeholder' => 'Pilih Tanggal',
@@ -664,8 +680,10 @@ return [
             ],
             'errors' => [
                 'nominal_transfer_to_more' => 'Nominal tidak boleh melebihi jumlah saldo.',
+                'nominal_transfer_to_more_destination' => 'Nominal tidak boleh melebihi jumlah saldo rekening Kas.',
                 'to_account_is_same' => 'Rekening tujuan harus berbeda dengan rekening yang dipindah',
-                'account_id_exist' => 'Akun rekening harus berbeda dengan akun rekening lainnya'
+                'account_id_exist' => 'Akun rekening harus berbeda dengan akun rekening lainnya',
+                'nominal_payment_to_more' => 'Nominal tidak boleh melebihi jumlah sisa pembayaran.',
             ]
         ]
     ],
@@ -704,8 +722,12 @@ return [
             ],
             'balance_information' => [
                 'label' => 'Saldo',
-                'placeholder' => 'Nominal Yang Ingin Dipindahkan'
-            ]
+                'balance_information' => "Jumlah Sisa Tagihan Pembayaran",
+                'loan_transaction_flag_id' => 'Kode Pinjaman',
+                'placeholder' => 'Nominal Yang Ingin Dipindahkan',
+                'date' => 'Tanggal penagihan',
+                'payment_price' => 'Nominal Pembayaran',
+            ],
         ]
     ],
     'expense_account' => [

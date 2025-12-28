@@ -1671,18 +1671,6 @@ class VoucherCrudController extends CrudController
     public function select2_no_po_spk()
     {
         $q = request()->q;
-        // $po = ClientPo::select(DB::raw("id, po_number, 'client' as type"))->where('po_number', 'like', "%$q%");
-
-        // $spk = Spk::leftJoin('subkons', 'subkons.id', '=', 'spk.subkon_id')
-        // ->select(DB::raw("
-        //     subkons.name as name_company,
-        //     subkons.bank_name as bank_name,
-        //     subkons.bank_account as bank_account,
-        //     spk.id as id,
-        //     spk.no_spk as no_po_spk,
-        //     spk.date_spk as date_po_spk,
-        //     'spk' as type
-        // "))->where('spk.no_spk', 'like', "%$q%");
 
         $po_subkon = PurchaseOrder::select(DB::raw("id, po_number, 'subkon' as type"));
         $po_spk = Spk::select(DB::raw("id, no_spk as po_number, 'spk' as type"));

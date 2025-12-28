@@ -6,8 +6,8 @@
 
 {{-- hidden input --}}
 @include('crud::fields.inc.wrapper_start')
-    <p class="mb-1">
-        <strong><span style="font-size: 20px;">{{trans('backpack::crud.cash_account_loan.field.balance_information.label')}}</span></strong>
+    <p class="mb-1" style="display: none;" id="balance_information">
+        <strong><span style="font-size: 20px;">{{trans('backpack::crud.cash_account_loan.field.balance_information.balance_information')}}</span></strong>
         <span class="total_saldo fs-4 fw-bold text-dark">{{$field['value']}}</span>
     </p>
     {{-- <h5>{{trans('backpack::crud.cash_account_loan.field.balance_information.placeholder')}}</h5> --}}

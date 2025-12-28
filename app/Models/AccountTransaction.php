@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Models;
+
 use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use Illuminate\Database\Eloquent\Model;
@@ -45,11 +47,13 @@ class AccountTransaction extends Model
         return $this->belongsTo(CastAccount::class, 'cast_account_id');
     }
 
-    public function cast_account_destination(){
+    public function cast_account_destination()
+    {
         return $this->belongsTo(CastAccount::class, 'cast_account_destination_id');
     }
 
-    public function account(){
+    public function account()
+    {
         return $this->belongsTo(Account::class, 'account_id');
     }
 

@@ -1726,7 +1726,7 @@ class CastAccountsCrudController extends CrudController
         $castAccount = CastAccount::where('id', $id)->first();
         $detail = AccountTransaction::where('cast_account_id', $id)
             ->where('is_first', 0)
-            ->orderBy('date_transaction', 'ASC')->get();
+            ->orderBy('id', 'DESC')->get();
         $has_access_primary = $this->accessAccount($id);
 
         foreach ($detail as $entry) {

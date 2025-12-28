@@ -66,13 +66,23 @@
                 @endif
             @endif
             @if ($crud->hasAccessToAll(['create', 'delete']))
-                <button
-                    id="btn-{{$name}}-add"
-                    data-route="{{url($crud->route.'/create?_id='.$detail->id)}}"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalCreate"
-                    data-title="{{ trans('backpack::crud.add').' '.trans('backpack::crud.cash_account.title_modal_create_transaction') }}"
-                    class="btn btn-sm btn-primary"><i class="la la-plus"></i></button>
+                @if ($detail->status == \App\Models\CastAccount::LOAN)
+                    <button
+                        id="btn-{{$name}}-add"
+                        data-route="{{url($crud->route.'/create?_id='.$detail->id)}}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalCreate"
+                        data-title="{{ trans('backpack::crud.add').' '.trans('backpack::crud.cash_account.title_modal_create_transaction_loan') }}"
+                        class="btn btn-sm btn-primary"><i class="la la-plus"></i></button>
+                @else
+                    <button
+                        id="btn-{{$name}}-add"
+                        data-route="{{url($crud->route.'/create?_id='.$detail->id)}}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalCreate"
+                        data-title="{{ trans('backpack::crud.add').' '.trans('backpack::crud.cash_account.title_modal_create_transaction') }}"
+                        class="btn btn-sm btn-primary"><i class="la la-plus"></i></button>
+                @endif
                 <button
                     id="btn-{{$name}}"
                     {{-- onclick="deleteEntryCardAccount(this)" --}}
@@ -100,11 +110,12 @@
             <table class="info-cast-account table text-center">
                 <thead class="text-center">
                     <tr>
-                    <th>{{trans('backpack::crud.cash_account.field_transaction.date_transaction.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.kode.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.date.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.loan.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account.field_transaction.nominal.label')}}</th>
-                    <th>{{trans('backpack::crud.cash_account_loan.field.cast_account_destination_id.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account.field_transaction.description.label')}}</th>
-                    <th>{{trans('backpack::crud.cash_account.field_transaction.status.label')}}</th>
+                    <th>{{trans('backpack::crud.cash_account.field_transaction.status_loan.label')}}</th>
                     </tr>
                 </thead>
                 <tbody class="text-center">
@@ -167,10 +178,11 @@
                                 forEachFlexible(data.result.detail, function(key, value){
                                     table.append(`
                                     <tr>
-                                        <td>${value.date_transaction_str}</td>
-                                        <td>${value.nominal_transaction_str}</td>
-                                        <td>${value.destination_str}</td>
-                                        <td>${value.description_str}</td>
+                                        <td>${value.kode_str}</td>
+                                        <td>${value.date_str}</td>
+                                        <td>${value.loan_str}</td>
+                                        <td>${value.nominal_str}</td>
+                                        <td>${value.description}</td>
                                         <td>${value.status_str}</td>
                                     </tr>`);
                                 });
