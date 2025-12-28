@@ -51,7 +51,7 @@
                     data-bs-toggle="modal"
                     data-bs-target="#modalCreate"
                     data-title="{{ trans('backpack::crud.modal.transfer_balance') }}"
-                    class="btn btn-sm btn-primary"><i class="la la-exchange-alt"></i></button>
+                    class="btn btn-sm btn-primary"><i class="la la-hand-holding-usd"></i></button>
                 @endif
             @else
                 @if ($access->where('id', 3)->first())
