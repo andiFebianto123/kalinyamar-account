@@ -620,6 +620,12 @@ class CastAccountsLoanCrudController extends CrudController
     function get_loan_balance_ajax()
     {
         $search = request()->input('loan_transaction_flag_id');
+        if ($search == null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Loan transaction flag not found',
+            ]);
+        }
         $loan_transaction_flag = LoanTransactionFlag::find($search);
         $total_balance_out = AccountTransaction::where("reference_id", $search)
             ->whereNull('cast_account_destination_id')

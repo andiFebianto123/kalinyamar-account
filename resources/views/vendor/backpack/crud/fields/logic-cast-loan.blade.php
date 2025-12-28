@@ -28,8 +28,12 @@
                             loan_transaction_flag_id: $(form+' select[name="loan_transaction_flag_id"]').val()
                         },
                         success: function(response){
-                            $(form+' #balance_information').show();
-                            $(form+' .total_saldo').html(response.remaining_balance);
+                            if(response.status == false){
+                                $(form+' #balance_information').hide();
+                            }else{
+                                $(form+' #balance_information').show();
+                                $(form+' .total_saldo').html(response.remaining_balance);
+                            }
                         }
                     });
                 });
