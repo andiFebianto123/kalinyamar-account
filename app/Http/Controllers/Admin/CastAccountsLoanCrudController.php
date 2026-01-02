@@ -599,10 +599,19 @@ class CastAccountsLoanCrudController extends CrudController
 
     function loan_transaction_flag_select2()
     {
-        $this->crud->hasAccessOrFail('create');
+        $this->crud->hasAccessOrFail('create');;
 
         $search = request()->input('q');
-        $dataset = \App\Models\LoanTransactionFlag::select(['id', 'kode', 'total_price'])
+        $cast_account_id = request()->input('castaccount');
+
+        $dataset = LoanTransactionFlag::select(['id', 'kode', 'total_price'])
+            ->whereExists(function ($q) use ($cast_account_id) {
+                $q->selectRaw(1)
+                    ->from('account_transactions as at2')
+                    ->whereColumn('at2.reference_id', 'loan_transaction_flags.id')
+                    ->where('at2.reference_type', LoanTransactionFlag::class)
+                    ->where('at2.cast_account_id', $cast_account_id);
+            })
             ->where('kode', 'LIKE', "%$search%")
             ->orderBy('id', 'DESC')
             ->paginate(10);
@@ -772,7 +781,7 @@ class CastAccountsLoanCrudController extends CrudController
             'entity'      => 'account',
             //'model'       => 'App\Models\LoanTransactionFlag',
             'attribute'   => "kode",
-            'data_source' => backpack_url('cash-flow/cast-account-loan/loan-transaction-flag-select2'),
+            'data_source' => backpack_url('cash-flow/cast-account-loan/loan-transaction-flag-select2?castaccount=' . $id),
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
             ],
@@ -1486,23 +1495,19 @@ class CastAccountsLoanCrudController extends CrudController
     {
         $id = request()->_id;
         $castAccount = CastAccount::where('id', $id)->first();
-        $detail = AccountTransaction::query()
-            ->select([
-                'account_transactions.cast_account_id',
-                'loan_transaction_flags.kode as kode',
-                'account_transactions.date_transaction',
-                'account_transactions.total_saldo_after as loan_remaining',
-                'account_transactions.nominal_transaction as nominal',
-                'account_transactions.description',
-                'loan_transaction_flags.status',
-            ])
-            ->leftJoin(
-                'loan_transaction_flags',
-                'loan_transaction_flags.id',
-                '=',
-                'account_transactions.reference_id'
-            )
-            ->where('account_transactions.reference_type', LoanTransactionFlag::class)
+        $detail = AccountTransaction::select([
+            'account_transactions.cast_account_id',
+            'loan_transaction_flags.kode as kode',
+            'account_transactions.date_transaction',
+            'account_transactions.total_saldo_after as loan_remaining',
+            'account_transactions.nominal_transaction as nominal',
+            'account_transactions.description',
+            'loan_transaction_flags.status',
+        ])
+            ->join("loan_transaction_flags", function ($join) {
+                $join->on('loan_transaction_flags.id', '=', 'account_transactions.reference_id')
+                    ->where('account_transactions.reference_type', LoanTransactionFlag::class);
+            })
             ->where('account_transactions.cast_account_id', $id)
             ->orderByDesc('account_transactions.reference_id')
             ->orderBy('account_transactions.id')

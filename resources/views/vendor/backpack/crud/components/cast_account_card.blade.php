@@ -173,7 +173,7 @@
                             type: 'GET',
                             typeData: 'json',
                             success: function (data) {
-                                var table = $('.info-cast-account tbody');
+                                var table = $("#{{$name}} .info-cast-account tbody");
                                 table.empty();
                                 forEachFlexible(data.result.detail, function(key, value){
                                     table.append(`
