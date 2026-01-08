@@ -74,27 +74,28 @@ class PurchaseOrderCrudController extends CrudController
             'show' => $viewMenu,
             'print' => true,
         ]);
-
     }
 
-    public function setupTabsCrud($nameTabs){
-        if($nameTabs == 'open'){
+    public function setupTabsCrud($nameTabs)
+    {
+        if ($nameTabs == 'open') {
             $crud = new PurchaseOrderTabController();
             $crud->get_crud();
             return $crud;
         }
     }
 
-    public function total_price(){
+    public function total_price()
+    {
         $filter_year = request()->filter_year;
         $total_open = PurchaseOrder::where('status', PurchaseOrder::OPEN);
-        if($filter_year != null && $filter_year != 'all'){
+        if ($filter_year != null && $filter_year != 'all') {
             $total_open = $total_open->where(DB::raw("YEAR(date_po)"), $filter_year);
         }
         $total_open = $total_open->sum('total_value_with_tax');
 
         $total_closed = PurchaseOrder::where('status', PurchaseOrder::CLOSE);
-        if($filter_year != null && $filter_year != 'all'){
+        if ($filter_year != null && $filter_year != 'all') {
             $total_closed = $total_closed->where(DB::raw("YEAR(date_po)"), $filter_year);
         }
         $total_closed = $total_closed->sum('total_value_with_tax');
@@ -427,7 +428,7 @@ class PurchaseOrderCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -442,7 +443,7 @@ class PurchaseOrderCrudController extends CrudController
             'total_value_with_tax' => request()->job_value + (request()->job_value * request()->tax_ppn / 100),
         ]);
 
-        if(request()->tax_ppn == null){
+        if (request()->tax_ppn == null) {
             request()->merge([
                 'tax_ppn' => 0,
             ]);
@@ -453,7 +454,7 @@ class PurchaseOrderCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $status = request()->status;
             $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
@@ -482,8 +483,7 @@ class PurchaseOrderCrudController extends CrudController
                 ]);
             }
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -507,7 +507,7 @@ class PurchaseOrderCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -523,7 +523,7 @@ class PurchaseOrderCrudController extends CrudController
             'total_value_with_tax' => request()->job_value + (request()->job_value * request()->tax_ppn / 100),
         ]);
 
-        if(request()->tax_ppn == null){
+        if (request()->tax_ppn == null) {
             request()->merge([
                 'tax_ppn' => 0,
             ]);
@@ -534,7 +534,7 @@ class PurchaseOrderCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $status = request()->status;
             $item = $this->crud->update(
@@ -569,8 +569,7 @@ class PurchaseOrderCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -580,7 +579,8 @@ class PurchaseOrderCrudController extends CrudController
         }
     }
 
-    public function setCustomColumn($app){
+    public function setCustomColumn($app)
+    {
         CRUD::disableResponsiveTable();
 
         $settings = Setting::first();
@@ -675,7 +675,7 @@ class PurchaseOrderCrudController extends CrudController
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return $entry->job_value + ($entry->job_value * $entry->tax_ppn / 100);
                 }
             ],
@@ -691,7 +691,7 @@ class PurchaseOrderCrudController extends CrudController
             'label'  => trans('backpack::crud.po.column.status'),
             'name' => 'status',
             'type'  => 'closure',
-            'function' => function($entry){
+            'function' => function ($entry) {
                 return strtoupper($entry->status);
             }
         ]);
@@ -713,14 +713,13 @@ class PurchaseOrderCrudController extends CrudController
 
         $request = request();
 
-        if($request->has('filter_year')){
-            if($request->filter_year != 'all'){
+        if ($request->has('filter_year')) {
+            if ($request->filter_year != 'all') {
                 $filterYear = $request->filter_year;
                 $this->crud->query = $this->crud->query
-                ->where(DB::raw("YEAR(date_po)"), $filterYear);
+                    ->where(DB::raw("YEAR(date_po)"), $filterYear);
             }
         }
-
     }
 
     /**
@@ -737,9 +736,9 @@ class PurchaseOrderCrudController extends CrudController
 
 
         $type = request()->tab;
-        if($type == 'open'){
+        if ($type == 'open') {
             $this->crud->query = $this->crud->query->where('status', PurchaseOrder::OPEN);
-        }else if($type == 'close'){
+        } else if ($type == 'close') {
             $this->crud->query = $this->crud->query->where('status', PurchaseOrder::CLOSE);
         }
         $this->setCustomColumn($this->crud);
@@ -763,20 +762,20 @@ class PurchaseOrderCrudController extends CrudController
         $work_code_disable = [
             // 'disabled' => true,
         ];
-        if(!$this->crud->getCurrentEntryId()){
+        if (!$this->crud->getCurrentEntryId()) {
             $po_prefix_value = [
                 'value' => $settings?->po_prefix,
             ];
-            if($settings?->work_code_prefix){
+            if ($settings?->work_code_prefix) {
                 $work_code_prefix = [
                     'value' => $settings->work_code_prefix,
                 ];
             }
-        }else{
+        } else {
             $id = $this->crud->getCurrentEntryId();
             $voucher_exists = Voucher::where('reference_type', PurchaseOrder::class)
-            ->where('reference_id', $id)->first();
-            if($voucher_exists){
+                ->where('reference_id', $id)->first();
+            if ($voucher_exists) {
                 $work_code_disable = [
                     'disabled' => true,
                 ];
@@ -892,7 +891,7 @@ class PurchaseOrderCrudController extends CrudController
             'name' => 'tax_ppn',
             'label' => trans('backpack::crud.po.column.tax_ppn'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -913,7 +912,7 @@ class PurchaseOrderCrudController extends CrudController
             'attributes' => [
                 'placeholder' => trans('backpack::crud.spk.field.total_value_with_tax.placeholder'),
             ],
-              // optionals
+            // optionals
             // 'attributes' => ["step" => "any"], // allow decimals
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
@@ -956,7 +955,7 @@ class PurchaseOrderCrudController extends CrudController
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
-             'withFiles' => [
+            'withFiles' => [
                 'disk' => 'public',
                 'path' => 'document_po',
                 'deleteWhenEntryIsDeleted' => true,
@@ -1011,7 +1010,7 @@ class PurchaseOrderCrudController extends CrudController
         $this->setupCreateOperation();
     }
 
-     protected function setupShowOperation()
+    protected function setupShowOperation()
     {
         $this->setupCreateOperation();
 
@@ -1076,11 +1075,11 @@ class PurchaseOrderCrudController extends CrudController
                 'label'  => trans('backpack::crud.po.column.document_path'),
                 'name' => 'document_path',
                 'type'  => 'text',
-                 'wrapper'   => [
+                'wrapper'   => [
                     'element' => 'a', // the element will default to "a" so you can skip it here
                     'href' => function ($crud, $column, $entry, $related_key) {
-                        if($entry->document_path != ''){
-                            return url('storage/document_po/'.$entry->document_path);
+                        if ($entry->document_path != '') {
+                            return url('storage/document_po/' . $entry->document_path);
                         }
                         return "javascript:void(0)";
                     },
@@ -1136,7 +1135,7 @@ class PurchaseOrderCrudController extends CrudController
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         // return view($this->crud->getShowView(), $this->data);
@@ -1196,10 +1195,11 @@ class PurchaseOrderCrudController extends CrudController
         return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
 
-    public function exportExcel(Request $request){
-        $name = "document-subkon-po".now()->format('Ymd_His').".xlsx";
+    public function exportExcel(Request $request)
+    {
+        $name = "document-subkon-po" . now()->format('Ymd_His') . ".xlsx";
         $type = $request->tab;
-        return response()->streamDownload(function () use($type){
+        return response()->streamDownload(function () use ($type) {
             echo Excel::raw(new ExportVendorPo($type), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -1212,18 +1212,19 @@ class PurchaseOrderCrudController extends CrudController
         ], 400);
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->tab;
-        if($type == 'open'){
+        if ($type == 'open') {
             $type_origin = 'open';
-        }else if($type == 'close'){
+        } else if ($type == 'close') {
             $type_origin = 'close';
-        }else {
+        } else {
             $type_origin = 'all';
         }
         $items = new PurchaseOrder;
 
-        if($type_origin != 'all'){
+        if ($type_origin != 'all') {
             $items = $items->where('status', strtolower($type_origin));
         }
 
@@ -1237,7 +1238,7 @@ class PurchaseOrderCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
@@ -1269,7 +1270,5 @@ class PurchaseOrderCrudController extends CrudController
                 'message' => $e->getMessage()
             ], 500);
         }
-
     }
-
 }

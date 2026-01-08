@@ -32,7 +32,6 @@ class PurchaseOrderRequest extends FormRequest
             'subkon_id' => 'required|exists:subkons,id',
             'po_number' => 'required|string|max:255',
             'date_po' => 'required|string',
-            'work_code' => 'required|max:30|unique:purchase_orders,work_code,'. $id,
             'job_name' => 'required|string|max:255',
             'job_description' => 'required',
             'total_value_with_tax' => 'required|numeric|min:1000',
@@ -40,10 +39,10 @@ class PurchaseOrderRequest extends FormRequest
             'document_path' => ValidUpload::field('required')->file('mimes:pdf|max:5000'),
         ];
 
-        if(request()->has('work_code')){
-            $rule['work_code'] = 'required|max:30|unique:purchase_orders,work_code,'.$id;
-        }else{
-            $rule['work_code'] = 'nullable|max:30|unique:purchase_orders,work_code,'.$id;
+        if (request()->has('work_code')) {
+            $rule['work_code'] = 'required|max:30';
+        } else {
+            $rule['work_code'] = 'nullable|max:30';
         }
 
         return $rule;

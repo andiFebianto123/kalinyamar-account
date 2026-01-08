@@ -188,7 +188,7 @@ class VoucherCrudController extends CrudController
             // kolom 14
             if (isset($request->search[14])) {
                 $search = trim($request->search[14]);
-                $data = $data->where('no_account', 'like', '%' . $search . '%');
+                $data = $data->where('cast_accounts.name', 'like', '%' . $search . '%');
             }
 
             // kolom 15
@@ -537,6 +537,9 @@ class VoucherCrudController extends CrudController
                 })
                 ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
 
+            $this->crud->query =
+                $this->crud->query->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
+
             if ($user_approval->count() > 0) {
                 $this->crud->query = $this->crud->query
                     ->leftJoin('approvals as user_live_approvals', function ($join) use ($user_id) {
@@ -659,7 +662,7 @@ class VoucherCrudController extends CrudController
 
             if (trim($request->columns[14]['search']['value']) != '') {
                 $this->crud->query = $this->crud->query
-                    ->where('no_account', 'like', '%' . $request->columns[14]['search']['value'] . '%');
+                    ->where('cast_accounts.name', 'like', '%' . $request->columns[14]['search']['value'] . '%');
             }
 
             if (trim($request->columns[15]['search']['value']) != '') {
@@ -699,9 +702,6 @@ class VoucherCrudController extends CrudController
                 $this->crud->query = $this->crud->query
                     ->where('payment_date', 'like', '%' . $request->columns[19]['search']['value'] . '%');
             }
-
-            $this->crud->query =
-                $this->crud->query->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
 
             CRUD::addColumn([
@@ -1084,7 +1084,7 @@ class VoucherCrudController extends CrudController
             if (isset($request->columns[14]['search']['value'])) {
                 $search = trim($request->columns[14]['search']['value']);
                 $this->crud->query = $this->crud->query
-                    ->where('no_account', 'like', '%' . $search . '%');
+                    ->where('cast_accounts.name', 'like', '%' . $search . '%');
             }
 
             if (isset($request->columns[15]['search']['value'])) {
