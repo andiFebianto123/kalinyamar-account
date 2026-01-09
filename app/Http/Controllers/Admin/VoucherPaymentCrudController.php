@@ -745,7 +745,7 @@ class VoucherPaymentCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
-        $this->data['title_modal_create'] = trans('backpack::crud.voucher_payment.title_modal_create');
+        $this->data['title_modal_create'] = trans('backpack::crud.voucher_payment.title_modal_create_payment');
         $this->data['title_modal_edit'] = trans('backpack::crud.voucher_payment.title_modal_edit');
         $this->data['title_modal_delete'] = trans('backpack::crud.voucher_payment.title_modal_delete');
         $this->data['cards'] = $this->card;
