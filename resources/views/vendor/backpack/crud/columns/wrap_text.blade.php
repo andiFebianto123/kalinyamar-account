@@ -18,17 +18,24 @@
     if(!empty($column['value'])) {
         $column['text'] = $column['prefix'].$column['value'].$column['suffix'];
     }
+
+    $column['width_box'] = $column['width_box'] ?? '300px';
+
 @endphp
 
 <span>
     @includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_start')
 
-    @if(strlen($column['text']) > 30) <div style="white-space: normal; word-wrap: break-word; width: 300px;"> @endif
+    @if(strlen($column['text']) > 30) 
+        <div style="white-space: normal; word-wrap: break-word; width: {{ $column['width_box'] }};"> 
+    @endif
         @if($column['escaped'])
             {{ $column['text'] }}
         @else
             {!! $column['text'] !!}
         @endif
-    @if(strlen($column['text']) > 30) </div> @endif
+    @if(strlen($column['text']) > 30) 
+        </div> 
+    @endif
     @includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_end')
 </span>

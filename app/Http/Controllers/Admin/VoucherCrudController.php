@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -36,6 +37,7 @@ class VoucherCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
+    use FormaterExport;
 
     public function setup()
     {
@@ -3686,6 +3688,7 @@ class VoucherCrudController extends CrudController
             'label'  => '',
             'name' => 'payment_description',
             'type'  => 'wrap_text',
+            'width_box' => '100%',
         ]);
 
         CRUD::column(
