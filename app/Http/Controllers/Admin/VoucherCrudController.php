@@ -15,12 +15,11 @@ use App\Models\CastAccount;
 use App\Models\VoucherEdit;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
-use App\Models\PaymentVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Helpers\CustomVoid;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
-use App\Models\PaymentVoucherPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
@@ -2457,7 +2456,6 @@ class VoucherCrudController extends CrudController
             $item->payment_date = $request->payment_date;
             $item->priority = $request->priority;
             $item->information = $request->information ?? '';
-            $item->save();
 
             $fieldsToLog = [
                 'no_payment',
@@ -2586,26 +2584,16 @@ class VoucherCrudController extends CrudController
             }
 
             if ($flag_validation_field) {
-                if ($flag_approval_status) {
-                    // delete payment
-                    $vp = PaymentVoucher::where('voucher_id', $item->id)->first();
-                    if ($vp) {
-                        $vpp = PaymentVoucherPlan::where('payment_voucher_id', $vp->id)->first();
-                        if ($vpp) {
-                            Approval::where('model_type', PaymentVoucherPlan::class)
-                                ->where('model_id', $vpp->id)->delete();
-                            $vpp->delete();
-                        }
-                        $vp->delete();
-                    }
-                }
+                // delete all history payment snapshot
+                $item->payment_status = 'BELUM BAYAR';
+                CustomVoid::rollbackPayment(Voucher::class, $item->id);
+                CustomVoid::voucherCreate($item);
+                CustomVoid::voucherAllPph($item);
             }
 
-            CustomHelper::rollbackPayment(Voucher::class, $item->id);
-            CustomHelper::voucherEntry($item);
+            $item->save();
 
             \Alert::success(trans('backpack::crud.update_success'))->flash();
-
 
             $this->crud->setSaveAction();
 
@@ -2867,8 +2855,8 @@ class VoucherCrudController extends CrudController
                 }
             }
 
-            CustomHelper::voucherEntry($item);
-            CustomHelper::voucherCreate($item->id);
+            CustomVoid::voucherCreate($item);
+            CustomVoid::voucherAllPph($item);
 
             $event['crudTable-voucher_create_success'] = $item;
             $event['crudTable-history_edit_voucher_create_success'] = $item;
@@ -2945,8 +2933,6 @@ class VoucherCrudController extends CrudController
             $user_id = backpack_user()->id;
 
             $voucher_edit = VoucherEdit::find($id);
-            $voucher_id = $voucher_edit->voucher_id;
-
             $event = [];
 
             $approval_before = Approval::where('model_type', VoucherEdit::class)
@@ -2965,38 +2951,9 @@ class VoucherCrudController extends CrudController
                 ->where('no_apprv', $request->no_apprv)
                 ->first();
 
-            $final_approval = Approval::where('model_type', VoucherEdit::class)
-                ->where('model_id', $voucher_edit->id)
-                ->orderBy('no_apprv', 'DESC')->first();
-
             $approval->status = $request->action;
             $approval->approved_at = Carbon::now();
             $approval->save();
-
-            $voucher = Voucher::find($voucher_id);
-
-            if ($request->action == Approval::APPROVED) {
-
-                if ($final_approval->no_apprv == $request->no_apprv) {
-                    // $this->addTransaction($voucher_id);
-                }
-
-                // if($final_approval->no_apprv == $request->no_apprv){
-                //     CustomHelper::updateOrCreateJournalEntry([
-                //         'account_id' => $voucher->account_id,
-                //         'reference_id' => $voucher->id,
-                //         'reference_type' => Voucher::class,
-                //         'description' => 'FIRST BALANCE',
-                //         'date' => Carbon::now(),
-                //         'debit' => $voucher->payment_transfer,
-                //         // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-                //     ], [
-                //         'account_id' => $voucher->account_id,
-                //         'reference_id' => $voucher->id,
-                //         'reference_type' => Voucher::class,
-                //     ]);
-                // }
-            }
 
             $event['crudTable-voucher_create_success'] = true;
             $event['crudTable-history_edit_voucher_create_success'] = true;
@@ -3907,7 +3864,7 @@ class VoucherCrudController extends CrudController
             $voucher_edit = VoucherEdit::where('voucher_id', $id)->get();
 
             foreach ($voucher_edit as $edit_v) {
-                $approval = Approval::where('model_type', VoucherEdit::class)
+                Approval::where('model_type', VoucherEdit::class)
                     ->where('model_id', $edit_v->id)->delete();
                 $edit_v->delete();
             }

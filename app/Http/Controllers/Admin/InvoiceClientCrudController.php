@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Models\ClientPo;
 use App\Models\InvoiceClient;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Helpers\CustomVoid;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
@@ -1212,8 +1213,8 @@ class InvoiceClientCrudController extends CrudController
 
             $this->data['entry'] = $this->crud->entry = $invoice;
 
-            // $this->applyInvoicePaymentToAccount($invoice);
-            CustomHelper::invoiceEntry($invoice);
+            CustomVoid::invoiceMakeVoucherMoveAccount($invoice);
+            CustomVoid::invoiceCreate($invoice);
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
@@ -1265,12 +1266,8 @@ class InvoiceClientCrudController extends CrudController
         DB::beginTransaction();
         try {
 
-            // $old_invoice = InvoiceClient::find($id);
-
             $total_price = 0;
-            // if ($request->dpp_other) {
-            //     $total_price += $request->dpp_other;
-            // }
+
             if ($request->nominal_include_ppn) {
                 $total_price += $request->nominal_include_ppn;
             }
@@ -1282,8 +1279,9 @@ class InvoiceClientCrudController extends CrudController
                 $total_item_price += (int) ($item['price'] != '' && $item['price'] != null) ? $item['price'] : 0;
             }
 
-            // $item = $this->crud->create($this->crud->getStrippedSaveRequest($request));
             $invoice = InvoiceClient::where('id', $id)->first();
+            $old_client_po_id = $invoice->client_po_id;
+
             $invoice->invoice_number = $request->invoice_number;
             $invoice->name = 'invoice';
             $invoice->address_po = ($request->address_po != '' && $request->address_po != null) ? $request->address_po : '';
@@ -1315,14 +1313,7 @@ class InvoiceClientCrudController extends CrudController
 
             $this->data['entry'] = $this->crud->entry = $invoice;
 
-            // if($old_invoice->status != $invoice->status){
-            //     if($invoice->status == 'Paid'){
-            //         $this->applyInvoicePaymentToAccount($invoice);
-            //     }
-            // }
-            // kondisi ini akan mengembalikan invoice waktu buat sebelum ada voucher
-            CustomHelper::rollbackPayment(InvoiceClient::class, $invoice->id);
-            CustomHelper::invoiceEntry($invoice);
+            CustomVoid::invoiceUpdate($invoice, $old_client_po_id);
 
             DB::commit();
             // show a success message
@@ -1805,9 +1796,11 @@ class InvoiceClientCrudController extends CrudController
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id; // id invoice
-        CustomHelper::rollbackPayment(InvoiceClient::class, $id);
 
-        $this->crud->delete($id);
+        $invoice = InvoiceClient::find($id);
+
+        CustomVoid::invoiceDelete($invoice);
+        $invoice->delete();
         $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
         $messages['events'] = [
             'crudTable-filter_invoice_plugin_load' => true,

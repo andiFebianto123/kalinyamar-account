@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Setting;
+use App\Models\LogPayment;
 use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
@@ -1206,12 +1207,9 @@ class CastAccountsCrudController extends CrudController
                 'reference_type' => CastAccount::class,
             ]);
 
-            // \Alert::success(trans('backpack::crud.insert_success'))->flash();
-
             $this->crud->setSaveAction();
 
             DB::commit();
-            // return $this->crud->performSaveAction($item->getKey());
 
             return response()->json([
                 'success' => true,
@@ -1424,6 +1422,8 @@ class CastAccountsCrudController extends CrudController
             $no_invoice = $request->no_invoice;
             $status = $status_account;
 
+            $log_payment = [];
+
             $cast_account = CastAccount::where('id', $cast_account_id)->first();
             $before_saldo = $cast_account->total_saldo;
 
@@ -1465,9 +1465,16 @@ class CastAccountsCrudController extends CrudController
                 $newTransaction->account_id = $request->account_id;
                 $newTransaction->save();
 
+                $log_payment[] = [
+                    'id' => $newTransaction->id,
+                    'reference_id' => $newTransaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'type' => AccountTransaction::class,
+                ];
+
                 // catat di journal
-                CustomHelper::invoicePaymentTransaction($newTransaction, $invoice);
-                CustomHelper::updateOrCreateJournalEntry([
+                CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment);
+                $journal_account_trans = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $newTransaction->account_id,
                     'reference_id' => $newTransaction->id,
                     'reference_type' => AccountTransaction::class,
@@ -1480,8 +1487,21 @@ class CastAccountsCrudController extends CrudController
                     'reference_id' => $newTransaction->id,
                     'reference_type' => AccountTransaction::class,
                 ]);
+
+                $log_payment[] = [
+                    'id' => $journal_account_trans->id,
+                    'reference_id' => $newTransaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'type' => JournalEntry::class,
+                ];
             } else {
                 $newTransaction->save();
+                $log_payment[] = [
+                    'id' => $newTransaction->id,
+                    'reference_id' => $newTransaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'type' => AccountTransaction::class,
+                ];
             }
 
 
@@ -1490,7 +1510,7 @@ class CastAccountsCrudController extends CrudController
             $updateAccount->save();
 
             // input tambah / kurang saldo ke akun bank
-            CustomHelper::updateOrCreateJournalEntry([
+            $bank_account_trans = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $updateAccount->account_id,
                 'reference_id' => $newTransaction->id,
                 'reference_type' => AccountTransaction::class,
@@ -1504,12 +1524,42 @@ class CastAccountsCrudController extends CrudController
                 'reference_type' => AccountTransaction::class,
             ]);
 
+            $log_payment[] = [
+                'id' => $bank_account_trans->id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'type' => JournalEntry::class,
+            ];
+
             $item = $newTransaction;
             $item->new_saldo = 'Rp' . CustomHelper::formatRupiah($item->total_saldo_after);
 
             $this->data['entry'] = $this->crud->entry = $item;
 
-            // \Alert::success(trans('backpack::crud.insert_success'))->flash();
+            if (sizeof($log_payment) > 0) {
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = AccountTransaction::class;
+                $newLogPayment->reference_id = $newTransaction->id;
+                $newLogPayment->name = "CREATE_TRANSACTION";
+                $newLogPayment->snapshot = json_encode($log_payment);
+                $newLogPayment->save();
+            }
+
+            if ($invoice) {
+                // jika adalah invoice
+                foreach ($log_payment as $log) {
+                    $log['reference_id'] = $invoice->id;
+                    $log['reference_type'] = InvoiceClient::class;
+                }
+                if (sizeof($log_payment) > 0) {
+                    $newLogPayment = new LogPayment;
+                    $newLogPayment->reference_type = InvoiceClient::class;
+                    $newLogPayment->reference_id = $invoice->id;
+                    $newLogPayment->name = "CREATE_PAYMENT_INVOICE";
+                    $newLogPayment->snapshot = json_encode($log_payment);
+                    $newLogPayment->save();
+                }
+            }
 
             $this->crud->setSaveAction();
 

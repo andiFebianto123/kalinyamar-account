@@ -13,6 +13,7 @@ use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use App\Models\PaymentVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Helpers\CustomVoid;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use App\Models\PaymentVoucherPlan;
@@ -2482,6 +2483,12 @@ class VoucherPaymentCrudController extends CrudController
                     ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
             })
             ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
+            ->whereExists(function ($query) {
+                // harus sudah ada invoicenya
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'vouchers.client_po_id');
+            })
             ->where('approvals.status', Approval::APPROVED)
             ->where('vouchers.payment_status', 'BELUM BAYAR')
             ->select(DB::raw("
@@ -2531,19 +2538,15 @@ class VoucherPaymentCrudController extends CrudController
                 $voucherItem->payment_status = 'BAYAR';
                 $voucherItem->payment_date = Carbon::now();
                 $voucherItem->save();
-                $type = '';
                 if ($voucherItem->payment_type == 'NON RUTIN') {
-                    $type = 'NON RUTIN';
                     $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
                     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
                 } else {
-                    $type = 'SUBKON';
                     $event['crudTable-voucher_payment_rutin_create_success'] = true;
                     $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
                 }
 
-                // $this->addTransaction($id_v);
-                CustomHelper::voucherPayment($voucherItem);
+                CustomVoid::voucherPayment($voucherItem);
             }
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
