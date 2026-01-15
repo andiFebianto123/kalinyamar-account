@@ -2834,8 +2834,14 @@ class VoucherPaymentPlanCrudController extends CrudController
             Approval::where('model_type', 'App\\Models\\PaymentVoucherPlan')
                 ->where('model_id', $payment_voucher_plan->id)
                 ->delete();
-            // $payment_voucher_plan->delete();
-            // $payment_voucher->delete();
+
+            if ($payment_voucher) {
+                $payment_voucher->delete();
+            }
+
+            if ($payment_voucher_plan) {
+                $payment_voucher_plan->delete();
+            }
 
             CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "CREATE_PLAN_PAYMENT_VOUCHER");
             CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "CREATE_PAYMENT_VOUCHER");
