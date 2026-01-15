@@ -10,6 +10,7 @@ use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Exports\ExportExcel;
+use App\Models\GlobalChangedLogs;
 use App\Http\Helpers\CustomHelper;
 use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
@@ -1438,6 +1439,7 @@ class CastAccountsCrudController extends CrudController
             if ($request->has('kdp') || $request->has('no_invoice')) {
                 $id = $request->kdp ?? $request->no_invoice;
                 $invoice = InvoiceClient::find($id);
+                $old_invoice = clone $invoice;
                 $kdp = $invoice->kdp;
                 $no_invoice = $invoice->no_invoice;
                 $invoice->status = 'Paid';
@@ -1543,6 +1545,12 @@ class CastAccountsCrudController extends CrudController
                 $newLogPayment->name = "CREATE_TRANSACTION";
                 $newLogPayment->snapshot = json_encode($log_payment);
                 $newLogPayment->save();
+
+                if (isset($old_invoice) && $invoice != null) {
+                    GlobalChangedLogs::addCapture([
+                        'status',
+                    ], $old_invoice, $invoice, $newLogPayment->id);
+                }
             }
 
             if ($invoice) {
@@ -1558,6 +1566,12 @@ class CastAccountsCrudController extends CrudController
                     $newLogPayment->name = "CREATE_PAYMENT_INVOICE";
                     $newLogPayment->snapshot = json_encode($log_payment);
                     $newLogPayment->save();
+
+                    if (isset($old_invoice) && $invoice != null) {
+                        GlobalChangedLogs::addCapture([
+                            'status',
+                        ], $old_invoice, $invoice, $newLogPayment->id);
+                    }
                 }
             }
 

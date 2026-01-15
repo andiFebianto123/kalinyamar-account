@@ -12,6 +12,7 @@ use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use App\Models\PaymentVoucher;
+use App\Models\GlobalChangedLogs;
 use App\Models\AccountTransaction;
 use App\Models\PaymentVoucherPlan;
 
@@ -147,8 +148,8 @@ class CustomVoid
                 $account = Account::where('id', $voucher->account_id)->first();
                 $payment_transfer = $voucher->payment_transfer;
 
-                $invoice->status = 'Paid';
-                $invoice->save();
+                // $invoice->status = 'Paid';
+                // $invoice->save();
 
                 $trans_5 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
@@ -469,11 +470,13 @@ class CustomVoid
             ];
         }
 
+        $payment_date = Carbon::now();
+
         $transaksi = new AccountTransaction;
         $transaksi->cast_account_id = $voucher->account_source_id;
         $transaksi->reference_type = Voucher::class;
         $transaksi->reference_id = $voucher->id;
-        $transaksi->date_transaction = $voucher->payment_date;
+        $transaksi->date_transaction = $payment_date;
         $transaksi->nominal_transaction = $voucher->payment_transfer;
         $transaksi->total_saldo_before = 0;
         $transaksi->total_saldo_after = 0;
@@ -530,6 +533,19 @@ class CustomVoid
             $newLogPayment->save();
         }
 
+        // old voucher
+        $old_voucher = clone $voucher;
+        // update voucher
+        $voucher->payment_status = 'BAYAR';
+        $voucher->payment_date = $payment_date;
+        $voucher->save();
+
+        // add capture
+        GlobalChangedLogs::addCapture([
+            'payment_status',
+            'payment_date',
+        ], $old_voucher, $voucher, $newLogPayment->id);
+
         foreach ($log_payment as $log) {
             $log['reference_id'] = $transaksi->id;
             $log['reference_type'] = AccountTransaction::class;
@@ -543,6 +559,11 @@ class CustomVoid
             $newLogPayment->name = "CREATE_TRANSACTION";
             $newLogPayment->snapshot = json_encode($log_payment);
             $newLogPayment->save();
+
+            GlobalChangedLogs::addCapture([
+                'payment_status',
+                'payment_date',
+            ], $old_voucher, $voucher, $newLogPayment->id);
         }
     }
 
@@ -557,7 +578,6 @@ class CustomVoid
         if ($before_invoice_id == null) {
             // jika invoice pertama
             $voucher = Voucher::where('client_po_id', $invoice->client_po_id)
-                ->where('payment_status', 'BELUM BAYAR')
                 ->get();
             if ($voucher->count() > 0) {
                 foreach ($voucher as $v) {
@@ -711,14 +731,7 @@ class CustomVoid
                 $voucher = Voucher::where('client_po_id', $old_client_po_id)
                     ->get();
                 foreach ($voucher as $voucher) {
-                    // hapus semua transaksi voucher
-                    CustomVoid::rollbackPayment(Voucher::class, $voucher->id);
-                    // lalu insert kembali menjadi voucher tanpa invoice
-                    CustomVoid::voucherCreate($voucher, true);
-                    CustomVoid::voucherAllPph($voucher);
-
-                    $voucher->payment_status = 'BELUM BAYAR';
-                    $voucher->save();
+                    CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "BALANCE_VOUCHER_WITH_INVOICE");
                 }
                 // pindahkan biaya pending voucher pada invoice baru
                 CustomVoid::invoiceMakeVoucherMoveAccount($invoice);
@@ -736,12 +749,7 @@ class CustomVoid
         if ($another_invoice == null) {
             $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->get();
             foreach ($voucher as $voucher) {
-                CustomVoid::rollbackPayment(Voucher::class, $voucher->id);
-                CustomVoid::voucherCreate($voucher, true);
-                CustomVoid::voucherAllPph($voucher);
-
-                $voucher->payment_status = 'BELUM BAYAR';
-                $voucher->save();
+                CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "BALANCE_VOUCHER_WITH_INVOICE");
             }
         }
 
@@ -755,7 +763,7 @@ class CustomVoid
         if ($name) {
             $payment = $payment->where('name', $name);
         }
-        $payment = $payment->get();
+        $payment = $payment->orderBy('id', 'desc')->get();
         foreach ($payment as $pay) {
             // call child for all header log transaction
             $snapshots = json_decode($pay->snapshot);
@@ -769,6 +777,23 @@ class CustomVoid
                     }
                 }
             }
+
+            // rolling back capture edited data
+            if ($pay->global_changed_logs->count() > 0) {
+                $logChanged = $pay->global_changed_logs->sortBy([
+                    ['id', 'desc']
+                ]);
+                foreach ($logChanged as $log) {
+                    $old_stage = (array) json_decode($log->old_values);
+                    $objTableEdited = new $log->reference_type;
+                    if (is_object($objTableEdited)) {
+                        $objTableEdited::where('id', $log->reference_id)
+                            ->update($old_stage);
+                    }
+                    $log->delete();
+                }
+            }
+
             // delete header log transaction
             $pay->delete();
         }

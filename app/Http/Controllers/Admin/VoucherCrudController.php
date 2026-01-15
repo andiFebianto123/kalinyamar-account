@@ -2585,7 +2585,7 @@ class VoucherCrudController extends CrudController
 
             if ($flag_validation_field) {
                 // delete all history payment snapshot
-                $item->payment_status = 'BELUM BAYAR';
+                // $item->payment_status = 'BELUM BAYAR';
                 CustomVoid::rollbackPayment(Voucher::class, $item->id);
                 CustomVoid::voucherCreate($item);
                 CustomVoid::voucherAllPph($item);

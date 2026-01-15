@@ -40,6 +40,11 @@ class LogPayment extends Model
         return $this->morphTo(__FUNCTION__, 'reference_type', 'reference_id');
     }
 
+    public function global_changed_logs()
+    {
+        return $this->hasMany(GlobalChangedLogs::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES

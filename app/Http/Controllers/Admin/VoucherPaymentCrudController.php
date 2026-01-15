@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
+use App\Models\AccountTransaction;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class VoucherPaymentCrudController extends CrudController
@@ -2483,12 +2484,6 @@ class VoucherPaymentCrudController extends CrudController
                     ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
             })
             ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
-            ->whereExists(function ($query) {
-                // harus sudah ada invoicenya
-                $query->select(DB::raw(1))
-                    ->from('invoice_clients')
-                    ->whereColumn('invoice_clients.client_po_id', 'vouchers.client_po_id');
-            })
             ->where('approvals.status', Approval::APPROVED)
             ->where('vouchers.payment_status', 'BELUM BAYAR')
             ->select(DB::raw("
@@ -2535,9 +2530,9 @@ class VoucherPaymentCrudController extends CrudController
             $voucher = $request->voucher;
             foreach ($voucher as $id_v) {
                 $voucherItem = Voucher::find($id_v);
-                $voucherItem->payment_status = 'BAYAR';
-                $voucherItem->payment_date = Carbon::now();
-                $voucherItem->save();
+                // $voucherItem->payment_status = 'BAYAR';
+                // $voucherItem->payment_date = Carbon::now();
+                // $voucherItem->save();
                 if ($voucherItem->payment_type == 'NON RUTIN') {
                     $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
                     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
