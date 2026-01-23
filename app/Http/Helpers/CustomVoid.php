@@ -756,6 +756,168 @@ class CustomVoid
         CustomVoid::rollbackPayment(InvoiceClient::class, $invoice->id, "CREATE_INVOICE");
     }
 
+    public static function storeTransaction(Object $request, String $status_account): AccountTransaction
+    {
+        $cast_account_id = $request->cast_account_id;
+        $date_transaction = $request->date_transaction;
+        $nominal_transaction = $request->nominal_transaction;
+        $description = $request->description;
+        $kdp = $request->kdp;
+        $job_name = $request->job_name;
+        $no_invoice = $request->no_invoice;
+        $status = $status_account;
+
+        $log_payment = [];
+        $cast_account = CastAccount::where('id', $cast_account_id)->first();
+        $before_saldo = $cast_account->total_saldo;
+
+        if ($status == AccountTransaction::ENTER) {
+            $new_saldo = $before_saldo + $nominal_transaction;
+        } else {
+            $new_saldo = $before_saldo - $nominal_transaction;
+        }
+
+        $invoice = null;
+
+        if ($request->has('kdp') || $request->has('no_invoice')) {
+            $id = $request->kdp ?? $request->no_invoice;
+            $invoice = InvoiceClient::find($id);
+            $old_invoice = clone $invoice;
+            $kdp = $invoice->kdp;
+            $no_invoice = $invoice->no_invoice;
+            $invoice->status = 'Paid';
+            $invoice->save();
+        }
+
+        $newTransaction = new AccountTransaction;
+        $newTransaction->cast_account_id = $cast_account_id;
+        $newTransaction->date_transaction = $date_transaction;
+        $newTransaction->no_invoice = $no_invoice;
+        $newTransaction->nominal_transaction = $nominal_transaction;
+        $newTransaction->total_saldo_before = $before_saldo;
+        $newTransaction->total_saldo_after = $new_saldo;
+        $newTransaction->status = $status;
+        $newTransaction->description = $description;
+        $newTransaction->kdp = $kdp;
+        $newTransaction->job_name = $job_name;
+
+        if ($kdp != null && $kdp != '') {
+            $newTransaction->reference_type = InvoiceClient::class;
+            $newTransaction->reference_id = $invoice->id;
+        }
+
+        if ($request->has('account_id')) {
+            $newTransaction->account_id = $request->account_id;
+            $newTransaction->save();
+
+            $log_payment[] = [
+                'id' => $newTransaction->id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'type' => AccountTransaction::class,
+            ];
+
+            // catat di journal
+            CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment);
+            $journal_account_trans = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $newTransaction->account_id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'description' => $description,
+                'date' => Carbon::now(),
+                'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
+                'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
+            ], [
+                'account_id' => $newTransaction->account_id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+            ]);
+
+            $log_payment[] = [
+                'id' => $journal_account_trans->id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'type' => JournalEntry::class,
+            ];
+        } else {
+            $newTransaction->save();
+            $log_payment[] = [
+                'id' => $newTransaction->id,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+                'type' => AccountTransaction::class,
+            ];
+        }
+
+        $updateAccount = CastAccount::where('id', $cast_account_id)->first();
+        $updateAccount->total_saldo = $new_saldo;
+        $updateAccount->save();
+
+        // input tambah / kurang saldo ke akun bank
+        $bank_account_trans = CustomHelper::updateOrCreateJournalEntry([
+            'account_id' => $updateAccount->account_id,
+            'reference_id' => $newTransaction->id,
+            'reference_type' => AccountTransaction::class,
+            'description' => $description,
+            'date' => Carbon::now(),
+            'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
+            'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
+        ], [
+            'account_id' => $updateAccount->account_id,
+            'reference_id' => $newTransaction->id,
+            'reference_type' => AccountTransaction::class,
+        ]);
+
+        $log_payment[] = [
+            'id' => $bank_account_trans->id,
+            'reference_id' => $newTransaction->id,
+            'reference_type' => AccountTransaction::class,
+            'type' => JournalEntry::class,
+        ];
+
+        $item = $newTransaction;
+        $item->new_saldo = 'Rp' . CustomHelper::formatRupiah($item->total_saldo_after);
+
+        if (sizeof($log_payment) > 0) {
+            $newLogPayment = new LogPayment;
+            $newLogPayment->reference_type = AccountTransaction::class;
+            $newLogPayment->reference_id = $newTransaction->id;
+            $newLogPayment->name = "CREATE_TRANSACTION";
+            $newLogPayment->snapshot = json_encode($log_payment);
+            $newLogPayment->save();
+
+            if (isset($old_invoice) && $invoice != null) {
+                GlobalChangedLogs::addCapture([
+                    'status',
+                ], $old_invoice, $invoice, $newLogPayment->id);
+            }
+        }
+
+        if ($invoice) {
+            // jika adalah invoice
+            foreach ($log_payment as $log) {
+                $log['reference_id'] = $invoice->id;
+                $log['reference_type'] = InvoiceClient::class;
+            }
+            if (sizeof($log_payment) > 0) {
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = InvoiceClient::class;
+                $newLogPayment->reference_id = $invoice->id;
+                $newLogPayment->name = "CREATE_PAYMENT_INVOICE";
+                $newLogPayment->snapshot = json_encode($log_payment);
+                $newLogPayment->save();
+
+                if (isset($old_invoice) && $invoice != null) {
+                    GlobalChangedLogs::addCapture([
+                        'status',
+                    ], $old_invoice, $invoice, $newLogPayment->id);
+                }
+            }
+        }
+
+        return $item;
+    }
+
     public static function rollbackPayment($reference_type, $reference_id, $name = null)
     {
         $payment = LogPayment::where('reference_type', $reference_type)

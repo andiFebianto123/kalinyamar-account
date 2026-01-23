@@ -684,6 +684,7 @@ return [
                 'to_account_is_same' => 'Rekening tujuan harus berbeda dengan rekening yang dipindah',
                 'account_id_exist' => 'Akun rekening harus berbeda dengan akun rekening lainnya',
                 'nominal_payment_to_more' => 'Nominal tidak boleh melebihi jumlah sisa pembayaran.',
+                'balance_not_enough' => 'Saldo anda untuk Rekening :castname tidak mencukupi.',
             ]
         ]
     ],

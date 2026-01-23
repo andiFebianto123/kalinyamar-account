@@ -1,7 +1,4 @@
 <div>
-    @php
-        // dd($access->where('id', 4)->first(), $access);
-    @endphp
     <div><h5>{{trans('backpack::crud.card.cast_account_card.name_rekening')}} : {{ $detail->name }}</h5></div>
     <div class="d-flex justify-content-between">
         <div class="left-buttons d-flex gap-2">

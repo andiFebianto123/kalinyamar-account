@@ -9,6 +9,7 @@ use App\Models\CastAccount;
 use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Helpers\CustomVoid;
 use App\Http\Exports\ExportExcel;
 use App\Models\GlobalChangedLogs;
 use App\Http\Helpers\CustomHelper;
@@ -1258,33 +1259,45 @@ class CastAccountsCrudController extends CrudController
 
         try {
 
-            $event = [];
-
-            $journal = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($request) {
+            $log_payment_exists = LogPayment::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($request) {
                 $q->where('id', $request->id);
-            })->first();
+            })->exists();
 
-            $item = AccountTransaction::find($request->id);
-            $item->date_transaction = $request->date_transaction;
-            $item->description = $request->description;
-            $item->account_id = $request->account_id;
-            $item->no_invoice = $request->no_invoice;
-            $item->nominal_transaction = $request->nominal_transaction;
-
-            $item->save();
-
-            $journal->description = $item->description;
-            $journal->account_id = $item->account_id;
-            $journal->date = $item->date_transaction;
-            if ($status_account == AccountTransaction::OUT) {
-                $journal->credit = $item->nominal_transaction;
-                $journal->debit = 0;
+            if ($log_payment_exists) {
+                CustomVoid::rollbackPayment(AccountTransaction::class, $request->id);
+                $storeTransaction = CustomVoid::storeTransaction($request, $status_account);
+                $item = $storeTransaction;
             } else {
-                $journal->debit = $item->nominal_transaction;
-                $journal->credit = 0;
-            }
-            $journal->save();
+                $journal = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($request) {
+                    $q->where('id', $request->id);
+                })->get();
 
+                $item = AccountTransaction::find($request->id);
+                $item->date_transaction = $request->date_transaction;
+                $item->description = $request->description;
+                $item->account_id = $request->account_id;
+                $item->no_invoice = $request->no_invoice;
+                $item->nominal_transaction = $request->nominal_transaction;
+
+                $item->save();
+
+                foreach ($journal as $j) {
+                    $j->description = $item->description;
+                    $j->account_id = $item->account_id;
+                    $j->date = $item->date_transaction;
+                    if ($status_account == AccountTransaction::OUT) {
+                        $j->credit = $item->nominal_transaction;
+                        $j->debit = 0;
+                    } else {
+                        $j->debit = $item->nominal_transaction;
+                        $j->credit = 0;
+                    }
+                    $j->save();
+                }
+            }
+
+
+            $event = [];
 
             $this->data['entry'] = $item;
             $event['cast_account_store_success'] = true;
@@ -1414,166 +1427,9 @@ class CastAccountsCrudController extends CrudController
 
         DB::beginTransaction();
         try {
-            $cast_account_id = $request->cast_account_id;
-            $date_transaction = $request->date_transaction;
-            $nominal_transaction = $request->nominal_transaction;
-            $description = $request->description;
-            $kdp = $request->kdp;
-            $job_name = $request->job_name;
-            $no_invoice = $request->no_invoice;
-            $status = $status_account;
 
-            $log_payment = [];
-
-            $cast_account = CastAccount::where('id', $cast_account_id)->first();
-            $before_saldo = $cast_account->total_saldo;
-
-            if ($status == AccountTransaction::ENTER) {
-                $new_saldo = $before_saldo + $nominal_transaction;
-            } else {
-                $new_saldo = $before_saldo - $nominal_transaction;
-            }
-
-            $invoice = null;
-
-            if ($request->has('kdp') || $request->has('no_invoice')) {
-                $id = $request->kdp ?? $request->no_invoice;
-                $invoice = InvoiceClient::find($id);
-                $old_invoice = clone $invoice;
-                $kdp = $invoice->kdp;
-                $no_invoice = $invoice->no_invoice;
-                $invoice->status = 'Paid';
-                $invoice->save();
-            }
-
-            $newTransaction = new AccountTransaction;
-            $newTransaction->cast_account_id = $cast_account_id;
-            $newTransaction->date_transaction = $date_transaction;
-            $newTransaction->no_invoice = $no_invoice;
-            $newTransaction->nominal_transaction = $nominal_transaction;
-            $newTransaction->total_saldo_before = $before_saldo;
-            $newTransaction->total_saldo_after = $new_saldo;
-            $newTransaction->status = $status;
-            $newTransaction->description = $description;
-            $newTransaction->kdp = $kdp;
-            $newTransaction->job_name = $job_name;
-
-            if ($kdp != null && $kdp != '') {
-                $newTransaction->reference_type = InvoiceClient::class;
-                $newTransaction->reference_id = $invoice->id;
-            }
-
-            if ($request->has('account_id')) {
-                $newTransaction->account_id = $request->account_id;
-                $newTransaction->save();
-
-                $log_payment[] = [
-                    'id' => $newTransaction->id,
-                    'reference_id' => $newTransaction->id,
-                    'reference_type' => AccountTransaction::class,
-                    'type' => AccountTransaction::class,
-                ];
-
-                // catat di journal
-                CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment);
-                $journal_account_trans = CustomHelper::updateOrCreateJournalEntry([
-                    'account_id' => $newTransaction->account_id,
-                    'reference_id' => $newTransaction->id,
-                    'reference_type' => AccountTransaction::class,
-                    'description' => $description,
-                    'date' => Carbon::now(),
-                    'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
-                    'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
-                ], [
-                    'account_id' => $newTransaction->account_id,
-                    'reference_id' => $newTransaction->id,
-                    'reference_type' => AccountTransaction::class,
-                ]);
-
-                $log_payment[] = [
-                    'id' => $journal_account_trans->id,
-                    'reference_id' => $newTransaction->id,
-                    'reference_type' => AccountTransaction::class,
-                    'type' => JournalEntry::class,
-                ];
-            } else {
-                $newTransaction->save();
-                $log_payment[] = [
-                    'id' => $newTransaction->id,
-                    'reference_id' => $newTransaction->id,
-                    'reference_type' => AccountTransaction::class,
-                    'type' => AccountTransaction::class,
-                ];
-            }
-
-
-            $updateAccount = CastAccount::where('id', $cast_account_id)->first();
-            $updateAccount->total_saldo = $new_saldo;
-            $updateAccount->save();
-
-            // input tambah / kurang saldo ke akun bank
-            $bank_account_trans = CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $updateAccount->account_id,
-                'reference_id' => $newTransaction->id,
-                'reference_type' => AccountTransaction::class,
-                'description' => $description,
-                'date' => Carbon::now(),
-                'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
-                'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
-            ], [
-                'account_id' => $updateAccount->account_id,
-                'reference_id' => $newTransaction->id,
-                'reference_type' => AccountTransaction::class,
-            ]);
-
-            $log_payment[] = [
-                'id' => $bank_account_trans->id,
-                'reference_id' => $newTransaction->id,
-                'reference_type' => AccountTransaction::class,
-                'type' => JournalEntry::class,
-            ];
-
-            $item = $newTransaction;
-            $item->new_saldo = 'Rp' . CustomHelper::formatRupiah($item->total_saldo_after);
-
-            $this->data['entry'] = $this->crud->entry = $item;
-
-            if (sizeof($log_payment) > 0) {
-                $newLogPayment = new LogPayment;
-                $newLogPayment->reference_type = AccountTransaction::class;
-                $newLogPayment->reference_id = $newTransaction->id;
-                $newLogPayment->name = "CREATE_TRANSACTION";
-                $newLogPayment->snapshot = json_encode($log_payment);
-                $newLogPayment->save();
-
-                if (isset($old_invoice) && $invoice != null) {
-                    GlobalChangedLogs::addCapture([
-                        'status',
-                    ], $old_invoice, $invoice, $newLogPayment->id);
-                }
-            }
-
-            if ($invoice) {
-                // jika adalah invoice
-                foreach ($log_payment as $log) {
-                    $log['reference_id'] = $invoice->id;
-                    $log['reference_type'] = InvoiceClient::class;
-                }
-                if (sizeof($log_payment) > 0) {
-                    $newLogPayment = new LogPayment;
-                    $newLogPayment->reference_type = InvoiceClient::class;
-                    $newLogPayment->reference_id = $invoice->id;
-                    $newLogPayment->name = "CREATE_PAYMENT_INVOICE";
-                    $newLogPayment->snapshot = json_encode($log_payment);
-                    $newLogPayment->save();
-
-                    if (isset($old_invoice) && $invoice != null) {
-                        GlobalChangedLogs::addCapture([
-                            'status',
-                        ], $old_invoice, $invoice, $newLogPayment->id);
-                    }
-                }
-            }
+            $storeTransaction = CustomVoid::storeTransaction($request, $status_account);
+            $this->data['entry'] = $this->crud->entry = $storeTransaction;
 
             $this->crud->setSaveAction();
 
@@ -1581,14 +1437,14 @@ class CastAccountsCrudController extends CrudController
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'data' => $item,
+                    'data' => $storeTransaction,
                     'events' => [
-                        'card_cast_account' . $cast_account_id . '_create_success' => $item,
+                        'card_cast_account' . $request->cast_account_id . '_create_success' => $storeTransaction,
                     ]
                 ]);
             }
 
-            return $this->crud->performSaveAction($item->getKey());
+            return $this->crud->performSaveAction($storeTransaction->getKey());
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -1784,13 +1640,48 @@ class CastAccountsCrudController extends CrudController
         }
     }
 
+    public function destroyTransactionVoid($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+        DB::beginTransaction();
+        try {
+            $event = [];
+
+            CustomVoid::rollbackPayment(AccountTransaction::class, $id);
+
+            $event['cast_account_store_success'] = true;
+
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+            $messages['events'] = $event;
+
+            DB::commit();
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'type' => 'errors',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function showTransaction()
     {
         $id = request()->_id;
         $castAccount = CastAccount::where('id', $id)->first();
-        $detail = AccountTransaction::where('cast_account_id', $id)
-            ->where('is_first', 0)
-            ->orderBy('id', 'DESC')->get();
+        $detail = AccountTransaction::leftJoin('log_payments', function ($q) {
+            $q->on('account_transactions.id', 'log_payments.reference_id')
+                ->where('log_payments.reference_type', AccountTransaction::class);
+        })
+            ->where('account_transactions.cast_account_id', $id)
+            ->where('account_transactions.is_first', 0)
+            ->orderBy('account_transactions.id', 'DESC')
+            ->select([
+                'account_transactions.*',
+                'log_payments.id as log_payment_id',
+            ])
+            ->get();
+
         $has_access_primary = $this->accessAccount($id);
 
         foreach ($detail as $entry) {
@@ -1804,9 +1695,10 @@ class CastAccountsCrudController extends CrudController
             $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status)));
             $entry->url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
             $entry->url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
-            $entry->url_delete = url($this->crud->route . "/delete-transaction/" . $entry->id);
+            $entry->url_delete = ($entry->log_payment_id) ? url($this->crud->route . "/delete-transaction-void/" . $entry->id) : url($this->crud->route . "/delete-transaction/" . $entry->id);
             $entry->is_primary = $has_access_primary;
             $entry->is_transfer = $entry->cast_account_destination_id;
+            $entry->no_invoice_str = $entry->log_payment->no_invoice ?? '-';
         }
         $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($castAccount->total_saldo);
         return response()->json([

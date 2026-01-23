@@ -2530,9 +2530,7 @@ class VoucherPaymentCrudController extends CrudController
             $voucher = $request->voucher;
             foreach ($voucher as $id_v) {
                 $voucherItem = Voucher::find($id_v);
-                // $voucherItem->payment_status = 'BAYAR';
-                // $voucherItem->payment_date = Carbon::now();
-                // $voucherItem->save();
+                $castAccount = $voucherItem->account_source;
                 if ($voucherItem->payment_type == 'NON RUTIN') {
                     $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
                     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
@@ -2542,6 +2540,10 @@ class VoucherPaymentCrudController extends CrudController
                 }
 
                 CustomVoid::voucherPayment($voucherItem);
+                $balance_out = CustomHelper::balanceAccount($castAccount->account->code);
+                if ($balance_out < 0) {
+                    throw new \Exception(trans('backpack::crud.cash_account.field_transfer.errors.balance_not_enough', ['castname' => $castAccount->name]));
+                }
             }
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();

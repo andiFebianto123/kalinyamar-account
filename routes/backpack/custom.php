@@ -116,6 +116,7 @@ Route::group([
         Route::get('cast-accounts/get-invoice', [CastAccountsCrudController::class, 'get_invoice_ajax']);
         Route::post('cast-accounts-move-transaction', [CastAccountsCrudController::class, 'storeMoveTransfer']);
         Route::delete('cast-accounts/delete-transaction/{id}', [CastAccountsCrudController::class, 'destroyTransaction']);
+        Route::delete('cast-accounts/delete-transaction-void/{id}', [CastAccountsCrudController::class, 'destroyTransactionVoid']);
 
         Route::crud('cast-account-loan', 'CastAccountsLoanCrudController');
         Route::post('cast-account-loan/export-pdf', [CastAccountsLoanCrudController::class, 'exportPdf']);

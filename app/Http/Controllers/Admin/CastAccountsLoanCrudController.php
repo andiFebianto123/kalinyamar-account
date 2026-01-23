@@ -1171,70 +1171,68 @@ class CastAccountsLoanCrudController extends CrudController
                     'reference_type' => AccountTransaction::class,
                 ]);
             } else {
-                if ($status == CastAccount::ENTER) {
 
-                    // insert to loan transaction
-                    $loan_transaction_flag = new LoanTransactionFlag;
-                    $loan_transaction_flag->kode = $codeLoan;
-                    $loan_transaction_flag->total_price = $nominal_transaction;
-                    $loan_transaction_flag->save();
+                // insert to loan transaction
+                $loan_transaction_flag = new LoanTransactionFlag;
+                $loan_transaction_flag->kode = $codeLoan;
+                $loan_transaction_flag->total_price = $nominal_transaction;
+                $loan_transaction_flag->save();
 
-                    // insert to loan transaction
-                    $loan_transaction = new AccountTransaction;
-                    $loan_transaction->cast_account_id = $cast_account_id;
-                    $loan_transaction->cast_account_destination_id = $cast_account_destination_id;
-                    $loan_transaction->date_transaction = $date_transaction;
-                    $loan_transaction->nominal_transaction = $nominal_transaction;
-                    $loan_transaction->total_saldo_before = $nominal_transaction;
-                    $loan_transaction->total_saldo_after = $nominal_transaction;
-                    $loan_transaction->status = $status;
-                    $loan_transaction->account_id = $cast_account_loan->account_id;
-                    $loan_transaction->description = $description;
-                    $loan_transaction->reference_type = LoanTransactionFlag::class;
-                    $loan_transaction->reference_id = $loan_transaction_flag->id;
-                    $loan_transaction->save();
+                // insert to loan transaction
+                $loan_transaction = new AccountTransaction;
+                $loan_transaction->cast_account_id = $cast_account_id;
+                $loan_transaction->cast_account_destination_id = $cast_account_destination_id;
+                $loan_transaction->date_transaction = $date_transaction;
+                $loan_transaction->nominal_transaction = $nominal_transaction;
+                $loan_transaction->total_saldo_before = $nominal_transaction;
+                $loan_transaction->total_saldo_after = $nominal_transaction;
+                $loan_transaction->status = $status;
+                $loan_transaction->account_id = $cast_account_loan->account_id;
+                $loan_transaction->description = $description;
+                $loan_transaction->reference_type = LoanTransactionFlag::class;
+                $loan_transaction->reference_id = $loan_transaction_flag->id;
+                $loan_transaction->save();
 
-                    // insert to transaction destination
-                    $add_transaction_destination = new AccountTransaction;
-                    $add_transaction_destination->cast_account_id = $cast_account_destination_id;
-                    $add_transaction_destination->cast_account_destination_id = $cast_account_id;
-                    $add_transaction_destination->date_transaction = $date_transaction;
-                    $add_transaction_destination->nominal_transaction = $nominal_transaction;
-                    $add_transaction_destination->total_saldo_before = 0;
-                    $add_transaction_destination->total_saldo_after = 0;
-                    $add_transaction_destination->status = $status;
-                    $add_transaction_destination->account_id = $cast_account_destination->account_id;
-                    $add_transaction_destination->description = $description;
-                    $add_transaction_destination->save();
+                // insert to transaction destination
+                $add_transaction_destination = new AccountTransaction;
+                $add_transaction_destination->cast_account_id = $cast_account_destination_id;
+                $add_transaction_destination->cast_account_destination_id = $cast_account_id;
+                $add_transaction_destination->date_transaction = $date_transaction;
+                $add_transaction_destination->nominal_transaction = $nominal_transaction;
+                $add_transaction_destination->total_saldo_before = 0;
+                $add_transaction_destination->total_saldo_after = 0;
+                $add_transaction_destination->status = $status;
+                $add_transaction_destination->account_id = $cast_account_destination->account_id;
+                $add_transaction_destination->description = $description;
+                $add_transaction_destination->save();
 
-                    // insert journal entry transaction loan
-                    CustomHelper::updateOrCreateJournalEntry([
-                        'account_id' => $cast_account_loan->account_id,
-                        'reference_id' => $loan_transaction->id,
-                        'reference_type' => AccountTransaction::class,
-                        'description' => $description,
-                        'date' => Carbon::now(),
-                        'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
-                        'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-                    ], [
-                        'reference_id' => $loan_transaction->id,
-                        'reference_type' => AccountTransaction::class,
-                    ]);
+                // insert journal entry transaction loan
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $cast_account_loan->account_id,
+                    'reference_id' => $loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => Carbon::now(),
+                    'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
+                    'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'reference_id' => $loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
 
-                    // insert journal entry transaction destination
-                    CustomHelper::updateOrCreateJournalEntry([
-                        'account_id' => $cast_account_destination->account_id,
-                        'reference_id' => $add_transaction_destination->id,
-                        'reference_type' => AccountTransaction::class,
-                        'description' => $description,
-                        'date' => Carbon::now(),
-                        'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
-                        'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-                    ], [
-                        'reference_id' => $add_transaction_destination->id,
-                        'reference_type' => AccountTransaction::class,
-                    ]);
-                }
+                // insert journal entry transaction destination
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $cast_account_destination->account_id,
+                    'reference_id' => $add_transaction_destination->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => Carbon::now(),
+                    'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
+                    'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'reference_id' => $add_transaction_destination->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
             }
 
             $total_saldo = CustomHelper::balanceAccount($cast_account_loan->account->code);
