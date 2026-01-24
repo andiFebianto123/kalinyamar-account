@@ -30,8 +30,7 @@ class VoucherPaymentCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use PermissionAccess;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
     public function setup()
@@ -607,11 +606,11 @@ class VoucherPaymentCrudController extends CrudController
                                     'name' => 'user_approval',
                                     'orderable' => false,
                                 ],
-                                // [
-                                //     'name' => 'action',
-                                //     'type' => 'action',
-                                //     'label' =>  '',
-                                // ]
+                                [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  '',
+                                ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=NON RUTIN'),
                             'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment_plan_all'),
@@ -724,11 +723,11 @@ class VoucherPaymentCrudController extends CrudController
                                     'name' => 'user_approval',
                                     'orderable' => false,
                                 ],
-                                // [
-                                //     'name' => 'action',
-                                //     'type' => 'action',
-                                //     'label' =>  '',
-                                // ]
+                                [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  '',
+                                ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=SUBKON'),
                         ]
@@ -2990,5 +2989,40 @@ class VoucherPaymentCrudController extends CrudController
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
+    }
+
+    public function destroy($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+
+        DB::beginTransaction();
+        try {
+
+            $event = [];
+            $event['crudTable-filter_voucher_payment_plugin_load'] = true;
+
+            $voucherItem = Voucher::find($id);
+            if ($voucherItem->payment_type == 'NON RUTIN') {
+                $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+            } else {
+                $event['crudTable-voucher_payment_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
+            }
+
+            $messages['success'][] = trans('backpack::crud.delete_confirmation_message');
+            $messages['events'] = $event;
+
+            CustomVoid::rollbackPayment(Voucher::class, $id, "CREATE_PAYMENT_VOUCHER");
+
+            DB::commit();
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'type' => 'errors',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
