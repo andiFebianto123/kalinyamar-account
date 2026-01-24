@@ -336,18 +336,18 @@
                                 }
 
                                 if(detail.log_payment_id){
-                                    // btn += `
-                                    //         <a href="javascript:void(0)"
-                                    //             onclick="deleteEntry(this)"
-                                    //             bp-button="delete"
-                                    //             data-route="${detail.url_delete}"
-                                    //             class="btn btn-sm btn-danger"
-                                    //             data-button-type="delete"
-                                    //             data-title-delete="Hapus Item Transaksi"
-                                    //             data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
-                                    //                 <i class="la la-trash"></i>
-                                    //             </a>
-                                    //         `;
+                                    btn += `
+                                            <a href="javascript:void(0)"
+                                                onclick="deleteEntry(this)"
+                                                bp-button="delete"
+                                                data-route="${detail.url_delete}"
+                                                class="btn btn-sm btn-danger"
+                                                data-button-type="delete"
+                                                data-title-delete="Hapus Item Transaksi"
+                                                data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
+                                                    <i class="la la-trash"></i>
+                                                </a>
+                                            `;
                                 }
                             }else{
                                 if(detail.is_transfer == null){
@@ -380,19 +380,19 @@
 
                             if(btn_delete != ''){
                                 if(detail.log_payment_id){
-                                    // btn_delete = `
-                                    // <a href="javascript:void(0)"
-                                    //     onclick="deleteEntry(this)"
-                                    //     bp-button="delete"
-                                    //     data-route="${detail.url_delete}"
-                                    //     class="btn btn-sm btn-danger"
-                                    //     data-button-type="delete"
-                                    //     data-title-delete="Hapus Item transaksi void"
-                                    //     data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
-                                    //         <i class="la la-trash"></i>
-                                    //     </a>
-                                    // `;
-                                    // btn += btn_delete;
+                                    btn_delete = `
+                                    <a href="javascript:void(0)"
+                                        onclick="deleteEntry(this)"
+                                        bp-button="delete"
+                                        data-route="${detail.url_delete}"
+                                        class="btn btn-sm btn-danger"
+                                        data-button-type="delete"
+                                        data-title-delete="Hapus Item transaksi void"
+                                        data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
+                                            <i class="la la-trash"></i>
+                                        </a>
+                                    `;
+                                    btn += btn_delete;
                                 }else{
                                     btn += btn_delete;
                                 }
