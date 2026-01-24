@@ -177,6 +177,10 @@ return [
             'no_rekening' => 'Nomor Rekening',
             'balance' => 'Saldo',
             'title_add_transaction' => "Tambah Data Transaksi",
+            'loaded_count' => 'Menampilkan',
+            'total_count' => 'dari',
+            'transaction' => 'Transaksi',
+            'btn_load_more' => 'Muat Lebih Banyak',
         ],
     ],
 

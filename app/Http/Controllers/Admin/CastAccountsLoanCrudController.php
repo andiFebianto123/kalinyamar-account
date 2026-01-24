@@ -1088,6 +1088,28 @@ class CastAccountsLoanCrudController extends CrudController
                 'reference_type' => CastAccount::class,
             ]);
 
+            if ($item->status == CastAccount::LOAN && $item->total_saldo > 0) {
+                $codeLoan = $this->generateCodeLoan();
+
+                $loan_transaction_flag = new LoanTransactionFlag;
+                $loan_transaction_flag->kode = $codeLoan;
+                $loan_transaction_flag->total_price = $item->total_saldo;
+                $loan_transaction_flag->save();
+
+                $loan_transaction = new AccountTransaction;
+                $loan_transaction->cast_account_id = $item->id;
+                $loan_transaction->date_transaction = Carbon::now();
+                $loan_transaction->nominal_transaction = $item->total_saldo;
+                $loan_transaction->total_saldo_before = $item->total_saldo;
+                $loan_transaction->total_saldo_after = $item->total_saldo;
+                $loan_transaction->status = "enter";
+                $loan_transaction->account_id = $item->account_id;
+                $loan_transaction->description = "Saldo Awal Pinjaman";
+                $loan_transaction->reference_type = LoanTransactionFlag::class;
+                $loan_transaction->reference_id = $loan_transaction_flag->id;
+                $loan_transaction->save();
+            }
+
             $this->crud->setSaveAction();
 
             DB::commit();
@@ -1492,8 +1514,13 @@ class CastAccountsLoanCrudController extends CrudController
     public function showTransaction()
     {
         $id = request()->_id;
+        $page = request()->page ?? 1;
+        $per_page = request()->per_page ?? 2; // Set 2 untuk testing sesuai permintaan
+
         $castAccount = CastAccount::where('id', $id)->first();
-        $detail = AccountTransaction::select([
+
+        $query = AccountTransaction::select([
+            'account_transactions.id',
             'account_transactions.cast_account_id',
             'loan_transaction_flags.kode as kode',
             'account_transactions.date_transaction',
@@ -1508,15 +1535,43 @@ class CastAccountsLoanCrudController extends CrudController
             })
             ->where('account_transactions.cast_account_id', $id)
             ->orderByDesc('account_transactions.reference_id')
-            ->orderBy('account_transactions.id')
-            ->get();
+            ->orderBy('account_transactions.id');
+
+        $total = $query->count();
+        $detail = $query->skip(($page - 1) * $per_page)->take($per_page)->get();
+
+        // Cari kode terakhir dari data sebelumnya untuk grouping lintas page
+        $prev_kode = null;
+        if ($page > 1) {
+            $prev_item = AccountTransaction::select(['loan_transaction_flags.kode'])
+                ->join("loan_transaction_flags", function ($join) {
+                    $join->on('loan_transaction_flags.id', '=', 'account_transactions.reference_id')
+                        ->where('account_transactions.reference_type', LoanTransactionFlag::class);
+                })
+                ->where('account_transactions.cast_account_id', $id)
+                ->orderByDesc('account_transactions.reference_id')
+                ->orderBy('account_transactions.id')
+                ->skip(($page - 1) * $per_page - 1)
+                ->take(1)
+                ->first();
+            $prev_kode = $prev_item ? $prev_item->kode : null;
+        }
+
         foreach ($detail as $row => $entry) {
-            $row_before = ($row > 0) ? $row - 1 : $row;
+            $is_new_group = false;
             if ($row == 0) {
-                $entry->status_str = ($entry->status == 1) ? 'Paid' : 'Unpaid';
-                $entry->kode_str = $entry->kode;
-                $entry->nominal_str = "-";
-            } elseif ($detail[$row_before]->kode != $entry->kode) {
+                // Baris pertama di batch ini, cek terhadap batch sebelumnya
+                if ($page == 1 || $prev_kode != $entry->kode) {
+                    $is_new_group = true;
+                }
+            } else {
+                // Baris di dalam batch yang sama, cek terhadap baris sebelumnya
+                if ($detail[$row - 1]->kode != $entry->kode) {
+                    $is_new_group = true;
+                }
+            }
+
+            if ($is_new_group) {
                 $entry->status_str = ($entry->status == 1) ? 'Paid' : 'Unpaid';
                 $entry->kode_str = $entry->kode;
                 $entry->nominal_str = "-";
@@ -1526,14 +1581,19 @@ class CastAccountsLoanCrudController extends CrudController
                 $entry->nominal_str = CustomHelper::formatRupiahWithCurrency($entry->nominal);
             }
             $entry->loan_str = CustomHelper::formatRupiahWithCurrency($entry->loan_remaining);
-            $entry->date_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
+            $entry->date_str = \Carbon\Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
         }
+
         $castAccount->total_saldo_str = 0;
+
         return response()->json([
             'status' => true,
             'result' => [
                 'cast_account' => $castAccount,
                 'detail' => $detail,
+                'has_more' => ($page * $per_page) < $total,
+                'current_page' => (int)$page,
+                'total' => $total
             ]
         ]);
     }

@@ -118,6 +118,17 @@
                 <tbody class="text-center">
                 </tbody>
             </table>
+
+            <!-- Load More Section -->
+            <div class="load-more-wrapper text-center" style="display:none;">
+                <button class="btn btn-outline-primary btn-load-more">
+                    <span class="btn-text"><i class="la la-angle-down"></i> {{trans('backpack::crud.card.cast_account_card.btn_load_more')}}</span>
+                    <i class="la la-spinner la-spin d-none btn-spinner"></i>
+                </button>
+                <div class="mt-2 loaded-info">
+                    {{trans('backpack::crud.card.cast_account_card.loaded_count')}} <span class="loaded-count">0</span> {{trans('backpack::crud.card.cast_account_card.total_count')}} <span class="total-count">0</span> {{trans('backpack::crud.card.cast_account_card.transaction')}}
+                </div>
+            </div>
         </center>
     </div>
     @endif
@@ -150,6 +161,36 @@
                 /* text-align: left; */
                 white-space: nowrap;
             }
+
+            /* Load More Stylings */
+            .load-more-wrapper {
+                margin-top: 20px;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-top: 1px solid rgba(0,0,0,0.05);
+                width: 100%;
+            }
+            .btn-load-more {
+                padding: 6px 20px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-radius: 50px;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                border: 1px solid #007bff !important; /* Tegaskan border di sini */
+            }
+            .btn-load-more:hover {
+                transform: translateY(-1px);
+                border: 1px solid #007bff !important; /* Pastikan border tetap 1px solid saat hover */
+            }
+
+            .loaded-info {
+                font-size: 11px;
+                color: #888;
+                font-weight: 500;
+            }
         </style>
     @endonce
 @endpush
@@ -163,15 +204,39 @@
                 route: "{{url($crud->route)}}",
                 btnAdd: $("#btn-{{$name}}-add"),
                 @if($detail->status == \App\Models\CastAccount::LOAN)
-                    loadTransactionLoan: function(){
+                    currentPage: 1,
+                    perPage: 10,
+                    loadedCount: 0,
+
+                    loadTransactionLoan: function(append = false){
                         var instance = this;
+                        if (!append) instance.currentPage = 1;
+
+                        var $btn = $('#{{$name}} .btn-load-more');
+                        var $text = $btn.find('.btn-text');
+                        var $spinner = $btn.find('.btn-spinner');
+
+                        // Start Loading State
+                        $btn.prop('disabled', true);
+                        $text.addClass('d-none');
+                        $spinner.removeClass('d-none');
+
                         $.ajax({
-                            url: instance.route+'-show?_id='+instance.id,
+                            url: instance.route+'-show?_id='+instance.id+'&page='+instance.currentPage+'&per_page='+instance.perPage,
                             type: 'GET',
                             typeData: 'json',
                             success: function (data) {
+                                // End Loading State
+                                $btn.prop('disabled', false);
+                                $text.removeClass('d-none');
+                                $spinner.addClass('d-none');
+
                                 var table = $("#{{$name}} .info-cast-account tbody");
-                                table.empty();
+                                if (!append) {
+                                    table.empty();
+                                    instance.loadedCount = 0;
+                                }
+
                                 forEachFlexible(data.result.detail, function(key, value){
                                     table.append(`
                                     <tr>
@@ -182,11 +247,24 @@
                                         <td>${value.description}</td>
                                         <td>${value.status_str}</td>
                                     </tr>`);
+                                    instance.loadedCount++;
                                 });
+
+                                $('#{{$name}} .loaded-count').text(instance.loadedCount);
+                                $('#{{$name}} .total-count').text(data.result.total);
+
+                                if (data.result.has_more) {
+                                    $('#{{$name}} .load-more-wrapper').show();
+                                } else {
+                                    $('#{{$name}} .load-more-wrapper').hide();
+                                }
                             },
                             error: function (xhr, status, error) {
                                 console.error(xhr);
-                                alert('An error occurred while loading the create form.');
+                                $btn.prop('disabled', false);
+                                $text.removeClass('d-none');
+                                $spinner.addClass('d-none');
+                                alert('Terjadi kesalahan saat memuat data.');
                             }
                         });
                     },
@@ -360,6 +438,13 @@
                     if(instance.loadTransactionLoan){
                         instance.loadTransactionLoan();
                     }
+
+                    // Event handler Load More
+                    $('#{{$name}} .btn-load-more').off('click').click(function(e){
+                        e.preventDefault();
+                        instance.currentPage++;
+                        instance.loadTransactionLoan(true);
+                    });
 
                 }
             }
