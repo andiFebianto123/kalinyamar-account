@@ -101,7 +101,7 @@ class CastAccountsCrudController extends CrudController
 
             $this->modal->addModal([
                 'name' => 'modal_transfer_balance',
-                'title' => trans('backpack::crud.modal.transfer_balance'),
+                'title' => trans('backpack::crud.modal.title_transfer_balance'),
                 'title_alignment' => 'center',
                 'size' => 'modal-lg',
                 'view' => 'crud::components.modal-transfer-balance-cast-account',
@@ -1700,12 +1700,14 @@ class CastAccountsCrudController extends CrudController
             $entry->is_transfer = $entry->cast_account_destination_id;
             $entry->no_invoice_str = $entry->log_payment->no_invoice ?? '-';
         }
-        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($castAccount->total_saldo);
+        $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::CASH);
+        $castAccount->total_saldo = $total_balance;
+        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($total_balance);
         return response()->json([
             'status' => true,
             'result' => [
                 'cast_account' => $castAccount,
-                'balance' => CustomHelper::formatRupiahWithCurrency(CustomHelper::total_balance_cast_account($id, CastAccount::CASH)),
+                'balance' => $castAccount->total_saldo_str,
                 'detail' => $detail,
             ]
         ]);

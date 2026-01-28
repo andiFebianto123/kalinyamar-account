@@ -189,6 +189,7 @@ return [
         'bank_name' => 'Nama Bank',
         'no_account' => 'Nomor Rekening',
         'transfer_balance' => 'Pembayaran tagihan pinjaman',
+        'title_transfer_balance' => 'Transfer Saldo',
         'move' => 'Pindah',
         'cancel' => 'Batalkan',
     ],
