@@ -215,7 +215,7 @@
                     },
                     refreshBody: function(data){
                         var header = data.result.cast_account;
-                        $("#{{$name}} .modal-title").html("{{trans('backpack::crud.modal.transfer_balance')}}");
+                        $("#{{$name}} .modal-title").html("{{trans('backpack::crud.modal.title_transfer_balance')}}");
                         $("#{{$name}} .bank_name").html(header.bank_name);
                         $('#{{$name}} .no_account').html(header.no_account);
                         $('#{{$name}} .total_saldo').html(header.total_saldo_str);

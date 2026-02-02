@@ -775,6 +775,8 @@ class VoucherPaymentCrudController extends CrudController
         $this->crud->param_uri_export = "?export=1&tab=voucher_payment_plan_all";
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        // CRUD::addButtonFromView('line', 'void', 'void', 'beginning');
+        CRUD::removeButton('delete');
         CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
 
 
