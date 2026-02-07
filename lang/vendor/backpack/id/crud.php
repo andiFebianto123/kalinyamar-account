@@ -606,6 +606,12 @@ return [
                 'label' => 'Keterangan Tambahan',
             ]
         ],
+        'account_info' => [
+            'title' => 'Informasi Rekening',
+            'account_name' => 'Nama Rekening',
+            'bank_name' => 'Bank',
+            'account_number' => 'Nomor Rekening',
+        ],
         'field_transaction' => [
             'kode' => [
                 'label' => 'Code Pinjaman',
@@ -662,7 +668,7 @@ return [
             ],
             'status' => [
                 'label' => 'Keluar/Masuk',
-                'placeholder' => '-KELUAR/MASUK',
+                'placeholder' => 'Pilih Status',
                 'enter' => 'MASUK',
                 'out' => 'KELUAR',
             ]

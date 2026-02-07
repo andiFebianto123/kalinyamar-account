@@ -19,7 +19,7 @@
     </div>
 
     <div class="table-responsive">
-        <table class="detail-information table info-cast-account">
+        <table class="detail-information table info-cast-account" style="width: 100%;">
             <thead>
                 <tr>
                 <th>{{ trans('backpack::crud.cash_account.field_transaction.date_transaction.label') }}</th>
@@ -72,6 +72,8 @@
                 z-index: 1055;
             }
         </style>
+        {{-- DataTables CSS --}}
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
     @endonce
 @endpush
 
@@ -90,6 +92,9 @@
                 </div>
             </div>
         </div>
+        {{-- DataTables JS --}}
+        <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
         <script>
             if (typeof editEntry != 'function') {
                 function editEntry(button){
@@ -275,25 +280,75 @@
                     },
                     loadData: function(id){
                         var instance = this;
+                        instance.currentAccountId = id; 
                         instance.loadingBdoy();
-                        var url = instance.route+'-show?_id='+id;
+                        
                         var url_export_pdf = instance.route+'/export-trans-pdf?id='+id;
                         var url_export_excel = instance.route+'/export-trans-excel?id='+id;
-
                         $('#btn-export-kas-pdf').attr('data-url', url_export_pdf);
                         $('#btn-export-kas-excel').attr('data-url', url_export_excel);
-                        $.ajax({
-                            url: url,
-                            type: 'GET',
-                            typeData: 'json',
-                            success: function (response) {
-                                instance.refreshBody(response);
-                            },
-                            error: function (xhr, status, error) {
-                                console.error(xhr);
-                                alert('An error occurred while loading the create form.');
-                            }
-                        });
+
+                        // Inisialisasi atau Reload DataTable
+                        if (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable('.info-cast-account')) {
+                            $('.info-cast-account').DataTable().ajax.url(instance.route + '-datatable?_id=' + id).load();
+                        } else if (typeof $.fn.DataTable !== 'undefined') {
+                            $('.info-cast-account').DataTable({
+                                processing: true,
+                                serverSide: true,
+                                pageLength: 20,
+                                autoWidth: false,
+                                searching: false,
+                                lengthChange: false,
+                                dom: "<'row'<'col-sm-12'tr>>" +
+                                     "<'row mt-2'<'col-sm-12 col-md-6'p><'col-sm-12 col-md-6 text-end'i>>",
+                                language: {
+                                    emptyTable: "{{ trans('backpack::crud.emptyTable') }}",
+                                    info: "{{ trans('backpack::crud.info') }}",
+                                    infoEmpty: "{{ trans('backpack::crud.infoEmpty') }}",
+                                    infoFiltered: "{{ trans('backpack::crud.infoFiltered') }}",
+                                    infoPostFix: "{{ trans('backpack::crud.infoPostFix') }}",
+                                    thousands: "{{ trans('backpack::crud.thousands') }}",
+                                    lengthMenu: "{{ trans('backpack::crud.lengthMenu') }}",
+                                    loadingRecords: "{{ trans('backpack::crud.loadingRecords') }}",
+                                    processing: "{{ trans('backpack::crud.processing') }}",
+                                    search: "{{ trans('backpack::crud.search') }}",
+                                    zeroRecords: "{{ trans('backpack::crud.zeroRecords') }}",
+                                    paginate: {
+                                        first: "{{ trans('backpack::crud.paginate.first') }}",
+                                        last: "{{ trans('backpack::crud.paginate.last') }}",
+                                        next: "{{ trans('backpack::crud.paginate.next') }}",
+                                        previous: "{{ trans('backpack::crud.paginate.previous') }}"
+                                    },
+                                    aria: {
+                                        sortAscending: "{{ trans('backpack::crud.aria.sortAscending') }}",
+                                        sortDescending: "{{ trans('backpack::crud.aria.sortDescending') }}"
+                                    }
+                                },
+                                ajax: {
+                                    url: instance.route + '-datatable?_id=' + id,
+                                    dataSrc: function(json) {
+                                        // Update Header Info
+                                        $("#{{$name}} .modal-title").html(json.header.name);
+                                        $("#{{$name}} .bank_name").html(json.header.bank_name);
+                                        $('#{{$name}} .no_account').html(json.header.no_account);
+                                        $('#{{$name}} .total_saldo').html(json.header.total_saldo_str);
+                                        return json.data;
+                                    }
+                                },
+                                columns: [
+                                    { data: 'date_transaction_str', name: 'date_transaction' },
+                                    { data: 'nominal_transaction_str', name: 'nominal_transaction' },
+                                    { data: 'description_str', name: 'description' },
+                                    { data: 'kdp_str', name: 'kdp' },
+                                    { data: 'job_name_str', name: 'job_name' },
+                                    { data: 'account_id_str', name: 'account_id' },
+                                    { data: 'no_invoice_str', name: 'no_invoice' },
+                                    { data: 'status_str', name: 'status' },
+                                    { data: 'action_buttons', name: 'action', orderable: false, searchable: false }
+                                ],
+                                order: [[0, 'asc']]
+                            });
+                        }
                         return this;
                     },
                     loadingBdoy: function(){
@@ -301,119 +356,9 @@
                         $("#{{$name}} .bank_name").html('...');
                         $('#{{$name}} .no_account').html('...');
                         $('#{{$name}} .total_saldo').html('...');
-
-                        var tabel = $('#{{$name}} .detail-information tbody').html('');
                     },
                     refreshBody: function(data){
-                        var header = data.result.cast_account;
-                        var details = data.result.detail;
-                        var balance = data.result.balance;
-                        $("#{{$name}} .modal-title").html(header.name);
-                        $("#{{$name}} .bank_name").html(header.bank_name);
-                        $('#{{$name}} .no_account').html(header.no_account);
-                        $('#{{$name}} .total_saldo').html(balance);
-
-                        var tabel = $('#{{$name}} .detail-information tbody').html('');
-
-                        details.forEach((detail) => {
-
-                            var btn = ``;
-
-                            var btn_delete = '';
-
-                            if(detail.is_primary){
-                                if(detail.is_transfer == null){
-                                    btn += `
-                                        <a href="javascript:void(0)"
-                                            onclick="editEntry(this)"
-                                            data-route="${detail.url_edit}"
-                                            data-route-action="${detail.url_update}"
-                                            data-title-edit="Ubah Data Transaksi"
-                                            bp-button="update" class="btn btn-sm btn-primary">
-                                                <i class="la la-pen"></i>
-                                        </a>
-                                    `;
-                                }
-
-                                if(detail.log_payment_id){
-                                    btn += `
-                                            <a href="javascript:void(0)"
-                                                onclick="deleteEntry(this)"
-                                                bp-button="delete"
-                                                data-route="${detail.url_delete}"
-                                                class="btn btn-sm btn-danger"
-                                                data-button-type="delete"
-                                                data-title-delete="Hapus Item Transaksi"
-                                                data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
-                                                    <i class="la la-trash"></i>
-                                                </a>
-                                            `;
-                                }
-                            }else{
-                                if(detail.is_transfer == null){
-                                      if(detail.kdp_str == '-'){
-                                            btn += `
-                                                <a href="javascript:void(0)"
-                                                    onclick="editEntry(this)"
-                                                    data-route="${detail.url_edit}"
-                                                    data-route-action="${detail.url_update}"
-                                                    data-title-edit="Ubah Data Transaksi"
-                                                    bp-button="update" class="btn btn-sm btn-primary">
-                                                        <i class="la la-pen"></i>
-                                                </a>
-                                            `;
-                                        btn_delete = `
-                                            <a href="javascript:void(0)"
-                                                onclick="deleteEntry(this)"
-                                                bp-button="delete"
-                                                data-route="${detail.url_delete}"
-                                                class="btn btn-sm btn-danger"
-                                                data-button-type="delete"
-                                                data-title-delete="Hapus Item Transaksi"
-                                                data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
-                                                    <i class="la la-trash"></i>
-                                                </a>
-                                            `;
-                                    }
-                                }
-                            }
-
-                            if(btn_delete != ''){
-                                if(detail.log_payment_id){
-                                    btn_delete = `
-                                    <a href="javascript:void(0)"
-                                        onclick="deleteEntry(this)"
-                                        bp-button="delete"
-                                        data-route="${detail.url_delete}"
-                                        class="btn btn-sm btn-danger"
-                                        data-button-type="delete"
-                                        data-title-delete="Hapus Item transaksi void"
-                                        data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?">
-                                            <i class="la la-trash"></i>
-                                        </a>
-                                    `;
-                                    btn += btn_delete;
-                                }else{
-                                    btn += btn_delete;
-                                }
-                            }
-
-                            var str = `
-                                <tr>
-                                    <td>${detail.date_transaction_str}</td>
-                                    <td>${detail.nominal_transaction_str}</td>
-                                    <td>${detail.description_str}</td>
-                                    <td>${detail.kdp_str}</td>
-                                    <td>${detail.job_name_str}</td>
-                                    <td>${detail.account_id_str}</td>
-                                    <td>${detail.no_invoice_str}</td>
-                                    <td>${detail.status_str}</td>
-                                    <td>${btn}</td>
-                                </tr>
-                            `;
-                            tabel.append(str);
-                        });
-
+                        // Method ini tidak lagi digunakan karena sudah dihandle DataTable
                     },
                     load:function(){
 

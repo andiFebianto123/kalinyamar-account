@@ -111,6 +111,7 @@ Route::group([
         Route::post('cast-accounts/export-trans-excel', [CastAccountsCrudController::class, 'exportTransExcel']);
         Route::post('cast-accounts-transaction', [CastAccountsCrudController::class, 'storeTransaction']);
         Route::get('cast-accounts-show', [CastAccountsCrudController::class, 'showTransaction']);
+        Route::get('cast-accounts-datatable', [CastAccountsCrudController::class, 'getTransactionDataTable']);
         Route::get('cast-accounts-select-to-account', [CastAccountsCrudController::class, 'getSelectToAccount']);
         Route::post('cast-accounts-select-to-invoice', [CastAccountsCrudController::class, 'select2Invoice']);
         Route::get('cast-accounts/get-invoice', [CastAccountsCrudController::class, 'get_invoice_ajax']);

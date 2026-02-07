@@ -818,7 +818,7 @@ class CustomVoid
             ];
 
             // catat di journal
-            CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment);
+            CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment, $status);
             $journal_account_trans = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $newTransaction->account_id,
                 'reference_id' => $newTransaction->id,
@@ -876,7 +876,13 @@ class CustomVoid
         ];
 
         $item = $newTransaction;
-        $item->new_saldo = 'Rp' . CustomHelper::formatRupiah($item->total_saldo_after);
+
+        // Hitung saldo terakhir menggunakan helper untuk akurasi
+        $actual_saldo = CustomHelper::total_balance_cast_account(
+            $cast_account_id,
+            $cast_account->status
+        );
+        $item->new_saldo = 'Rp' . CustomHelper::formatRupiah($actual_saldo ?? $item->total_saldo_after);
 
         if (sizeof($log_payment) > 0) {
             $newLogPayment = new LogPayment;

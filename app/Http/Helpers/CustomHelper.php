@@ -262,10 +262,10 @@ class CustomHelper
                 }
             }
         } else if ($status == CastAccount::LOAN) {
-            $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id) {
-                $q->where('cast_account_id', $id);
-            })->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($id) {
-                $q->where('id', $id);
+            $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id_cast_account) {
+                $q->where('cast_account_id', $id_cast_account);
+            })->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($id_cast_account) {
+                $q->where('id', $id_cast_account);
             })
                 ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
                 ->get();
@@ -423,19 +423,28 @@ class CustomHelper
         CustomHelper::rollbackPayment(InvoiceClient::class, $invoice->id, "CREATE_INVOICE");
     }
 
-    public static function invoicePaymentTransaction($transaction, $invoice, $log_payment)
+    public static function invoicePaymentTransaction($transaction, $invoice, $log_payment, $status = 'out')
     {
         if ($invoice != null) {
             $piutang = Account::where('code', '10201')->first();
             if ($piutang) {
+                // Tentukan debit/credit berdasarkan status transaksi
+                // Status OUT (Keluar) = Pembayaran invoice = Piutang berkurang (CREDIT)
+                // Status ENTER (Masuk) = Pengembalian/Refund = Piutang bertambah (DEBIT)
+                $is_out = ($status == AccountTransaction::OUT || $status == 'out');
+
+                $description = $is_out
+                    ? "Keluar piutang invoice " . $invoice->invoice_number
+                    : "Masuk piutang invoice " . $invoice->invoice_number;
+
                 $piutang_trans = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,
                     'reference_type' => AccountTransaction::class,
-                    'description' => "Keluar piutang invoice " . $invoice->invoice_number,
+                    'description' => $description,
                     'date' => Carbon::now(),
-                    'debit' => 0,
-                    'credit' => $invoice->price_total,
+                    'debit' => $is_out ? 0 : $invoice->price_total,      // DEBIT jika ENTER
+                    'credit' => $is_out ? $invoice->price_total : 0,     // CREDIT jika OUT
                 ], [
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,

@@ -80,7 +80,7 @@ class CastAccountsCrudController extends CrudController
                 'name' => 'modal_info_cast_account',
                 'title' => 'info',
                 'title_alignment' => 'center',
-                'size' => 'modal-lg',
+                'size' => 'modal-fullscreen',
                 'view' => 'crud::components.modal-info-cast-account',
                 'params' => [
                     'name' => 'modal_info_cast_account',
@@ -545,12 +545,22 @@ class CastAccountsCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
-                $item_value = str_replace('<span>', '', $item_value);
-                $item_value = str_replace('</span>', '', $item_value);
-                $item_value = str_replace("\n", '', $item_value);
-                $item_value = CustomHelper::clean_html($item_value);
-                $row_items[] = trim($item_value);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'date_transaction') {
+                    $item_value = $item->date_transaction ? Carbon::parse($item->date_transaction)->format('d/m/Y') : '-';
+                } elseif ($column['name'] == 'nominal_transaction') {
+                    $item_value = str_replace('.', '', $item->nominal_transaction);
+                    $item_value = str_replace(',', '', $item_value);
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                    $item_value = str_replace('<span>', '', $item_value);
+                    $item_value = str_replace('</span>', '', $item_value);
+                    $item_value = str_replace("\n", '', $item_value);
+                    $item_value = CustomHelper::clean_html($item_value);
+                    $item_value = trim($item_value);
+                }
+                $row_items[] = $item_value;
             }
             $all_items[] = $row_items;
         }
@@ -605,9 +615,11 @@ class CastAccountsCrudController extends CrudController
         $cast_account_id = request()->cast_account_id;
         $has_access_primary = $this->accessAccount($cast_account_id);
         $has_access_payment = $this->accessPaymentAccount($cast_account_id);
+        $status = request()->status; // Ambil status dari request
 
         $rule = [
             'date_transaction' => 'required',
+            'status' => 'required|in:enter,out', // Validasi status
             'nominal_transaction' => [
                 'required',
                 'numeric',
@@ -619,15 +631,15 @@ class CastAccountsCrudController extends CrudController
             'account_id' => 'required|exists:accounts,id',
         ];
 
-        if ($has_access_primary == 0) {
+        // Validasi saldo hanya untuk transaksi keluar (out) dan bukan primary/payment account
+        if ($has_access_primary == 0 && $status == 'out') {
             $rule['nominal_transaction'] = [
                 'required',
                 'numeric',
                 'min:1000',
                 function ($attribute, $value, $fail) use ($cast_account_id, $has_access_payment) {
-                    // total_balance_cast_account_edit
                     if ($has_access_payment > 0) {
-                        // tidak ada validasi apapun
+                        // Payment account bisa overdraft
                     } else {
                         $balance = CustomHelper::total_balance_cast_account($cast_account_id, CastAccount::CASH);
                         if ($value > $balance) {
@@ -657,7 +669,16 @@ class CastAccountsCrudController extends CrudController
         $cast_account_id = request()->cast_account_id;
         $id = request()->id;
         $has_access_payment = $this->accessPaymentAccount($cast_account_id);
-        return [
+
+        // Cek apakah transaksi memiliki log_payment
+        $has_log_payment = false;
+        if ($id) {
+            $has_log_payment = LogPayment::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id) {
+                $q->where('id', $id);
+            })->exists();
+        }
+
+        $rules = [
             'date_transaction' => 'required',
             'kdp' => 'max:50',
             'job_name' => 'max:100',
@@ -668,8 +689,15 @@ class CastAccountsCrudController extends CrudController
                 'numeric',
                 'min:1000',
                 function ($attribute, $value, $fail) use ($cast_account_id, $id, $has_access_payment) {
-                    if ($has_access_payment > 0) {
-                    } else {
+                    // Tentukan status untuk cek saldo
+                    $status = request()->status;
+                    if (empty($status) && $id) {
+                        $transaction = AccountTransaction::find($id);
+                        $status = $transaction->status;
+                    }
+
+                    // Hanya cek saldo jika statusnya OUT
+                    if ($status == AccountTransaction::OUT) {
                         if ($id) {
                             $balance = CustomHelper::total_balance_cast_account_edit($cast_account_id, $id, CastAccount::CASH);
                         } else {
@@ -682,18 +710,66 @@ class CastAccountsCrudController extends CrudController
                 }
             ]
         ];
+
+        // Hanya wajibkan status jika ada log_payment
+        if ($has_log_payment) {
+            $rules['status'] = 'required|in:enter,out';
+        }
+
+        return $rules;
     }
 
     function ruleValidationStoreTransactionAccountPrimary()
     {
-        return [
+        $cast_account_id = request()->cast_account_id;
+        $id = request()->id;
+
+        $has_log_payment = false;
+        if ($id) {
+            $has_log_payment = LogPayment::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id) {
+                $q->where('id', $id);
+            })->exists();
+        }
+
+        $rules = [
             'date_transaction' => 'required',
             'kdp' => 'max:50',
             'job_name' => 'max:100',
             'no_invoice' => 'max:100',
             'account_id' => 'required|exists:accounts,id',
-            // 'status' => 'required|in:enter,out',
+            'nominal_transaction' => [
+                'required',
+                'numeric',
+                'min:1000',
+                function ($attribute, $value, $fail) use ($cast_account_id, $id) {
+                    // Tentukan status untuk cek saldo
+                    $status = request()->status;
+                    if (empty($status) && $id) {
+                        $transaction = AccountTransaction::find($id);
+                        $status = $transaction->status;
+                    }
+
+                    // Hanya cek saldo jika statusnya OUT
+                    if ($status == AccountTransaction::OUT) {
+                        if ($id) {
+                            $balance = CustomHelper::total_balance_cast_account_edit($cast_account_id, $id, CastAccount::CASH);
+                        } else {
+                            $balance = CustomHelper::total_balance_cast_account($cast_account_id, CastAccount::CASH);
+                        }
+                        if ($value > $balance) {
+                            $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
+                        }
+                    }
+                }
+            ]
         ];
+
+        // Hanya wajibkan status jika ada log_payment
+        if ($has_log_payment) {
+            $rules['status'] = 'required|in:enter,out';
+        }
+
+        return $rules;
     }
 
     function account_select2()
@@ -820,23 +896,65 @@ class CastAccountsCrudController extends CrudController
 
         if (request()->has('type')) {
             // edit
-            if ($has_access_primary > 0) {
-                $attribute_form = [
+            $transaction_id = request()->id;
+            $transaction = AccountTransaction::find($transaction_id);
+
+            $has_log_payment = LogPayment::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($transaction_id) {
+                $q->where('id', $transaction_id);
+            })->exists();
+
+            if ($has_log_payment) {
+                $attribute_form = [];
+                $invoice_disabled = [];
+            } else {
+                if ($has_access_primary > 0) {
+                    $attribute_form = [
+                        'disabled' => true,
+                    ];
+                }
+
+                $invoice_disabled = [
                     'disabled' => true,
                 ];
             }
-
-            $invoice_disabled = [
-                'disabled' => true,
-            ];
         }
 
 
         CRUD::addField([
-            'name' => 'cast_account_id ',
+            'name' => 'cast_account_id',
             'type' => 'hidden',
             'value' => $id,
         ]);
+
+        // Ambil data rekening untuk ditampilkan
+        $cast_account = CastAccount::find($id);
+        if ($cast_account) {
+            CRUD::addField([
+                'name' => 'account_info',
+                'type' => 'custom_html',
+                'value' => '
+                    <div class="alert alert-info" style="margin-bottom: 20px;">
+                        <h5 style="margin-top: 0; margin-bottom: 10px;">
+                            <i class="la la-bank"></i> ' . trans('backpack::crud.cash_account.account_info.title') . '
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>' . trans('backpack::crud.cash_account.account_info.account_name') . ':</strong><br>
+                                ' . e($cast_account->name) . '
+                            </div>
+                            <div class="col-md-4">
+                                <strong>' . trans('backpack::crud.cash_account.account_info.bank_name') . ':</strong><br>
+                                ' . e($cast_account->bank_name) . '
+                            </div>
+                            <div class="col-md-4">
+                                <strong>' . trans('backpack::crud.cash_account.account_info.account_number') . ':</strong><br>
+                                ' . e($cast_account->no_account) . '
+                            </div>
+                        </div>
+                    </div>
+                ',
+            ]);
+        }
 
         CRUD::addField([   // date_picker
             'name'  => 'date_transaction',
@@ -869,6 +987,25 @@ class CastAccountsCrudController extends CrudController
             ],
             'attributes' => [
                 'placeholder' => '000.000',
+                ...$attribute_form,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name'        => 'status',
+            'label'       => trans('backpack::crud.cash_account.field_transaction.status.label'),
+            'type'        => 'select_from_array',
+            'options'     => [
+                '' => trans('backpack::crud.cash_account.field_transaction.status.placeholder'),
+                'enter' => trans('backpack::crud.cash_account.field_transaction.status.enter'),
+                'out' => trans('backpack::crud.cash_account.field_transaction.status.out')
+            ],
+            'allows_null' => false,
+            'default'     => '',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
                 ...$attribute_form,
             ]
         ]);
@@ -1239,17 +1376,24 @@ class CastAccountsCrudController extends CrudController
         $old_item = AccountTransaction::find($request->id);
 
         $has_access_primary = $this->accessAccount($old_item->cast_account_id);
-        $status_account = AccountTransaction::OUT;
+        // Tentukan status: prioritas dari form jika transaksi murni (tanpa reference_type)
+        if (empty($old_item->reference_type)) {
+            $status_account = $request->input('status', $old_item->status);
+        } else {
+            // Logika otomatis fallback untuk transaksi dengan referensi (backward compatibility)
+            $status_account = AccountTransaction::OUT;
+            $has_payment_access = $this->accessPaymentAccount($old_item->cast_account_id);
+            if ($has_payment_access > 0 || $has_access_primary > 0) {
+                $status_account = AccountTransaction::ENTER;
+            }
+        }
+
         if (request()->has('type')) {
             // edit
             if ($has_access_primary > 0) {
                 $request->validate($this->ruleValidationStoreTransactionAccountPrimary());
             } else {
-                $has_payment_access = $this->accessPaymentAccount($request->cast_account_id);
                 $request->validate($this->ruleValidationEditTransactionAccountSecondary());
-                if ($has_payment_access > 0) {
-                    $status_account = AccountTransaction::ENTER;
-                }
             }
         }
 
@@ -1258,7 +1402,6 @@ class CastAccountsCrudController extends CrudController
         DB::beginTransaction();
 
         try {
-
             $log_payment_exists = LogPayment::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($request) {
                 $q->where('id', $request->id);
             })->exists();
@@ -1410,16 +1553,22 @@ class CastAccountsCrudController extends CrudController
         $request = request();
         $request->validate($this->ruleValidationTransaction());
 
-        $has_access_primary = $this->accessAccount($request->cast_account_id);
-
-        if ($has_access_primary > 0) {
-            $status_account = AccountTransaction::ENTER;
+        // Gunakan status dari pilihan user jika ada, jika tidak gunakan logika otomatis
+        if ($request->has('status') && in_array($request->status, ['enter', 'out'])) {
+            $status_account = $request->status;
         } else {
-            $has_payment_access = $this->accessPaymentAccount($request->cast_account_id);
-            if ($has_payment_access > 0) {
+            // Logika otomatis (backward compatibility)
+            $has_access_primary = $this->accessAccount($request->cast_account_id);
+
+            if ($has_access_primary > 0) {
                 $status_account = AccountTransaction::ENTER;
             } else {
-                $status_account = AccountTransaction::OUT;
+                $has_payment_access = $this->accessPaymentAccount($request->cast_account_id);
+                if ($has_payment_access > 0) {
+                    $status_account = AccountTransaction::ENTER;
+                } else {
+                    $status_account = AccountTransaction::OUT;
+                }
             }
         }
 
@@ -1665,50 +1814,124 @@ class CastAccountsCrudController extends CrudController
         }
     }
 
-    public function showTransaction()
+    public function getTransactionDataTable()
     {
         $id = request()->_id;
         $castAccount = CastAccount::where('id', $id)->first();
-        $detail = AccountTransaction::leftJoin('log_payments', function ($q) {
+        if (!$castAccount) {
+            return response()->json(['data' => []]);
+        }
+
+        $query = AccountTransaction::leftJoin('log_payments', function ($q) {
             $q->on('account_transactions.id', 'log_payments.reference_id')
                 ->where('log_payments.reference_type', AccountTransaction::class);
         })
             ->where('account_transactions.cast_account_id', $id)
             ->where('account_transactions.is_first', 0)
-            ->orderBy('account_transactions.id', 'DESC')
             ->select([
                 'account_transactions.*',
                 'log_payments.id as log_payment_id',
-            ])
-            ->get();
+            ]);
 
+        // Access Check
         $has_access_primary = $this->accessAccount($id);
 
-        foreach ($detail as $entry) {
-            $entry->date_transaction_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
-            $entry->nominal_transaction_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
-            $entry->description_str = $entry->description ?? '-';
-            $entry->kdp_str = $entry->kdp ?? '-';
-            $entry->job_name_str = $entry->job_name ?? '-';
-            $entry->account_id_str = ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-';
-            $entry->no_invoice_str = ($entry->no_invoice) ? $entry->no_invoice : '-';
-            $entry->status_str = ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status)));
-            $entry->url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
-            $entry->url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
-            $entry->url_delete = ($entry->log_payment_id) ? url($this->crud->route . "/delete-transaction-void/" . $entry->id) : url($this->crud->route . "/delete-transaction/" . $entry->id);
-            $entry->is_primary = $has_access_primary;
-            $entry->is_transfer = $entry->cast_account_destination_id;
-            $entry->no_invoice_str = $entry->log_payment->no_invoice ?? '-';
+        // DataTables logic manually (or using yajra if available, but here we do simple manual processing from request)
+        $total_data = $query->count();
+        $filtered_data = $query; // In real app, apply search filters here
+
+        // Search logic
+        if ($search = request()->input('search.value')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('account_transactions.description', 'LIKE', "%$search%")
+                    ->orWhere('account_transactions.nominal_transaction', 'LIKE', "%$search%")
+                    ->orWhere('account_transactions.kdp', 'LIKE', "%$search%")
+                    ->orWhere('account_transactions.job_name', 'LIKE', "%$search%")
+                    ->orWhere('account_transactions.no_invoice', 'LIKE', "%$search%");
+            });
+            $total_filtered = $query->count();
+        } else {
+            $total_filtered = $total_data;
         }
+
+        // Order logic
+        $columns = ['date_transaction', 'nominal_transaction', 'description', 'kdp', 'job_name', 'account_id', 'no_invoice', 'status'];
+        if ($order = request()->input('order.0')) {
+            $query->orderBy($columns[$order['column']], $order['dir']);
+        } else {
+            $query->orderBy('account_transactions.date_transaction', 'ASC')
+                ->orderBy('account_transactions.id', 'ASC');
+        }
+
+        // Pagination
+        $start = request()->input('start', 0);
+        $length = request()->input('length', 10);
+        $detail = $query->offset($start)->limit($length)->get();
+
+        $data = [];
+        foreach ($detail as $entry) {
+            $date_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
+            $nominal_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
+
+            // Logic Tombol Aksi (Pindahan dari Blade lama)
+            $btn = '';
+            $isRegularTransaction = !$entry->reference_type;
+
+            if ($isRegularTransaction) {
+                if ($has_access_primary) {
+                    if (!$entry->cast_account_destination_id) {
+                        $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+                        $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+                        $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+                    }
+                    if ($entry->log_payment_id) {
+                        $url_delete = url($this->crud->route . "/delete-transaction-void/" . $entry->id);
+                        $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
+                    }
+                } else {
+                    if (!$entry->cast_account_destination_id) {
+                        if (!$entry->kdp) {
+                            $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+                            $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+                            $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+
+                            $url_delete = url($this->crud->route . "/delete-transaction/" . $entry->id);
+                            $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
+                        } else if ($entry->log_payment_id) {
+                            $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+                            $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+                            $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+                        }
+                    }
+                }
+            }
+
+            $data[] = [
+                'date_transaction_str' => $date_str,
+                'nominal_transaction_str' => $nominal_str,
+                'description_str' => $entry->description ?? '-',
+                'kdp_str' => $entry->kdp ?? '-',
+                'job_name_str' => $entry->job_name ?? '-',
+                'account_id_str' => ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-',
+                'no_invoice_str' => $entry->log_payment->no_invoice ?? ($entry->no_invoice ?? '-'),
+                'status_str' => ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status))),
+                'action_buttons' => $btn,
+            ];
+        }
+
         $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::CASH);
-        $castAccount->total_saldo = $total_balance;
         $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($total_balance);
+
         return response()->json([
-            'status' => true,
-            'result' => [
-                'cast_account' => $castAccount,
-                'balance' => $castAccount->total_saldo_str,
-                'detail' => $detail,
+            'draw' => intval(request()->input('draw')),
+            'recordsTotal' => $total_data,
+            'recordsFiltered' => $total_filtered,
+            'data' => $data,
+            'header' => [
+                'name' => $castAccount->name,
+                'bank_name' => $castAccount->bank_name,
+                'no_account' => $castAccount->no_account,
+                'total_saldo_str' => $castAccount->total_saldo_str
             ]
         ]);
     }
