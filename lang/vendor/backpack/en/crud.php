@@ -214,7 +214,7 @@ return [
             'phone' => 'Phone',
             'bank_name' => 'Bank Name',
             'bank_account' => 'Bank Account',
-         ]
+        ]
     ],
     'po' => [
         'title_header' => 'PO',
@@ -229,7 +229,7 @@ return [
             'tax_ppn' => 'Tax PPN',
             'total_value_with_tax' => 'Job Value Includes PPn',
             'document_path' => 'Document PO',
-         ]
+        ]
     ],
     'spk' => [
         'title_header' => 'SPK',
@@ -281,4 +281,17 @@ return [
     'save_submit' => 'Save',
     'cancel_submit' => 'Cancel',
     'save_changes_submit' => 'Save Changes',
+    'cash_account' => [
+        'field' => [
+            'bank_name' => [
+                'add_new' => 'ADD NEW BANK',
+                'custom_placeholder' => 'Enter New Bank Name',
+                'save_button' => 'Save Bank',
+                'save_hint' => 'Click "Save Bank" to register to database.',
+                'save_confirm' => 'Are you sure you want to save this new bank?',
+                'error_empty' => 'Bank name cannot be empty!',
+                'error_ajax' => 'Error occurred while saving bank.',
+            ]
+        ]
+    ]
 ];

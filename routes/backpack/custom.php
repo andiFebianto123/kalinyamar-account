@@ -109,6 +109,7 @@ Route::group([
         Route::post('cast-accounts/export-excel', [CastAccountsCrudController::class, 'exportExcel']);
         Route::post('cast-accounts/export-trans-pdf', [CastAccountsCrudController::class, 'exportTransPdf']);
         Route::post('cast-accounts/export-trans-excel', [CastAccountsCrudController::class, 'exportTransExcel']);
+        Route::post('cast-accounts/save-bank', [CastAccountsCrudController::class, 'saveBankAjax']);
         Route::post('cast-accounts-transaction', [CastAccountsCrudController::class, 'storeTransaction']);
         Route::get('cast-accounts-show', [CastAccountsCrudController::class, 'showTransaction']);
         Route::get('cast-accounts-datatable', [CastAccountsCrudController::class, 'getTransactionDataTable']);

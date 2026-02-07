@@ -865,6 +865,25 @@ class CastAccountsCrudController extends CrudController
         return response()->json($invoice);
     }
 
+    public function saveBankAjax()
+    {
+        $name = request()->input('name');
+        if (empty($name)) {
+            return response()->json(['success' => false, 'message' => 'Nama bank tidak boleh kosong']);
+        }
+
+        try {
+            $bank = \App\Models\Bank::firstOrCreate(['name' => $name]);
+            return response()->json([
+                'success' => true,
+                'data' => $bank,
+                'message' => 'Bank berhasil disimpan'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
     function accessAccount($id_account)
     {
         $account = CastAccount::whereHas('informations', function ($q) {
@@ -1186,9 +1205,9 @@ class CastAccountsCrudController extends CrudController
 
             CRUD::field([  // Select2
                 'label'     => trans('backpack::crud.cash_account.field.bank_name.label'),
-                'type'      => 'select2_array',
+                'type'      => 'select2_bank_tags',
                 'name'      => 'bank_name',
-                'options'   => ['' => trans('backpack::crud.cash_account.field.bank_name.placeholder'), ...CustomHelper::getBanks()], // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+                'options'   => ['' => trans('backpack::crud.cash_account.field.bank_name.placeholder'), ...CustomHelper::getBanks()],
                 'wrapper' => [
                     'class' => 'form-group col-md-6'
                 ]
@@ -1316,6 +1335,10 @@ class CastAccountsCrudController extends CrudController
         $request = $this->crud->validateRequest();
 
         $this->crud->registerFieldEvents();
+
+        if ($request->bank_name) {
+            \App\Models\Bank::firstOrCreate(['name' => $request->bank_name]);
+        }
 
         DB::beginTransaction();
         try {
@@ -1482,6 +1505,10 @@ class CastAccountsCrudController extends CrudController
         $request = $this->crud->validateRequest();
 
         $this->crud->registerFieldEvents();
+
+        if ($request->bank_name) {
+            \App\Models\Bank::firstOrCreate(['name' => $request->bank_name]);
+        }
 
         DB::beginTransaction();
         try {

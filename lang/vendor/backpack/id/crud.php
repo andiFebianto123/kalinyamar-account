@@ -593,6 +593,13 @@ return [
             'bank_name' => [
                 'label' => 'Nama Bank',
                 'placeholder' => '-List Bank',
+                'add_new' => 'TAMBAH BANK BARU',
+                'custom_placeholder' => 'Masukkan Nama Bank Baru',
+                'save_button' => 'Simpan Bank',
+                'save_hint' => 'Klik "Simpan Bank" untuk mendaftarkan ke database.',
+                'save_confirm' => 'Apakah Anda yakin ingin menyimpan bank baru ini?',
+                'error_empty' => 'Nama bank tidak boleh kosong!',
+                'error_ajax' => 'Terjadi kesalahan saat menyimpan bank.',
             ],
             'no_account' => [
                 'label' => 'No. Rekening',
