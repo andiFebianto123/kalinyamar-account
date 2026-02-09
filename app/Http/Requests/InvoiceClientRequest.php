@@ -36,6 +36,7 @@ class InvoiceClientRequest extends FormRequest
             'invoice_date' => 'required',
             'client_po_id' => 'required|exists:client_po,id',
             'status' => 'nullable|in:Paid,Unpaid',
+            'invoice_document' => 'nullable|file|mimes:pdf|max:30720', // 30MB = 30720 KB
         ];
 
         if ($id) {

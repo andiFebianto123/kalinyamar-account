@@ -298,7 +298,7 @@ class CustomHelper
                 'reference_type' => InvoiceClient::class,
                 'description' => "Piutang invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $invoice->price_total,
+                'debit' => $invoice->price_total_exclude_ppn,
                 'credit' => 0,
             ], [
                 'account_id' => $piutang->id,
@@ -312,7 +312,7 @@ class CustomHelper
                 'reference_type' => InvoiceClient::class,
                 'description' => "Piutang invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $invoice->price_total,
+                'debit' => $invoice->price_total_exclude_ppn,
                 'credit' => 0,
                 'type' => JournalEntry::class,
             ];
@@ -434,8 +434,8 @@ class CustomHelper
                     'reference_type' => AccountTransaction::class,
                     'description' => $description,
                     'date' => Carbon::now(),
-                    'debit' => $is_out ? 0 : $invoice->price_total,      // DEBIT jika ENTER
-                    'credit' => $is_out ? $invoice->price_total : 0,     // CREDIT jika OUT
+                    'debit' => $is_out ? 0 : $invoice->price_total_exclude_ppn,      // DEBIT jika ENTER
+                    'credit' => $is_out ? $invoice->price_total_exclude_ppn : 0,     // CREDIT jika OUT
                 ], [
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,

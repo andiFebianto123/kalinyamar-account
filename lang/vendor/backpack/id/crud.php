@@ -442,6 +442,7 @@ return [
             ],
             'document_path' => [
                 'label' => 'Upload Dokumen PO',
+                'hint' => 'Maksimal 35 MB (PDF)',
             ],
             'date_invoice' => [
                 'label' => 'Tanggal Invoice',
@@ -482,6 +483,8 @@ return [
             'status' => 'Status',
             'send_invoice_normal' => "Tgl Pengiriman Invoice - Normal",
             'send_invoice_revision' => "Tgl Pengiriman Invoice - Revisi",
+            'document_invoice' => 'Dokumen Invoice',
+            'description' => 'Deskripsi',
         ],
         'field' => [
             'invoice_number' => [
@@ -575,6 +578,10 @@ return [
                         'placeholder' => '000.000',
                     ]
                 ]
+            ],
+            'invoice_document' => [
+                'label' => 'Dokumen Invoice (Opsional)',
+                'hint' => 'Upload file invoice dalam format PDF (maksimal 30MB)',
             ]
         ],
     ],

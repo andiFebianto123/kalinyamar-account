@@ -654,7 +654,7 @@ class CustomVoid
                 'reference_type' => InvoiceClient::class,
                 'description' => "Piutang invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $invoice->price_total,
+                'debit' => $invoice->price_total_exclude_ppn,
                 'credit' => 0,
             ], [
                 'account_id' => $piutang->id,
@@ -668,7 +668,7 @@ class CustomVoid
                 'reference_type' => InvoiceClient::class,
                 'description' => "Piutang invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $invoice->price_total,
+                'debit' => $invoice->price_total_exclude_ppn,
                 'credit' => 0,
                 'type' => JournalEntry::class,
             ];

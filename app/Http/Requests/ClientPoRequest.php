@@ -30,15 +30,15 @@ class ClientPoRequest extends FormRequest
         $rule_origin = [
             // 'name' => 'required|min:5|max:255'
             'client_id' => 'required|exists:clients,id',
-            'work_code' => 'required|max:30|unique:client_po,work_code,'. $id,
-            'po_number' => 'required|max:30|unique:client_po,po_number,'. $id,
+            'work_code' => 'required|max:30|unique:client_po,work_code,' . $id,
+            'po_number' => 'required|max:30|unique:client_po,po_number,' . $id,
             'job_name' => 'required|max:255',
             'job_value' => 'required|numeric',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'reimburse_type' => 'required|max:50',
             // 'price_total' => 'required|numeric',
-            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
+            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:35840'),
             'date_invoice' => 'nullable|date',
             'rap_value' => 'required|numeric',
             // 'price_after_year' => 'required|numeric',
@@ -47,7 +47,7 @@ class ClientPoRequest extends FormRequest
         ];
 
         $rule_no_po = [
-            'work_code' => 'required|max:30|unique:client_po,work_code,'. $id,
+            'work_code' => 'required|max:30|unique:client_po,work_code,' . $id,
             // 'po_number' => 'required|max:30|unique:client_po,po_number,'. $id,
             'client_id' => 'nullable|exists:clients,id',
             'job_name' => 'nullable|max:255',
@@ -56,24 +56,24 @@ class ClientPoRequest extends FormRequest
             'tax_ppn' => 'nullable|numeric',
             'reimburse_type' => 'nullable|max:50',
             'load_general_value' => 'nullable|numeric',
-            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:5000'),
+            'document_path' => ValidUpload::field('nullable')->file('mimes:pdf|max:35840'),
             'category' => 'nullable',
         ];
 
         // rule defautl
         $rule = $rule_no_po;
 
-        if($status == 'TANPA PO'){
+        if ($status == 'TANPA PO') {
             $rule = $rule_no_po;
             $rule['po_number'] = 'nullable|max:30';
-        }else if($status == 'ADA PO'){
+        } else if ($status == 'ADA PO') {
             $rule = $rule_origin;
         }
 
-        if(request()->has('work_code')){
-            $rule['work_code'] = 'required|max:30|unique:client_po,work_code,'.$id;
-        }else{
-            $rule['work_code'] = 'nullable|max:30|unique:client_po,work_code,'.$id;
+        if (request()->has('work_code')) {
+            $rule['work_code'] = 'required|max:30|unique:client_po,work_code,' . $id;
+        } else {
+            $rule['work_code'] = 'nullable|max:30|unique:client_po,work_code,' . $id;
         }
 
         $rule['date_po'] = 'nullable|date';

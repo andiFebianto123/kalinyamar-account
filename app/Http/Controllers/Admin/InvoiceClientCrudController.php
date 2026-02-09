@@ -13,6 +13,7 @@ use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use App\Models\InvoiceClientDetail;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Requests\InvoiceClientRequest;
@@ -154,10 +155,17 @@ class InvoiceClientCrudController extends CrudController
                         'orderable' => true,
                     ],
                     [
+                        'label' => trans('backpack::crud.invoice_client.column.description'),
+                        'name' => 'description',
+                        'type' => 'text',
+                        'orderable' => true,
+                    ],
+                    [
                         'label'  => trans('backpack::crud.invoice_client.column.client_po_id'),
                         'name' => 'client_po_id',
                         'type'  => 'text',
                         'orderable' => true,
+                        'limit' => 40,
                     ],
                     [
                         'label' => trans('backpack::crud.invoice_client.column.po_date'),
@@ -199,6 +207,12 @@ class InvoiceClientCrudController extends CrudController
                         'label' => trans('backpack::crud.invoice_client.column.status'),
                         'name' => 'status',
                         'type' => 'text',
+                    ],
+                    [
+                        'label' => trans('backpack::crud.invoice_client.column.document_invoice'),
+                        'name' => 'invoice_document',
+                        'type' => 'text',
+                        'orderable' => false,
                     ],
                     [
                         'name' => 'action',
@@ -257,50 +271,56 @@ class InvoiceClientCrudController extends CrudController
 
             if (isset($request->search[5])) {
                 $search = trim($request->search[5]);
+                $total_price = $total_price
+                    ->where('invoice_clients.description', 'like', '%' . $search . '%');
+            }
+
+            if (isset($request->search[6])) {
+                $search = trim($request->search[6]);
                 $total_price = $total_price->orWhereHas('client_po', function ($query) use ($search) {
                     $query->where('po_number', 'like', '%' . $search . '%');
                 });
             }
 
-            // if (isset($request->search[6])) {
-            //     $search = trim($request->search[6]);
+            // if (isset($request->search[7])) {
+            //     $search = trim($request->search[7]);
             //     $total_price = $total_price
             //         ->where('invoice_clients.po_date', 'like', '%' . $search . '%');
             // }
 
-            if (isset($request->search[7])) {
-                $search = trim($request->search[7]);
+            if (isset($request->search[8])) {
+                $search = trim($request->search[8]);
                 $total_price = $total_price->orWhereHas('client_po.client', function ($query) use ($search) {
                     $query->where('name', 'like', '%' . $search . '%');
                 });
             }
 
-            if (isset($request->search[8])) {
-                $search = trim($request->search[8]);
+            if (isset($request->search[9])) {
+                $search = trim($request->search[9]);
                 $total_price = $total_price
                     ->where('invoice_clients.price_total_exclude_ppn', 'like', '%' . $search . '%');
             }
 
-            if (isset($request->search[9])) {
-                $search = trim($request->search[9]);
+            if (isset($request->search[10])) {
+                $search = trim($request->search[10]);
                 $total_price = $total_price
                     ->where('invoice_clients.price_total_include_ppn', 'like', '%' . $search . '%');
             }
 
-            // if (isset($request->search[10])) {
-            //     $search = trim($request->search[10]);
+            // if (isset($request->search[11])) {
+            //     $search = trim($request->search[11]);
             //     $total_price = $total_price
             //         ->where('invoice_clients.send_invoice_normal_date', 'like', '%' . $search . '%');
             // }
 
-            // if (isset($request->search[11])) {
-            //     $search = trim($request->search[11]);
+            // if (isset($request->search[12])) {
+            //     $search = trim($request->search[12]);
             //     $total_price = $total_price
             //         ->where('invoice_clients.send_invoice_revision_date', 'like', '%' . $search . '%');
             // }
 
-            // if (isset($request->search[12])) {
-            //     $search = trim($request->search[12]);
+            // if (isset($request->search[13])) {
+            //     $search = trim($request->search[13]);
             //     $total_price = $total_price
             //         ->where('invoice_clients.status', 'like', '%' . $search . '%');
             // }
@@ -501,6 +521,14 @@ class InvoiceClientCrudController extends CrudController
             ],
         );
 
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.invoice_client.column.description'),
+                'name' => 'description',
+                'type' => 'wrap_text'
+            ]
+        );
+
         CRUD::column([
             // 1-n relationship
             'label' => trans('backpack::crud.invoice_client.column.client_po_id'),
@@ -510,7 +538,7 @@ class InvoiceClientCrudController extends CrudController
             'attribute' => 'po_number', // foreign key attribute that is shown to user
             'model'     => "App\Models\ClientPo", // foreign key model
             // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
+            'limit' => 40, // Limit the number of characters shown
         ]);
 
         CRUD::column(
@@ -579,6 +607,32 @@ class InvoiceClientCrudController extends CrudController
             ]
         );
 
+        // CRUD::column([
+        //     'label' => 'Dokumen Invoice',
+        //     'name' => 'invoice_document',
+        //     'type' => 'closure',
+        //     'function' => function ($entry) {
+        //         if ($entry->invoice_document) {
+        //             $url = asset('storage/' . $entry->invoice_document);
+        //             $filename = basename($entry->invoice_document);
+        //             return '<a href="' . $url . '" target="_blank" class="btn btn-sm btn-success" title="' . $filename . '">
+        //                       <i class="la la-file-pdf"></i> PDF
+        //                     </a>';
+        //         }
+        //         return '';
+        //     },
+        //     'escaped' => false,
+        //     'searchLogic' => false,
+        //     'orderable' => false,
+        // ]);
+
+        CRUD::column([
+            'name'   => 'invoice_document',
+            'type'   => 'upload',
+            'label'  => trans('backpack::crud.client_po.column.document_path'),
+            'disk'   => 'public',
+        ]);
+
         $request = request();
 
         if ($request->columns) {
@@ -607,34 +661,45 @@ class InvoiceClientCrudController extends CrudController
             //         ->where('invoice_clients.invoice_date', 'like', '%' . $search . '%');
             // }
 
+            // Search for Description column (index 5)
             if (isset($request->columns[5]['search']['value'])) {
                 $search = trim($request->columns[5]['search']['value']);
+                $this->crud->query = $this->crud->query
+                    ->where('invoice_clients.description', 'like', '%' . $search . '%');
+            }
+
+            // Client PO Number (shifted from index 5 to 6)
+            if (isset($request->columns[6]['search']['value'])) {
+                $search = trim($request->columns[6]['search']['value']);
                 $this->crud->query = $this->crud->query->orWhereHas('client_po', function ($query) use ($search) {
                     $query->where('po_number', 'like', '%' . $search . '%');
                 });
             }
 
-            // if (isset($request->columns[6]['search']['value'])) {
-            //     $search = trim($request->columns[6]['search']['value']);
+            // if (isset($request->columns[7]['search']['value'])) {
+            //     $search = trim($request->columns[7]['search']['value']);
             //     $this->crud->query = $this->crud->query
             //         ->where('invoice_clients.po_date', 'like', '%' . $search . '%');
             // }
 
-            if (isset($request->columns[7]['search']['value'])) {
-                $search = trim($request->columns[7]['search']['value']);
+            // Client Name (shifted from index 7 to 8)
+            if (isset($request->columns[8]['search']['value'])) {
+                $search = trim($request->columns[8]['search']['value']);
                 $this->crud->query = $this->crud->query->orWhereHas('client_po.client', function ($query) use ($search) {
                     $query->where('name', 'like', '%' . $search . '%');
                 });
             }
 
-            if (isset($request->columns[8]['search']['value'])) {
-                $search = trim($request->columns[8]['search']['value']);
+            // Price Exclude PPN (shifted from index 8 to 9)
+            if (isset($request->columns[9]['search']['value'])) {
+                $search = trim($request->columns[9]['search']['value']);
                 $this->crud->query = $this->crud->query
                     ->where('invoice_clients.price_total_exclude_ppn', 'like', '%' . $search . '%');
             }
 
-            if (isset($request->columns[9]['search']['value'])) {
-                $search = trim($request->columns[9]['search']['value']);
+            // Price Include PPN (shifted from index 9 to 10)
+            if (isset($request->columns[10]['search']['value'])) {
+                $search = trim($request->columns[10]['search']['value']);
                 $this->crud->query = $this->crud->query
                     ->where('invoice_clients.price_total_include_ppn', 'like', '%' . $search . '%');
             }
@@ -1055,6 +1120,21 @@ class InvoiceClientCrudController extends CrudController
             ],
         ]);
 
+        CRUD::addField([
+            'name' => 'invoice_document',
+            'label' => trans('backpack::crud.invoice_client.field.invoice_document.label'),
+            'type' => 'upload',
+            'upload' => true,
+            'disk' => 'public',
+            'prefix' => 'document_invoice/',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'accept' => '.pdf',
+            ],
+            'hint' => trans('backpack::crud.invoice_client.field.invoice_document.hint'),
+        ]);
 
         $id = request()->segment(3);
 
@@ -1199,6 +1279,15 @@ class InvoiceClientCrudController extends CrudController
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
             $invoice->status = 'Unpaid';
             $invoice->price_total = $total_price;
+
+            // Handle file upload for invoice_document
+            if ($request->hasFile('invoice_document')) {
+                $file = $request->file('invoice_document');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('document_invoice', $filename, 'public');
+                $invoice->invoice_document = $path;
+            }
+
             $invoice->save();
 
             if ($total_item_price > 0) {
@@ -1297,6 +1386,21 @@ class InvoiceClientCrudController extends CrudController
             $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
             $invoice->price_total = $total_price;
+
+            // Handle file upload for invoice_document
+            if ($request->hasFile('invoice_document')) {
+                // Delete old file if exists
+                if ($invoice->invoice_document && Storage::disk('public')->exists($invoice->invoice_document)) {
+                    Storage::disk('public')->delete($invoice->invoice_document);
+                }
+
+                // Upload new file
+                $file = $request->file('invoice_document');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('document_invoice', $filename, 'public');
+                $invoice->invoice_document = $path;
+            }
+
             $invoice->save();
 
             InvoiceClientDetail::where('invoice_client_id', $id)->delete();
@@ -1753,6 +1857,21 @@ class InvoiceClientCrudController extends CrudController
                 'type' => 'text',
             ]
         );
+
+        CRUD::column([
+            'label' => 'Dokumen Invoice',
+            'name' => 'invoice_document',
+            'type' => 'closure',
+            'function' => function ($entry) {
+                if ($entry->invoice_document) {
+                    $url = asset('storage/' . $entry->invoice_document);
+                    $filename = basename($entry->invoice_document);
+                    return '<a href="' . $url . '" target="_blank" class="btn btn-sm btn-success"><i class="la la-file-pdf"></i> ' . $filename . '</a>';
+                }
+                return '';
+            },
+            'escaped' => false,
+        ]);
 
         CRUD::column(
             [

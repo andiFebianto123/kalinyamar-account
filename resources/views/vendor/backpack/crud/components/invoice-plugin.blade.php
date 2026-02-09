@@ -21,10 +21,11 @@
                     var instance = this;
                     setTimeout(() => {
                         $("#crudTable-invoice thead tr.filters th").eq(4).children('input').remove();
-                        $("#crudTable-invoice thead tr.filters th").eq(6).children('input').remove();
-                        $("#crudTable-invoice thead tr.filters th").eq(10).children('input').remove();
+                        $("#crudTable-invoice thead tr.filters th").eq(7).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(11).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(12).children('input').remove();
+                        $("#crudTable-invoice thead tr.filters th").eq(13).children('input').remove();
+                        $("#crudTable-invoice thead tr.filters th").eq(14).children('input').remove();
                     }, 400);
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",

@@ -126,6 +126,7 @@ class ClientPoCrudController extends CrudController
                         'type'      => 'text',
                         'label'     => trans('backpack::crud.client_po.column.po_number'),
                         'orderable' => true,
+                        'limit'     => 40,
                     ],
                     [
                         'name'      => 'job_name',
@@ -681,7 +682,8 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.po_number'),
                 'name' => 'po_number',
-                'type'  => 'text'
+                'type'  => 'text',
+                'limit'  => 40,
             ],
         );
 
@@ -1354,6 +1356,10 @@ class ClientPoCrudController extends CrudController
             'name' => 'document_path',
             'label' => trans('backpack::crud.client_po.field.document_path.label'),
             'type' => 'upload',
+            'hint' => trans('backpack::crud.client_po.field.document_path.hint'),
+            'attributes' => [
+                'accept' => '.pdf'
+            ],
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
