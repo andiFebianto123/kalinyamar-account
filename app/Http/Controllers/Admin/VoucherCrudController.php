@@ -27,6 +27,7 @@ use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Prologue\Alerts\Facades\Alert;
 
 class VoucherCrudController extends CrudController
 {
@@ -65,6 +66,27 @@ class VoucherCrudController extends CrudController
         ]);
     }
 
+    private function getComponent()
+    {
+        $this->crud->addFilter([
+            'name' => 'date_voucher11crudTable-voucher',
+            'type' => 'date',
+            'label' => trans('backpack::crud.voucher.column.voucher.date_voucher.label'),
+        ], false, function ($value) {});
+
+        $this->crud->addFilter([
+            'name' => 'bill_date11crudTable-voucher',
+            'type' => 'date',
+            'label' => trans('backpack::crud.voucher.column.voucher.bill_date.label'),
+        ], false, function ($value) {});
+
+        $this->crud->addFilter([
+            'name' => 'payment_date11crudTable-voucher',
+            'type' => 'date',
+            'label' => trans('backpack::crud.voucher.column.voucher.due_date.label'),
+        ], false, function ($value) {});
+    }
+
 
     function total_voucher()
     {
@@ -101,6 +123,18 @@ class VoucherCrudController extends CrudController
 
         $data = $data->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
+        if ($request->has('date_voucher')) {
+            $data = $data->where('vouchers.date_voucher', $request->date_voucher);
+        }
+
+        if ($request->has('bill_date')) {
+            $data = $data->where('vouchers.bill_date', $request->bill_date);
+        }
+
+        if ($request->has('payment_date')) {
+            $data = $data->where('vouchers.payment_date', $request->payment_date);
+        }
+
         if ($request->has('search')) {
             if (isset($request->search[1])) {
                 $search = trim($request->search[1]);
@@ -108,10 +142,6 @@ class VoucherCrudController extends CrudController
             }
 
             // kolom 2
-            if (isset($request->search[2])) {
-                $search = trim($request->search[2]);
-                $data = $data->where('date_voucher', 'like', '%' . $search . '%');
-            }
 
             // kolom 3 (relasi subkon)
             if (isset($request->search[3])) {
@@ -128,10 +158,6 @@ class VoucherCrudController extends CrudController
             }
 
             // kolom 5
-            if (isset($request->search[5])) {
-                $search = trim($request->search[5]);
-                $data = $data->where('bill_date', 'like', '%' . $search . '%');
-            }
 
             // kolom 6
             if (isset($request->search[6])) {
@@ -242,6 +268,7 @@ class VoucherCrudController extends CrudController
     function index()
     {
         $this->crud->hasAccessOrFail('list');
+        $this->getComponent();
 
         $this->card->addCard([
             'name' => 'voucher',
@@ -276,6 +303,7 @@ class VoucherCrudController extends CrudController
                                     'type' => 'text',
                                     'name' => 'date_voucher',
                                     'orderable' => true,
+                                    'searchable' => false,
                                 ],
                                 [
                                     'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_name.label'),
@@ -294,6 +322,7 @@ class VoucherCrudController extends CrudController
                                     'type' => 'text',
                                     'name' => 'bill_date',
                                     'orderable' => true,
+                                    'searchable' => false,
                                 ],
                                 [
                                     'label' => trans('backpack::crud.voucher.column.voucher.payment_description.label'),
@@ -378,6 +407,7 @@ class VoucherCrudController extends CrudController
                                     'type' => 'text',
                                     'name' => 'due_date',
                                     'orderable' => true,
+                                    'searchable' => false,
                                 ],
                                 [
                                     'name' => 'action',
@@ -390,6 +420,7 @@ class VoucherCrudController extends CrudController
                             'title_export_pdf' => 'Voucher.pdf',
                             'route_export_excel' => url($this->crud->route . '/export-excel?tab=voucher'),
                             'title_export_excel' => 'Voucher.xlsx',
+                            'filter_table' => $this->crud->filters(),
                         ],
                     ],
                     [
@@ -584,15 +615,22 @@ class VoucherCrudController extends CrudController
 
             $request = request();
 
+            if ($request->has('date_voucher')) {
+                $this->crud->query = $this->crud->query->where('vouchers.date_voucher', $request->date_voucher);
+            }
+
+            if ($request->has('bill_date')) {
+                $this->crud->query = $this->crud->query->where('vouchers.bill_date', $request->bill_date);
+            }
+
+            if ($request->has('payment_date')) {
+                $this->crud->query = $this->crud->query->where('vouchers.payment_date', $request->payment_date);
+            }
+
             if (trim($request->columns[1]['search']['value']) != '') {
                 // dd(trim($request->columns[1]['search']['value']));
                 $this->crud->query = $this->crud->query
                     ->where('no_voucher', 'like', '%' . $request->columns[1]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[2]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('date_voucher', 'like', '%' . $request->columns[1]['search']['value'] . '%');
             }
 
             if (trim($request->columns[3]['search']['value']) != '') {
@@ -609,16 +647,10 @@ class VoucherCrudController extends CrudController
                     ->where('bill_number', 'like', $request->columns[4]['search']['value'] . '%');
             }
 
-            if (trim($request->columns[5]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('bill_date', 'like', '%' . $request->columns[5]['search']['value'] . '%');
-            }
-
             if (trim($request->columns[6]['search']['value']) != '') {
                 $this->crud->query = $this->crud->query
                     ->where('payment_description', 'like', '%' . $request->columns[6]['search']['value'] . '%');
             }
-
             if (trim($request->columns[7]['search']['value']) != '') {
                 $this->crud->query = $this->crud->query
                     ->where('bill_value', 'like', '%' . $request->columns[7]['search']['value'] . '%');
@@ -699,10 +731,7 @@ class VoucherCrudController extends CrudController
                     ->where('payment_status', 'like', $request->columns[18]['search']['value'] . '%');
             }
 
-            if (trim($request->columns[19]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_date', 'like', '%' . $request->columns[19]['search']['value'] . '%');
-            }
+
 
 
             CRUD::addColumn([
@@ -997,16 +1026,22 @@ class VoucherCrudController extends CrudController
 
             $request = request();
 
+            if ($request->has('date_voucher')) {
+                $this->crud->query = $this->crud->query->where('vouchers.date_voucher', $request->date_voucher);
+            }
+
+            if ($request->has('bill_date')) {
+                $this->crud->query = $this->crud->query->where('vouchers.bill_date', $request->bill_date);
+            }
+
+            if ($request->has('payment_date')) {
+                $this->crud->query = $this->crud->query->where('vouchers.payment_date', $request->payment_date);
+            }
+
             if (isset($request->columns[1]['search']['value'])) {
                 // dd(trim($request->columns[1]['search']['value']));
                 $this->crud->query = $this->crud->query
                     ->where('no_voucher', 'like', '%' . $request->columns[1]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[2]['search']['value'])) {
-                $search = trim($request->columns[2]['search']['value']);
-                $this->crud->query = $this->crud->query
-                    ->where('date_voucher', 'like', '%' . $search . '%');
             }
 
             if (isset($request->columns[3]['search']['value'])) {
@@ -1023,18 +1058,11 @@ class VoucherCrudController extends CrudController
                     ->where('bill_number', 'like', $search . '%');
             }
 
-            if (isset($request->columns[5]['search']['value'])) {
-                $search = trim($request->columns[5]['search']['value']);
-                $this->crud->query = $this->crud->query
-                    ->where('bill_date', 'like', '%' . $search . '%');
-            }
-
             if (isset($request->columns[6]['search']['value'])) {
                 $search = trim($request->columns[6]['search']['value']);
                 $this->crud->query = $this->crud->query
                     ->where('payment_description', 'like', '%' . $search . '%');
             }
-
             if (isset($request->columns[7]['search']['value'])) {
                 $search = trim($request->columns[7]['search']['value']);
                 $this->crud->query = $this->crud->query
@@ -1123,11 +1151,7 @@ class VoucherCrudController extends CrudController
                     ->where('payment_status', 'like', $search . '%');
             }
 
-            if (isset($request->columns[19]['search']['value'])) {
-                $search = trim($request->columns[19]['search']['value']);
-                $this->crud->query = $this->crud->query
-                    ->where('payment_date', 'like', '%' . $search . '%');
-            }
+
 
             CRUD::addClause('select', [
                 DB::raw("
@@ -1208,8 +1232,10 @@ class VoucherCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.field.date_voucher.label'),
                 'name' => 'date_voucher',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->date_voucher ? Carbon::parse($entry->date_voucher)->format('d/m/Y') : '-';
+                }
             ]);
 
             CRUD::column(
@@ -1242,14 +1268,18 @@ class VoucherCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.column.voucher.bill_date.label'),
                 'name' => 'bill_date',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->bill_date ? Carbon::parse($entry->bill_date)->format('d/m/Y') : '-';
+                }
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.field.date_receipt_bill.label'),
                 'name' => 'date_receipt_bill',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->date_receipt_bill ? Carbon::parse($entry->date_receipt_bill)->format('d/m/Y') : '-';
+                }
             ]);
             CRUD::column(
                 [
@@ -1379,8 +1409,10 @@ class VoucherCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.field.due_date.label'),
                 'name' => 'due_date',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->due_date ? Carbon::parse($entry->due_date)->format('d/m/Y') : '-';
+                }
             ]);
 
             CRUD::column(
@@ -1402,8 +1434,10 @@ class VoucherCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.field.date_factur.label'),
                 'name' => 'date_factur',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->date_factur ? Carbon::parse($entry->date_factur)->format('d/m/Y') : '-';
+                }
             ]);
 
             CRUD::column(
@@ -1441,8 +1475,10 @@ class VoucherCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.field.payment_date.label'),
                 'name' => 'payment_date',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->payment_date ? Carbon::parse($entry->payment_date)->format('d/m/Y') : '-';
+                }
             ]);
 
             CRUD::column(

@@ -27,6 +27,7 @@
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
                         data: {
+                            ...window.filter_tables,
                             search: window.filterValues,
                         },
                         typeData: 'json',

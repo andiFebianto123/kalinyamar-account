@@ -16,6 +16,16 @@
             @include('crud::inc.filters_navbar')
             @endif --}}
 
+            {{-- Backpack List Filters --}}
+            @if ($crud->filtersEnabled())
+                @if (isset($filter_table))
+                    @include('crud::inc.filters_navbar', [
+                        'filter_table' => $filter_table,
+                        'table_name' => "crudTable-".$name,
+                    ])
+                @endif
+            @endif
+
             <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
                 <table
                 id="crudTable-{{$name}}"
@@ -56,6 +66,7 @@
                         @else
                             <th
                                 data-orderable="{{ var_export($column['orderable'], true) }}"
+                                data-searchable="{{ var_export($column['searchable'] ?? true, true) }}"
                                 data-priority="{{ $column['priority'] }}"
                                 data-column-name="{{ $column['name'] }}"
                                 {{--
@@ -371,7 +382,8 @@
             $table.find('thead').append('<tr class="filters"></tr>');
 
             $table.find('thead tr:first th').each(function (i) {
-                if (i === 0 || i === totalColumns - 1) {
+                const searchable = $(this).attr('data-searchable');
+                if (i === 0 || i === totalColumns - 1 || searchable === 'false') {
                     $table.find('thead tr.filters').append('<th><input type="hidden" /></th>');
                 } else {
                     $table.find('thead tr.filters').append(
@@ -565,10 +577,38 @@
                     } ).dataTable();
 
                 },
+                filter: function(){
+                    var instance = this;
+                    $("#remove_filters_button_crudTable-{{$name}}").click(function(e) {
+                        e.preventDefault();
+
+                        var new_url = '{{ $route }}';
+                        $(".crudTable-{{$name}}-filters li[filter-name]").trigger('filter:clear');
+                    });
+
+                    $(".crudTable-{{$name}}-filters li[filter-name]").on('filter:clear', function() {
+                        var anyActiveFilters = false;
+                        // console.log($(".crudTable-{{$name}}-filters li[filter-name]"));
+                        $(".crudTable-{{$name}}-filters li[filter-name]").each(function () {
+                            if ($(this).hasClass('active')) {
+                                anyActiveFilters = true;
+                            }
+                        });
+
+                        if (anyActiveFilters == false) {
+                            $('#remove_filters_button_crudTable-{{$name}}').addClass('invisible');
+                        }
+                    });
+
+                },
                 load: function(){
                     var instance = this;
                     instance.eventLoader();
                     instance.createDatatable();
+
+                    @if (isset($filter_table))
+                        instance.filter();
+                    @endif
 
                     $('#crudTable_length select').on('change', function(){
                         var val = parseInt($(this).val(), 10);
