@@ -1631,6 +1631,27 @@ class CastAccountsCrudController extends CrudController
         }
     }
 
+    public function showTransaction()
+    {
+        $id = request()->_id;
+        $castAccount = CastAccount::where('id', $id)->first();
+
+        if (!$castAccount) {
+            return response()->json(['status' => false, 'message' => 'Account not found'], 404);
+        }
+
+        $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::CASH);
+        $castAccount->total_saldo = $total_balance;
+        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($total_balance);
+
+        return response()->json([
+            'status' => true,
+            'result' => [
+                'cast_account' => $castAccount
+            ]
+        ]);
+    }
+
     public function storeMoveTransfer()
     {
         $this->crud->hasAccessOrFail('create');
