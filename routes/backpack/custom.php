@@ -134,6 +134,9 @@ Route::group([
 
     Route::prefix('finance-report')->group(function () {
         Route::crud('expense-account', 'ExpenseAccountCrudController');
+        Route::get('expense-account-ledger', [ExpenseAccountCrudController::class, 'getLedgerDataTable']);
+        Route::post('expense-account-ledger-pdf', [ExpenseAccountCrudController::class, 'exportLedgerPdf']);
+        Route::post('expense-account-ledger-excel', [ExpenseAccountCrudController::class, 'exportLedgerExcel']);
         Route::post('expense-account/export-pdf', [ExpenseAccountCrudController::class, 'exportPdf']);
         Route::post('expense-account/export-excel', [ExpenseAccountCrudController::class, 'exportExcel']);
         Route::crud('profit-lost', 'ProfitLostAccountCrudController');

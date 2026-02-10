@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -16,7 +17,8 @@ use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ExpenseAccountCrudController extends CrudController{
+class ExpenseAccountCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -55,26 +57,25 @@ class ExpenseAccountCrudController extends CrudController{
             'show' => $viewMenu,
             'print' => true,
         ]);
-
     }
 
-    public function listCardComponents($type){
+    public function listCardComponents($type)
+    {
         $dataset = Account::whereIn('level', [2])
-        ->where('is_active', 1)->orderBy('code', 'asc')->get();
+            ->where('is_active', 1)->orderBy('code', 'asc')->get();
 
-        foreach($dataset as $account){
+        foreach ($dataset as $account) {
             $this->card->addCard([
-                'name' => 'account_'.$account->id,
+                'name' => 'account_' . $account->id,
                 'line' => 'top',
                 'view' => 'crud::components.card-account',
                 'params' => [
                     'crud' => $this->crud,
                     'account' => $account,
-                    'route' => url($this->crud->route.'/search?_id='.$account->id),
+                    'route' => url($this->crud->route . '/search?_id=' . $account->id),
                 ]
             ]);
         }
-
     }
 
     public function index()
@@ -97,6 +98,14 @@ class ExpenseAccountCrudController extends CrudController{
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
 
+        $this->modal->addModal([
+            'name' => 'modal_ledger',
+            'title' => 'Buku Besar',
+            'size' => 'modal-xl',
+            'title_alignment' => 'center',
+            'view' => 'crud::components.modal-ledger',
+        ]);
+
         $this->data['cards'] = $this->card;
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
@@ -110,7 +119,7 @@ class ExpenseAccountCrudController extends CrudController{
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -144,7 +153,7 @@ class ExpenseAccountCrudController extends CrudController{
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -152,15 +161,16 @@ class ExpenseAccountCrudController extends CrudController{
         ]);
     }
 
-    private function ruleAccount(){
+    private function ruleAccount()
+    {
         $id = request()->id;
         $rule = [
-            'code' => 'required|min:3|max:20|unique:accounts,code,'.$id,
-            'name' => 'required|max:100|unique:accounts,name,'.$id,
+            'code' => 'required|min:3|max:20|unique:accounts,code,' . $id,
+            'name' => 'required|max:100|unique:accounts,name,' . $id,
             'balance' => 'required|numeric|min:0',
         ];
-        if($id){
-            if(array_key_exists('balance', $rule)){
+        if ($id) {
+            if (array_key_exists('balance', $rule)) {
                 unset($rule['balance']);
             }
             $rule['code'] = [
@@ -168,13 +178,13 @@ class ExpenseAccountCrudController extends CrudController{
                 'min:3',
                 'max:20',
                 Rule::unique('accounts', 'code')->ignore($id),
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $old_code = Account::where('id', $id)->first()->code;
-                    if($value != $old_code){
+                    if ($value != $old_code) {
                         $child = Account::where('code', 'LIKE', "$old_code%")
-                        ->where('id', '!=', $id)
-                        ->count();
-                        if($child > 0){
+                            ->where('id', '!=', $id)
+                            ->count();
+                        if ($child > 0) {
                             $fail(trans('backpack::crud.expense_account.field.code.errors.depedency'));
                         }
                     }
@@ -211,10 +221,11 @@ class ExpenseAccountCrudController extends CrudController{
         return $rule;
     }
 
-    protected function setupCreateOperation(){
+    protected function setupCreateOperation()
+    {
         CRUD::setValidation($this->ruleAccount());
         $disabled_attr = [];
-        if($this->crud->getCurrentEntryId()){
+        if ($this->crud->getCurrentEntryId()) {
             $disabled_attr = [
                 'disabled' => true,
             ];
@@ -257,7 +268,6 @@ class ExpenseAccountCrudController extends CrudController{
                 ...$disabled_attr,
             ]
         ]);
-
     }
 
     protected function setupUpdateOperation()
@@ -274,7 +284,7 @@ class ExpenseAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $old_account = Account::find($request->id);
             $rootParent_1 = $this->getRootParentAccount($old_account->code);
@@ -284,8 +294,8 @@ class ExpenseAccountCrudController extends CrudController{
             for ($i = 1; $i < strlen($new_code); $i++) {
                 $prefix = substr($new_code, 0, $i);
                 $account = Account::where('code', $prefix)->first();
-                if($account){
-                    if($account->code != $old_account->code){
+                if ($account) {
+                    if ($account->code != $old_account->code) {
                         $new_parent = $account;
                     }
                 }
@@ -295,7 +305,7 @@ class ExpenseAccountCrudController extends CrudController{
             $item = Account::where('id', $request->id)->first();
             $item->code = $new_code;
             $item->name = $request->name;
-            if($new_parent){
+            if ($new_parent) {
                 $item->level = $new_parent->level + 1;
             }
             $item->save();
@@ -325,12 +335,12 @@ class ExpenseAccountCrudController extends CrudController{
 
             $events = [];
 
-            if($rootParent_1){
-                $events['account_'.$rootParent_1->id.'_update_success'] = true;
+            if ($rootParent_1) {
+                $events['account_' . $rootParent_1->id . '_update_success'] = true;
             }
 
-            if($rootParant_2){
-                $events['account_'.$rootParant_2->id.'_update_success'] = true;
+            if ($rootParant_2) {
+                $events['account_' . $rootParant_2->id . '_update_success'] = true;
             }
 
             $this->data['entry'] = $this->crud->entry = $item;
@@ -347,7 +357,7 @@ class ExpenseAccountCrudController extends CrudController{
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -357,13 +367,14 @@ class ExpenseAccountCrudController extends CrudController{
         }
     }
 
-    public function getRootParentAccount($code){
+    public function getRootParentAccount($code)
+    {
         $parent = null;
         for ($i = 1; $i < strlen($code); $i++) {
             $prefix = substr($code, 0, $i);
             $account = Account::where('code', $prefix)
-            ->whereIn('level', [1, 2])->first();
-            if($account){
+                ->whereIn('level', [1, 2])->first();
+            if ($account) {
                 $parent = $account;
             }
         }
@@ -379,7 +390,7 @@ class ExpenseAccountCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $code = $request->code;
             $beforeAccount = null;
@@ -387,7 +398,7 @@ class ExpenseAccountCrudController extends CrudController{
             for ($i = 1; $i < strlen($code); $i++) {
                 $prefix = substr($code, 0, $i);
                 $account = Account::where('code', $prefix)->first();
-                if($account){
+                if ($account) {
                     $beforeAccount = $account;
                 }
             }
@@ -425,8 +436,8 @@ class ExpenseAccountCrudController extends CrudController{
                 'reference_type' => Account::class,
             ]);
 
-            if($rootParent){
-                $item->component_name = 'account_'.$rootParent->id;
+            if ($rootParent) {
+                $item->component_name = 'account_' . $rootParent->id;
             }
 
             DB::commit();
@@ -439,7 +450,7 @@ class ExpenseAccountCrudController extends CrudController{
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -458,11 +469,11 @@ class ExpenseAccountCrudController extends CrudController{
             $item = $this->crud->model::findOrFail($id);
             $parent_account = null;
 
-            if($item){
+            if ($item) {
                 $child_exists = Account::where('code', 'LIKE', "{$item->code}%")
-                ->where('id', '!=', $item->id)->count();
+                    ->where('id', '!=', $item->id)->count();
 
-                if($child_exists > 0){
+                if ($child_exists > 0) {
                     return response()->json([
                         'error' => [
                             trans('backpack::crud.expense_account.field.code.errors.delete')
@@ -475,8 +486,8 @@ class ExpenseAccountCrudController extends CrudController{
 
             $events = [];
 
-            if($parent_account){
-                $events['account_'.$parent_account->id.'_update_success'] = true;
+            if ($parent_account) {
+                $events['account_' . $parent_account->id . '_update_success'] = true;
             }
 
             JournalEntry::where('account_id', $item->id)->delete();
@@ -486,7 +497,7 @@ class ExpenseAccountCrudController extends CrudController{
             DB::commit();
             return response()->json([
                 'success' => [
-                    '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message'),
+                    '<strong>' . trans('backpack::crud.delete_confirmation_title') . '</strong><br>' . trans('backpack::crud.delete_confirmation_message'),
                 ],
                 'events' => $events,
             ]);
@@ -517,6 +528,8 @@ class ExpenseAccountCrudController extends CrudController{
 
         CRUD::addButtonFromView('line', 'delete', "delete-account", 'beginning');
         CRUD::addButtonFromView('line', 'update', "update-account", 'beginning');
+        CRUD::addButtonFromView('line', 'view', "view-ledger", 'beginning');
+
 
 
         // CRUD::addButtonFromView('top', 'filter_paid_unpaid', 'filter-paid_unpaid', 'beginning');
@@ -531,10 +544,10 @@ class ExpenseAccountCrudController extends CrudController{
             'name' => 'name_',
             'label' => trans('backpack::crud.expense_account.column.name'),
             'type' => 'custom_html',
-            'value' => function($entry){
-                if($entry->level_ > 2){
+            'value' => function ($entry) {
+                if ($entry->level_ > 2) {
                     $space = str_repeat('&nbsp;', $entry->level_);
-                    return $space.'&bull; '.$entry->name_;
+                    return $space . '&bull; ' . $entry->name_;
                 }
                 return $entry->name_;
             }
@@ -552,7 +565,7 @@ class ExpenseAccountCrudController extends CrudController{
         );
 
 
-        if(request()->has('_id')){
+        if (request()->has('_id')) {
             $id = request()->_id;
             $code = Account::find($id);
 
@@ -567,26 +580,26 @@ class ExpenseAccountCrudController extends CrudController{
             ]);
 
 
-            if($code->level == 1){
+            if ($code->level == 1) {
                 $this->crud->query = $this->crud->query
-                ->where('code', 'LIKE', "{$code->code}");
-            }else{
+                    ->where('code', 'LIKE', "{$code->code}");
+            } else {
                 $this->crud->query = $this->crud->query
-                ->where('code', 'LIKE', "{$code->code}%");
+                    ->where('code', 'LIKE', "{$code->code}%");
             }
 
 
             $this->crud->query = $this->crud->query
-            ->orderBy('code', 'asc');
+                ->orderBy('code', 'asc');
         }
-
     }
 
-    private function setupListExport(){
+    private function setupListExport()
+    {
 
         $settings = Setting::first();
         $this->crud->query = $this->crud->query
-        ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
+            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -612,7 +625,7 @@ class ExpenseAccountCrudController extends CrudController{
 
 
         CRUD::column([
-                'label' => trans('backpack::crud.expense_account.column.balance'),
+            'label' => trans('backpack::crud.expense_account.column.balance'),
             'name' => 'balance',
             'type'  => 'number',
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -633,11 +646,12 @@ class ExpenseAccountCrudController extends CrudController{
         ]);
 
         $this->crud->query = $this->crud->query
-        ->orderBy('code', 'asc')
-        ->groupBy('accounts.id');
+            ->orderBy('code', 'asc')
+            ->groupBy('accounts.id');
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         $this->setupListExport();
 
@@ -648,10 +662,10 @@ class ExpenseAccountCrudController extends CrudController{
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -676,11 +690,12 @@ class ExpenseAccountCrudController extends CrudController{
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         $this->setupListExport();
 
@@ -691,10 +706,10 @@ class ExpenseAccountCrudController extends CrudController{
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -707,9 +722,11 @@ class ExpenseAccountCrudController extends CrudController{
 
         $name = 'DAFTAR AKUN';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -764,7 +781,7 @@ class ExpenseAccountCrudController extends CrudController{
             $subQuery = $query_clone->cloneWithout(['limit', 'offset']);
 
             $totalEntryCount = $outer_query->select(DB::raw('count(*) as total_rows'))
-            ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
+                ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
             $filteredEntryCount = $totalEntryCount;
 
             // $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
@@ -781,4 +798,162 @@ class ExpenseAccountCrudController extends CrudController{
         return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
 
+    public function getLedgerDataTable()
+    {
+        $id = request()->_id;
+        $account = Account::findOrFail($id);
+
+        $query = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        });
+
+        $total_data = $query->count();
+
+        // Search
+        if ($search = request()->input('search.value')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'LIKE', "%$search%")
+                    ->orWhere('debit', 'LIKE', "%$search%")
+                    ->orWhere('credit', 'LIKE', "%$search%");
+            });
+        }
+
+        $total_filtered = $query->count();
+
+        // Order
+        $columns = ['date', 'description', 'debit', 'credit', 'id']; // for sequence
+        if ($order = request()->input('order.0')) {
+            $query->orderBy($columns[$order['column']], $order['dir']);
+        } else {
+            $query->orderBy('date', 'asc')->orderBy('id', 'asc');
+        }
+
+        // Pagination
+        $start = request()->input('start', 0);
+        $length = request()->input('length', 10);
+        $entries = $query->offset($start)->limit($length)->get();
+
+        $cumulative_balance = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })
+            ->where(function ($q) use ($entries) {
+                if ($entries->count() > 0) {
+                    $first = $entries->first();
+                    $q->where('date', '<', $first->date)
+                        ->orWhere(function ($sq) use ($first) {
+                            $sq->where('date', $first->date)->where('id', '<', $first->id);
+                        });
+                }
+            })->selectRaw('SUM(debit) - SUM(credit) as balance')->first()->balance ?? 0;
+
+        $data = [];
+        foreach ($entries as $entry) {
+            $cumulative_balance += ($entry->debit - $entry->credit);
+            $data[] = [
+                'date' => Carbon::parse($entry->date)->translatedFormat('d F Y'),
+                'description' => $entry->description,
+                'debit' => CustomHelper::formatRupiahWithCurrency($entry->debit),
+                'credit' => CustomHelper::formatRupiahWithCurrency($entry->credit),
+                'balance' => CustomHelper::formatRupiahWithCurrency($cumulative_balance),
+            ];
+        }
+
+        return response()->json([
+            'draw' => request()->input('draw'),
+            'recordsTotal' => $total_data,
+            'recordsFiltered' => $total_filtered,
+            'data' => $data,
+        ]);
+    }
+    public function exportLedgerPdf()
+    {
+        $id = request()->id;
+        $account = Account::findOrFail($id);
+
+        $query = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })->orderBy('date', 'asc')->orderBy('id', 'asc');
+
+        $entries = $query->get();
+        $cumulative_balance = 0;
+        $data = [];
+
+        foreach ($entries as $entry) {
+            $cumulative_balance += ($entry->debit - $entry->credit);
+            $data[] = [
+                Carbon::parse($entry->date)->translatedFormat('d F Y'),
+                $entry->description,
+                CustomHelper::formatRupiahWithCurrency($entry->debit),
+                CustomHelper::formatRupiahWithCurrency($entry->credit),
+                CustomHelper::formatRupiahWithCurrency($cumulative_balance),
+            ];
+        }
+
+        $columns = [
+            ['label' => 'Tanggal', 'name' => 'date'],
+            ['label' => 'Keterangan', 'name' => 'description'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.enter'), 'name' => 'debit'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.out'), 'name' => 'credit'],
+            ['label' => 'Saldo Komulatif', 'name' => 'balance'],
+        ];
+
+        $title = "LAPORAN BUKU BESAR: " . $account->code . " - " . $account->name;
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $data,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . '_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    public function exportLedgerExcel()
+    {
+        $id = request()->id;
+        $account = Account::findOrFail($id);
+
+        $query = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })->orderBy('date', 'asc')->orderBy('id', 'asc');
+
+        $entries = $query->get();
+        $cumulative_balance = 0;
+        $data = [];
+
+        foreach ($entries as $entry) {
+            $cumulative_balance += ($entry->debit - $entry->credit);
+            $data[] = [
+                Carbon::parse($entry->date)->format('d/m/Y'),
+                $entry->description,
+                $entry->debit,
+                $entry->credit,
+                $cumulative_balance,
+            ];
+        }
+
+        $columns = [
+            ['label' => 'Tanggal', 'name' => 'date'],
+            ['label' => 'Keterangan', 'name' => 'description'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.enter'), 'name' => 'debit'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.out'), 'name' => 'credit'],
+            ['label' => 'Saldo Komulatif', 'name' => 'balance'],
+        ];
+
+        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->streamDownload(function () use ($columns, $data) {
+            echo Excel::raw(new ExportExcel($columns, $data), \Maatwebsite\Excel\Excel::XLSX);
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
 }

@@ -1653,11 +1653,24 @@ class ProfitLostAccountCrudController extends CrudController
 
     public function destroy($id)
     {
+        if (request('type') == 'project') {
+            CRUD::setModel(ProjectProfitLost::class);
+        }
+
         DB::beginTransaction();
         try {
             $this->crud->hasAccessOrFail('delete');
 
             $item = $this->crud->model::findOrFail($id);
+
+            if ($item instanceof ProjectProfitLost) {
+                $item->delete();
+                DB::commit();
+                return response()->json([
+                    'events' => ['crudTable-project_updated_success' => true]
+                ]);
+            }
+
             $parent_account = null;
 
             if ($item) {
@@ -1722,6 +1735,7 @@ class ProfitLostAccountCrudController extends CrudController
                 CRUD::removeButton('delete');
                 CRUD::removeButton('show');
 
+                CRUD::addButtonFromView('line', 'delete-profit-lost-project', 'delete-profit-lost-project', 'beginning');
                 CRUD::addButtonFromView('line', 'update-profit-lost', 'update-profit-lost', 'beginning');
                 CRUD::addButtonFromView('line', 'show-detail-project', "show-detail-project", 'end');
 

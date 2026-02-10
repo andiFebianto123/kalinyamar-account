@@ -761,6 +761,7 @@ return [
         'title_modal_create' => 'Chart Of Account',
         'title_modal_edit' => 'Chart Of Account',
         'title_modal_delete' => 'Chart Of Account',
+        'title_modal_ledger' => 'Lihat Buku Besar',
         'column' => [
             'code' => 'Kode Akun',
             'name' => 'Nama Akun',
