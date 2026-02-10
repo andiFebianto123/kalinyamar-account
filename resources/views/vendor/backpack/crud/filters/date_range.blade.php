@@ -70,9 +70,10 @@
     <!-- include select2 css-->
 	<link rel="stylesheet" type="text/css" href="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.css') }}" />
 	<style>
-		.input-group.date {
+		.backpack-filter .input-group.date {
 			width: 320px;
-			max-width: 100%; }
+			max-width: 100%; 
+		}
 		.daterangepicker.dropdown-menu {
 			z-index: 3001!important;
 		}

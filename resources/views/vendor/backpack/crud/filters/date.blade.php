@@ -36,7 +36,7 @@
 @push('crud_list_styles')
     <link rel="stylesheet" href="{{ asset('packages/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css') }}">
 	<style>
-		.input-group.date {
+		.backpack-filter .input-group.date {
 			width: 320px;
 			max-width: 100%;
 		}
