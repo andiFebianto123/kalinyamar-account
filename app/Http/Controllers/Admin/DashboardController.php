@@ -47,7 +47,7 @@ class DashboardController extends CrudController
         return [
             'invoice_first_date' => Carbon::now()
                 ->locale(App::getLocale())
-                ->translatedFormat('d F Y'),
+                ->translatedFormat('d/m/Y'),
         ];
     }
 

@@ -627,7 +627,7 @@ class ExpenseAccountCrudController extends CrudController
         CRUD::column([
             'label' => trans('backpack::crud.expense_account.column.balance'),
             'name' => 'balance',
-            'type'  => 'number',
+            'type'  => 'balance',
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',

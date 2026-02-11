@@ -296,9 +296,10 @@ class ProfitLostAccountCrudController extends CrudController
                         'orderable' => true,
                     ],
                     [
-                        'label'  => trans('backpack::crud.profit_lost.column.invoice_date'),
-                        'type'      => 'text',
-                        'name'      => 'invoice_date',
+                        'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
+                        'type' => 'date-multiple',
+                        'name' => 'invoice_date',
+                        'format' => 'DD/MM/YYYY',
                         'orderable' => true,
                     ],
                     [
@@ -355,9 +356,8 @@ class ProfitLostAccountCrudController extends CrudController
                 'client_po.work_code',
                 'client_po.po_number',
                 'client_po.reimburse_type',
-                'client_po.job_name',
-                'client_po.job_value',
                 "client_po.category",
+                DB::raw("IF(invoice.invoice_date IS NULL, 0, invoice.price_job_include_ppn) as job_value_include_ppn_logic"),
                 DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic")
             );
 
@@ -473,11 +473,12 @@ class ProfitLostAccountCrudController extends CrudController
         $profitLost = ProjectProfitLost::where('id', $id)->first();
         $po = $profitLost->clientPo;
         $account_material = Account::where('code', 50101)->first();
-        $price_po_excl_ppn = $po->job_value; //
 
         $profit_lost_all_price = CustomHelper::profitLostRepository()
             ->where('project_profit_lost.client_po_id', $po->id)
             ->first();
+
+        $price_po_excl_ppn = $profit_lost_all_price->price_job_exlude_ppn_logic; // Use logic from repo
 
         // $material_data = AccountTransaction::leftJoin('journal_entries', function ($join) {
         //     $join->on('journal_entries.reference_id', '=', 'account_transactions.id')
@@ -543,16 +544,16 @@ class ProfitLostAccountCrudController extends CrudController
 
         if ($pure) {
             return [
-                'price_po_excl_ppn' => CustomHelper::formatRupiahWithCurrency($price_po_excl_ppn),
-                'price_material' => CustomHelper::formatRupiahWithCurrency($material_data),
-                'price_subkon' => CustomHelper::formatRupiahWithCurrency($subkon_data),
-                'price_btkl' => CustomHelper::formatRupiahWithCurrency($btkl_data),
-                'price_other' => CustomHelper::formatRupiahWithCurrency($price_other_data),
-                'price_profit_lost_project' => CustomHelper::formatRupiahWithCurrency($price_profit_lost),
-                'price_total' => CustomHelper::formatRupiahWithCurrency($price_total),
-                'price_profit_lost_po' => CustomHelper::formatRupiahWithCurrency($price_profit_lost_po),
-                'price_general' => CustomHelper::formatRupiahWithCurrency($price_general),
-                'price_profit_final' => CustomHelper::formatRupiahWithCurrency($price_profit_final)
+                'price_po_excl_ppn' => $price_po_excl_ppn,
+                'price_material' => $material_data,
+                'price_subkon' => $subkon_data,
+                'price_btkl' => $btkl_data,
+                'price_other' => $price_other_data,
+                'price_profit_lost_project' => $price_profit_lost,
+                'price_total' => $price_total,
+                'price_profit_lost_po' => $price_profit_lost_po,
+                'price_general' => $price_general,
+                'price_profit_final' => $price_profit_final
             ];
         }
 
@@ -1771,7 +1772,8 @@ class ProfitLostAccountCrudController extends CrudController
                         "invoice.invoice_date",
                         "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                         "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
-                        DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic")
+                        DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic"),
+                        DB::raw("IF(invoice.invoice_date IS NULL, 0, invoice.price_job_include_ppn) as job_value_include_ppn_logic")
                     );
 
                 $this->crud->query = $this->crud->query
@@ -1864,14 +1866,14 @@ class ProfitLostAccountCrudController extends CrudController
 
                 CRUD::column([
                     'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
-                    'name' => 'job_value_include_ppn',
+                    'name' => 'job_value_include_ppn_logic',
                     'type'  => 'closure',
                     'function' => function ($entry) use ($settings) {
                         $currency = ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.";
-                        return $currency . number_format($entry->job_value_include_ppn, 2, ",", ".");
+                        return $currency . number_format($entry->job_value_include_ppn_logic, 2, ",", ".");
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
-                        $query->orderBy('client_po.job_value_include_ppn', $columnDirection);
+                        $query->orderBy('client_po.job_value_include_ppn_logic', $columnDirection);
                     }
                 ]);
 
@@ -1973,11 +1975,7 @@ class ProfitLostAccountCrudController extends CrudController
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
                     'type' => 'date-multiple',
                     'name' => 'invoice_date',
-                    'format' => 'DD MMM YYYY',
-                    // 'function' => function ($entry) {
-                    //     $tgl = explode(",", $entry->invoice_date);
-                    //     return implode(", ", $tgl);
-                    // },
+                    'format' => 'DD/MM/YYYY',
                     'orderLogic' => function ($query, $column, $columnDirection) {
                         $query->orderBy('client_po.invoice_date', $columnDirection);
                     }
@@ -1996,7 +1994,7 @@ class ProfitLostAccountCrudController extends CrudController
                         client_po.reimburse_type as reimburse_type,
                         client_po.job_name as job_name,
                         client_po.job_value as job_value,
-                        client_po.job_value_include_ppn as job_value_include_ppn,
+                        client_po.job_value_include_ppn_logic,
                         IFNULL(project_profit_lost.price_small_cash, 0) as total_small_cash,
                         (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) as price_total_str,
                         (client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_profit_lost_str,
@@ -2129,7 +2127,8 @@ class ProfitLostAccountCrudController extends CrudController
                         "invoice.invoice_date",
                         "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                         "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
-                        DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic")
+                        DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic"),
+                        DB::raw("IF(invoice.invoice_date IS NULL, 0, invoice.price_job_include_ppn) as job_value_include_ppn_logic")
                     );
 
                 $this->crud->query = $this->crud->query
@@ -2221,13 +2220,13 @@ class ProfitLostAccountCrudController extends CrudController
 
                 CRUD::column([
                     'label'  => trans('backpack::crud.client_po.column.job_value_include_ppn'),
-                    'name' => 'job_value_include_ppn',
+                    'name' => 'job_value_include_ppn_logic',
                     'type'  => 'closure',
                     'function' => function ($entry) use ($status_file) {
-                        return $this->priceFormatExport($status_file, $entry->job_value_include_ppn);
+                        return $this->priceFormatExport($status_file, $entry->job_value_include_ppn_logic);
                     },
                     'orderLogic' => function ($query, $column, $columnDirection) {
-                        $query->orderBy('client_po.job_value_include_ppn', $columnDirection);
+                        $query->orderBy('client_po.job_value_include_ppn_logic', $columnDirection);
                     }
                 ]);
 
@@ -2325,7 +2324,7 @@ class ProfitLostAccountCrudController extends CrudController
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
                     'type' => 'date-multiple',
                     'name' => 'invoice_date',
-                    'format' => 'DD MMM YYYY',
+                    'format' => 'DD/MM/YYYY',
                     // 'function' => function ($entry) {
                     //     return $entry->invoice_date;
                     // },
@@ -2347,7 +2346,7 @@ class ProfitLostAccountCrudController extends CrudController
                         client_po.reimburse_type as reimburse_type,
                         client_po.job_name as job_name,
                         client_po.job_value as job_value,
-                        client_po.job_value_include_ppn as job_value_include_ppn,
+                        client_po.job_value_include_ppn_logic,
                         IFNULL(project_profit_lost.price_small_cash, 0) as total_small_cash,
                         (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) as price_total_str,
                         (client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_profit_lost_str,

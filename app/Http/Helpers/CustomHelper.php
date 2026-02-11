@@ -17,6 +17,7 @@ use App\Models\JournalEntry;
 use App\Models\InvoiceClient;
 use App\Models\PurchaseOrder;
 use App\Models\ProjectProfitLost;
+use App\Models\ConsolidateIncomeItem;
 use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\DB;
 
@@ -807,6 +808,10 @@ class CustomHelper
     {
         $code = $account_code;
 
+        if ($code == '303') {
+            return self::getNetProfit();
+        }
+
         $sum_accounts = \App\Models\Account::selectRaw("
             (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
         ")
@@ -814,6 +819,73 @@ class CustomHelper
             ->where('accounts.code', 'LIKE', "" . $code . "%")
             ->first();
         return $sum_accounts->balance ?? 0;
+    }
+
+    public static function getNetProfit()
+    {
+        $dataset = [];
+        $consolidate_income_header = DB::table('consolidate_income_headers')
+            ->orderBy('id', 'asc')->get();
+
+        if (count($consolidate_income_header) < 8) {
+            return 0;
+        }
+
+        // pendapatan usaha (0)
+        $contract_income_number = 0;
+        $items0 = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[0]->id)
+            ->select(DB::raw("accounts.*"))->get();
+        foreach ($items0 as $item) {
+            $contract_income_number += self::balanceAccount($item->code);
+        }
+
+        // beban usaha (1)
+        $cost_expense_number = 0;
+        $items1 = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[1]->id)
+            ->select(DB::raw("accounts.*"))->get();
+        foreach ($items1 as $item) {
+            $cost_expense_number += self::balanceAccount($item->code);
+        }
+
+        // laba usaha
+        $cost_profit_expense_number = $contract_income_number - $cost_expense_number;
+
+        // pendapatan lain - lain (3)
+        $cost_other_number = 0;
+        $items3 = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[3]->id)
+            ->select(DB::raw("accounts.*"))->get();
+        foreach ($items3 as $item) {
+            $cost_other_number += self::balanceAccount($item->code);
+        }
+
+        // beban lain - lain (4)
+        $expense_other_number = 0;
+        $items4 = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[4]->id)
+            ->select(DB::raw("accounts.*"))->get();
+        foreach ($items4 as $item) {
+            $expense_other_number += self::balanceAccount($item->code);
+        }
+
+        // laba sebelum pajak
+        $profit_before_tax = $cost_profit_expense_number + $cost_other_number - $expense_other_number;
+
+        // beban pajak (6)
+        $expense_tax_number = 0;
+        $items6 = ConsolidateIncomeItem::leftJoin('accounts', 'accounts.id', 'consolidate_income_account_items.account_id')
+            ->where('consolidate_income_account_items.header_id', $consolidate_income_header[6]->id)
+            ->select(DB::raw("accounts.*"))->get();
+        foreach ($items6 as $item) {
+            $expense_tax_number += self::balanceAccount($item->code);
+        }
+
+        // laba bersih
+        $net_profit = $profit_before_tax - $expense_tax_number;
+
+        return $net_profit;
     }
 
     public static function voucherCreate(Voucher $voucher, $invoice_not_exists = false)
@@ -1019,7 +1091,8 @@ class CustomHelper
                 "invoice.invoice_date",
                 "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                 "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
-                DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic")
+                DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic"),
+                DB::raw("IF(invoice.invoice_date IS NULL, 0, invoice.price_job_include_ppn) as job_value_include_ppn_logic")
             );
         $profitLost = ProjectProfitLost::leftJoinSub($client_po_query_exclude_ppn, 'client_po', function ($join) {
             $join->on('client_po.client_po_id', '=', 'project_profit_lost.client_po_id');
@@ -1042,7 +1115,7 @@ class CustomHelper
                 client_po.reimburse_type as reimburse_type,
                 client_po.job_name as job_name,
                 client_po.job_value as job_value,
-                client_po.job_value_include_ppn as job_value_include_ppn,
+                client_po.job_value_include_ppn_logic as job_value_include_ppn,
                 IFNULL(project_profit_lost.price_small_cash, 0) as total_small_cash,
                 (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) as price_total_str,
                 (client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_profit_lost_str,
