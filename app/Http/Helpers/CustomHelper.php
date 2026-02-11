@@ -435,8 +435,8 @@ class CustomHelper
                     'reference_type' => AccountTransaction::class,
                     'description' => $description,
                     'date' => Carbon::now(),
-                    'debit' => $is_out ? 0 : $invoice->price_total_exclude_ppn,      // DEBIT jika ENTER
-                    'credit' => $is_out ? $invoice->price_total_exclude_ppn : 0,     // CREDIT jika OUT
+                    'debit' => $is_out ? 0 : $transaction->nominal_transaction,      // DEBIT jika ENTER
+                    'credit' => $is_out ? $transaction->nominal_transaction : 0,     // CREDIT jika OUT
                 ], [
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,

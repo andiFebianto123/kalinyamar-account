@@ -24,7 +24,7 @@ class CustomVoid
         // $voucher = Voucher::where('id', $voucher_id)->first();
         $invoice = InvoiceClient::where('client_po_id', $voucher->client_po_id)->first();
         $client_po = $voucher->client_po;
-        $payment_transfer = $voucher->payment_transfer;
+        $bill_value = $voucher->bill_value; // Menggunakan Exclude PPN
 
         if ($client_po->status == 'TANPA PO') {
             // ada po
@@ -36,7 +36,7 @@ class CustomVoid
                 'reference_type' => Voucher::class,
                 'description' => "Transaksi tanpa PO " . $client_po->work_code,
                 'date' => Carbon::now(),
-                'debit' => $payment_transfer,
+                'debit' => $bill_value,
                 // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
                 'account_id' => $account->id,
@@ -50,7 +50,7 @@ class CustomVoid
                 'reference_type' => Voucher::class,
                 'description' => "Transaksi tanpa PO " . $client_po->work_code,
                 'date' => Carbon::now(),
-                'debit' => $payment_transfer,
+                'debit' => $bill_value,
                 'type' => JournalEntry::class,
             ];
         }
@@ -65,7 +65,7 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
@@ -80,13 +80,12 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
                 ];
             } else {
                 $account = Account::where('id', $voucher->account_id)->first();
-                $payment_transfer = $voucher->payment_transfer;
 
                 $trans_3 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
@@ -94,7 +93,7 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
@@ -109,7 +108,7 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
                 ];
@@ -118,14 +117,13 @@ class CustomVoid
             if ($invoice == null || $invoice_not_exists == true) {
                 // jika tidak ada invoice di PO
                 $account = Account::where('code', "50401")->first();
-                $payment_transfer = $voucher->payment_transfer;
                 $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
@@ -140,13 +138,12 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
                 ];
             } else {
                 $account = Account::where('id', $voucher->account_id)->first();
-                $payment_transfer = $voucher->payment_transfer;
 
                 // $invoice->status = 'Paid';
                 // $invoice->save();
@@ -157,7 +154,7 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
@@ -172,7 +169,7 @@ class CustomVoid
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
                     'date' => Carbon::now(),
-                    'debit' => $payment_transfer,
+                    'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
                 ];
@@ -231,7 +228,7 @@ class CustomVoid
                 'reference_type' => Voucher::class,
                 'description' => "piutang voucher " . $voucher->no_voucher,
                 'date' => Carbon::now(),
-                'debit' => $voucher->payment_transfer,
+                'debit' => $voucher->bill_value,
                 'credit' => 0,
             ], [
                 'account_id' => $hutang->id,
@@ -245,7 +242,7 @@ class CustomVoid
                 'reference_type' => Voucher::class,
                 'description' => "piutang voucher " . $voucher->no_voucher,
                 'date' => Carbon::now(),
-                'debit' => $voucher->payment_transfer,
+                'debit' => $voucher->bill_value,
                 'credit' => 0,
                 'type' => JournalEntry::class,
             ];
@@ -455,7 +452,7 @@ class CustomVoid
                 'description' => "piutang voucher " . $voucher->no_voucher,
                 'date' => Carbon::now(),
                 'debit' => 0,
-                'credit' => $voucher->payment_transfer,
+                'credit' => $voucher->bill_value,
             ]);
             $log_payment[] = [
                 'id' => $trans_1->id,
@@ -466,7 +463,7 @@ class CustomVoid
                 'date' => Carbon::now(),
                 'type' => JournalEntry::class,
                 'debit' => 0,
-                'credit' => $voucher->payment_transfer,
+                'credit' => $voucher->bill_value,
             ];
         }
 
@@ -477,7 +474,7 @@ class CustomVoid
         $transaksi->reference_type = Voucher::class;
         $transaksi->reference_id = $voucher->id;
         $transaksi->date_transaction = $payment_date;
-        $transaksi->nominal_transaction = $voucher->payment_transfer;
+        $transaksi->nominal_transaction = $voucher->bill_value;
         $transaksi->total_saldo_before = 0;
         $transaksi->total_saldo_after = 0;
         $transaksi->status = CastAccount::OUT;
@@ -580,10 +577,29 @@ class CustomVoid
             $voucher = Voucher::where('client_po_id', $invoice->client_po_id)
                 ->get();
             if ($voucher->count() > 0) {
+                // Filter hanya voucher yang memang ada di akun 50401
+                $vouchers_in_wip = [];
+
                 foreach ($voucher as $v) {
+                    // Cek apakah voucher ini pernah masuk ke akun 50401
+                    $has_wip_entry = JournalEntry::where('reference_type', Voucher::class)
+                        ->where('reference_id', $v->id)
+                        ->whereHas('account', function ($query) {
+                            $query->where('code', '50401');
+                        })
+                        ->where('debit', '>', 0) // Cek yang masuk (Debit)
+                        ->exists();
+
+                    if ($has_wip_entry) {
+                        $vouchers_in_wip[] = $v;
+                    }
+                }
+
+                // Proses hanya voucher yang memang ada di WIP
+                foreach ($vouchers_in_wip as $v) {
                     $log_payment_voucher = [];
                     $account_beban = Account::where('code', "50401")->first();
-                    $payment_transfer = $v->payment_transfer;
+                    $bill_value = $v->bill_value; // Menggunakan Exclude PPN
                     $trans_1 = CustomHelper::insertJournalEntry([
                         'account_id' => $account_beban->id,
                         'reference_id' => $v->id,
@@ -591,7 +607,7 @@ class CustomVoid
                         'description' => "Beban pekerjaan voucher " . $v->no_voucher,
                         'date' => Carbon::now(),
                         'debit' => 0,
-                        'credit' => $payment_transfer,
+                        'credit' => $bill_value,
                     ]);
                     $log_payment_voucher[] = [
                         'id' => $trans_1->id,
@@ -601,7 +617,7 @@ class CustomVoid
                         'description' => "Beban pekerjaan voucher " . $v->no_voucher,
                         'date' => Carbon::now(),
                         'debit' => 0,
-                        'credit' => $payment_transfer,
+                        'credit' => $bill_value,
                         'type' => JournalEntry::class,
                     ];
 
@@ -612,7 +628,7 @@ class CustomVoid
                         'reference_type' => Voucher::class,
                         'description' => $v?->client_po?->work_code,
                         'date' => Carbon::now(),
-                        'debit' => $payment_transfer,
+                        'debit' => $bill_value,
                         'credit' => 0,
                     ]);
                     $log_payment_voucher[] = [
@@ -622,7 +638,7 @@ class CustomVoid
                         'reference_type' => Voucher::class,
                         'description' => $v?->client_po?->work_code,
                         'date' => Carbon::now(),
-                        'debit' => $payment_transfer,
+                        'debit' => $bill_value,
                         'credit' => 0,
                         'type' => JournalEntry::class,
                     ];
@@ -702,6 +718,36 @@ class CustomVoid
                 'type' => JournalEntry::class,
             ];
         }
+
+        // Tambahkan jurnal Pendapatan (Revenue)
+        $acct_revenue = Account::where('code', "40101")->first();
+        if ($acct_revenue) {
+            $trans_5 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $acct_revenue->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Pendapatan invoice " . $invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => 0,
+                'credit' => $invoice->price_total_exclude_ppn,
+            ], [
+                'account_id' => $acct_revenue->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+            $log_payment[] = [
+                'id' => $trans_5->id,
+                'account_id' => $acct_revenue->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Pendapatan invoice " . $invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => 0,
+                'credit' => $invoice->price_total_exclude_ppn,
+                'type' => JournalEntry::class,
+            ];
+        }
+
         if (sizeof($log_payment) > 0) {
             $newLogPayment = new LogPayment;
             $newLogPayment->reference_type = InvoiceClient::class;
@@ -747,13 +793,27 @@ class CustomVoid
             ->where('id', '!=', $invoice->id)->first();
 
         if ($another_invoice == null) {
-            $voucher = Voucher::where('client_po_id', $invoice->client_po_id)->get();
-            foreach ($voucher as $voucher) {
-                CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "BALANCE_VOUCHER_WITH_INVOICE");
+            $vouchers = Voucher::where('client_po_id', $invoice->client_po_id)->get();
+            foreach ($vouchers as $v) {
+                // Cek apakah voucher ini memiliki log reorganisasi (untuk voucher lama)
+                $hasBalanceLog = LogPayment::where('reference_type', Voucher::class)
+                    ->where('reference_id', $v->id)
+                    ->where('name', "BALANCE_VOUCHER_WITH_INVOICE")
+                    ->exists();
+
+                if ($hasBalanceLog) {
+                    // Jika ada, cukup rollback penyesuaiannya saja agar balik ke Beban Proses (50401)
+                    self::rollbackPayment(Voucher::class, $v->id, "BALANCE_VOUCHER_WITH_INVOICE");
+                } else {
+                    // Jika tidak ada, berarti voucher ini dibuat saat invoice sudah ada (langsung ke Pokok)
+                    // Kita harus rollback log pembuatannya, lalu buat ulang ke Beban Proses (50401)
+                    self::rollbackPayment(Voucher::class, $v->id, "CREATE_VOUCHER");
+                    self::voucherCreate($v, true); // true = invoice_not_exists
+                }
             }
         }
 
-        CustomVoid::rollbackPayment(InvoiceClient::class, $invoice->id, "CREATE_INVOICE");
+        self::rollbackPayment(InvoiceClient::class, $invoice->id, "CREATE_INVOICE");
     }
 
     public static function storeTransaction(Object $request, String $status_account): AccountTransaction
