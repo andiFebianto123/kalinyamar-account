@@ -748,6 +748,8 @@ class CustomVoid
             ];
         }
 
+        self::invoiceAllPph($invoice, $log_payment);
+
         if (sizeof($log_payment) > 0) {
             $newLogPayment = new LogPayment;
             $newLogPayment->reference_type = InvoiceClient::class;
@@ -1026,5 +1028,126 @@ class CustomVoid
             $pay->delete();
         }
         return 1;
+    }
+    public static function invoiceAllPph(InvoiceClient $invoice, array &$log_payment)
+    {
+        $price_unifikasi = $invoice->discount_pph_23 + $invoice->discount_pph_4;
+        if ($price_unifikasi > 0) {
+            $account_unifikasi = Account::where('code', '20304')->first();
+            $trans_0 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $account_unifikasi->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "tambahan pph unifikasi " . $invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $price_unifikasi,
+                'credit' => 0,
+            ], [
+                'account_id' => $account_unifikasi->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+            $log_payment[] = [
+                'id' => $trans_0->id,
+                'account_id' => $account_unifikasi->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "tambahan pph unifikasi " . $invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $price_unifikasi,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
+        }
+
+        if ($invoice->discount_pph_23 > 0) {
+            $pph_23 = Account::where('code', '50306')->first();
+            if ($pph_23) {
+                $trans_6 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $pph_23->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPH 23 invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => $invoice->discount_pph_23,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $pph_23->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_6->id,
+                    'account_id' => $pph_23->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPH 23 invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => $invoice->discount_pph_23,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }
+        }
+
+        if ($invoice->discount_pph_4 > 0) {
+            $pph_4 = Account::where('code', '50307')->first();
+            if ($pph_4) {
+                $trans_7 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $pph_4->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPH 4 invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => $invoice->discount_pph_4,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $pph_4->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_7->id,
+                    'account_id' => $pph_4->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPH 4 invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => $invoice->discount_pph_4,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }
+        }
+
+        if ($invoice->discount_pph_21 > 0) {
+            $pph_21 = Account::where('code', '50301')->first();
+            if ($pph_21) {
+                $trans_8 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $pph_21->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPH 21 invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => $invoice->discount_pph_21,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $pph_21->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_8->id,
+                    'account_id' => $pph_21->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPH 21 invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => $invoice->discount_pph_21,
+                    'credit' => 0,
+                    'type' => JournalEntry::class,
+                ];
+            }
+        }
     }
 }

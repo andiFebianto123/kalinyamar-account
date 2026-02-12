@@ -1023,6 +1023,100 @@ class InvoiceClientCrudController extends CrudController
         ]);
 
         CRUD::addField([
+            'name' => 'pph_23',
+            'label' => trans('backpack::crud.voucher.field.pph_23.label'),
+            'type' => 'number',
+            // optionals
+            'attributes' => ["step" => "any"], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'discount_pph_23',
+            'label' =>  trans('backpack::crud.voucher.field.discount_pph_23.label'),
+            'type' => 'text',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'pph_4',
+            'label' => trans('backpack::crud.voucher.field.pph_4.label'),
+            'type' => 'number',
+            // optionals
+            'attributes' => ["step" => "any"], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'discount_pph_4',
+            'label' =>  trans('backpack::crud.voucher.field.discount_pph_4.label'),
+            'type' => 'text',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'pph_21',
+            'label' => trans('backpack::crud.voucher.field.pph_21.label'),
+            'type' => 'number',
+            // optionals
+            'attributes' => ["step" => "any"], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'discount_pph_21',
+            'label' =>  trans('backpack::crud.voucher.field.discount_pph_21.label'),
+            'type' => 'text',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+
+        CRUD::addField([
             'name' => 'kdp',
             'label' => trans('backpack::crud.invoice_client.field.kdp.label'),
             'type' => 'text',
@@ -1254,6 +1348,9 @@ class InvoiceClientCrudController extends CrudController
                 $total_price += $request->nominal_include_ppn;
             }
 
+            $pphData = $request->only(['nominal_exclude_ppn', 'tax_ppn', 'pph_23', 'pph_4', 'pph_21']);
+            $hasilPerhitungan = $this->calculatePayment($pphData);
+
             $items = $request->invoice_client_details;
             $total_item_price = 0;
             foreach ($items as $item) {
@@ -1278,7 +1375,14 @@ class InvoiceClientCrudController extends CrudController
             $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
             $invoice->status = 'Unpaid';
-            $invoice->price_total = $total_price;
+            $invoice->price_total = $total_price - $hasilPerhitungan['diskon_pph_23'] - $hasilPerhitungan['diskon_pph_4'] - $hasilPerhitungan['diskon_pph_21'];
+
+            $invoice->pph_23 = $request->pph_23 ?? 0;
+            $invoice->discount_pph_23 = $hasilPerhitungan['diskon_pph_23'];
+            $invoice->pph_4 = $request->pph_4 ?? 0;
+            $invoice->discount_pph_4 = $hasilPerhitungan['diskon_pph_4'];
+            $invoice->pph_21 = $request->pph_21 ?? 0;
+            $invoice->discount_pph_21 = $hasilPerhitungan['diskon_pph_21'];
 
             // Handle file upload for invoice_document
             if ($request->hasFile('invoice_document')) {
@@ -1361,6 +1465,9 @@ class InvoiceClientCrudController extends CrudController
                 $total_price += $request->nominal_include_ppn;
             }
 
+            $pphData = $request->only(['nominal_exclude_ppn', 'tax_ppn', 'pph_23', 'pph_4', 'pph_21']);
+            $hasilPerhitungan = $this->calculatePayment($pphData);
+
             $items = $request->invoice_client_details_edit;
             $total_item_price = 0;
             foreach ($items as $item) {
@@ -1385,7 +1492,14 @@ class InvoiceClientCrudController extends CrudController
             $invoice->send_invoice_revision_date = $request->send_invoice_revision;
             $invoice->price_total_exclude_ppn = $request->nominal_exclude_ppn;
             $invoice->price_total_include_ppn = $request->nominal_include_ppn;
-            $invoice->price_total = $total_price;
+            $invoice->price_total = $total_price - $hasilPerhitungan['diskon_pph_23'] - $hasilPerhitungan['diskon_pph_4'] - $hasilPerhitungan['diskon_pph_21'];
+
+            $invoice->pph_23 = $request->pph_23 ?? 0;
+            $invoice->discount_pph_23 = $hasilPerhitungan['diskon_pph_23'];
+            $invoice->pph_4 = $request->pph_4 ?? 0;
+            $invoice->discount_pph_4 = $hasilPerhitungan['diskon_pph_4'];
+            $invoice->pph_21 = $request->pph_21 ?? 0;
+            $invoice->discount_pph_21 = $hasilPerhitungan['diskon_pph_21'];
 
             // Handle file upload for invoice_document
             if ($request->hasFile('invoice_document')) {
@@ -1417,7 +1531,19 @@ class InvoiceClientCrudController extends CrudController
 
             $this->data['entry'] = $this->crud->entry = $invoice;
 
-            CustomVoid::invoiceUpdate($invoice, $old_client_po_id);
+            if ($invoice->wasChanged([
+                'price_total_exclude_ppn',
+                'price_total_include_ppn',
+                'tax_ppn',
+                'pph_23',
+                'pph_4',
+                'pph_21',
+                'price_dpp', // dpp_other maps to price_dpp
+                'client_po_id'
+            ])) {
+                CustomVoid::invoiceUpdate($invoice, $old_client_po_id);
+            }
+
 
             DB::commit();
             // show a success message
@@ -1443,6 +1569,35 @@ class InvoiceClientCrudController extends CrudController
         }
     }
 
+    private function calculatePayment(array $inputs)
+    {
+        $billValue = (float) $inputs['nominal_exclude_ppn'];
+        $ppn       = (float) ($inputs['tax_ppn'] ?? 0);
+        $pph23     = (float) ($inputs['pph_23'] ?? 0);
+        $pph4      = (float) ($inputs['pph_4'] ?? 0);
+        $pph21     = (float) ($inputs['pph_21'] ?? 0);
+
+        $nilaiPpn = ($ppn == 0) ? 0 : ($billValue * ($ppn / 100));
+        $total    = $billValue + $nilaiPpn;
+
+        $diskonPph23 = ($pph23 == 0) ? 0 : $billValue * ($pph23 / 100);
+        $diskonPph4  = ($pph4  == 0) ? 0 : $billValue * ($pph4  / 100);
+        $diskonPph21 = ($pph21 == 0) ? 0 : $billValue * ($pph21 / 100);
+
+        // $paymentTransfer = $total - $diskonPph23 - $diskonPph4 - $diskonPph21; // Invoice doesn't use this yet?
+
+        return [
+            'nominal_exclude_ppn'      => $billValue,
+            'nilai_ppn'                => $nilaiPpn,
+            'total'                    => $total,
+            'diskon_pph_23'            => $diskonPph23,
+            'diskon_pph_4'             => $diskonPph4,
+            'diskon_pph_21'            => $diskonPph21,
+            // 'payment_transfer'         => $paymentTransfer,
+        ];
+    }
+
+
     public function applyInvoicePaymentToAccount($invoice)
     {
         // $approval_voucher = Approval::where('model_type', 'App\\Models\\PaymentVoucherPlan')
@@ -1467,6 +1622,8 @@ class InvoiceClientCrudController extends CrudController
 
     protected function setupShowOperation()
     {
+        $settings = Setting::first();
+
         CRUD::addField([
             'name' => 'invoice_number',
             'label' => trans('backpack::crud.invoice_client.field.invoice_number.label'),
@@ -1638,6 +1795,100 @@ class InvoiceClientCrudController extends CrudController
                 'disabled' => true,
             ]
         ]);
+
+        CRUD::addField([
+            'name' => 'pph_23',
+            'label' => trans('backpack::crud.voucher.field.pph_23.label'),
+            'type' => 'number',
+            // optionals
+            'attributes' => ["step" => "any", "disabled" => true], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'discount_pph_23',
+            'label' =>  trans('backpack::crud.voucher.field.discount_pph_23.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'pph_4',
+            'label' => trans('backpack::crud.voucher.field.pph_4.label'),
+            'type' => 'number',
+            // optionals
+            'attributes' => ["step" => "any", "disabled" => true], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'discount_pph_4',
+            'label' =>  trans('backpack::crud.voucher.field.discount_pph_4.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'pph_21',
+            'label' => trans('backpack::crud.voucher.field.pph_21.label'),
+            'type' => 'number',
+            // optionals
+            'attributes' => ["step" => "any", "disabled" => true], // allow decimals
+            'prefix'     => "%",
+            // 'suffix'     => ".00",
+            'wrapper'   => [
+                'class' => 'form-group col-md-6'
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'discount_pph_21',
+            'label' =>  trans('backpack::crud.voucher.field.discount_pph_21.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
 
         CRUD::addField([
             'name' => 'kdp',
@@ -1818,6 +2069,63 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.price_total_include_ppn'),
                 'name' => 'price_total_include_ppn',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.voucher.field.pph_23.label'),
+                'name' => 'pph_23',
+                'type'  => 'number',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.voucher.field.discount_pph_23.label'),
+                'name' => 'discount_pph_23',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.voucher.field.pph_4.label'),
+                'name' => 'pph_4',
+                'type'  => 'number',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.voucher.field.discount_pph_4.label'),
+                'name' => 'discount_pph_4',
+                'type'  => 'number',
+                'prefix' => "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.voucher.field.pph_21.label'),
+                'name' => 'pph_21',
+                'type'  => 'number',
+            ],
+        );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.voucher.field.discount_pph_21.label'),
+                'name' => 'discount_pph_21',
                 'type'  => 'number',
                 'prefix' => "Rp.",
                 'decimals'      => 2,

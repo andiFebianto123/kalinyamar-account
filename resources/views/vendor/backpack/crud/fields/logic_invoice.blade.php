@@ -48,6 +48,18 @@
                     // setInputNumber(form + ' #nominal_include_ppn_masked', total);
                     setInputNumber2(form+' input[name="nominal_include_ppn"]', total);
                     instance.total_price = Number($(form + ' input[name="nominal_exclude_ppn"]').val());
+
+                    var pph_23 = getInputNumber(form + ' input[name="pph_23"]');
+                    var diskon_pph_23 = (pph_23 == 0) ? 0 : nominal_exclude_ppn * (pph_23 / 100);
+                    setInputNumber2(form+' input[name="discount_pph_23"]', diskon_pph_23);
+
+                    var pph_4 = getInputNumber(form + ' input[name="pph_4"]');
+                    var diskon_pph_4 = (pph_4 == 0) ? 0 : nominal_exclude_ppn * (pph_4 / 100);
+                    setInputNumber2(form+' input[name="discount_pph_4"]', diskon_pph_4);
+
+                    var pph_21 = getInputNumber(form+' input[name="pph_21"]');
+                    var diskon_pph_21 = (pph_21 == 0) ? 0 : nominal_exclude_ppn * (pph_21 / 100);
+                    setInputNumber2(form+' input[name="discount_pph_21"]', diskon_pph_21);
                 },
                 load: function(){
                     var instance = this;
@@ -61,6 +73,13 @@
                             setInputNumber(form+' #dpp_other_masked', entry.price_dpp || 0);
                             $(form+' input[name="tax_ppn"]').val(entry.tax_ppn || 0);
                             setInputNumber(form+' #nominal_include_ppn_masked', entry.price_total_include_ppn || 0);
+                            
+                            $(form+' input[name="pph_23"]').val(entry.pph_23 || 0);
+                            setInputNumber2(form+' input[name="discount_pph_23"]', entry.discount_pph_23 || 0);
+                            $(form+' input[name="pph_4"]').val(entry.pph_4 || 0);
+                            setInputNumber2(form+' input[name="discount_pph_4"]', entry.discount_pph_4 || 0);
+                            $(form+' input[name="pph_21"]').val(entry.pph_21 || 0);
+                            setInputNumber2(form+' input[name="discount_pph_21"]', entry.discount_pph_21 || 0);
                             instance.logicFormulaNoPO();
                         }, 300);
                     }
@@ -95,6 +114,18 @@
                     $(form+' input[name="tax_ppn"]').on('keyup', function(){
                         instance.logicFormulaNoPO();
                         countTotalPrice();
+                    });
+
+                    $(form + ' input[name="pph_23"]').on('keyup', function(){
+                        instance.logicFormulaNoPO();
+                    });
+
+                    $(form + ' input[name="pph_4"]').on('keyup', function(){
+                        instance.logicFormulaNoPO();
+                    });
+
+                    $(form+' input[name="pph_21"]').on('keyup', function(){
+                        instance.logicFormulaNoPO();
                     });
 
                     var countTotalPrice = function(){
