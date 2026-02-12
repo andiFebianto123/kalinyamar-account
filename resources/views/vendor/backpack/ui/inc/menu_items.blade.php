@@ -88,7 +88,6 @@
             // 'AKSES MENU FA'
             'MENU INDEX FA VOUCHER',
             'MENU INDEX FA PEMBAYARAN',
-            'MENU INDEX FA RENCANA PEMBAYARAN',
         ])->count() > 0)
 <x-menu-group-custom
     title="{{trans('backpack::crud.menu.fa')}}"
@@ -100,10 +99,14 @@
     @if($permissions->contains('name', 'MENU INDEX FA PEMBAYARAN'))
     <x-menu-group-item-custom title="{{trans('backpack::crud.menu.voucher_payment')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher-payment')" />
     @endif
-    @if($permissions->contains('name', 'MENU INDEX FA RENCANA PEMBAYARAN'))
-    <x-menu-group-item-custom title="{{trans('backpack::crud.menu.voucher_payment_plan')}}" icon="la la-circle-notch" :link="backpack_url('fa/voucher-payment-plan')" />
-    @endif
 </x-menu-group-custom>
+@endif
+
+@if($permissions->contains('name', 'MENU INDEX RENCANA PEMBAYARAN'))
+    <x-menu-item-custom
+        title="{{trans('backpack::crud.menu.voucher_payment_plan')}}"
+        :logo_url="asset('storage/logos/menu/logo-fa.png')"
+        :link="backpack_url('voucher-payment-plan')" />
 @endif
 
 @if($permissions->whereIn('name', [

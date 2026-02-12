@@ -51,6 +51,7 @@ return [
 
     // Confirmation messages and bubbles
     'delete_confirm' => 'Anda yakin ingin menghapus item ini?',
+    'delete_confirm_plan' => 'Apakah anda ingin menghapus rencana bayar ini?, setelah dihapus anda juga bisa menambahkannya kembali',
     'delete_confirm_2' => 'Apakah anda yakin ingin menghapus data',
     'delete_confirmation_title' => 'Item Dihapus',
     'delete_confirmation_message' => 'Item telah berhasil dihapus.',
@@ -114,6 +115,7 @@ return [
     'insert_success' => 'Item berhasil ditambahkan.',
     'update_success' => 'Item berhasil diubah.',
     'insert_error' => 'Terjadi kesalahan saat menambahkan item.',
+    'approved_success' => 'Item berhasil disetujui.',
 
     // CRUD reorder view
     'reorder' => 'Susun ulang',
@@ -1291,6 +1293,7 @@ return [
             'title' => 'Menyetujui Voucher',
             'caution' => 'Perhatian !',
             'confirm_approved_statement' => 'Setujui untuk voucher ini?',
+            'confirm_approved_statement_bulk' => 'Setujui untuk rencana bayar voucher ini?',
             'yes_approved' => 'Ya, Setujui',
             'cancel' => 'Batal',
             'confirm_after_success' => 'Voucher Berhasil Disetujui',

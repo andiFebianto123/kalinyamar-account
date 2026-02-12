@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use Spatie\Permission\Models\Permission;
@@ -20,6 +21,7 @@ class PermissionSeeder extends Seeder
             'AKSES MENU VENDOR',
             'AKSES MENU CLIENT',
             'AKSES MENU FA',
+            'AKSES SEMUA MENU RENCANA PEMBAYARAN',
             'AKSES SEMUA STATUS PENAWARAN PROJECT',
             'AKSES SEMUA DAFTAR PENAWARAN PROJECT',
             'AKSES SEMUA DATA PROYEKSI PEKERJAAN PROJECT',

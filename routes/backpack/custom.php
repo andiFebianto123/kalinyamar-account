@@ -163,6 +163,14 @@ Route::group([
         Route::post('profit-lost/export-consolidation-excel', [ProfitLostAccountCrudController::class, 'exportConsolidationExcel']);
     });
 
+    Route::crud('voucher-payment-plan', VoucherPaymentPlanCrudController::class);
+    Route::post('voucher-payment-plan/total', [VoucherPaymentPlanCrudController::class, 'total_voucher']);
+    Route::post('voucher-payment-plan/{id}/approve', [VoucherPaymentPlanCrudController::class, 'approvedStore']);
+    Route::post('voucher-payment-plan/export-pdf', [VoucherPaymentPlanCrudController::class, 'exportPdf']);
+    Route::post('voucher-payment-plan/export-excel', [VoucherPaymentPlanCrudController::class, 'exportExcel']);
+    Route::post('voucher-payment-plan/bulk-approve', [VoucherPaymentPlanCrudController::class, 'bulkApprove']);
+    Route::post('voucher-payment-plan/bulk-delete', [VoucherPaymentPlanCrudController::class, 'bulkDelete']);
+
     Route::prefix('fa')->group(function () {
         Route::crud('voucher', 'VoucherCrudController');
         Route::post('voucher/select2-po-spk', [VoucherCrudController::class, 'select2_no_po_spk']);
@@ -182,11 +190,6 @@ Route::group([
         Route::get('voucher/get_client_selected_ajax', [VoucherCrudController::class, 'clientSelectedAjax']);
         Route::get('voucher/get_account_source_selected_ajax', [VoucherCrudController::class, 'castAccountSelectedAjax']);
         Route::get('voucher/{id}/print', [VoucherCrudController::class, 'print']);
-        Route::crud('voucher-payment-plan', VoucherPaymentPlanCrudController::class);
-        Route::post('voucher-payment-plan/total', [VoucherPaymentPlanCrudController::class, 'total_voucher']);
-        Route::post('voucher-payment-plan/{id}/approve', [VoucherPaymentPlanCrudController::class, 'approvedStore']);
-        Route::post('voucher-payment-plan/export-pdf', [VoucherPaymentPlanCrudController::class, 'exportPdf']);
-        Route::post('voucher-payment-plan/export-excel', [VoucherPaymentPlanCrudController::class, 'exportExcel']);
     });
 
     Route::prefix('monitoring')->group(function () {

@@ -23,6 +23,7 @@ class MenuPermissionSeeder extends Seeder
             'MENU INDEX FA VOUCHER',
             'MENU INDEX FA PEMBAYARAN',
             'MENU INDEX FA RENCANA PEMBAYARAN',
+            'MENU INDEX RENCANA PEMBAYARAN',
             'MENU INDEX ARUS REKENING KAS',
             'MENU INDEX ARUS REKENING PINJAMAN',
             'MENU INDEX LAPORAN KEUANGAN COA',

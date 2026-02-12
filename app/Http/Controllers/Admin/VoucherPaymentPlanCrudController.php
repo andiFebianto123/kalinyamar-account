@@ -37,30 +37,30 @@ class VoucherPaymentPlanCrudController extends CrudController
     public function setup()
     {
         CRUD::setModel(PaymentVoucher::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher-payment-plan');
+        CRUD::setRoute(config('backpack.base.route_prefix') . '/voucher-payment-plan');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.voucher_payment_plan'), trans('backpack::crud.menu.voucher_payment_plan'));
 
         $allAccess = [
             'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU FA'
+            'AKSES SEMUA MENU RENCANA PEMBAYARAN'
         ];
 
         $viewMenu = [
-            'MENU INDEX FA RENCANA PEMBAYARAN',
+            'MENU INDEX RENCANA PEMBAYARAN',
         ];
 
         $this->settingPermission([
             'create' => [
-                'CREATE INDEX FA RENCANA PEMBAYARAN',
+                'CREATE INDEX RENCANA PEMBAYARAN',
                 'APPROVE RENCANA BAYAR',
                 ...$allAccess
             ],
             'update' => [
-                'UPDATE INDEX FA RENCANA PEMBAYARAN',
+                'UPDATE INDEX RENCANA PEMBAYARAN',
                 ...$allAccess
             ],
             'delete' => [
-                'DELETE INDEX FA RENCANA PEMBAYARAN',
+                'DELETE INDEX RENCANA PEMBAYARAN',
                 ...$allAccess
             ],
             'list' => $viewMenu,
@@ -281,10 +281,19 @@ class VoucherPaymentPlanCrudController extends CrudController
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
+                                    'name'      => 'bulk_action_all',
+                                    'type'      => 'text',
+                                    'label'     => '<input type="checkbox" class="form-check-input bulk_all_checkbox">',
+                                    'orderable' => false,
+                                    'searchable' => false,
+                                    'visibleInExport' => false,
+                                ],
+                                [
                                     'name'      => 'row_number',
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
+                                    'searchable' => false,
                                 ],
                                 [
                                     'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
@@ -376,7 +385,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                                     'label' =>  '',
                                 ]
                             ],
-                            'route' => backpack_url('/fa/voucher-payment-plan/search?tab=voucher_payment_plan&type=NON RUTIN'),
+                            'route' => backpack_url('voucher-payment-plan/search?tab=voucher_payment_plan&type=NON RUTIN'),
                             'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment_plan_all'),
                             'title_export_pdf' => 'Voucher-payment-plan.pdf',
                             'route_export_excel' => url($this->crud->route . '/export-excel?tab=voucher_payment_plan_all'),
@@ -1830,10 +1839,15 @@ class VoucherPaymentPlanCrudController extends CrudController
         $settings = Setting::first();
         CRUD::removeButton('delete');
         // CRUD::removeButton('create');
-        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
-        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'bulk-actions-payment-plan', 'bulk-actions-payment-plan', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'end');
+        CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'end');
         CRUD::addButtonFromView('line', 'delete-payment-plan', 'delete-payment-plan', 'beginning');
-        CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
+        // CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
+
+        // Store flags for the bulk-actions button blade
+        $this->crud->set('is_approver', backpack_user()->hasPermissionTo('APPROVE RENCANA BAYAR'));
+        $this->crud->set('has_bulk_delete', $this->crud->hasAccess('delete'));
 
         $status_file = '';
         if (strpos(url()->current(), 'excel')) {
@@ -1933,45 +1947,46 @@ class VoucherPaymentPlanCrudController extends CrudController
             ->where('vouchers.payment_status', 'BELUM BAYAR');
         // ->where('approvals.status', Approval::APPROVED);
 
+        // Column indices shifted +1 to account for bulk_checkbox at index 0
         if ($request->has('columns')) {
-            if (trim($request->columns[1]['search']['value'] ?? '') != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('vouchers.no_voucher', 'like', '%' . $request->columns[1]['search']['value'] . '%');
-            }
-
             if (trim($request->columns[2]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
-                    ->whereHas('voucher.subkon', function ($q) use ($request) {
-                        $q->where('name', 'like', '%' . $request->columns[2]['search']['value'] . '%');
-                    });
+                    ->where('vouchers.no_voucher', 'like', '%' . $request->columns[2]['search']['value'] . '%');
             }
 
             if (trim($request->columns[3]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
                     ->whereHas('voucher.subkon', function ($q) use ($request) {
-                        $q->where('bank_name', 'like', '%' . $request->columns[3]['search']['value'] . '%');
+                        $q->where('name', 'like', '%' . $request->columns[3]['search']['value'] . '%');
                     });
             }
 
             if (trim($request->columns[4]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
                     ->whereHas('voucher.subkon', function ($q) use ($request) {
-                        $q->where('bank_account', 'like', '%' . $request->columns[4]['search']['value'] . '%');
+                        $q->where('bank_name', 'like', '%' . $request->columns[4]['search']['value'] . '%');
                     });
             }
 
             if (trim($request->columns[5]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
-                    ->where('vouchers.bill_number', 'like', '%' . $request->columns[5]['search']['value'] . '%');
+                    ->whereHas('voucher.subkon', function ($q) use ($request) {
+                        $q->where('bank_account', 'like', '%' . $request->columns[5]['search']['value'] . '%');
+                    });
             }
 
             if (trim($request->columns[6]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
-                    ->where('vouchers.payment_description', 'like', '%' . $request->columns[6]['search']['value'] . '%');
+                    ->where('vouchers.bill_number', 'like', '%' . $request->columns[6]['search']['value'] . '%');
             }
 
             if (trim($request->columns[7]['search']['value'] ?? '') != '') {
-                $search = $request->columns[7]['search']['value'];
+                $this->crud->query = $this->crud->query
+                    ->where('vouchers.payment_description', 'like', '%' . $request->columns[7]['search']['value'] . '%');
+            }
+
+            if (trim($request->columns[8]['search']['value'] ?? '') != '') {
+                $search = $request->columns[8]['search']['value'];
                 $this->crud->query = $this->crud->query
                     ->whereHas('voucher', function ($q) use ($search) {
                         $q->whereHasMorph('reference', '*', function ($query) use ($search) {
@@ -1981,20 +1996,20 @@ class VoucherPaymentPlanCrudController extends CrudController
                     });
             }
 
-            if (trim($request->columns[8]['search']['value'] ?? '') != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('vouchers.payment_transfer', 'like', '%' . $request->columns[8]['search']['value'] . '%');
-            }
-
             if (trim($request->columns[9]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
-                    ->where('vouchers.factur_status', 'like', $request->columns[9]['search']['value'] . '%');
+                    ->where('vouchers.payment_transfer', 'like', '%' . $request->columns[9]['search']['value'] . '%');
             }
 
             if (trim($request->columns[10]['search']['value'] ?? '') != '') {
-                $search = $request->columns[10]['search']['value'];
                 $this->crud->query = $this->crud->query
-                    ->where('vouchers.job_name', 'like', '%' . $request->columns[10]['search']['value'] . '%');
+                    ->where('vouchers.factur_status', 'like', $request->columns[10]['search']['value'] . '%');
+            }
+
+            if (trim($request->columns[11]['search']['value'] ?? '') != '') {
+                $search = $request->columns[11]['search']['value'];
+                $this->crud->query = $this->crud->query
+                    ->where('vouchers.job_name', 'like', '%' . $request->columns[11]['search']['value'] . '%');
                 // ->whereHas('voucher', function($q)use($search){
                 //     $q->whereHasMorph('reference', '*', function ($query) use($search){
                 //         $query->where('job_name', 'like', '%'.$search.'%');
@@ -2002,16 +2017,31 @@ class VoucherPaymentPlanCrudController extends CrudController
                 // });
             }
 
-            if (trim($request->columns[11]['search']['value'] ?? '') != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('vouchers.due_date', 'like', '%' . $request->columns[11]['search']['value'] . '%');
-            }
-
             if (trim($request->columns[12]['search']['value'] ?? '') != '') {
                 $this->crud->query = $this->crud->query
-                    ->where('vouchers.payment_type', 'like', '%' . $request->columns[12]['search']['value'] . '%');
+                    ->where('vouchers.due_date', 'like', '%' . $request->columns[12]['search']['value'] . '%');
+            }
+
+            if (trim($request->columns[13]['search']['value'] ?? '') != '') {
+                $this->crud->query = $this->crud->query
+                    ->where('vouchers.payment_type', 'like', '%' . $request->columns[13]['search']['value'] . '%');
             }
         }
+
+        CRUD::addColumn([
+            'name'     => 'bulk_checkbox',
+            'label'    => '<input type="checkbox" id="bulk-select-all" class="bulk-checkbox-header" />',
+            'type'     => 'custom_html',
+            'value'    => function ($entry) {
+                $noApprv = $entry->user_live_no_apprv ?? '';
+                $userId = $entry->user_live_user_id ?? '';
+                return '<input type="checkbox" class="form-check-input bulk-checkbox" data-id="' . $entry->voucer_edit_id . '" data-no-apprv="' . $noApprv . '" data-user-id="' . $userId . '" />"';
+            },
+            'orderable' => false,
+            'searchable' => false,
+            'visibleInExport' => false,
+            'escaped' => false,
+        ]);
 
         CRUD::addColumn([
             'name'      => 'row_number',
@@ -2021,7 +2051,7 @@ class VoucherPaymentPlanCrudController extends CrudController
             'wrapper' => [
                 'element' => 'strong',
             ]
-        ])->makeFirstColumn();
+        ]);
 
         CRUD::column([
             'label'  => 'No. Voucher',
@@ -2164,7 +2194,7 @@ class VoucherPaymentPlanCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => '',
+                'label'  => trans('backpack::crud.voucher.column.voucher.status.label'),
                 'name' => 'status',
                 'type'  => 'approval-voucher',
             ],
@@ -2405,6 +2435,90 @@ class VoucherPaymentPlanCrudController extends CrudController
                 }
             ],
         );
+    }
+
+    public function searchDummy()
+    {
+        // === DUMMY DATA (hapus block ini untuk production) ===
+        $draw = (int) request()->input('draw', 1);
+        $dummyRows = [];
+        $dummyData = [
+            ['VCR-2026-001', 'PT Subkon Abadi', 'Bank Mandiri', '1234567890', 'INV-001', 'Pembayaran Termin 1', 'PO-2026-001', 50000000, 'Faktur Pajak', 'Gedung A Lt.3', '2026-03-15', 'Transfer'],
+            ['VCR-2026-002', 'CV Maju Jaya', 'Bank BCA', '9876543210', 'INV-002', 'Pembayaran Material', 'SPK-2026-005', 32500000, 'Non Faktur', 'Jembatan Kali Besar', '2026-03-20', 'Transfer'],
+            ['VCR-2026-003', 'PT Bangun Karya', 'Bank BRI', '5551234567', 'INV-003', 'Termin 2 Pekerjaan Sipil', 'PO-2026-008', 78000000, 'Faktur Pajak', 'Rumah Sakit Baru', '2026-04-01', 'Giro'],
+            ['VCR-2026-004', 'PT Sumber Rejeki', 'Bank Mandiri', '7778889990', 'INV-004', 'Pembayaran Sewa Alat', 'SPK-2026-012', 15000000, 'Non Faktur', 'Proyek Tol Selatan', '2026-03-25', 'Transfer'],
+            ['VCR-2026-005', 'CV Teknik Andal', 'Bank BNI', '3334445556', 'INV-005', 'Termin 3 Finishing', 'PO-2026-015', 42000000, 'Faktur Pajak', 'Apartemen Citra', '2026-04-10', 'Transfer'],
+            ['VCR-2026-001', 'PT Subkon Abadi', 'Bank Mandiri', '1234567890', 'INV-001', 'Pembayaran Termin 1', 'PO-2026-001', 50000000, 'Faktur Pajak', 'Gedung A Lt.3', '2026-03-15', 'Transfer'],
+            ['VCR-2026-002', 'CV Maju Jaya', 'Bank BCA', '9876543210', 'INV-002', 'Pembayaran Material', 'SPK-2026-005', 32500000, 'Non Faktur', 'Jembatan Kali Besar', '2026-03-20', 'Transfer'],
+            ['VCR-2026-003', 'PT Bangun Karya', 'Bank BRI', '5551234567', 'INV-003', 'Termin 2 Pekerjaan Sipil', 'PO-2026-008', 78000000, 'Faktur Pajak', 'Rumah Sakit Baru', '2026-04-01', 'Giro'],
+            ['VCR-2026-004', 'PT Sumber Rejeki', 'Bank Mandiri', '7778889990', 'INV-004', 'Pembayaran Sewa Alat', 'SPK-2026-012', 15000000, 'Non Faktur', 'Proyek Tol Selatan', '2026-03-25', 'Transfer'],
+            ['VCR-2026-005', 'CV Teknik Andal', 'Bank BNI', '3334445556', 'INV-005', 'Termin 3 Finishing', 'PO-2026-015', 42000000, 'Faktur Pajak', 'Apartemen Citra', '2026-04-10', 'Transfer'],
+            ['VCR-2026-001', 'PT Subkon Abadi', 'Bank Mandiri', '1234567890', 'INV-001', 'Pembayaran Termin 1', 'PO-2026-001', 50000000, 'Faktur Pajak', 'Gedung A Lt.3', '2026-03-15', 'Transfer'],
+            ['VCR-2026-002', 'CV Maju Jaya', 'Bank BCA', '9876543210', 'INV-002', 'Pembayaran Material', 'SPK-2026-005', 32500000, 'Non Faktur', 'Jembatan Kali Besar', '2026-03-20', 'Transfer'],
+            ['VCR-2026-003', 'PT Bangun Karya', 'Bank BRI', '5551234567', 'INV-003', 'Termin 2 Pekerjaan Sipil', 'PO-2026-008', 78000000, 'Faktur Pajak', 'Rumah Sakit Baru', '2026-04-01', 'Giro'],
+            ['VCR-2026-004', 'PT Sumber Rejeki', 'Bank Mandiri', '7778889990', 'INV-004', 'Pembayaran Sewa Alat', 'SPK-2026-012', 15000000, 'Non Faktur', 'Proyek Tol Selatan', '2026-03-25', 'Transfer'],
+            ['VCR-2026-005', 'CV Teknik Andal', 'Bank BNI', '3334445556', 'INV-005', 'Termin 3 Finishing', 'PO-2026-015', 42000000, 'Faktur Pajak', 'Apartemen Citra', '2026-04-10', 'Transfer'],
+            ['VCR-2026-001', 'PT Subkon Abadi', 'Bank Mandiri', '1234567890', 'INV-001', 'Pembayaran Termin 1', 'PO-2026-001', 50000000, 'Faktur Pajak', 'Gedung A Lt.3', '2026-03-15', 'Transfer'],
+            ['VCR-2026-002', 'CV Maju Jaya', 'Bank BCA', '9876543210', 'INV-002', 'Pembayaran Material', 'SPK-2026-005', 32500000, 'Non Faktur', 'Jembatan Kali Besar', '2026-03-20', 'Transfer'],
+            ['VCR-2026-003', 'PT Bangun Karya', 'Bank BRI', '5551234567', 'INV-003', 'Termin 2 Pekerjaan Sipil', 'PO-2026-008', 78000000, 'Faktur Pajak', 'Rumah Sakit Baru', '2026-04-01', 'Giro'],
+            ['VCR-2026-004', 'PT Sumber Rejeki', 'Bank Mandiri', '7778889990', 'INV-004', 'Pembayaran Sewa Alat', 'SPK-2026-012', 15000000, 'Non Faktur', 'Proyek Tol Selatan', '2026-03-25', 'Transfer'],
+            ['VCR-2026-005', 'CV Teknik Andal', 'Bank BNI', '3334445556', 'INV-005', 'Termin 3 Finishing', 'PO-2026-015', 42000000, 'Faktur Pajak', 'Apartemen Citra', '2026-04-10', 'Transfer'],
+            ['VCR-2026-004', 'PT Sumber Rejeki', 'Bank Mandiri', '7778889990', 'INV-004', 'Pembayaran Sewa Alat', 'SPK-2026-012', 15000000, 'Non Faktur', 'Proyek Tol Selatan', '2026-03-25', 'Transfer'],
+            ['VCR-2026-005', 'CV Teknik Andal', 'Bank BNI', '3334445556', 'INV-005', 'Termin 3 Finishing', 'PO-2026-015', 42000000, 'Faktur Pajak', 'Apartemen Citra', '2026-04-10', 'Transfer'],
+        ];
+
+        $start = (int) request()->input('start');
+        $length = (int) request()->input('length');
+
+        $dataset = collect($dummyData);
+
+        $total = $dataset->count();
+
+        if ($start) {
+            $dataset = $dataset->skip($start);
+        }
+
+        if ($length) {
+            $dataset = $dataset->take($length);
+        }
+
+        foreach ($dataset->all() as $i => $d) {
+            $fakeId = $i + 101; // fake voucer_edit_id
+            $checkbox = '<input type="checkbox" class="form-check-input bulk-checkbox" data-id="' . $fakeId . '" data-no-apprv="1" />';
+            $statusBadge = ($i % 2 == 0)
+                ? '<span class="badge bg-warning text-dark">Pending</span>'
+                : '<span class="badge bg-success">Approved</span>';
+            $approvalList = '<ul><li class="text-success">Admin 1</li><li>Admin 2</li></ul>';
+            $actionButtons = '<a href="javascript:void(0)" class="btn btn-sm btn-link"><i class="la la-trash"></i></a>';
+
+            $dummyRows[] = [
+                $checkbox,                                          // bulk_checkbox
+                '<strong>' . ($i + 1) . '</strong>',               // row_number
+                $d[0],                                              // no_voucher
+                $d[1],                                              // bussines_entity_name
+                $d[2],                                              // bank
+                $d[3],                                              // number_account
+                $d[4],                                              // bill_number
+                $d[5],                                              // payment_description
+                $d[6],                                              // no_po_spk
+                number_format($d[7], 0, ',', '.'),                  // payment_transfer
+                $d[8],                                              // factur_status
+                $d[9],                                              // job_name
+                $d[10],                                             // due_date
+                $d[11],                                             // payment_type
+                $statusBadge,                                       // status
+                $approvalList,                                      // user_approval
+                $actionButtons,                                     // action
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $total,
+            'recordsFiltered' => $total,
+            'data' => $dummyRows,
+        ]);
+        // === END DUMMY DATA ===
     }
 
     public function search()
@@ -2864,13 +2978,172 @@ class VoucherPaymentPlanCrudController extends CrudController
         }
     }
 
+    public function bulkApprove()
+    {
+        // === PRODUCTION MODE ===
+        $this->crud->hasAccessOrFail('create');
+
+        $user = backpack_user();
+        if (!$user->hasPermissionTo('APPROVE RENCANA BAYAR')) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Anda tidak memiliki izin untuk melakukan approve.',
+            ], 403);
+        }
+
+        $entries = json_decode(request()->entries, true);
+
+        if (empty($entries)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Tidak ada item yang dipilih.',
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $approved_count = 0;
+            $user_id = $user->id;
+
+            foreach ($entries as $entry) {
+                $payment_plan_id = $entry['id'];
+                $no_apprv = $entry['no_apprv'] ?? null;
+
+                $voucher_payment_plan = PaymentVoucherPlan::find($payment_plan_id);
+                if (!$voucher_payment_plan) {
+                    continue;
+                }
+
+                $payment_voucher = PaymentVoucher::where('id', $voucher_payment_plan->payment_voucher_id)->first();
+
+                $approval = Approval::where('model_type', PaymentVoucherPlan::class)
+                    ->where('model_id', $voucher_payment_plan->id)
+                    ->where('user_id', $user_id)
+                    ->where('no_apprv', $no_apprv)
+                    ->first();
+
+                if (!$approval || $approval->status !== 'Pending') {
+                    continue;
+                }
+
+                // Check Sequential Approval (must approve previous stage first)
+                if ($no_apprv > 1) {
+                    $prev_approvals_count = Approval::where('model_type', PaymentVoucherPlan::class)
+                        ->where('model_id', $voucher_payment_plan->id)
+                        ->where('no_apprv', '<', $no_apprv)
+                        ->where('status', '!=', Approval::APPROVED)
+                        ->count();
+
+                    if ($prev_approvals_count > 0) {
+                        continue; // Skip because previous stages are not approved yet
+                    }
+                }
+
+                $final_approval = Approval::where('model_type', PaymentVoucherPlan::class)
+                    ->where('model_id', $voucher_payment_plan->id)
+                    ->orderBy('no_apprv', 'DESC')->first();
+
+                $approval->status = Approval::APPROVED;
+                $approval->approved_at = Carbon::now();
+                $approval->save();
+
+                $approved_count++;
+            }
+
+            $event = [
+                'crudTable-filter_voucher_payment_plugin_load' => true,
+                'crudTable-voucher_payment_plan_non_rutin_create_success' => true,
+            ];
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'approved_count' => $approved_count,
+                'events' => $event,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function bulkDelete()
+    {
+        // === PRODUCTION MODE ===
+        $this->crud->hasAccessOrFail('delete');
+
+        $entries = json_decode(request()->entries, true);
+
+        if (empty($entries)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Tidak ada item yang dipilih.',
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $deleted_count = 0;
+
+            foreach ($entries as $payment_plan_id) {
+                $payment_voucher_plan = PaymentVoucherPlan::find($payment_plan_id);
+                if (!$payment_voucher_plan) {
+                    continue;
+                }
+
+                $payment_voucher = PaymentVoucher::find($payment_voucher_plan->payment_voucher_id);
+                if (!$payment_voucher) {
+                    continue;
+                }
+
+                $voucher = Voucher::find($payment_voucher->voucher_id);
+
+                Approval::where('model_type', 'App\Models\PaymentVoucherPlan')
+                    ->where('model_id', $payment_voucher_plan->id)
+                    ->delete();
+
+                $payment_voucher->delete();
+                $payment_voucher_plan->delete();
+
+                if ($voucher) {
+                    CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "CREATE_PLAN_PAYMENT_VOUCHER");
+                    CustomVoid::rollbackPayment(Voucher::class, $voucher->id, "CREATE_PAYMENT_VOUCHER");
+                }
+
+                $deleted_count++;
+            }
+
+            $event = [
+                'crudTable-filter_voucher_payment_plugin_load' => true,
+                'crudTable-voucher_payment_plan_non_rutin_create_success' => true,
+                'crudTable-voucher_payment_plan_rutin_create_success' => true,
+            ];
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'deleted_count' => $deleted_count,
+                'events' => $event,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function exportPdf()
     {
         $type = request()->tab;
 
         $this->setupListOperation();
 
-        CRUD::removeColumn('status');
+        CRUD::removeColumn('bulk_checkbox');
         CRUD::removeColumn('user_approval');
         CRUD::removeColumn('document_path');
 
@@ -2884,7 +3157,15 @@ class VoucherPaymentPlanCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'due_date') {
+                    // Format date to dd/mm/yyyy
+                    $item_value = $item->due_date ? \Carbon\Carbon::parse($item->due_date)->format('d/m/Y') : '-';
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                }
+
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
@@ -2917,7 +3198,7 @@ class VoucherPaymentPlanCrudController extends CrudController
         $type = request()->tab;
 
         $this->setupListOperation();
-        CRUD::removeColumn('status');
+        CRUD::removeColumn('bulk_checkbox');
         CRUD::removeColumn('user_approval');
         CRUD::removeColumn('document_path');
 
@@ -2930,7 +3211,18 @@ class VoucherPaymentPlanCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'payment_transfer') {
+                    // Raw number for price
+                    $item_value = $item->payment_transfer;
+                } elseif ($column['name'] == 'due_date') {
+                    // Format date to dd/mm/yyyy
+                    $item_value = $item->due_date ? \Carbon\Carbon::parse($item->due_date)->format('d/m/Y') : '-';
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                }
+
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
