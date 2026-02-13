@@ -1817,6 +1817,7 @@ class VoucherCrudController extends CrudController
             'payment_description' => 'required',
             // 'no_po_spk' => 'required|numeric',
             'bill_value' => 'required|numeric',
+            'dpp_value' => 'nullable|numeric',
             'due_date' => 'required|date',
             'factur_status' => 'required',
             'payment_type' => 'required|max:50',
@@ -2087,7 +2088,24 @@ class VoucherCrudController extends CrudController
             ],
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
-                'class' => 'form-group col-md-4',
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'dpp_value',
+            'label' =>  'Nilai DPP',
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'placeholder' => '000.000',
@@ -2103,7 +2121,7 @@ class VoucherCrudController extends CrudController
             'prefix'     => "%",
             // 'suffix'     => ".00",
             'wrapper'   => [
-                'class' => 'form-group col-md-4'
+                'class' => 'form-group col-md-6'
             ],
         ]);
 
@@ -2117,7 +2135,7 @@ class VoucherCrudController extends CrudController
             ],
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
             'wrapper'   => [
-                'class' => 'form-group col-md-4',
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'disabled' => true,
@@ -2533,6 +2551,7 @@ class VoucherCrudController extends CrudController
             $item->no_po_spk = '';
             $item->date_po_spk = null;
             $item->bill_value = $request->bill_value;
+            $item->dpp_value = $request->dpp_value ?? 0;
             $item->tax_ppn = $request->tax_ppn ?? 0;
             $item->total = $hasilPerhitungan['total'];
             $item->pph_23 = $request->pph_23 ?? 0;
@@ -2579,6 +2598,7 @@ class VoucherCrudController extends CrudController
                 // 'no_po_spk',
                 'date_po_spk',
                 'bill_value',
+                'dpp_value',
                 'tax_ppn',
                 'total',
                 'pph_23',
@@ -2900,6 +2920,7 @@ class VoucherCrudController extends CrudController
             $item->no_po_spk = $request->client_po_id;
             $item->date_po_spk = null;
             $item->bill_value = $request->bill_value;
+            $item->dpp_value = $request->dpp_value ?? 0;
             $item->tax_ppn = $request->tax_ppn ?? 0;
             $item->total = $hasilPerhitungan['total'];
             $item->pph_23 = $request->pph_23 ?? 0;
@@ -3310,7 +3331,23 @@ class VoucherCrudController extends CrudController
                 'reverse' => true
             ],
             'wrapper'   => [
-                'class' => 'form-group col-md-4',
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'dpp_value',
+            'label' =>  'Nilai DPP',
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
             ],
             'attributes' => [
                 'placeholder' => '000.000',
@@ -3326,7 +3363,7 @@ class VoucherCrudController extends CrudController
             'prefix'     => "%",
             // 'suffix'     => ".00",
             'wrapper'   => [
-                'class' => 'form-group col-md-4'
+                'class' => 'form-group col-md-6'
             ],
         ]);
 
@@ -3774,6 +3811,16 @@ class VoucherCrudController extends CrudController
         CRUD::column([
             'label'  => '',
             'name' => 'bill_value',
+            'type'  => 'number',
+            'prefix' => "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+
+        CRUD::column([
+            'label'  => 'Nilai DPP',
+            'name' => 'dpp_value',
             'type'  => 'number',
             'prefix' => "Rp.",
             'decimals'      => 2,
