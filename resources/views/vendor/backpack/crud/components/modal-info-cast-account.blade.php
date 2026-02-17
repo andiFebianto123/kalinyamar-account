@@ -283,14 +283,20 @@
                         instance.currentAccountId = id; 
                         instance.loadingBdoy();
                         
-                        var url_export_pdf = instance.route+'/export-trans-pdf?id='+id;
-                        var url_export_excel = instance.route+'/export-trans-excel?id='+id;
+                        // Get filter_year from current URL
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var filterYear = urlParams.get('filter_year') || 'all';
+
+                        var url_export_pdf = instance.route+'/export-trans-pdf?id='+id + '&filter_year=' + filterYear;
+                        var url_export_excel = instance.route+'/export-trans-excel?id='+id + '&filter_year=' + filterYear;
                         $('#btn-export-kas-pdf').attr('data-url', url_export_pdf);
                         $('#btn-export-kas-excel').attr('data-url', url_export_excel);
 
+                        var ajaxUrl = instance.route + '-datatable?_id=' + id + '&filter_year=' + filterYear;
+
                         // Inisialisasi atau Reload DataTable
                         if (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable('.info-cast-account')) {
-                            $('.info-cast-account').DataTable().ajax.url(instance.route + '-datatable?_id=' + id).load();
+                            $('.info-cast-account').DataTable().ajax.url(ajaxUrl).load();
                         } else if (typeof $.fn.DataTable !== 'undefined') {
                             $('.info-cast-account').DataTable({
                                 processing: true,
@@ -325,7 +331,7 @@
                                     }
                                 },
                                 ajax: {
-                                    url: instance.route + '-datatable?_id=' + id,
+                                    url: ajaxUrl,
                                     dataSrc: function(json) {
                                         // Update Header Info
                                         $("#{{$name}} .modal-title").html(json.header.name);

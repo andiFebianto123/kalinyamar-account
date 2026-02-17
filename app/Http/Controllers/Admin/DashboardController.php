@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\Request;
 
 
 class DashboardController extends CrudController
@@ -35,23 +36,37 @@ class DashboardController extends CrudController
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.dashboard'), trans('backpack::crud.menu.dashboard'));
     }
 
-    public function firstInvoice()
+    public function firstInvoice($year = null)
     {
+        $date = Carbon::now();
 
-        // if($invoice_first == null){
-        //     return [
-        //         'invoice_first_date' => '',
-        //     ];
-        // }
+        if ($year && $year != date('Y')) {
+            // Find the latest date from 3 sources: Invoices, Vouchers, Project Created
+            $latest_invoice = InvoiceClient::whereYear('invoice_date', $year)->max('invoice_date');
+            $latest_voucher = Voucher::whereYear('created_at', $year)->max('created_at');
+            // Assuming filter uses project_profit_lost.created_at, we should check that too or ClientPo
+            $latest_project = DB::table('project_profit_lost')->whereYear('created_at', $year)->max('created_at');
+
+            $dates = array_filter([$latest_invoice, $latest_voucher, $latest_project]);
+
+            if (!empty($dates)) {
+                $max_date = max($dates);
+                $date = Carbon::parse($max_date)->locale(App::getLocale())->translatedFormat('d F Y');
+            } else {
+                // If no data found for that year
+                $date = trans('backpack::crud.dashboard.no_data');
+            }
+        } else {
+            $date = $date->locale(App::getLocale())->translatedFormat('d F Y');
+        }
 
         return [
-            'invoice_first_date' => Carbon::now()
-                ->locale(App::getLocale())
-                ->translatedFormat('d/m/Y'),
+            'invoice_first_date' => $date,
         ];
     }
 
-    public function totalProjects()
+
+    public function totalProjects($year = null)
     {
         $project_status = [
             'CLOSE' => 0,
@@ -61,7 +76,11 @@ class DashboardController extends CrudController
             'UNPAID' => 0,
             'BELUM_ADA_PO' => 0,
         ];
-        $projects = Project::groupBy('status_po')->select(DB::raw('
+        $projects = Project::groupBy('status_po')
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('created_at', $year);
+            })
+            ->select(DB::raw('
             SUM(price_total_include_ppn) as total,
             status_po as status
         '))->get();
@@ -75,24 +94,36 @@ class DashboardController extends CrudController
         '))
             ->where('status_po', 'Unpaid')
             ->where('category', 'RUTIN')
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('created_at', $year);
+            })
             ->get();
         $projects_unpaid_non_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
             ->where('status_po', 'Unpaid')
             ->where('category', 'NON RUTIN')
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('created_at', $year);
+            })
             ->get();
         $projects_Tertunda_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
             ->where('status_po', 'Tertunda')
             ->where('category', 'RUTIN')
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('created_at', $year);
+            })
             ->get();
         $projects_Tertunda_non_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
             ->where('status_po', 'Tertunda')
             ->where('category', 'NON RUTIN')
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('created_at', $year);
+            })
             ->get();
         return [
             'list_projects' => $project_status,
@@ -103,9 +134,12 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalQuotations()
+    public function totalQuotations($year = null)
     {
         $quotations = Quotation::groupBy('status')
+            ->when($year, function ($q) use ($year) {
+                $q->whereYear('created_at', $year);
+            })
             ->select(DB::raw("SUM(rab) as total, status"))->get();
 
         $quotation_type = Quotation::select(DB::raw("status"))
@@ -163,24 +197,8 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalJobRealisasion()
+    public function totalJobRealisasion($year = null)
     {
-        // $omset_rutin = InvoiceClient::selectRaw('
-        //     COUNT(id) as total_invoice,
-        //     SUM(price_total_exclude_ppn) as total_omzet
-        // ')
-        //     ->whereExists(function ($q) {
-        //         $q->select(DB::raw(1))
-        //             ->from('client_po')
-        //             ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
-        //             ->where('client_po.category', 'RUTIN')
-        //             ->whereExists(function ($q2) {
-        //                 $q2->select(DB::raw(1))
-        //                     ->from('project_profit_lost')
-        //                     ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        //             });
-        //     })
-        //     ->first();
         $omset_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'RUTIN')
             ->whereExists(function ($query) {
@@ -188,24 +206,12 @@ class DashboardController extends CrudController
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
+            ->when($year, function ($query) use ($year) {
+                $query->whereYear('project_profit_lost.created_at', $year);
+            })
             ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
             ->first();
 
-        // $biaya_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
-        //     ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        //     ->whereExists(function ($query) {
-        //         $query->select(DB::raw(1))
-        //             ->from('invoice_clients')
-        //             ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
-        //     })
-        //     ->whereExists(function ($query) {
-        //         $query->select(DB::raw(1))
-        //             ->from('project_profit_lost')
-        //             ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        //     })
-        //     ->where('client_po.category', 'RUTIN')
-        //     ->groupBy('client_po.category')
-        //     ->get();
         $biaya_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'RUTIN')
             ->whereExists(function ($query) {
@@ -213,25 +219,11 @@ class DashboardController extends CrudController
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
+            ->when($year, function ($query) use ($year) {
+                $query->whereYear('project_profit_lost.created_at', $year);
+            })
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
-
-        // $omset_non_rutin = InvoiceClient::selectRaw('
-        //     COUNT(id) as total_invoice,
-        //     SUM(price_total_exclude_ppn) as total_omzet
-        // ')
-        //     ->whereExists(function ($q) {
-        //         $q->select(DB::raw(1))
-        //             ->from('client_po')
-        //             ->whereColumn('client_po.id', 'invoice_clients.client_po_id')
-        //             ->where('client_po.category', 'NON RUTIN')
-        //             ->whereExists(function ($q2) {
-        //                 $q2->select(DB::raw(1))
-        //                     ->from('project_profit_lost')
-        //                     ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        //             });
-        //     })
-        //     ->first();
 
         $omset_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
@@ -240,27 +232,14 @@ class DashboardController extends CrudController
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
             })
+            ->when($year, function ($query) use ($year) {
+                $query->whereYear('project_profit_lost.created_at', $year);
+            })
             ->select(
                 DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'),
                 DB::raw("SUM(client_po.job_value) as total_job_value")
             )
             ->first();
-
-        // $biaya_non_rutin = Voucher::select(DB::raw('SUM(vouchers.total) as nilai_biaya'))
-        //     ->join('client_po', 'client_po.id', '=', 'vouchers.client_po_id')
-        //     ->whereExists(function ($query) {
-        //         $query->select(DB::raw(1))
-        //             ->from('invoice_clients')
-        //             ->whereColumn('invoice_clients.client_po_id', 'client_po.id');
-        //     })
-        //     ->whereExists(function ($query) {
-        //         $query->select(DB::raw(1))
-        //             ->from('project_profit_lost')
-        //             ->whereColumn('project_profit_lost.client_po_id', 'client_po.id');
-        //     })
-        //     ->where('client_po.category', 'NON RUTIN')
-        //     ->groupBy('client_po.category')
-        //     ->get();
 
         $biaya_non_rutin = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
@@ -268,6 +247,9 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
+            ->when($year, function ($query) use ($year) {
+                $query->whereYear('project_profit_lost.created_at', $year);
             })
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
@@ -347,15 +329,18 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function dataNonRutinMonitoring()
-    {
 
+    public function dataNonRutinMonitoring($year = null)
+    {
         $monitoring_result = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+            })
+            ->when($year, function ($query) use ($year) {
+                $query->whereYear('project_profit_lost.created_at', $year);
             })
             ->select(
                 DB::raw("SUM(client_po.job_value) as total_job_value"),
@@ -373,15 +358,16 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function totalAlldashboard()
+    public function totalAlldashboard(Request $request)
     {
         return [
-            'first_invoice' => $this->firstInvoice(),
-            'total_projects' => $this->totalProjects(),
-            'total_quotations' => $this->totalQuotations(),
+            'first_invoice' => $this->firstInvoice($request->year),
+            'total_projects' => $this->totalProjects($request->year),
+            'total_quotations' => $this->totalQuotations($request->year),
             'total_omzet_all' => $this->totalOmzetAll(),
             'total_laba_all' => $this->totalLabaAll(),
-            'total_job_realisasion' => $this->totalJobRealisasion(),
+            'total_job_realisasion' => $this->totalJobRealisasion($request->year),
+            'data_monitoring' => $this->dataNonRutinMonitoring($request->year),
         ];
     }
 

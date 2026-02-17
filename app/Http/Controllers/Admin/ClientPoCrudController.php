@@ -206,12 +206,12 @@ class ClientPoCrudController extends CrudController
         $this->data['title_modal_edit'] = "PO Client";
         $this->data['title_modal_delete'] = "PO Client";
         $this->data['cards'] = $this->card;
-
         $breadcrumbs = [
             'Client' => backpack_url('client'),
             'PO' => backpack_url($this->crud->route)
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
+        $this->data['year_options'] = CustomHelper::getYearOptions('client_po', 'date_po');
 
         $list = "crud::list-blank" ?? $this->crud->getListView();
 
@@ -242,6 +242,11 @@ class ClientPoCrudController extends CrudController
         if ($request->has('date_po')) {
             $client_po = $client_po
                 ->where('date_po', 'like', '%' . $request->date_po . '%');
+        }
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $client_po = $client_po
+                ->where(DB::raw("YEAR(date_po)"), $request->filter_year);
         }
 
         if ($request->has('search')) {
@@ -531,6 +536,7 @@ class ClientPoCrudController extends CrudController
 
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
 
         $request = request();
         CRUD::disableResponsiveTable();
@@ -638,6 +644,11 @@ class ClientPoCrudController extends CrudController
         if ($request->has('date_po')) {
             $this->crud->query = $this->crud->query
                 ->where('date_po', 'like', '%' . $request->date_po . '%');
+        }
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $this->crud->query = $this->crud->query
+                ->where(DB::raw("YEAR(date_po)"), $request->filter_year);
         }
 
         $this->crud->addColumn([

@@ -135,6 +135,10 @@ class VoucherCrudController extends CrudController
             $data = $data->where('vouchers.payment_date', $request->payment_date);
         }
 
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $data = $data->whereYear('vouchers.date_voucher', $request->filter_year);
+        }
+
         if ($request->has('search')) {
             if (isset($request->search[1])) {
                 $search = trim($request->search[1]);
@@ -528,6 +532,7 @@ class VoucherCrudController extends CrudController
             'Voucher' => backpack_url($this->crud->route)
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
+        $this->data['year_options'] = CustomHelper::getYearOptions('vouchers', 'date_voucher');
 
         // $list = "crud::list-custom" ?? $this->crud->getListView();
         $list = "crud::list-blank" ?? $this->crud->getListView();
@@ -553,6 +558,8 @@ class VoucherCrudController extends CrudController
         $type = request()->tab;
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
+        $request = request();
         if ($type == 'voucher') {
             CRUD::setModel(Voucher::class);
             CRUD::disableResponsiveTable();
@@ -639,8 +646,6 @@ class VoucherCrudController extends CrudController
             }
 
 
-            $request = request();
-
             if ($request->has('date_voucher')) {
                 $this->crud->query = $this->crud->query->where('vouchers.date_voucher', $request->date_voucher);
             }
@@ -651,6 +656,10 @@ class VoucherCrudController extends CrudController
 
             if ($request->has('payment_date')) {
                 $this->crud->query = $this->crud->query->where('vouchers.payment_date', $request->payment_date);
+            }
+
+            if ($request->has('filter_year') && $request->filter_year != 'all') {
+                $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
             }
 
             if (trim($request->columns[1]['search']['value']) != '') {
@@ -979,6 +988,10 @@ class VoucherCrudController extends CrudController
                 ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
                 ->leftJoin('vouchers', 'vouchers.id', '=', 'voucher_edit.voucher_id');
 
+            if ($request->has('filter_year') && $request->filter_year != 'all') {
+                $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
+            }
+
             CRUD::addClause('select', [
                 DB::raw("
                     voucher_edit.*,
@@ -1049,6 +1062,7 @@ class VoucherCrudController extends CrudController
     private function setupListExport($tab)
     {
         $settings = Setting::first();
+        $request = request();
         if ($tab == 'voucher') {
             CRUD::setModel(Voucher::class);
 
@@ -1077,8 +1091,6 @@ class VoucherCrudController extends CrudController
             $this->crud->query =
                 $this->crud->query->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
-            $request = request();
-
             if ($request->has('date_voucher')) {
                 $this->crud->query = $this->crud->query->where('vouchers.date_voucher', $request->date_voucher);
             }
@@ -1089,6 +1101,10 @@ class VoucherCrudController extends CrudController
 
             if ($request->has('payment_date')) {
                 $this->crud->query = $this->crud->query->where('vouchers.payment_date', $request->payment_date);
+            }
+
+            if ($request->has('filter_year') && $request->filter_year != 'all') {
+                $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
             }
 
             if (isset($request->columns[1]['search']['value'])) {
@@ -1585,6 +1601,10 @@ class VoucherCrudController extends CrudController
                 })
                 ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
                 ->leftJoin('vouchers', 'vouchers.id', '=', 'voucher_edit.voucher_id');
+
+            if ($request->has('filter_year') && $request->filter_year != 'all') {
+                $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
+            }
 
             CRUD::addClause('select', [
                 DB::raw("

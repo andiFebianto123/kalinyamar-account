@@ -1203,8 +1203,9 @@ class PurchaseOrderCrudController extends CrudController
     {
         $name = "document-subkon-po" . now()->format('Ymd_His') . ".xlsx";
         $type = $request->tab;
-        return response()->streamDownload(function () use ($type) {
-            echo Excel::raw(new ExportVendorPo($type), \Maatwebsite\Excel\Excel::XLSX);
+        $year = $request->filter_year;
+        return response()->streamDownload(function () use ($type, $year) {
+            echo Excel::raw(new ExportVendorPo($type, $year), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -1230,6 +1231,10 @@ class PurchaseOrderCrudController extends CrudController
 
         if ($type_origin != 'all') {
             $items = $items->where('status', strtolower($type_origin));
+        }
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $items = $items->whereYear('date_po', request()->filter_year);
         }
 
         $items = $items->get();

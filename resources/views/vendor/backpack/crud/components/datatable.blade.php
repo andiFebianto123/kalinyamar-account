@@ -459,7 +459,7 @@
                                 }
                             });
                         },
-                        autoWidth: false,
+                        autoWidth: true,
                         pageLength: $dtDefaultPageLength,
                         lengthMenu: $pageLength,
                         aaSorting: [],

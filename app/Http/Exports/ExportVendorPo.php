@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Exports;
 
 use App\Http\Helpers\CustomHelper;
@@ -16,25 +17,31 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ExportVendorPo implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     private $type;
+    private $year;
     private $rowNumber = 0;
 
-    function __construct($type)
+    function __construct($type, $year = null)
     {
-        if($type == 'open'){
+        if ($type == 'open') {
             $this->type = 'open';
-        }else if($type == 'close'){
+        } else if ($type == 'close') {
             $this->type = 'close';
-        }else {
+        } else {
             $this->type = 'all';
         }
+        $this->year = $year;
     }
 
     public function collection()
     {
         $dataset = new PurchaseOrder;
 
-        if($this->type != 'all'){
+        if ($this->type != 'all') {
             $dataset = $dataset->where('status', strtolower($this->type));
+        }
+
+        if ($this->year && $this->year != 'all') {
+            $dataset = $dataset->whereYear('date_po', $this->year);
         }
         return $dataset->select(
             'subkon_id',
@@ -118,5 +125,4 @@ class ExportVendorPo implements FromCollection, WithHeadings, WithMapping, Shoul
             ],
         ]);
     }
-
 }

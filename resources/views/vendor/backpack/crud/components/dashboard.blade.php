@@ -1,4 +1,23 @@
 <div>
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card2 p-3 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="la la-filter fs-4 me-2 text-primary"></i>
+                    <span class="fw-bold me-3 fs-5">Filter Dashboard</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <label for="filter_year" class="me-2 fw-bold text-nowrap">Pilih Tahun:</label>
+                    <select id="filter_year" class="form-select form-select-sm w-auto" style="min-width: 150px; font-weight:bold;">
+                        <option value="">Semua Tahun</option>
+                        @for ($i = date('Y'); $i >= 2020; $i--)
+                            <option value="{{ $i }}" {{ $i == date('Y') ? 'selected' : '' }}>{{ $i }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-6">
             <div class="card2 mb-4">
@@ -107,11 +126,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- @foreach ($data_monitoring as $item) --}}
-                                    <th>Rp{{ $data_monitoring['total_job_value'] }}</th>
-                                    <th>Rp{{ $data_monitoring['price_total_str'] }}</th>
-                                    <th>Rp{{ $data_monitoring['price_profit_lost_str'] }}</th>
-                                    <th>{{ $data_monitoring['total_job'] }}</th>
+                                    <th id="mon_total_job_value">Rp{{ $data_monitoring['total_job_value'] }}</th>
+                                    <th id="mon_price_total">Rp{{ $data_monitoring['price_total_str'] }}</th>
+                                    <th id="mon_laba_berjalan">Rp{{ $data_monitoring['price_profit_lost_str'] }}</th>
+                                    <th id="mon_jumlah_pekerjaan">{{ $data_monitoring['total_job'] }}</th>
                                 {{-- @endforeach --}}
                             </tbody>
                         </table>
@@ -341,6 +359,9 @@
                         url: "{{ url($crud->route.'/get-chart') }}",
                         type: 'GET',
                         typeData: 'json',
+                        data: {
+                            year: $('#filter_year').val()
+                        },
                         success: function (result) {
                             // console.log(result);
                             var date_invoice = $('.date-invoice');
@@ -381,6 +402,14 @@
                             $('#HPS_total').html('Rp'+quotation.HPS);
                             $('#Quotation_total').html('Rp'+quotation.QUOTATION);
                             $('#Close_total').html('Rp'+quotation.CLOSE);
+
+                            // Update Monitoring Table
+                            if(result.data_monitoring) {
+                                $('#mon_total_job_value').html('Rp' + result.data_monitoring.total_job_value);
+                                $('#mon_price_total').html('Rp' + result.data_monitoring.price_total_str);
+                                $('#mon_laba_berjalan').html('Rp' + result.data_monitoring.price_profit_lost_str);
+                                $('#mon_jumlah_pekerjaan').html(result.data_monitoring.total_job);
+                            }
                         },
                         error: function (xhr, status, error) {
                             console.error(xhr);
@@ -402,6 +431,11 @@
         $('.modal .btn-close').click(function(){
             $('#modalInfoLabaRutin').modal('hide');
             $('#modalInfoLabaNonRutin').modal('hide');
+        });
+
+
+        $('#filter_year').change(function(){
+            SIAOPS.getAttribute('dashboard').load();
         });
     });
 </script>

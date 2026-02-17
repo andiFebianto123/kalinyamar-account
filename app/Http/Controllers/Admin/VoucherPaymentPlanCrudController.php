@@ -115,6 +115,10 @@ class VoucherPaymentPlanCrudController extends CrudController
             ->where('vouchers.payment_status', 'BELUM BAYAR')
             ->where('approvals.status', Approval::APPROVED);
 
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $total_voucher_plan_data_non_rutin = $total_voucher_plan_data_non_rutin->whereYear('vouchers.date_voucher', $request->filter_year);
+        }
+
         if ($request->has('search')) {
             // Kolom 1 - no_voucher
             if (isset($request->search[1]) && trim($request->search[1]) !== '') {
@@ -222,9 +226,13 @@ class VoucherPaymentPlanCrudController extends CrudController
 
         $total_voucher_data_rutin = Voucher::leftJoin('payment_vouchers', 'payment_vouchers.voucher_id', '=', 'vouchers.id')
             ->where('payment_vouchers.payment_type', 'SUBKON')
-            ->groupBy('payment_vouchers.payment_type')
-            ->select(DB::raw('SUM(payment_transfer) as jumlah_nilai_transfer'))
-            ->first();
+            ->select(DB::raw('SUM(payment_transfer) as jumlah_nilai_transfer'));
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $total_voucher_data_rutin = $total_voucher_data_rutin->whereYear('vouchers.date_voucher', $request->filter_year);
+        }
+
+        $total_voucher_data_rutin = $total_voucher_data_rutin->first();
 
         $p_v_p = DB::table('payment_voucher_plan')
             ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
@@ -247,8 +255,13 @@ class VoucherPaymentPlanCrudController extends CrudController
                     ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
             })
             ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
-            ->where('payment_vouchers.payment_type', 'SUBKON')
-            // ->where('approvals.status', Approval::APPROVED)
+            ->where('payment_vouchers.payment_type', 'SUBKON');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $total_voucher_plan_data_rutin = $total_voucher_plan_data_rutin->whereYear('vouchers.date_voucher', $request->filter_year);
+        }
+
+        $total_voucher_plan_data_rutin = $total_voucher_plan_data_rutin
             ->select(DB::raw('SUM(vouchers.payment_transfer) as jumlah_nilai_transfer'))
             ->first();
 
@@ -416,6 +429,7 @@ class VoucherPaymentPlanCrudController extends CrudController
             trans('backpack::crud.voucher_payment.title_header') => backpack_url($this->crud->route)
         ];
 
+        $this->data['year_options'] = CustomHelper::getYearOptions('vouchers', 'date_voucher');
         $this->data['breadcrumbs'] = $breadcrumbs;
 
         $list = "crud::list-blank" ?? $this->crud->getListView();
@@ -1839,6 +1853,7 @@ class VoucherPaymentPlanCrudController extends CrudController
         $settings = Setting::first();
         CRUD::removeButton('delete');
         // CRUD::removeButton('create');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'bulk-actions-payment-plan', 'bulk-actions-payment-plan', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'end');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'end');
@@ -1945,6 +1960,10 @@ class VoucherPaymentPlanCrudController extends CrudController
             })
             ->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id')
             ->where('vouchers.payment_status', 'BELUM BAYAR');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
+        }
         // ->where('approvals.status', Approval::APPROVED);
 
         // Column indices shifted +1 to account for bulk_checkbox at index 0
@@ -2271,6 +2290,10 @@ class VoucherPaymentPlanCrudController extends CrudController
                 $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
                     ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
             });
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', request()->filter_year);
+        }
 
         CRUD::addClause('select', [
             DB::raw("

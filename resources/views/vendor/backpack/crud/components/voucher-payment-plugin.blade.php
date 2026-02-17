@@ -41,6 +41,7 @@
                         data: {
                             non_rutin: SIAOPS.getAttribute('crudTable-voucher_payment_non_rutin').table.ajax.params(),
                             rutin: SIAOPS.getAttribute('crudTable-voucher_payment_rutin').table.ajax.params(),
+                            filter_year: (window.filter_tables != undefined) ? window.filter_tables.filter_year : 'all',
                         },
                         typeData: 'json',
                         success: function (result) {

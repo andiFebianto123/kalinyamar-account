@@ -161,11 +161,17 @@ class CastAccountsCrudController extends CrudController
 
         $this->data['is_disabled_list'] = true;
 
-        $listCashAccounts = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
+        $listCashAccountsQuery = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
             ->where('cast_accounts.status', CastAccount::CASH)
             ->groupBy('cast_accounts.id')
-            ->orderBy('id', 'ASC')->select(DB::raw(
-                '
+            ->orderBy('id', 'ASC');
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $listCashAccountsQuery->whereYear('account_transactions.date_transaction', request()->filter_year);
+        }
+
+        $listCashAccounts = $listCashAccountsQuery->select(DB::raw(
+            '
             cast_accounts.id,
             MAX(cast_accounts.name) as name,
             MAX(cast_accounts.bank_name) as bank_name,
@@ -174,7 +180,7 @@ class CastAccountsCrudController extends CrudController
             SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) as total_saldo_enter,
             SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0)) as total_saldo_out
         '
-            ))->get();
+        ))->get();
 
         $this->listCardComponents($listCashAccounts);
 
@@ -188,6 +194,7 @@ class CastAccountsCrudController extends CrudController
             trans('backpack::crud.menu.cash_flow') => backpack_url('cash-flow'),
             trans('backpack::crud.menu.cash_flow_cash') => backpack_url($this->crud->route)
         ];
+        $this->data['year_options'] = CustomHelper::getYearOptions('account_transactions', 'date_transaction');
         $this->data['breadcrumbs'] = $breadcrumbs;
 
         $this->data['cards'] = $this->card;
@@ -210,8 +217,9 @@ class CastAccountsCrudController extends CrudController
         $this->crud->file_title_export_excel = "Laporan_daftar_rekening_kas.xlsx";
         $this->crud->param_uri_export = "?export=1";
 
-        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
-        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-cast-account', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-cast-account', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year-cast-account', 'beginning');
         CRUD::addButtonFromView('top', 'filter_cash_account_order', 'filter-cash-account-order', 'beginning');
 
         // CRUD::setFromDb(); // set columns from db columns.
@@ -228,8 +236,13 @@ class CastAccountsCrudController extends CrudController
         $this->crud->query = $this->crud->query->leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
             ->where('cast_accounts.status', CastAccount::CASH)
             ->groupBy('cast_accounts.id')
-            ->orderBy('id', 'ASC')
-            ->select(DB::raw('
+            ->orderBy('id', 'ASC');
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $this->crud->query = $this->crud->query->whereYear('account_transactions.date_transaction', request()->filter_year);
+        }
+
+        $this->crud->query = $this->crud->query->select(DB::raw('
             cast_accounts.id,
             MAX(cast_accounts.name) as name,
             MAX(cast_accounts.bank_name) as bank_name,
@@ -272,22 +285,22 @@ class CastAccountsCrudController extends CrudController
             ],
         );
 
-        // CRUD::column(
-        //     [
-        //         'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
-        //         'name' => 'saldo',
-        //         'type'  => ''
-        //     ],
-        // );
-        CRUD::column([
-            'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
-            'name' => 'saldo',
-            'type'  => 'number',
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
-            'decimals'      => 2,
-            'dec_point'     => ',',
-            'thousands_sep' => '.',
-        ]);
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
+                'name' => 'saldo',
+                'type'  => 'text'
+            ],
+        );
+        // CRUD::column([
+        //     'label'  => trans('backpack::crud.cash_account.field.total_saldo.label'),
+        //     'name' => 'saldo',
+        //     'type'  => 'number',
+        //     'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+        //     'decimals'      => 2,
+        //     'dec_point'     => ',',
+        //     'thousands_sep' => '.',
+        // ]);
     }
 
     private function setuplistExportTrans()
@@ -301,8 +314,13 @@ class CastAccountsCrudController extends CrudController
         // ->orderBy('date_transaction', 'ASC')->get();
         $this->crud->query = $this->crud->query
             ->where('cast_account_id', $id)
-            ->where('is_first', 0)
-            ->orderBy('date_transaction', 'ASC');
+            ->where('is_first', 0);
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $this->crud->query = $this->crud->query->whereYear('account_transactions.date_transaction', request()->filter_year);
+        }
+
+        $this->crud->query = $this->crud->query->orderBy('date_transaction', 'ASC');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -1875,11 +1893,16 @@ class CastAccountsCrudController extends CrudController
                 ->where('log_payments.reference_type', AccountTransaction::class);
         })
             ->where('account_transactions.cast_account_id', $id)
-            ->where('account_transactions.is_first', 0)
-            ->select([
-                'account_transactions.*',
-                'log_payments.id as log_payment_id',
-            ]);
+            ->where('account_transactions.is_first', 0);
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $query->whereYear('account_transactions.date_transaction', request()->filter_year);
+        }
+
+        $query->select([
+            'account_transactions.*',
+            'log_payments.id as log_payment_id',
+        ]);
 
         // Access Check
         $has_access_primary = $this->accessAccount($id);
@@ -1967,7 +1990,8 @@ class CastAccountsCrudController extends CrudController
             ];
         }
 
-        $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::CASH);
+        $filter_year = request()->input('filter_year');
+        $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::CASH, $filter_year);
         $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($total_balance);
 
         return response()->json([

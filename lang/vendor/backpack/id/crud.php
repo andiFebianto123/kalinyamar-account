@@ -196,6 +196,11 @@ return [
         'cancel' => 'Batalkan',
     ],
 
+    'dashboard' => [
+        'title' => 'Dashboard',
+        'no_data' => 'Belum ada data',
+    ],
+
     'menu' => [
         'dashboard' => 'Dashboard',
         'vendor_subkon' => 'Vendor(Subkon)',

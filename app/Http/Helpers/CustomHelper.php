@@ -26,6 +26,13 @@ class CustomHelper
 
     public static $settings;
 
+    public static function merge_query_params($new_params = [])
+    {
+        $current_params = request()->all();
+        $merged_params = array_merge($current_params, $new_params);
+        return '?' . http_build_query($merged_params);
+    }
+
     static function init()
     {
         self::$settings = Setting::first();
@@ -36,15 +43,17 @@ class CustomHelper
         return \App\Models\Bank::orderBy('name', 'ASC')->pluck('name', 'name')->toArray();
     }
 
-    public static function getYearOptions()
+    public static function getYearOptions($table = 'purchase_orders', $column = 'date_po')
     {
-        $vendor_po = PurchaseOrder::select(DB::raw('YEAR(date_po) as year'))
+        $years = DB::table($table)->select(DB::raw("YEAR($column) as year"))
+            ->whereNotNull($column)
             ->distinct()->get();
         $results = [];
 
-        foreach ($vendor_po as $po) {
-            $results[] = $po->year;
+        foreach ($years as $y) {
+            $results[] = $y->year;
         }
+        sort($results);
         return $results;
     }
 
@@ -188,16 +197,21 @@ class CustomHelper
         return JournalEntry::where($reference)->delete();
     }
 
-    public static function total_balance_cast_account($id, $status)
+    public static function total_balance_cast_account($id, $status, $year = null)
     {
         if ($status == CastAccount::CASH) {
-            $listCashAccounts = CastAccount::leftJoin('account_transactions', function ($q) use ($id) {
+            $listCashAccountsQuery = CastAccount::leftJoin('account_transactions', function ($q) use ($id) {
                 // $q->on('account_transactions.cast_account_destination_id', '=', 'cast_accounts.id')
                 $q->on('account_transactions.cast_account_id', '=', 'cast_accounts.id');
             })
                 ->where('cast_accounts.status', CastAccount::CASH)
-                ->where('cast_accounts.id', $id)
-                ->groupBy('cast_accounts.id')
+                ->where('cast_accounts.id', $id);
+
+            if ($year && $year != 'all') {
+                $listCashAccountsQuery->whereYear('account_transactions.date_transaction', $year);
+            }
+
+            $listCashAccounts = $listCashAccountsQuery->groupBy('cast_accounts.id')
                 ->orderBy('cast_accounts.id', 'ASC')
                 ->select(DB::raw("
                 cast_accounts.id,
@@ -205,6 +219,7 @@ class CustomHelper
                 SUM(IF(account_transactions.status = 'out', account_transactions.nominal_transaction, 0)) as total_saldo_out
             "))
                 ->get();
+
             if ($listCashAccounts) {
                 foreach ($listCashAccounts as $cash) {
                     if ($cash->id == $id) {
@@ -213,12 +228,16 @@ class CustomHelper
                 }
             }
         } else if ($status == CastAccount::LOAN) {
-            $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id) {
+            $journal_query = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($id, $year) {
                 $q->where('cast_account_id', $id);
+                if ($year && $year != 'all') {
+                    $q->whereYear('date_transaction', $year);
+                }
             })->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($id) {
                 $q->where('id', $id);
-            })
-                ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+            });
+
+            $journal_ = $journal_query->select(DB::raw('SUM(debit) - SUM(credit) as total'))
                 ->get();
             if ($journal_) {
                 foreach ($journal_ as $journal) {
