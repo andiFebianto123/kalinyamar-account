@@ -329,6 +329,8 @@ class ProfitLostAccountCrudController extends CrudController
         $castNameLike  = '%kas kecil%';
         $category      = ($request->has('category')) ? $request->category : null;
 
+        $filter_year   = $request->get('filter_year');
+
         // ============ SUBQUERY: vouchers ===============
         $vouchers = DB::table('vouchers')
             ->select(
@@ -403,6 +405,11 @@ class ProfitLostAccountCrudController extends CrudController
             $total_excl_ppn_logic = $total_excl_ppn_logic->where('dummy_query.category', $category);
         }
 
+        if ($filter_year && $filter_year != 'all') {
+            $mainQuery = $mainQuery->whereYear('project_profit_lost.created_at', $filter_year);
+            $total_excl_ppn_logic = $total_excl_ppn_logic->whereYear('project_profit_lost.created_at', $filter_year);
+        }
+
         $total_excl_ppn_logic = $total_excl_ppn_logic->first();
 
         // ============ BUNGKUS SUBQUERY + SUM ===============
@@ -463,7 +470,7 @@ class ProfitLostAccountCrudController extends CrudController
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
         $list = "crud::list-blank" ?? $this->crud->getListView();
-        $this->consolidate_formula();
+        $this->data['year_options'] = CustomHelper::getYearOptions('journal_entries', 'date');
 
         return view($list, $this->data);
     }
@@ -573,6 +580,13 @@ class ProfitLostAccountCrudController extends CrudController
 
     public function consolidate_formula()
     {
+        $filter_year = request()->get('filter_year');
+        $startDate = null;
+        $endDate = null;
+        if ($filter_year && $filter_year != 'all') {
+            $startDate = Carbon::create($filter_year, 1, 1)->startOfDay()->format('Y-m-d');
+            $endDate = Carbon::create($filter_year, 12, 31)->endOfDay()->format('Y-m-d');
+        }
 
         $dataset = [];
         $consolidate_income_header = DB::table('consolidate_income_headers')
@@ -601,7 +615,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[0]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -633,7 +647,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[1]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -654,7 +668,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[2]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
             $data['item'] = $items;
@@ -674,7 +688,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[3]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -697,7 +711,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[4]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -720,7 +734,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[5]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
             $data['item'] = $items;
@@ -740,7 +754,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[6]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $totalAll += $total_account;
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
@@ -763,7 +777,7 @@ class ProfitLostAccountCrudController extends CrudController
                 ->where('consolidate_income_account_items.header_id', $consolidate_income_header[7]->id)
                 ->select(DB::raw("accounts.*"))->get();
             foreach ($items as $item) {
-                $total_account = CustomHelper::balanceAccount($item->code);
+                $total_account = CustomHelper::balanceAccount($item->code, $startDate, $endDate);
                 $item->total = CustomHelper::formatRupiahWithCurrency($total_account);
             }
             $data['item'] = $items;
@@ -1728,6 +1742,7 @@ class ProfitLostAccountCrudController extends CrudController
 
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
 
         if ($request->has('type')) {
             if ($request->type == 'project') {
@@ -1772,6 +1787,7 @@ class ProfitLostAccountCrudController extends CrudController
                         "invoice.invoice_date",
                         "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                         "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
+                        "client_po.date_po",
                         DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic"),
                         DB::raw("IF(invoice.invoice_date IS NULL, 0, invoice.price_job_include_ppn) as job_value_include_ppn_logic")
                     );
@@ -1788,6 +1804,10 @@ class ProfitLostAccountCrudController extends CrudController
 
                 if ($request->has('category')) {
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
+                }
+
+                if ($request->has('filter_year') && $request->filter_year != 'all') {
+                    $this->crud->query = $this->crud->query->whereYear('project_profit_lost.created_at', $request->filter_year);
                 }
 
                 $this->crud->addColumn([
@@ -2143,6 +2163,10 @@ class ProfitLostAccountCrudController extends CrudController
 
                 if ($request->has('category')) {
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
+                }
+
+                if ($request->has('filter_year') && $request->filter_year != 'all') {
+                    $this->crud->query = $this->crud->query->whereYear('project_profit_lost.created_at', $request->filter_year);
                 }
 
                 $this->crud->addColumn([

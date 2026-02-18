@@ -15,6 +15,7 @@ use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
+
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ExpenseAccountCrudController extends CrudController
@@ -64,6 +65,20 @@ class ExpenseAccountCrudController extends CrudController
         $dataset = Account::whereIn('level', [2])
             ->where('is_active', 1)->orderBy('code', 'asc')->get();
 
+        $this->card->addCard([
+            'name' => 'filter',
+            'line' => 'top',
+            'view' => 'crud::components.filter-account-balance',
+            'parent_view' => 'crud::components.filter-parent',
+            'params' => []
+        ]);
+
+        $yearParam = request('filter_year') ?? request('amp;filter_year');
+        $quarterParam = request('filter_quarter') ?? request('amp;filter_quarter');
+        $queryParams = array_filter(['filter_year' => $yearParam, 'filter_quarter' => $quarterParam]);
+        $queryStr = http_build_query($queryParams);
+        $routeSuffix = $queryStr ? '&' . $queryStr : '';
+
         foreach ($dataset as $account) {
             $this->card->addCard([
                 'name' => 'account_' . $account->id,
@@ -72,7 +87,7 @@ class ExpenseAccountCrudController extends CrudController
                 'params' => [
                     'crud' => $this->crud,
                     'account' => $account,
-                    'route' => url($this->crud->route . '/search?_id=' . $account->id),
+                    'route' => url($this->crud->route . '/search?_id=' . $account->id . $routeSuffix),
                 ]
             ]);
         }
@@ -523,8 +538,8 @@ class ExpenseAccountCrudController extends CrudController
         $this->crud->file_title_export_excel = "Laporan_akun.xlsx";
         $this->crud->param_uri_export = "?export=1";
 
-        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
-        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+        CRUD::addButtonFromView('top', 'balance_sheet_excel', 'balance_sheet_excel', 'beginning');
+        CRUD::addButtonFromView('top', 'balance_sheet_pdf', 'balance_sheet_pdf', 'beginning');
 
         CRUD::addButtonFromView('line', 'delete', "delete-account", 'beginning');
         CRUD::addButtonFromView('line', 'update', "update-account", 'beginning');
@@ -569,13 +584,43 @@ class ExpenseAccountCrudController extends CrudController
             $id = request()->_id;
             $code = Account::find($id);
 
+            $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+            $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+            $startDate = null;
+            $endDate = null;
+
+            if ($year && $year != "") {
+                $startDate = $year . '-01-01';
+                $endDate = $year . '-12-31';
+                if ($quarter) {
+                    $quartersRanges = [
+                        1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                        2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                        3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                        4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                    ];
+                    if (isset($quartersRanges[$quarter])) {
+                        $startDate = $quartersRanges[$quarter]['start'];
+                        $endDate = $quartersRanges[$quarter]['end'];
+                    }
+                }
+            }
+
+            $netProfit = \App\Http\Helpers\CustomHelper::getNetProfit($startDate, $endDate);
+            $balanceSubquery = "(SELECT IFNULL(SUM(je.debit - je.credit), 0) FROM journal_entries je JOIN accounts a2 ON je.account_id = a2.id WHERE a2.code LIKE CONCAT(accounts.code, '%')";
+            if ($startDate && $endDate) {
+                $balanceSubquery .= " AND je.date BETWEEN '$startDate' AND '$endDate'";
+            }
+            $balanceSubquery .= ")";
+
             CRUD::addClause('select', [
                 DB::raw("
                     accounts.id as id,
                     accounts.id as id_,
                     accounts.code as code_,
                     accounts.name as name_,
-                    accounts.level as level_
+                    accounts.level as level_,
+                    CASE WHEN accounts.code = '303' THEN $netProfit ELSE $balanceSubquery END as balance
                 ")
             ]);
 
@@ -596,10 +641,35 @@ class ExpenseAccountCrudController extends CrudController
 
     private function setupListExport()
     {
-
         $settings = Setting::first();
-        $this->crud->query = $this->crud->query
-            ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id');
+
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
+        $balanceSubquery = "(SELECT IFNULL(SUM(je.debit - je.credit), 0) FROM journal_entries je JOIN accounts a2 ON je.account_id = a2.id WHERE a2.code LIKE CONCAT(accounts.code, '%')";
+        if ($startDate && $endDate) {
+            $balanceSubquery .= " AND je.date BETWEEN '$startDate' AND '$endDate'";
+        }
+        $balanceSubquery .= ")";
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -623,31 +693,32 @@ class ExpenseAccountCrudController extends CrudController
             'type' => 'export',
         ]);
 
-
         CRUD::column([
             'label' => trans('backpack::crud.expense_account.column.balance'),
             'name' => 'balance',
-            'type'  => 'balance',
+            'type'  => 'number',
+            'value' => function ($entry) {
+                return $entry->balance;
+            },
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
             'decimals'      => 2,
             'dec_point'     => ',',
             'thousands_sep' => '.',
         ]);
 
+        $netProfit = \App\Http\Helpers\CustomHelper::getNetProfit($startDate, $endDate);
         CRUD::addClause('select', [
             DB::raw("
                 accounts.id as id,
                 accounts.id as id_,
-                MAX(accounts.code) as code_,
-                MAX(accounts.name) as name_,
-                MAX(accounts.level) as level_,
-                (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
+                accounts.code as code_,
+                accounts.name as name_,
+                accounts.level as level_,
+                CASE WHEN accounts.code = '303' THEN $netProfit ELSE $balanceSubquery END as balance
             ")
         ]);
 
-        $this->crud->query = $this->crud->query
-            ->orderBy('code', 'asc')
-            ->groupBy('accounts.id');
+        $this->crud->query = $this->crud->query->orderBy('accounts.code', 'asc');
     }
 
     public function exportPdf()
@@ -711,6 +782,11 @@ class ExpenseAccountCrudController extends CrudController
             $row_number++;
             foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
+                if ($column['name'] == 'balance') {
+                    $item_value = str_replace('Rp', '', $item_value);
+                    $item_value = str_replace('.', '', $item_value);
+                    $item_value = str_replace(',', '', $item_value);
+                }
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
                 $item_value = str_replace("\n", '', $item_value);
@@ -803,9 +879,35 @@ class ExpenseAccountCrudController extends CrudController
         $id = request()->_id;
         $account = Account::findOrFail($id);
 
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
         $query = JournalEntry::whereHas('account', function ($q) use ($account) {
             $q->where('code', 'LIKE', $account->code . '%');
         });
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
 
         $total_data = $query->count();
 
@@ -870,13 +972,57 @@ class ExpenseAccountCrudController extends CrudController
         $id = request()->id;
         $account = Account::findOrFail($id);
 
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
         $query = JournalEntry::whereHas('account', function ($q) use ($account) {
             $q->where('code', 'LIKE', $account->code . '%');
-        })->orderBy('date', 'asc')->orderBy('id', 'asc');
+        });
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $query->orderBy('date', 'asc')->orderBy('id', 'asc');
 
         $entries = $query->get();
-        $cumulative_balance = 0;
+        $cumulative_balance = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })->where(function ($q) use ($startDate) {
+            if ($startDate) {
+                $q->where('date', '<', $startDate);
+            }
+        })->selectRaw('SUM(debit) - SUM(credit) as balance')->first()->balance ?? 0;
+
         $data = [];
+        if ($startDate) {
+            $data[] = [
+                '-',
+                'SALDO AWAL',
+                '-',
+                '-',
+                CustomHelper::formatRupiahWithCurrency($cumulative_balance),
+            ];
+        }
 
         foreach ($entries as $entry) {
             $cumulative_balance += ($entry->debit - $entry->credit);
@@ -920,13 +1066,57 @@ class ExpenseAccountCrudController extends CrudController
         $id = request()->id;
         $account = Account::findOrFail($id);
 
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
         $query = JournalEntry::whereHas('account', function ($q) use ($account) {
             $q->where('code', 'LIKE', $account->code . '%');
-        })->orderBy('date', 'asc')->orderBy('id', 'asc');
+        });
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $query->orderBy('date', 'asc')->orderBy('id', 'asc');
 
         $entries = $query->get();
-        $cumulative_balance = 0;
+        $cumulative_balance = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })->where(function ($q) use ($startDate) {
+            if ($startDate) {
+                $q->where('date', '<', $startDate);
+            }
+        })->selectRaw('SUM(debit) - SUM(credit) as balance')->first()->balance ?? 0;
+
         $data = [];
+        if ($startDate) {
+            $data[] = [
+                '-',
+                'SALDO AWAL',
+                0,
+                0,
+                $cumulative_balance,
+            ];
+        }
 
         foreach ($entries as $entry) {
             $cumulative_balance += ($entry->debit - $entry->credit);

@@ -9,7 +9,7 @@
             4 => 'Kuartal 4 (Okt - Des)',
         ];
 
-        $selectedYear = request('filter_year');
+        $selectedYear = request('filter_year', $currentYear);
         $selectedQuarter = request('filter_quarter');
     @endphp
     <div class="form-group col-sm-2 mb-3" element="div" bp-field-wrapper="true" bp-field-name="filter_year" bp-field-type="select_from_array" bp-section="crud-field">

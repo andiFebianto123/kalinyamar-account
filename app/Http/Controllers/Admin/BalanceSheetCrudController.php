@@ -202,8 +202,8 @@ class BalanceSheetCrudController extends CrudController
         if (request()->has('_type')) {
             $type = request()->_type;
 
-            $year = request('filter_year') ?? request('amp;filter_year');
-            $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+            $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+            $quarter = request('filter_quarter') ?? request('amp;filter_quarter') ?? null;
             $startDate = null;
             $endDate = null;
 
@@ -252,8 +252,8 @@ class BalanceSheetCrudController extends CrudController
     private function setupListExport()
     {
         $settings = \App\Models\Setting::first();
-        $year = request('filter_year') ?? request('amp;filter_year');
-        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter') ?? null;
         $startDate = null;
         $endDate = null;
 
@@ -955,8 +955,8 @@ class BalanceSheetCrudController extends CrudController
 
     public function showTotalAccount()
     {
-        $year = request('filter_year') ?? request('amp;filter_year');
-        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter') ?? null;
         $startDate = null;
         $endDate = null;
 

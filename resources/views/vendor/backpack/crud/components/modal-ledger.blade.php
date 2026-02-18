@@ -54,7 +54,12 @@
                         serverSide: true,
                         ajax: {
                             url: "{{ url($crud->route . '-ledger') }}",
-                            data: { _id: id }
+                            data: function(d) {
+                                d._id = id;
+                                d.filter_year = new URLSearchParams(window.location.search).get('filter_year');
+                                d.filter_quarter = new URLSearchParams(window.location.search).get('filter_quarter');
+                                return d;
+                            }
                         },
                         columns: [
                             { data: 'date', name: 'date' },
@@ -104,7 +109,10 @@
                     if(!currentAccountId) return;
                     setLoadingButton("#btn-export-ledger-pdf", true);
 
-                    var url = "{{ url($crud->route . '-ledger-pdf') }}?id=" + currentAccountId;
+                    var params = new URLSearchParams(window.location.search);
+                    var filter_year = params.get('filter_year') || '';
+                    var filter_quarter = params.get('filter_quarter') || '';
+                    var url = "{{ url($crud->route . '-ledger-pdf') }}?id=" + currentAccountId + "&filter_year=" + filter_year + "&filter_quarter=" + filter_quarter;
                     var title = "Buku_Besar_" + currentAccountTitle.replace(/ /g, "_") + ".pdf";
 
                     const {response, errors} = await API_REQUEST("DOWNLOAD", url);
@@ -137,7 +145,10 @@
                     if(!currentAccountId) return;
                     setLoadingButton("#btn-export-ledger-excel", true);
 
-                    var url = "{{ url($crud->route . '-ledger-excel') }}?id=" + currentAccountId;
+                    var params = new URLSearchParams(window.location.search);
+                    var filter_year = params.get('filter_year') || '';
+                    var filter_quarter = params.get('filter_quarter') || '';
+                    var url = "{{ url($crud->route . '-ledger-excel') }}?id=" + currentAccountId + "&filter_year=" + filter_year + "&filter_quarter=" + filter_quarter;
                     var title = "Buku_Besar_" + currentAccountTitle.replace(/ /g, "_") + ".xlsx";
 
                     const {response, errors} = await API_REQUEST("DOWNLOAD", url);
