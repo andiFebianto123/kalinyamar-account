@@ -477,17 +477,22 @@ class CastAccountsCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
-                $item_value = str_replace('<span>', '', $item_value);
-                $item_value = str_replace('</span>', '', $item_value);
-                $item_value = str_replace("\n", '', $item_value);
-                $item_value = CustomHelper::clean_html($item_value);
-                $row_items[] = trim($item_value);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'saldo') {
+                    $item_value = $item->saldo;
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                    $item_value = str_replace(['<span>', '</span>', "\n"], '', $item_value);
+                    $item_value = CustomHelper::clean_html($item_value);
+                    $item_value = trim($item_value);
+                }
+                $row_items[] = $item_value;
             }
             $all_items[] = $row_items;
         }
 
-        $name = 'DAFTAR SPK';
+        $name = 'DAFTAR_REKENING_KAS';
 
         return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
@@ -565,16 +570,11 @@ class CastAccountsCrudController extends CrudController
             foreach ($columns as $column) {
                 if ($column['name'] == 'row_number') {
                     $item_value = $row_number;
-                } elseif ($column['name'] == 'date_transaction') {
-                    $item_value = $item->date_transaction ? Carbon::parse($item->date_transaction)->format('d/m/Y') : '-';
                 } elseif ($column['name'] == 'nominal_transaction') {
-                    $item_value = str_replace('.', '', $item->nominal_transaction);
-                    $item_value = str_replace(',', '', $item_value);
+                    $item_value = $item->nominal_transaction;
                 } else {
                     $item_value = $this->crud->getCellView($column, $item, $row_number);
-                    $item_value = str_replace('<span>', '', $item_value);
-                    $item_value = str_replace('</span>', '', $item_value);
-                    $item_value = str_replace("\n", '', $item_value);
+                    $item_value = str_replace(['<span>', '</span>', "\n"], '', $item_value);
                     $item_value = CustomHelper::clean_html($item_value);
                     $item_value = trim($item_value);
                 }
@@ -583,7 +583,7 @@ class CastAccountsCrudController extends CrudController
             $all_items[] = $row_items;
         }
 
-        $name = 'DAFTAR SPK';
+        $name = 'DAFTAR_TRANSAKSI_REKENING_KAS';
 
         return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(

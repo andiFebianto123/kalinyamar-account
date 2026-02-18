@@ -237,7 +237,8 @@ class CustomHelper
                 $q->where('id', $id);
             });
 
-            $journal_ = $journal_query->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+            $journal_ = $journal_query
+                ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
                 ->get();
             if ($journal_) {
                 foreach ($journal_ as $journal) {
@@ -823,24 +824,29 @@ class CustomHelper
         }
     }
 
-    public static function balanceAccount($account_code)
+    public static function balanceAccount($account_code, $startDate = null, $endDate = null)
     {
         $code = $account_code;
 
         if ($code == '303') {
-            return self::getNetProfit();
+            return self::getNetProfit($startDate, $endDate);
         }
 
-        $sum_accounts = \App\Models\Account::selectRaw("
+        $query = \App\Models\Account::selectRaw("
             (SUM(journal_entries.debit) - SUM(journal_entries.credit)) as balance
         ")
             ->leftJoin('journal_entries', 'journal_entries.account_id', '=', 'accounts.id')
-            ->where('accounts.code', 'LIKE', "" . $code . "%")
-            ->first();
+            ->where('accounts.code', 'LIKE', "" . $code . "%");
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('journal_entries.date', [$startDate, $endDate]);
+        }
+
+        $sum_accounts = $query->first();
         return $sum_accounts->balance ?? 0;
     }
 
-    public static function getNetProfit()
+    public static function getNetProfit($startDate = null, $endDate = null)
     {
         $dataset = [];
         $consolidate_income_header = DB::table('consolidate_income_headers')
@@ -856,7 +862,7 @@ class CustomHelper
             ->where('consolidate_income_account_items.header_id', $consolidate_income_header[0]->id)
             ->select(DB::raw("accounts.*"))->get();
         foreach ($items0 as $item) {
-            $contract_income_number += self::balanceAccount($item->code);
+            $contract_income_number += self::balanceAccount($item->code, $startDate, $endDate);
         }
 
         // beban usaha (1)
@@ -865,7 +871,7 @@ class CustomHelper
             ->where('consolidate_income_account_items.header_id', $consolidate_income_header[1]->id)
             ->select(DB::raw("accounts.*"))->get();
         foreach ($items1 as $item) {
-            $cost_expense_number += self::balanceAccount($item->code);
+            $cost_expense_number += self::balanceAccount($item->code, $startDate, $endDate);
         }
 
         // laba usaha
@@ -877,7 +883,7 @@ class CustomHelper
             ->where('consolidate_income_account_items.header_id', $consolidate_income_header[3]->id)
             ->select(DB::raw("accounts.*"))->get();
         foreach ($items3 as $item) {
-            $cost_other_number += self::balanceAccount($item->code);
+            $cost_other_number += self::balanceAccount($item->code, $startDate, $endDate);
         }
 
         // beban lain - lain (4)
@@ -886,7 +892,7 @@ class CustomHelper
             ->where('consolidate_income_account_items.header_id', $consolidate_income_header[4]->id)
             ->select(DB::raw("accounts.*"))->get();
         foreach ($items4 as $item) {
-            $expense_other_number += self::balanceAccount($item->code);
+            $expense_other_number += self::balanceAccount($item->code, $startDate, $endDate);
         }
 
         // laba sebelum pajak
@@ -898,7 +904,7 @@ class CustomHelper
             ->where('consolidate_income_account_items.header_id', $consolidate_income_header[6]->id)
             ->select(DB::raw("accounts.*"))->get();
         foreach ($items6 as $item) {
-            $expense_tax_number += self::balanceAccount($item->code);
+            $expense_tax_number += self::balanceAccount($item->code, $startDate, $endDate);
         }
 
         // laba bersih

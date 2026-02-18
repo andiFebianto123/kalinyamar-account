@@ -73,18 +73,24 @@ class CastAccountsLoanCrudController extends CrudController
 
     public function listCardComponents($list = null)
     {
+        $filter_year = request()->input('filter_year');
         if ($list && ($list->count() > 0)) {
 
             foreach ($list as $l) {
-                $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($l) {
+
+                $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($l, $filter_year) {
                     $q->where('cast_account_id', $l->id);
-                })->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($l) {
-                    $q->where('id', $l->id);
+                    if ($filter_year && $filter_year != 'all') {
+                        $q->whereYear('date_transaction', $filter_year);
+                    }
                 })
+                    // ->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($l) {
+                    //     $q->where('id', $l->id);
+                    // })
                     ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
                     ->first();
 
-                $l->saldo = ($journal_) ? $journal_->total : 0;
+                $l->saldo = $journal_->total;
                 $l->account = Account::find($l->account_id);
 
                 $this->card->addCard([
@@ -119,9 +125,10 @@ class CastAccountsLoanCrudController extends CrudController
 
         $this->data['is_disabled_list'] = true;
 
-        $listCashAccounts = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
-            ->where('cast_accounts.status', CastAccount::LOAN)
-            ->groupBy('cast_accounts.id')
+        $listCashAccountsQuery = CastAccount::leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
+            ->where('cast_accounts.status', CastAccount::LOAN);
+
+        $listCashAccounts = $listCashAccountsQuery->groupBy('cast_accounts.id')
             ->orderBy('id', 'ASC')->select(DB::raw(
                 '
             cast_accounts.id,
@@ -135,6 +142,8 @@ class CastAccountsLoanCrudController extends CrudController
         '
             ))->get();
         $this->listCardComponents($listCashAccounts);
+
+        $this->data['year_options'] = CustomHelper::getYearOptions('account_transactions', 'date_transaction');
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
@@ -168,26 +177,49 @@ class CastAccountsLoanCrudController extends CrudController
         $this->crud->file_title_export_excel = "Laporan_daftar_rekening_pinjaman.xlsx";
         $this->crud->param_uri_export = "?export=1";
 
-        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
-        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
+        CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-cast-account', 'beginning');
+        CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-cast-account', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year-cast-account', 'beginning');
         CRUD::addButtonFromView('top', 'filter_cash_account_order', 'filter-cash-account-order', 'beginning');
     }
 
     private function setupListExport()
     {
         $settings = Setting::first();
+
         $this->crud->query = $this->crud->query->leftJoin('account_transactions', 'account_transactions.cast_account_id', '=', 'cast_accounts.id')
-            ->where('cast_accounts.status', CastAccount::LOAN)
-            ->groupBy('cast_accounts.id')
-            ->orderBy('id', 'ASC')->select(DB::raw('
+            ->where('cast_accounts.status', CastAccount::LOAN);
+
+        $this->crud->query = $this->crud->query->groupBy('cast_accounts.id')
+            ->orderBy('id', 'ASC');
+
+        $year = request()->get('filter_year') ?? null;
+        $tableBalance = DB::table('account_transactions')
+            ->select(DB::raw('
+                account_transactions.cast_account_id,
+                (SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) - SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0))) as saldo
+            '))
+            ->when($year, function ($query) use ($year) {
+                if ($year) {
+                    $query->whereYear('date_transaction', $year);
+                }
+            })
+            ->groupBy('cast_account_id');
+
+        $this->crud->query = $this->crud->query->leftJoinSub($tableBalance, 'tableBalance', function ($join) {
+            $join->on('tableBalance.cast_account_id', '=', 'cast_accounts.id');
+        });
+
+        $this->crud->query = $this->crud->query->select(DB::raw('
             cast_accounts.id,
             MAX(cast_accounts.name) as name,
             MAX(cast_accounts.bank_name) as bank_name,
             MAX(cast_accounts.no_account) as no_account,
             MAX(cast_accounts.status) as status,
             MAX(cast_accounts.account_id) as account_id,
-            (SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) - SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0))) as saldo
+            MAX(tableBalance.saldo) as saldo
         '));
+
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -237,14 +269,20 @@ class CastAccountsLoanCrudController extends CrudController
     private function setuplistExportTrans()
     {
         $id = request()->id;
+        $filter_year = request()->input('filter_year');
         CRUD::setModel(AccountTransaction::class);
 
         $castAccount = CastAccount::where('id', $id)->first();
 
         $this->crud->query = $this->crud->query
             ->where('cast_account_id', $id)
-            ->where('is_first', 0)
-            ->orderBy('date_transaction', 'ASC');
+            ->where('is_first', 0);
+
+        if ($filter_year && $filter_year != 'all') {
+            $this->crud->query = $this->crud->query->whereYear('account_transactions.date_transaction', $filter_year);
+        }
+
+        $this->crud->query = $this->crud->query->orderBy('date_transaction', 'ASC');
 
         $this->crud->addColumn([
             'name'      => 'row_number',
@@ -357,17 +395,24 @@ class CastAccountsLoanCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
-                $item_value = str_replace('<span>', '', $item_value);
-                $item_value = str_replace('</span>', '', $item_value);
-                $item_value = str_replace("\n", '', $item_value);
-                $item_value = CustomHelper::clean_html($item_value);
-                $row_items[] = trim($item_value);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'saldo') {
+                    $item_value = $item->saldo;
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                    $item_value = str_replace('<span>', '', $item_value);
+                    $item_value = str_replace('</span>', '', $item_value);
+                    $item_value = str_replace("\n", '', $item_value);
+                    $item_value = CustomHelper::clean_html($item_value);
+                    $item_value = trim($item_value);
+                }
+                $row_items[] = $item_value;
             }
             $all_items[] = $row_items;
         }
 
-        $name = 'DAFTAR SPK';
+        $name = 'DAFTAR_REKENING_PINJAMAN';
 
         return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
@@ -441,16 +486,21 @@ class CastAccountsLoanCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
-                $item_value = str_replace('<span>', '', $item_value);
-                $item_value = str_replace('</span>', '', $item_value);
-                $item_value = str_replace("\n", '', $item_value);
-                $row_items[] = trim($item_value);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'nominal_transaction') {
+                    $item_value = $item->nominal_transaction;
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                    $item_value = str_replace(['<span>', '</span>', "\n"], '', $item_value);
+                    $item_value = trim($item_value);
+                }
+                $row_items[] = $item_value;
             }
             $all_items[] = $row_items;
         }
 
-        $name = 'DAFTAR SPK';
+        $name = 'DAFTAR_REKENING_PINJAMAN';
 
         return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
@@ -1516,6 +1566,7 @@ class CastAccountsLoanCrudController extends CrudController
         $id = request()->_id;
         $page = request()->page ?? 1;
         $per_page = request()->per_page ?? 2; // Set 2 untuk testing sesuai permintaan
+        $filter_year = request()->filter_year;
 
         $castAccount = CastAccount::where('id', $id)->first();
 
@@ -1533,8 +1584,13 @@ class CastAccountsLoanCrudController extends CrudController
                 $join->on('loan_transaction_flags.id', '=', 'account_transactions.reference_id')
                     ->where('account_transactions.reference_type', LoanTransactionFlag::class);
             })
-            ->where('account_transactions.cast_account_id', $id)
-            ->orderByDesc('account_transactions.reference_id')
+            ->where('account_transactions.cast_account_id', $id);
+
+        if ($filter_year && $filter_year != 'all') {
+            $query->whereYear('account_transactions.date_transaction', $filter_year);
+        }
+
+        $query->orderByDesc('account_transactions.reference_id')
             ->orderBy('account_transactions.id');
 
         $total = $query->count();
@@ -1543,13 +1599,18 @@ class CastAccountsLoanCrudController extends CrudController
         // Cari kode terakhir dari data sebelumnya untuk grouping lintas page
         $prev_kode = null;
         if ($page > 1) {
-            $prev_item = AccountTransaction::select(['loan_transaction_flags.kode'])
+            $prev_item_query = AccountTransaction::select(['loan_transaction_flags.kode'])
                 ->join("loan_transaction_flags", function ($join) {
                     $join->on('loan_transaction_flags.id', '=', 'account_transactions.reference_id')
                         ->where('account_transactions.reference_type', LoanTransactionFlag::class);
                 })
-                ->where('account_transactions.cast_account_id', $id)
-                ->orderByDesc('account_transactions.reference_id')
+                ->where('account_transactions.cast_account_id', $id);
+
+            if ($filter_year && $filter_year != 'all') {
+                $prev_item_query->whereYear('account_transactions.date_transaction', $filter_year);
+            }
+
+            $prev_item = $prev_item_query->orderByDesc('account_transactions.reference_id')
                 ->orderBy('account_transactions.id')
                 ->skip(($page - 1) * $per_page - 1)
                 ->take(1)
@@ -1584,7 +1645,8 @@ class CastAccountsLoanCrudController extends CrudController
             $entry->date_str = \Carbon\Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
         }
 
-        $castAccount->total_saldo_str = 0;
+        $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::LOAN, $filter_year);
+        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($total_balance);
 
         return response()->json([
             'status' => true,

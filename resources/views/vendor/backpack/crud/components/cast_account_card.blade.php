@@ -221,8 +221,11 @@
                         $text.addClass('d-none');
                         $spinner.removeClass('d-none');
 
+                        var urlParams = new URLSearchParams(window.location.search);
+                        var filterYear = urlParams.get('filter_year') || 'all';
+
                         $.ajax({
-                            url: instance.route+'-show?_id='+instance.id+'&page='+instance.currentPage+'&per_page='+instance.perPage,
+                            url: instance.route+'-show?_id='+instance.id+'&page='+instance.currentPage+'&per_page='+instance.perPage+'&filter_year='+filterYear,
                             type: 'GET',
                             typeData: 'json',
                             success: function (data) {

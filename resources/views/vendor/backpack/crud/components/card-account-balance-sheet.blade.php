@@ -98,7 +98,7 @@
         SIAOPS.setAttribute("{{$name}}", function(){
             return {
                 name: "{{$name}}",
-                url: "{{$route}}",
+                url: "{!! $route !!}",
                 table: "table-account-{{$name}}",
                 load: async function(){
                     var instance = this;
