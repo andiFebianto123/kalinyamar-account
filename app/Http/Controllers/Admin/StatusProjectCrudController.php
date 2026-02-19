@@ -21,7 +21,8 @@ use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 
-class StatusProjectCrudController extends CrudController {
+class StatusProjectCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -32,7 +33,7 @@ class StatusProjectCrudController extends CrudController {
         CRUD::setModel(Project::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/project-status');
         CRUD::setEntityNameStrings(trans('backpack::crud.project_status.title_header'), trans('backpack::crud.project_status.title_header'));
-        
+
         $base = 'INDEX MONITORING PROYEK STATUS PROYEK';
         $allAccess = ['AKSES SEMUA MENU PROJECT'];
         $viewMenu  = ["MENU $base"];
@@ -45,11 +46,11 @@ class StatusProjectCrudController extends CrudController {
             'show'   => $viewMenu,
             'print'  => true,
         ]);
-
     }
 
 
-    public function projectTab(){
+    public function projectTab()
+    {
         $setupProject = SetupStatusProject::orderBy('id', 'DESC')->get();
         $tabSetup = [];
         $tabSetup['resume'] = [
@@ -58,13 +59,13 @@ class StatusProjectCrudController extends CrudController {
             'view' => 'crud::components.resume-project',
             'active' => true,
             'params' => [
-                'route_export_pdf' => url($this->crud->route.'/export-resume-pdf?tab=resume'),
+                'route_export_pdf' => url($this->crud->route . '/export-resume-pdf?tab=resume'),
                 'title_export_pdf' => "Resume_status_proyek.pdf",
-                'route_export_excel' => url($this->crud->route.'/export-resume-excel?tab=resume'),
+                'route_export_excel' => url($this->crud->route . '/export-resume-excel?tab=resume'),
                 'title_export_excel' => "Resume_status_proyek.xlsx",
             ]
         ];
-        foreach($setupProject as $key => $status){
+        foreach ($setupProject as $key => $status) {
             $tab = [
                 'name' => str_replace(' ', '_', $status->name),
                 'label' => $status->name,
@@ -74,8 +75,8 @@ class StatusProjectCrudController extends CrudController {
                     'crud_custom' => $this->crud,
                 ]
             ];
-            $tab['params']['route'] = url($this->crud->route.'/search?tab='.$status->name);
-            if($status->name == 'UNPAID'){
+            $tab['params']['route'] = url($this->crud->route . '/search?tab=' . $status->name);
+            if ($status->name == 'UNPAID') {
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -131,11 +132,11 @@ class StatusProjectCrudController extends CrudController {
                         'label' =>  trans('backpack::crud.actions'),
                     ]
                 ];
-                $tab['params']['route_export_pdf'] = url($this->crud->route.'/export-pdf?tab='.$status->name);
+                $tab['params']['route_export_pdf'] = url($this->crud->route . '/export-pdf?tab=' . $status->name);
                 $tab['params']['title_export_pdf'] = "Status-project-UNPAID.pdf";
-                $tab['params']['route_export_excel'] = url($this->crud->route.'/export-excel?tab='.$status->name);
+                $tab['params']['route_export_excel'] = url($this->crud->route . '/export-excel?tab=' . $status->name);
                 $tab['params']['title_export_excel'] = "Status-project-UNPAID.xlsx";
-            }else if($status->name == 'TERTUNDA'){
+            } else if ($status->name == 'TERTUNDA') {
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -198,12 +199,12 @@ class StatusProjectCrudController extends CrudController {
                         'orderable' => false,
                     ],
                 ];
-                $tab['params']['route_export_pdf'] = url($this->crud->route.'/export-pdf?tab='.$status->name);
+                $tab['params']['route_export_pdf'] = url($this->crud->route . '/export-pdf?tab=' . $status->name);
                 $tab['params']['title_export_pdf'] = "Status-project-TERTUNDA.pdf";
-                $tab['params']['route_export_excel'] = url($this->crud->route.'/export-excel?tab='.$status->name);
+                $tab['params']['route_export_excel'] = url($this->crud->route . '/export-excel?tab=' . $status->name);
                 $tab['params']['title_export_excel'] = "Status-project-TERTUNDA.xlsx";
-            }else if($status->name == 'BELUM SELESAI'){
-                 $tab['params']['columns'] = [
+            } else if ($status->name == 'BELUM SELESAI') {
+                $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
                         'type'      => 'row_number',
@@ -282,13 +283,13 @@ class StatusProjectCrudController extends CrudController {
                         'label' => trans('backpack::crud.project.column.project.information.label'),
                         'orderable' => false,
                     ],
-                 ];
-                 $tab['params']['route_export_pdf'] = url($this->crud->route.'/export-pdf?tab='.$status->name);
+                ];
+                $tab['params']['route_export_pdf'] = url($this->crud->route . '/export-pdf?tab=' . $status->name);
                 $tab['params']['title_export_pdf'] = "Status-project-BELUM_SELESAI.pdf";
-                $tab['params']['route_export_excel'] = url($this->crud->route.'/export-excel?tab='.$status->name);
+                $tab['params']['route_export_excel'] = url($this->crud->route . '/export-excel?tab=' . $status->name);
                 $tab['params']['title_export_excel'] = "Status-project-BELUM_SELESAI.xlsx";
-            }else if($status->name == 'RETENSI'){
-                 $tab['params']['columns'] = [
+            } else if ($status->name == 'RETENSI') {
+                $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
                         'type'      => 'row_number',
@@ -325,12 +326,12 @@ class StatusProjectCrudController extends CrudController {
                         'label' => trans('backpack::crud.project.column.project.information.label'),
                         'orderable' => false,
                     ],
-                 ];
-                $tab['params']['route_export_pdf'] = url($this->crud->route.'/export-pdf?tab='.$status->name);
+                ];
+                $tab['params']['route_export_pdf'] = url($this->crud->route . '/export-pdf?tab=' . $status->name);
                 $tab['params']['title_export_pdf'] = "Status-project-RETENSI.pdf";
-                $tab['params']['route_export_excel'] = url($this->crud->route.'/export-excel?tab='.$status->name);
+                $tab['params']['route_export_excel'] = url($this->crud->route . '/export-excel?tab=' . $status->name);
                 $tab['params']['title_export_excel'] = "Status-project-RETENSI.xlsx";
-            }else if($status->name == 'BELUM ADA PO'){
+            } else if ($status->name == 'BELUM ADA PO') {
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -393,11 +394,11 @@ class StatusProjectCrudController extends CrudController {
                         'orderable' => false,
                     ],
                 ];
-                $tab['params']['route_export_pdf'] = url($this->crud->route.'/export-pdf?tab='.$status->name);
+                $tab['params']['route_export_pdf'] = url($this->crud->route . '/export-pdf?tab=' . $status->name);
                 $tab['params']['title_export_pdf'] = "Status-project-BELUM_ADA_PO.pdf";
-                $tab['params']['route_export_excel'] = url($this->crud->route.'/export-excel?tab='.$status->name);
+                $tab['params']['route_export_excel'] = url($this->crud->route . '/export-excel?tab=' . $status->name);
                 $tab['params']['title_export_excel'] = "Status-project-BELUM_ADA_PO.xlsx";
-            }else if($status->name == 'CLOSE'){
+            } else if ($status->name == 'CLOSE') {
                 $tab['params']['columns'] = [
                     [
                         'name'      => 'row_number',
@@ -453,9 +454,9 @@ class StatusProjectCrudController extends CrudController {
                         'label' =>  trans('backpack::crud.actions'),
                     ]
                 ];
-                $tab['params']['route_export_pdf'] = url($this->crud->route.'/export-pdf?tab='.$status->name);
+                $tab['params']['route_export_pdf'] = url($this->crud->route . '/export-pdf?tab=' . $status->name);
                 $tab['params']['title_export_pdf'] = "Status-project-CLOSE.pdf";
-                $tab['params']['route_export_excel'] = url($this->crud->route.'/export-excel?tab='.$status->name);
+                $tab['params']['route_export_excel'] = url($this->crud->route . '/export-excel?tab=' . $status->name);
                 $tab['params']['title_export_excel'] = "Status-project-CLOSE.xlsx";
             }
             $tabSetup[str_replace(' ', '_', $status->name)] = $tab;
@@ -463,12 +464,13 @@ class StatusProjectCrudController extends CrudController {
         return $tabSetup;
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         $tabs = $this->projectTab();
 
-         $this->card->addCard([
+        $this->card->addCard([
             'name' => 'project',
             'line' => 'top',
             'view' => 'crud::components.card-tab',
@@ -491,40 +493,58 @@ class StatusProjectCrudController extends CrudController {
         $this->data['breadcrumbs'] = $breadcrumbs;
 
         // $list = "crud::list-custom" ?? $this->crud->getListView();
+        $this->data['year_options'] = CustomHelper::getYearOptions('projects', 'invoice_date');
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
     }
 
 
-    public function resumeTotal($is_output = 'json'){
+    public function resumeTotal($is_output = 'json')
+    {
+        $request = request();
+
         $invoiceold = Project::where('status_po', 'UNPAID')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->orderBy('total_progress_day', 'DESC')
-        ->first();
+            ->where('status_po', '!=', "BELUM ADA PO")
+            ->orderBy('total_progress_day', 'DESC')
+            ->first();
 
         $data['invoice_old'] = $invoiceold;
 
-        if($invoiceold){
+        if ($invoiceold) {
             $data['tgl_start_invoice'] = Carbon::parse($invoiceold?->invoice_date)->locale(App::getLocale())->isoFormat('dddd, D MMMM Y');
-        }else{
+        } else {
             $data['tgl_start_invoice'] = '';
         }
 
         $invoice_1 = Project::where('projects.status_po', 'UNPAID')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->orderBy('id', 'DESC')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->orderBy('id', 'DESC')
+            ->groupBy(['projects.client_id', 'setup_clients.name']);
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_1 = $invoice_1->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_1 = $invoice_1->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_1 = $invoice_1->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_1 = $invoice_1->get();
         $data['invoice_1'] = $invoice_1;
         $grand_total = 0;
 
         $total_invoice_1 = 0;
-        foreach($invoice_1 as $val1){
+        foreach ($invoice_1 as $val1) {
             $total_invoice_1 += $val1->price_total_include_ppn;
             $val1->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val1->price_total_include_ppn);
             $val1->client_name_str = $val1->name;
@@ -534,20 +554,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_1_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_1);
 
         $invoice_2 = Project::where('projects.status_po', 'TERTUNDA')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'RUTIN')
-        ->orderBy('id', 'DESC')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'RUTIN')
+            ->orderBy('id', 'DESC')
+            ->groupBy(['projects.client_id', 'setup_clients.name']);
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_2 = $invoice_2->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_2 = $invoice_2->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_2 = $invoice_2->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_2 = $invoice_2->get();
         $data['invoice_2'] = $invoice_2;
 
         $total_invoice_2 = 0;
-        foreach($invoice_2 as $val2){
+        foreach ($invoice_2 as $val2) {
             $total_invoice_2 += $val2->price_total_include_ppn;
             $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
             $val2->client_name_str = $val2->name;
@@ -558,20 +592,34 @@ class StatusProjectCrudController extends CrudController {
 
 
         $invoice_3 = Project::where('projects.status_po', 'TERTUNDA')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'NON RUTIN')
-        ->orderBy('id', 'DESC')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'NON RUTIN')
+            ->orderBy('id', 'DESC')
+            ->groupBy(['projects.client_id', 'setup_clients.name']);
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_3 = $invoice_3->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_3 = $invoice_3->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_3 = $invoice_3->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_3 = $invoice_3->get();
         $data['invoice_3'] = $invoice_3;
 
         $total_invoice_3 = 0;
-        foreach($invoice_3 as $val3){
+        foreach ($invoice_3 as $val3) {
             $total_invoice_3 += $val3->price_total_include_ppn;
             $val3->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val3->price_total_include_ppn);
             $val3->client_name_str = $val3->name;
@@ -581,19 +629,33 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_3_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_3);
 
         $invoice_4 = Project::where('projects.status_po', 'RETENSI')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')
-        ->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_4 = $invoice_4->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_4 = $invoice_4->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_4 = $invoice_4->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_4 = $invoice_4->get();
         $data['invoice_4'] = $invoice_4;
 
         $total_invoice_4 = 0;
-        foreach($invoice_4 as $val4){
+        foreach ($invoice_4 as $val4) {
             $total_invoice_4 += $val4->price_total_include_ppn;
             $val4->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val4->price_total_include_ppn);
             $val4->client_name_str = $val4->name;
@@ -603,19 +665,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_4_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_4);
 
         $invoice_5 = Project::where('projects.status_po', 'BELUM SELESAI')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'RUTIN')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'RUTIN')
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_5 = $invoice_5->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_5 = $invoice_5->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_5 = $invoice_5->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_5 = $invoice_5->get();
         $data['invoice_5'] = $invoice_5;
 
         $total_invoice_5 = 0;
-        foreach($invoice_5 as $val5){
+        foreach ($invoice_5 as $val5) {
             $total_invoice_5 += $val5->price_total_include_ppn;
             $val5->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val5->price_total_include_ppn);
             $val5->client_name_str = $val5->name;
@@ -625,19 +702,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_5_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_5);
 
         $invoice_6 = Project::where('projects.status_po', 'BELUM SELESAI')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'NON RUTIN')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'NON RUTIN')
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_6 = $invoice_6->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_6 = $invoice_6->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_6 = $invoice_6->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_6 = $invoice_6->get();
         $data['invoice_6'] = $invoice_6;
 
         $total_invoice_6 = 0;
-        foreach($invoice_6 as $val6){
+        foreach ($invoice_6 as $val6) {
             $total_invoice_6 += $val6->price_total_include_ppn;
             $val6->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val6->price_total_include_ppn);
             $val6->client_name_str = $val6->name;
@@ -646,7 +738,7 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_6_total'] = $total_invoice_6;
         $data['invoice_6_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_6);
 
-        if($is_output == 'json'){
+        if ($is_output == 'json') {
             return response()->json([
                 'list' => $data,
                 'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
@@ -659,44 +751,59 @@ class StatusProjectCrudController extends CrudController {
         ];
     }
 
-    public function resumeTotalExport($is_output = 'json'){
-
+    public function resumeTotalExport($is_output = 'json')
+    {
+        $request = request();
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
         $invoiceold = Project::where('status_po', 'UNPAID')
-        ->where('status_po', '!=', "BELUM ADA PO")
-        ->orderBy('total_progress_day', 'DESC')
-        ->first();
+            ->where('status_po', '!=', "BELUM ADA PO")
+            ->orderBy('total_progress_day', 'DESC')
+            ->first();
 
         $data['invoice_old'] = $invoiceold;
 
-        if($invoiceold){
+        if ($invoiceold) {
             $data['tgl_start_invoice'] = Carbon::parse($invoiceold?->invoice_date)->locale(App::getLocale())->isoFormat('dddd, D MMMM Y');
-        }else{
+        } else {
             $data['tgl_start_invoice'] = '';
         }
 
         $invoice_1 = Project::where('projects.status_po', 'UNPAID')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->orderBy('id', 'DESC')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->orderBy('id', 'DESC')
+            ->groupBy(['projects.client_id', 'setup_clients.name']);
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_1 = $invoice_1->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_1 = $invoice_1->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_1 = $invoice_1->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_1 = $invoice_1->get();
         $data['invoice_1'] = $invoice_1;
 
         $grand_total = 0;
 
         $total_invoice_1 = 0;
-        foreach($invoice_1 as $val1){
+        foreach ($invoice_1 as $val1) {
             $total_invoice_1 += $val1->price_total_include_ppn;
             // $val1->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val1->price_total_include_ppn);
             $val1->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val1->price_total_include_ppn);
@@ -708,19 +815,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_1_total_str'] = $this->priceFormatExport($status_file, $total_invoice_1);
 
         $invoice_2 = Project::where('projects.status_po', 'TERTUNDA')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'RUTIN')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'RUTIN')
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_2 = $invoice_2->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_2 = $invoice_2->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_2 = $invoice_2->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_2 = $invoice_2->get();
         $data['invoice_2'] = $invoice_2;
 
         $total_invoice_2 = 0;
-        foreach($invoice_2 as $val2){
+        foreach ($invoice_2 as $val2) {
             $total_invoice_2 += $val2->price_total_include_ppn;
             // $val2->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val2->price_total_include_ppn);
             $val2->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val2->price_total_include_ppn);
@@ -732,19 +854,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_2_total_str'] = $this->priceFormatExport($status_file, $total_invoice_2);
 
         $invoice_3 = Project::where('projects.status_po', 'TERTUNDA')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'NON RUTIN')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'NON RUTIN')
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_3 = $invoice_3->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_3 = $invoice_3->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_3 = $invoice_3->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_3 = $invoice_3->get();
         $data['invoice_3'] = $invoice_3;
 
         $total_invoice_3 = 0;
-        foreach($invoice_3 as $val3){
+        foreach ($invoice_3 as $val3) {
             $total_invoice_3 += $val3->price_total_include_ppn;
             // $val3->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val3->price_total_include_ppn);
             $val3->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val3->price_total_include_ppn);
@@ -756,18 +893,33 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_3_total_str'] = $this->priceFormatExport($status_file, $total_invoice_3);
 
         $invoice_4 = Project::where('projects.status_po', 'RETENSI')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_4 = $invoice_4->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_4 = $invoice_4->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_4 = $invoice_4->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_4 = $invoice_4->get();
         $data['invoice_4'] = $invoice_4;
 
         $total_invoice_4 = 0;
-        foreach($invoice_4 as $val4){
+        foreach ($invoice_4 as $val4) {
             $total_invoice_4 += $val4->price_total_include_ppn;
             // $val4->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val4->price_total_include_ppn);
             $val4->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val4->price_total_include_ppn);
@@ -779,19 +931,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_4_total_str'] = $this->priceFormatExport($status_file, $total_invoice_4);
 
         $invoice_5 = Project::where('projects.status_po', 'BELUM SELESAI')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'RUTIN')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'RUTIN')
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_5 = $invoice_5->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_5 = $invoice_5->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_5 = $invoice_5->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_5 = $invoice_5->get();
         $data['invoice_5'] = $invoice_5;
 
         $total_invoice_5 = 0;
-        foreach($invoice_5 as $val5){
+        foreach ($invoice_5 as $val5) {
             $total_invoice_5 += $val5->price_total_include_ppn;
             // $val5->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val5->price_total_include_ppn);
             $val5->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val5->price_total_include_ppn);
@@ -803,19 +970,34 @@ class StatusProjectCrudController extends CrudController {
         $data['invoice_5_total_str'] = $this->priceFormatExport($status_file, $total_invoice_5);
 
         $invoice_6 = Project::where('projects.status_po', 'BELUM SELESAI')
-        ->select(DB::raw("
+            ->select(DB::raw("
             MAX(projects.id) as id,
             SUM(projects.price_total_include_ppn) as price_total_include_ppn,
             setup_clients.name"))
-        ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
-        ->where('projects.status_po', '!=', "BELUM ADA PO")
-        ->where('projects.category', 'NON RUTIN')
-        ->groupBy(['projects.client_id', 'setup_clients.name'])
-        ->orderBy('id', 'DESC')->get();
+            ->leftJoin('setup_clients', 'setup_clients.id', '=', 'projects.client_id')
+            ->where('projects.status_po', '!=', "BELUM ADA PO")
+            ->where('projects.category', 'NON RUTIN')
+            ->groupBy(['projects.client_id', 'setup_clients.name'])
+            ->orderBy('id', 'DESC');
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $invoice_6 = $invoice_6->where(function ($q) use ($request) {
+                $q->whereYear('projects.start_date', $request->filter_year)
+                    ->orWhereYear('projects.end_date', $request->filter_year);
+            });
+        }
+        if ($request->has('filter_category') && $request->filter_category != 'all') {
+            $invoice_6 = $invoice_6->where('projects.category', $request->filter_category);
+        }
+        if ($request->has('filter_client') && $request->filter_client != 'all') {
+            $invoice_6 = $invoice_6->where('projects.client_id', $request->filter_client);
+        }
+
+        $invoice_6 = $invoice_6->get();
         $data['invoice_6'] = $invoice_6;
 
         $total_invoice_6 = 0;
-        foreach($invoice_6 as $val6){
+        foreach ($invoice_6 as $val6) {
             $total_invoice_6 += $val6->price_total_include_ppn;
             // $val6->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val6->price_total_include_ppn);
             $val6->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val6->price_total_include_ppn);
@@ -826,7 +1008,7 @@ class StatusProjectCrudController extends CrudController {
         // $data['invoice_6_total_str'] = CustomHelper::formatRupiahWithCurrency($total_invoice_6);
         $data['invoice_6_total_str'] = $this->priceFormatExport($status_file, $total_invoice_6);
 
-        if($is_output == 'json'){
+        if ($is_output == 'json') {
             return response()->json([
                 'list' => $data,
                 // 'grand_total' => CustomHelper::formatRupiahWithCurrency($grand_total),
@@ -855,6 +1037,7 @@ class StatusProjectCrudController extends CrudController {
         $type = request()->tab;
         $settings = Setting::first();
 
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
@@ -862,25 +1045,35 @@ class StatusProjectCrudController extends CrudController {
         $this->crud->removeButton('create');
         $this->crud->removeButton('update');
 
-        if(request()->has('filter_category')){
-            if(request()->filter_category != 'all'){
+        if (request()->has('filter_category')) {
+            if (request()->filter_category != 'all') {
                 $this->crud->addClause('where', 'category', request()->filter_category);
             }
         }
-        if(request()->has('filter_client')){
-            if(request()->filter_client != 'all'){
+        if (request()->has('filter_client')) {
+            if (request()->filter_client != 'all') {
                 $this->crud->query = $this->crud->query
-                ->whereExists(function ($query) {
-                    $query->select(DB::raw(1))
-                    ->from('setup_clients')
-                    ->whereRaw('setup_clients.id = projects.client_id')
-                    ->where('setup_clients.id', request()->filter_client);
-                });
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('setup_clients')
+                            ->whereRaw('setup_clients.id = projects.client_id')
+                            ->where('setup_clients.id', request()->filter_client);
+                    });
             }
         }
         $this->crud->addClause('where', 'status_po', $type);
 
-        if($type == 'UNPAID'){
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            if ($type == 'CLOSE') {
+                $this->crud->addClause('whereYear', 'payment_date', request()->filter_year);
+            } elseif ($type == 'BELUM_SELESAI') {
+                $this->crud->addClause('whereYear', 'start_date', request()->filter_year);
+            } else {
+                $this->crud->addClause('whereYear', 'invoice_date', request()->filter_year);
+            }
+        }
+
+        if ($type == 'UNPAID') {
             CRUD::addButtonFromView('line', 'update-unpaid-project', 'update-unpaid-project', 'beginning');
             CRUD::addColumn([
                 'name'      => 'row_number',
@@ -939,7 +1132,7 @@ class StatusProjectCrudController extends CrudController {
                     'value' => function ($row) {
                         $total_day = $this->hitungDurasiHari($row->invoice_date);
                         $day = ($row->invoice_date) ? $total_day : "0";
-                        return $day.' Hari';
+                        return $day . ' Hari';
                     }
                 ],
             );
@@ -950,7 +1143,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'TERTUNDA'){
+        } else if ($type == 'TERTUNDA') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1028,7 +1221,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'BELUM SELESAI'){
+        } else if ($type == 'BELUM SELESAI') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1087,7 +1280,7 @@ class StatusProjectCrudController extends CrudController {
                     'value' => function ($row) {
                         $total_day = $this->hitungDurasiHari($row->actual_end_date);
                         $day = ($row->actual_end_date) ? $total_day : "0";
-                        return $day.' Hari';
+                        return $day . ' Hari';
                     }
                 ],
             );
@@ -1132,7 +1325,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'RETENSI'){
+        } else if ($type == 'RETENSI') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1183,7 +1376,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'BELUM ADA PO'){
+        } else if ($type == 'BELUM ADA PO') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1261,7 +1454,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'CLOSE'){
+        } else if ($type == 'CLOSE') {
             CRUD::addButtonFromView('line', 'update-close-project', 'update-close-project', 'beginning');
             CRUD::addColumn([
                 'name'      => 'row_number',
@@ -1326,15 +1519,14 @@ class StatusProjectCrudController extends CrudController {
                 ],
             );
         }
-
     }
 
     protected function setupListOperationExport()
     {
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
@@ -1349,25 +1541,25 @@ class StatusProjectCrudController extends CrudController {
         $this->crud->removeButton('create');
         $this->crud->removeButton('update');
 
-        if(request()->has('filter_category')){
-            if(request()->filter_category != 'all'){
+        if (request()->has('filter_category')) {
+            if (request()->filter_category != 'all') {
                 $this->crud->addClause('where', 'category', request()->filter_category);
             }
         }
-        if(request()->has('filter_client')){
-            if(request()->filter_client != 'all'){
+        if (request()->has('filter_client')) {
+            if (request()->filter_client != 'all') {
                 $this->crud->query = $this->crud->query
-                ->whereExists(function ($query) {
-                    $query->select(DB::raw(1))
-                    ->from('setup_clients')
-                    ->whereRaw('setup_clients.id = projects.client_id')
-                    ->where('setup_clients.id', request()->filter_client);
-                });
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('setup_clients')
+                            ->whereRaw('setup_clients.id = projects.client_id')
+                            ->where('setup_clients.id', request()->filter_client);
+                    });
             }
         }
         $this->crud->addClause('where', 'status_po', $type);
 
-        if($type == 'UNPAID'){
+        if ($type == 'UNPAID') {
             CRUD::addButtonFromView('line', 'update-unpaid-project', 'update-unpaid-project', 'beginning');
             CRUD::addColumn([
                 'name'      => 'row_number',
@@ -1396,7 +1588,7 @@ class StatusProjectCrudController extends CrudController {
                 'label'  => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -1429,7 +1621,7 @@ class StatusProjectCrudController extends CrudController {
                     'value' => function ($row) {
                         $total_day = $this->hitungDurasiHari($row->invoice_date);
                         $day = ($row->invoice_date) ? $total_day : "0";
-                        return $day.' Hari';
+                        return $day . ' Hari';
                     }
                 ],
             );
@@ -1440,7 +1632,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'TERTUNDA'){
+        } else if ($type == 'TERTUNDA') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1468,7 +1660,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -1521,7 +1713,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'BELUM SELESAI'){
+        } else if ($type == 'BELUM SELESAI') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1549,7 +1741,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -1583,7 +1775,7 @@ class StatusProjectCrudController extends CrudController {
                     'value' => function ($row) {
                         $total_day = $this->hitungDurasiHari($row->actual_end_date);
                         $day = ($row->actual_end_date) ? $total_day : "0";
-                        return $day.' Hari';
+                        return $day . ' Hari';
                     }
                 ],
             );
@@ -1628,7 +1820,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'RETENSI'){
+        } else if ($type == 'RETENSI') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1656,7 +1848,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type' => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -1682,7 +1874,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'BELUM ADA PO'){
+        } else if ($type == 'BELUM ADA PO') {
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -1710,7 +1902,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -1763,7 +1955,7 @@ class StatusProjectCrudController extends CrudController {
                     'type'  => 'text'
                 ],
             );
-        }else if($type == 'CLOSE'){
+        } else if ($type == 'CLOSE') {
             CRUD::addButtonFromView('line', 'update-close-project', 'update-close-project', 'beginning');
             CRUD::addColumn([
                 'name'      => 'row_number',
@@ -1792,7 +1984,7 @@ class StatusProjectCrudController extends CrudController {
                 'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                 'name' => 'price_total_include_ppn',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -1831,7 +2023,6 @@ class StatusProjectCrudController extends CrudController {
                 ],
             );
         }
-
     }
 
     public function edit($id)
@@ -1851,7 +2042,7 @@ class StatusProjectCrudController extends CrudController {
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -1859,10 +2050,10 @@ class StatusProjectCrudController extends CrudController {
         ]);
     }
 
-    protected function setupUpdateOperation(){
-    }
+    protected function setupUpdateOperation() {}
 
-    public function fieldEditProject($po_status){
+    public function fieldEditProject($po_status)
+    {
         $this->setupUpdateOperationUnpaid($po_status);
     }
 
@@ -1926,7 +2117,7 @@ class StatusProjectCrudController extends CrudController {
             '' => trans('backpack::crud.project.field.client_id.placeholder'),
         ];
 
-        foreach($client as $c){
+        foreach ($client as $c) {
             $client_option[$c->id] = $c->name;
         }
 
@@ -1943,7 +2134,7 @@ class StatusProjectCrudController extends CrudController {
             ]
         ]);
 
-        if($po_status == 'UNPAID'){
+        if ($po_status == 'UNPAID') {
             CRUD::addField([   // date_picker
                 'name'  => 'invoice_date',
                 'type'  => 'date_picker',
@@ -1971,7 +2162,7 @@ class StatusProjectCrudController extends CrudController {
             //         'class' => 'form-group col-md-6'
             //     ],
             // ]);
-        }else if($po_status == 'CLOSE'){
+        } else if ($po_status == 'CLOSE') {
             CRUD::addField([   // date_picker
                 'name'  => 'invoice_date',
                 'type'  => 'date_picker',
@@ -2020,7 +2211,6 @@ class StatusProjectCrudController extends CrudController {
             'name' => 'logic-status-project-unpaid',
             'type' => 'logic-status-project-unpaid',
         ]);
-
     }
 
 
@@ -2030,7 +2220,7 @@ class StatusProjectCrudController extends CrudController {
 
         $old = DB::table('projects')->where('id', $this->crud->getCurrentEntryId())->first();
 
-        if($old->status_po == 'CLOSE'){
+        if ($old->status_po == 'CLOSE') {
             $rule = [
                 'invoice_date' => 'nullable|date',
                 'payment_date' => 'nullable|date|after_or_equal:invoice_date',
@@ -2044,33 +2234,33 @@ class StatusProjectCrudController extends CrudController {
 
 
         DB::beginTransaction();
-        try{
+        try {
 
             $item = Project::find($this->crud->getCurrentEntryId());
 
-            if($item->status_po == 'UNPAID'){
-                if($old->invoice_date != $request->invoice_date){
+            if ($item->status_po == 'UNPAID') {
+                if ($old->invoice_date != $request->invoice_date) {
                     $flag_update = 1;
                 }
                 $item->invoice_date = $request->invoice_date;
 
-                if($old->total_progress_day != $request->total_progress_day){
+                if ($old->total_progress_day != $request->total_progress_day) {
                     $flag_update = 1;
                 }
                 // $item->total_progress_day = $request->total_progress_day;
                 $item->total_progress_day = $this->hitungDurasiHari($request->invoice_date);
-            }else if($item->status_po == 'CLOSE'){
-                if($old->invoice_date != $request->invoice_date){
+            } else if ($item->status_po == 'CLOSE') {
+                if ($old->invoice_date != $request->invoice_date) {
                     $flag_update = 1;
                 }
                 $item->invoice_date = $request->invoice_date;
-                if($old->payment_date != $request->payment_date){
+                if ($old->payment_date != $request->payment_date) {
                     $flag_update = 1;
                 }
                 $item->payment_date = $request->payment_date;
             }
 
-            if(isset($flag_update)){
+            if (isset($flag_update)) {
                 $project_history = new ProjectHistory;
                 $project_history->project_id = $item->id;
                 $project_history->name = $item->name;
@@ -2099,14 +2289,13 @@ class StatusProjectCrudController extends CrudController {
                     'success' => true,
                     'data' => $item,
                     'events' => [
-                        'crudTable-'.$tab[$status_po]['name'].'_updated_success' => $item,
+                        'crudTable-' . $tab[$status_po]['name'] . '_updated_success' => $item,
                     ]
                 ]);
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -2116,7 +2305,8 @@ class StatusProjectCrudController extends CrudController {
         }
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->tab;
 
         $this->setupListOperationExport();
@@ -2125,10 +2315,10 @@ class StatusProjectCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -2139,7 +2329,7 @@ class StatusProjectCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $title = 'Status Project - '.$type;
+        $title = 'Status Project - ' . $type;
 
         $pdf = Pdf::loadView('exports.table-pdf', [
             'columns' => $columns,
@@ -2153,11 +2343,12 @@ class StatusProjectCrudController extends CrudController {
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $type = request()->tab;
 
         $this->setupListOperationExport();
@@ -2166,10 +2357,10 @@ class StatusProjectCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -2180,11 +2371,13 @@ class StatusProjectCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $name = 'Status Project - '.$type;
+        $name = 'Status Project - ' . $type;
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -2194,10 +2387,10 @@ class StatusProjectCrudController extends CrudController {
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
 
-    public function exportResumePdf(){
+    public function exportResumePdf()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -2216,20 +2409,21 @@ class StatusProjectCrudController extends CrudController {
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportResumeExcel(){
+    public function exportResumeExcel()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
         $columns = $this->crud->columns();
         $items =  $this->resumeTotalExport('array');
 
-        $name = 'Status Project - '.$type;
+        $name = 'Status Project - ' . $type;
 
-        return response()->streamDownload(function () use($type, $columns, $items){
+        return response()->streamDownload(function () use ($type, $columns, $items) {
             echo Excel::raw(new ExportResume($items), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -2241,6 +2435,4 @@ class StatusProjectCrudController extends CrudController {
             'message' => 'Download Failure',
         ], 400);
     }
-
-
 }

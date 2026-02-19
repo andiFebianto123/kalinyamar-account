@@ -353,6 +353,10 @@ class InvoiceClientCrudController extends CrudController
             }
         }
 
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $total_price = $total_price->whereYear('invoice_clients.invoice_date', $request->filter_year);
+        }
+
         $total_price = $total_price->first();
 
         return response()->json([
@@ -381,6 +385,7 @@ class InvoiceClientCrudController extends CrudController
             // trans('backpack::crud.menu.list_client') => backpack_url($this->crud->route)
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
+        $this->data['year_options'] = CustomHelper::getYearOptions('invoice_clients', 'invoice_date');
 
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
@@ -452,6 +457,7 @@ class InvoiceClientCrudController extends CrudController
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
         CRUD::addButtonFromView('top', 'filter_paid_unpaid', 'filter-paid_unpaid', 'beginning');
+        CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('line', 'show', 'show', 'end');
         CRUD::addButtonFromView('line', 'update', 'update', 'end');
         CRUD::addButtonFromView('line', 'print', 'print', 'end');
@@ -743,11 +749,16 @@ class InvoiceClientCrudController extends CrudController
                 ->where('invoice_clients.send_invoice_revision_date', $request->send_invoice_revision);
         }
 
+
         if ($request->has('filter_paid_status')) {
             if ($request->filter_paid_status != 'all') {
                 $this->crud->query = $this->crud->query
                     ->where('status', $request->filter_paid_status);
             }
+        }
+
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $this->crud->query = $this->crud->query->whereYear('invoice_clients.invoice_date', $request->filter_year);
         }
     }
 

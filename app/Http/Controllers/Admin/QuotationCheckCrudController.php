@@ -17,7 +17,8 @@ use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 
-class QuotationCheckCrudController extends CrudController {
+class QuotationCheckCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -47,13 +48,13 @@ class QuotationCheckCrudController extends CrudController {
             'show'   => $viewMenu,
             'print'  => true,
         ]);
-
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
-         $this->card->addCard([
+        $this->card->addCard([
             'name' => 'quotation_panel',
             'line' => 'top',
             'view' => 'crud::components.card-tab',
@@ -146,7 +147,7 @@ class QuotationCheckCrudController extends CrudController {
                         'params' => [
                             'crud_custom' => $this->crud,
                             'columns' => [
-                               [
+                                [
                                     'name'      => 'row_number',
                                     'type'      => 'row_number',
                                     'label'     => 'No',
@@ -252,7 +253,26 @@ class QuotationCheckCrudController extends CrudController {
         $this->data['title_modal_create'] = trans('backpack::crud.quotation_check.title_modal_create');
         $this->data['title_modal_edit'] = trans('backpack::crud.quotation_check.title_modal_edit');
         $this->data['title_modal_delete'] = trans('backpack::crud.quotation_check.title_modal_delete');
+        $yearOptions = QuotationCheck::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+
+        $this->crud->year_options = $yearOptions;
+
+        $this->card->addCard([
+            'name' => 'filter',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::buttons.filter-year',
+        ]);
+
         $this->data['cards'] = $this->card;
+        $this->data['modals'] = $this->modal;
+        $this->data['scripts'] = $this->script;
 
         $breadcrumbs = [
             trans('backpack::crud.menu.monitoring_project') => backpack_url('monitoring'),
@@ -273,20 +293,25 @@ class QuotationCheckCrudController extends CrudController {
         $settings = Setting::first();
 
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
 
-        if($type == 'quotation_check'){
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            CRUD::addClause('whereYear', 'quotation_checks.created_at', request()->filter_year);
+        }
+
+        if ($type == 'quotation_check') {
             // CRUD::setModel(QuotationCheck::class);
             $this->crud->query = $this->crud->query
-            ->join('quotations', 'quotations.id', '=', 'quotation_checks.quotation_id')
-            ->join('setup_clients', 'setup_clients.id', '=', 'quotations.client_id');
+                ->join('quotations', 'quotations.id', '=', 'quotation_checks.quotation_id')
+                ->join('setup_clients', 'setup_clients.id', '=', 'quotations.client_id');
             CRUD::addClause('select', [
                 DB::raw("
                     quotation_checks.id,
@@ -302,120 +327,120 @@ class QuotationCheckCrudController extends CrudController {
                     quotations.status
                 ")
             ]);
-            if(request()->has('search')){
-                if(strlen(trim(request()->search['value'])) > 0){
+            if (request()->has('search')) {
+                if (strlen(trim(request()->search['value'])) > 0) {
                     $search = request()->search['value'];
                     $this->crud->query = $this->crud->query
-                    ->where(function($query) use ($search){
-                        $query->where('quotations.no_rfq', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.name_project', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.rab', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.rap', 'like', '%'.$search.'%')
-                        ->orWhere('setup_clients.name', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.pic', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.user', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.closing_date', 'like', '%'.$search.'%')
-                        ->orWhere('quotations.status', 'like', '%'.$search.'%');
-                    });
+                        ->where(function ($query) use ($search) {
+                            $query->where('quotations.no_rfq', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.name_project', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.rab', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.rap', 'like', '%' . $search . '%')
+                                ->orWhere('setup_clients.name', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.pic', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.user', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.closing_date', 'like', '%' . $search . '%')
+                                ->orWhere('quotations.status', 'like', '%' . $search . '%');
+                        });
                 }
             }
-
         }
         CRUD::addColumn([
-                'name'      => 'row_number',
-                'type'      => 'row_number',
-                'label'     => 'No',
-                'orderable' => false,
-                'wrapper' => [
-                    'element' => 'strong',
-                ]
-            ])->makeFirstColumn();
-            CRUD::column(
-                [
-                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
-                    'name' => 'no_rfq',
-                    'type'  => 'wrap_text'
-                ],
-            );
-            CRUD::column(
-                [
-                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
-                    'name' => 'name_project',
-                    'type'  => 'wrap_text'
-                ],
-            );
-            CRUD::column([
-                'label' => trans('backpack::crud.quotation.column.rab.label'),
-                'name' => 'rab',
+            'name'      => 'row_number',
+            'type'      => 'row_number',
+            'label'     => 'No',
+            'orderable' => false,
+            'wrapper' => [
+                'element' => 'strong',
+            ]
+        ])->makeFirstColumn();
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                'name' => 'no_rfq',
+                'type'  => 'wrap_text'
+            ],
+        );
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                'name' => 'name_project',
+                'type'  => 'wrap_text'
+            ],
+        );
+        CRUD::column([
+            'label' => trans('backpack::crud.quotation.column.rab.label'),
+            'name' => 'rab',
+            'type'  => 'closure',
+            'function' => function ($entry) use ($status_file) {
+                return $this->priceFormatExport($status_file, $entry->rab);
+            },
+            // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+        CRUD::column([
+            'label' => trans('backpack::crud.quotation.column.rap.label'),
+            'name' => 'rap',
+            'type'  => 'closure',
+            'function' => function ($entry) use ($status_file) {
+                return $this->priceFormatExport($status_file, $entry->rap);
+            },
+            // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.client_po.column.client_id'),
+            'type'      => 'select',
+            'name'      => 'client_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'setup_client', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\SetupClient", // foreign key model
+            // OPTIONAL
+            'limit' => 50, // Limit the number of characters shown
+        ]);
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.quotation.column.pic.label'),
+                'name' => 'pic',
+                'type'  => 'text'
+            ],
+        );
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.quotation.column.user.label'),
+                'name' => 'user',
+                'type'  => 'text'
+            ],
+        );
+        $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
+        CRUD::column([
+            'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+            'name' => 'closing_date',
+            'type'  => 'date',
+            'format' => $date_format
+        ]);
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.quotation.column.status.label'),
+                'name' => 'status',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
-                    return $this->priceFormatExport($status_file, $entry->rab);
-                },
-                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
-            ]);
-            CRUD::column([
-                'label' => trans('backpack::crud.quotation.column.rap.label'),
-                'name' => 'rap',
-                'type'  => 'closure',
-                'function' => function($entry) use($status_file){
-                    return $this->priceFormatExport($status_file, $entry->rap);
-                },
-                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
-            ]);
-            CRUD::column([
-                // 1-n relationship
-                'label' => trans('backpack::crud.client_po.column.client_id'),
-                'type'      => 'select',
-                'name'      => 'client_id', // the column that contains the ID of that connected entity;
-                'entity'    => 'setup_client', // the method that defines the relationship in your Model
-                'attribute' => 'name', // foreign key attribute that is shown to user
-                'model'     => "App\Models\SetupClient", // foreign key model
-                // OPTIONAL
-                'limit' => 50, // Limit the number of characters shown
-            ]);
-            CRUD::column(
-                [
-                    'label' => trans('backpack::crud.quotation.column.pic.label'),
-                    'name' => 'pic',
-                    'type'  => 'text'
-                ],
-            );
-            CRUD::column(
-                [
-                    'label' => trans('backpack::crud.quotation.column.user.label'),
-                    'name' => 'user',
-                    'type'  => 'text'
-                ],
-            );
-            CRUD::column([
-                'label' => trans('backpack::crud.quotation.column.closing_date.label'),
-                'name' => 'closing_date',
-                'type'  => 'date',
-                'format' => 'D MMM Y'
-            ]);
-            CRUD::column(
-                [
-                    'label' => trans('backpack::crud.quotation.column.status.label'),
-                    'name' => 'status',
-                    'type'  => 'closure',
-                    'function' => function ($entry) {
-                        return strtoupper($entry->status);
-                    }
-                ],
-            );
-            CRUD::column(
-                [
-                    'label' => trans('backpack::crud.quotation.column.information.label'),
-                    'name' => 'information',
-                    'type'  => 'wrap_text'
-                ],
-            );
+                'function' => function ($entry) {
+                    return strtoupper($entry->status);
+                }
+            ],
+        );
+        CRUD::column(
+            [
+                'label' => trans('backpack::crud.quotation.column.information.label'),
+                'name' => 'information',
+                'type'  => 'wrap_text'
+            ],
+        );
     }
 
     public function search()
@@ -461,7 +486,7 @@ class QuotationCheckCrudController extends CrudController {
             $subQuery = $query_clone->cloneWithout(['limit', 'offset']);
 
             $totalEntryCount = $outer_query->select(DB::raw('count(*) as total_rows'))
-            ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
+                ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
             $filteredEntryCount = $totalEntryCount;
 
             // $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
@@ -484,23 +509,24 @@ class QuotationCheckCrudController extends CrudController {
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
         ]);
     }
 
-    private function ruleValidation(){
+    private function ruleValidation()
+    {
         return [
             'quotation' => [
                 'required',
                 'array',
                 'min:1',
-                function($attr, $value, $fail){
-                    foreach($value as $id_quo){
+                function ($attr, $value, $fail) {
+                    foreach ($value as $id_quo) {
                         $quotation_check = QuotationCheck::where('quotation_id', $id_quo)->first();
-                        if($quotation_check != null){
+                        if ($quotation_check != null) {
                             $fail(trans('backpack::crud.quotation.validate.quotation_check_exists'));
                         }
                     }
@@ -509,7 +535,8 @@ class QuotationCheckCrudController extends CrudController {
         ];
     }
 
-    protected function setupCreateOperation(){
+    protected function setupCreateOperation()
+    {
         CRUD::setValidation($this->ruleValidation());
         $this->setupListOperation();
         CRUD::column(
@@ -525,12 +552,12 @@ class QuotationCheckCrudController extends CrudController {
                 ->from('quotation_checks')
                 ->whereColumn('quotation_checks.quotation_id', 'quotations.id');
         })
-        ->orderBy('id', 'desc')
-        ->get();
+            ->orderBy('id', 'desc')
+            ->get();
 
         $quotation_entry_value = [];
 
-        foreach($dataset as $data){
+        foreach ($dataset as $data) {
             $quotation_entry_value[] = $this->crud->getRowViews($data);
         }
 
@@ -551,12 +578,12 @@ class QuotationCheckCrudController extends CrudController {
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $event = [];
             $quotation = $request->quotation;
 
-            foreach($quotation as $quo){
+            foreach ($quotation as $quo) {
                 $quotation_check = new QuotationCheck;
                 $quotation_check->quotation_id = $quo;
                 $quotation_check->save();
@@ -578,7 +605,7 @@ class QuotationCheckCrudController extends CrudController {
                 ]);
             }
             return $this->crud->performSaveAction($quotation_check->getKey());
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -607,7 +634,6 @@ class QuotationCheckCrudController extends CrudController {
 
             DB::commit();
             return response()->json($messages);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -617,7 +643,8 @@ class QuotationCheckCrudController extends CrudController {
         }
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -626,10 +653,10 @@ class QuotationCheckCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -640,7 +667,7 @@ class QuotationCheckCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $title = 'Status Project - '.$type;
+        $title = 'Status Project - ' . $type;
 
         $pdf = Pdf::loadView('exports.table-pdf', [
             'columns' => $columns,
@@ -654,11 +681,12 @@ class QuotationCheckCrudController extends CrudController {
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -667,10 +695,10 @@ class QuotationCheckCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -681,11 +709,13 @@ class QuotationCheckCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $name = 'Status Project - '.$type;
+        $name = 'Status Project - ' . $type;
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -695,7 +725,5 @@ class QuotationCheckCrudController extends CrudController {
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
-
 }

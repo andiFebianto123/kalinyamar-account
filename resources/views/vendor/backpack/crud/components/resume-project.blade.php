@@ -203,15 +203,26 @@
                 accounts_compact:[],
                 eventLoader: async function(){
                     var instance = this;
-                    eventEmitter.on("crudTable-resume-project_load", function(data){
+                    eventEmitter.on("crudTable-filter-resume-project_load", function(data){
                         instance.load();
                     });
                 },
                 load: function(){
                     var instance = this;
-                    instance.eventLoader();
+                    var urlResume = new URL("{{ url($crud->route.'/resume-total') }}");
+                    if(window.filter_tables){
+                        if(window.filter_tables.filter_year && window.filter_tables.filter_year != 'all'){
+                            urlResume.searchParams.set('filter_year', window.filter_tables.filter_year);
+                        }
+                        if(window.filter_tables.filter_category && window.filter_tables.filter_category != 'all'){
+                            urlResume.searchParams.set('filter_category', window.filter_tables.filter_category);
+                        }
+                        if(window.filter_tables.filter_client && window.filter_tables.filter_client != 'all'){
+                            urlResume.searchParams.set('filter_client', window.filter_tables.filter_client);
+                        }
+                    }
                     $.ajax({
-                        url: "{{ url($crud->route.'/resume-total') }}",
+                        url: urlResume.toString(),
                         type: 'GET',
                         typeData: 'json',
                         success: function (result) {
@@ -342,6 +353,7 @@
             }
         });
         SIAOPS.getAttribute('resume-project').load();
+        SIAOPS.getAttribute('resume-project').eventLoader();
     });
 </script>
 @endpush

@@ -1,4 +1,4 @@
-<div class="btn-group" id="filterYear">
+<div class="btn-group" id="filterCategory">
   <button class="btn btn-primary dropdown-toggle filter-btn" type="button" id="defaultDropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
     <i class="la la-filter"></i>- Pilih Kategori
   </button>
@@ -33,42 +33,49 @@
         if(window.filter_tables == undefined){
             window.filter_tables = {};
         }
-        if(typeof filterSelectYear != 'function'){
-            function filterSelectYear(){
-                $('#filterYear .dropdown-menu li').each(function(){
+        if(typeof filterSelectCategory != 'function'){
+            function filterSelectCategory(){
+                $('#filterCategory .dropdown-menu li').each(function(){
                     $(this).children().click(function(e){
                         e.preventDefault();
-                        $('#filterYear .dropdown-menu li a').removeClass('active');
+                        $('#filterCategory .dropdown-menu li a').removeClass('active');
                         let value = $(this).data('value');
                         $(this).addClass('active');
-                        var route_project = "{!! url($crud->route.'/search') !!}"+'?tab=project';
-                        var route_project_edit = "{!! url($crud->route.'/search') !!}"+'?tab=project_edit';
+
                         var filter_client = $('#filterClient .dropdown-menu li a.active').data('value');
-                        route_project += "&filter_category="+value;
-                        route_project += "&filter_client="+filter_client;
-                        route_project_edit += "&filter_category="+value;
+                        
                         window.filter_tables.filter_category = value;
                         window.filter_tables.filter_client = filter_client;
 
-                        // if(SIAOPS.getAttribute('crudTable-project') != null){
-                        //     SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
+                        // if(typeof SIAOPS !== 'undefined' && SIAOPS.getAttribute('resume-project')){
+                        //     SIAOPS.getAttribute('resume-project').load();
                         // }
-                        // if(SIAOPS.getAttribute('crudTable-project_edit') != null){
-                        //     SIAOPS.getAttribute('crudTable-project_edit').table.ajax.url(route_project_edit).load();
-                        // }
-
-                        if(crud.table){
-                            crud.table.ajax.url(route_project).load();
-                        }
 
                         forEachFlexible(SIAOPS.getAllAttributes(), function(key, item){
                             if(key.includes("crudTable")){
-                                var filter_category = $('#filterYear .dropdown-menu li a.active').data('value');
-                                var filter_client = $('#filterClient .dropdown-menu li a.active').data('value');
-                                var url_route = item.route;
-                                url_route += "&filter_category="+filter_category;
-                                url_route += "&filter_client="+filter_client;
-                                item.table.ajax.url(url_route).load();
+                                var url_active = item.table.ajax.url();
+                                var url = new URL(url_active.startsWith('http') ? url_active : window.location.origin + (url_active.startsWith('/') ? '' : '/') + url_active);
+                                
+                                if (value === 'all') {
+                                    url.searchParams.delete('filter_category');
+                                } else {
+                                    url.searchParams.set('filter_category', value);
+                                }
+
+                                if (filter_client === 'all') {
+                                    url.searchParams.delete('filter_client');
+                                } else {
+                                    url.searchParams.set('filter_client', filter_client);
+                                }
+                                
+                                var final_url = url_active.startsWith('http') ? url.toString() : url.pathname + url.search;
+                                item.table.ajax.url(final_url).load();
+                            }
+                        });
+
+                        forEachFlexible(eventEmitter.events, function(key, data){
+                            if(key.includes("crudTable-filter")){
+                                eventEmitter.emit(key, true);
                             }
                         });
 
@@ -76,7 +83,8 @@
                 });
             }
         }
-        filterSelectYear();
+        filterSelectCategory();
+
         if(typeof filterSelectClient != 'function'){
             function filterSelectClient(){
                 $('#filterClient .dropdown-menu li').each(function(){
@@ -85,34 +93,41 @@
                         $('#filterClient .dropdown-menu li a').removeClass('active');
                         let value = $(this).data('value');
                         $(this).addClass('active');
-                        var route_project = "{!! url($crud->route.'/search') !!}"+'?tab=project';
-                        var route_project_edit = "{!! url($crud->route.'/search') !!}"+'?tab=project_edit'
-                        var filter_category = $('#filterYear .dropdown-menu li a.active').data('value');
-                        route_project += "&filter_category="+filter_category;
-                        route_project += "&filter_client="+value;
-                        route_project_edit += "&filter_category="+value;
+
+                        var filter_category = $('#filterCategory .dropdown-menu li a.active').data('value');
+
                         window.filter_tables.filter_category = filter_category;
                         window.filter_tables.filter_client = value;
 
-                        // if(SIAOPS.getAttribute('crudTable-project') != null){
-                        //     SIAOPS.getAttribute('crudTable-project').table.ajax.url(route_project).load();
+                        // if(typeof SIAOPS !== 'undefined' && SIAOPS.getAttribute('resume-project')){
+                        //     SIAOPS.getAttribute('resume-project').load();
                         // }
-                        // if(SIAOPS.getAttribute('crudTable-project_edit') != null){
-                        //     SIAOPS.getAttribute('crudTable-project_edit').table.ajax.url(route_project_edit).load();
-                        // }
-
-                        if(crud.table){
-                            crud.table.ajax.url(route_project).load();
-                        }
 
                         forEachFlexible(SIAOPS.getAllAttributes(), function(key, item){
                             if(key.includes("crudTable")){
-                                var filter_category = $('#filterYear .dropdown-menu li a.active').data('value');
-                                var filter_client = $('#filterClient .dropdown-menu li a.active').data('value');
-                                var url_route = item.route;
-                                url_route += "&filter_category="+filter_category;
-                                url_route += "&filter_client="+filter_client;
-                                item.table.ajax.url(url_route).load();
+                                var url_active = item.table.ajax.url();
+                                var url = new URL(url_active.startsWith('http') ? url_active : window.location.origin + (url_active.startsWith('/') ? '' : '/') + url_active);
+                                
+                                if (filter_category === 'all') {
+                                    url.searchParams.delete('filter_category');
+                                } else {
+                                    url.searchParams.set('filter_category', filter_category);
+                                }
+
+                                if (value === 'all') {
+                                    url.searchParams.delete('filter_client');
+                                } else {
+                                    url.searchParams.set('filter_client', value);
+                                }
+                                
+                                var final_url = url_active.startsWith('http') ? url.toString() : url.pathname + url.search;
+                                item.table.ajax.url(final_url).load();
+                            }
+                        });
+
+                        forEachFlexible(eventEmitter.events, function(key, data){
+                            if(key.includes("crudTable-filter")){
+                                eventEmitter.emit(key, true);
                             }
                         });
 

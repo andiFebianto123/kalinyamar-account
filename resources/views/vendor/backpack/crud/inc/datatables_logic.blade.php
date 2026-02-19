@@ -318,6 +318,16 @@
 
       window.crud.table = $("#crudTable").DataTable(window.crud.dataTableConfiguration);
 
+      SIAOPS.setAttribute('crudTable-list-custom', function() {
+        return {
+            id: 'crudTable-list-custom',
+            table: window.crud.table,
+            load: function() {
+                this.table.ajax.reload();
+            }
+        }
+      });
+
       window.crud.updateUrl(location.href);
 
       // move datatable length

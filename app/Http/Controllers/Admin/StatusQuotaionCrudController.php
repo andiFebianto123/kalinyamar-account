@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Setting;
@@ -14,7 +15,8 @@ use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class StatusQuotaionCrudController extends CrudController{
+class StatusQuotaionCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -27,7 +29,7 @@ class StatusQuotaionCrudController extends CrudController{
         CRUD::setModel(Quotation::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/quotation-status');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.quotation_status'), trans('backpack::crud.menu.quotation_status'));
-        
+
         $base = 'INDEX MONITORING PROYEK STATUS PENAWARAN';
         $viewMenu  = ["MENU $base"];
 
@@ -38,10 +40,11 @@ class StatusQuotaionCrudController extends CrudController{
         ]);
     }
 
-    public function listTableQotation(){
+    public function listTableQotation()
+    {
         $data = [];
         $quotationSetup = SetupOffering::orderBy('id', 'desc')->get();
-        foreach($quotationSetup as $setup){
+        foreach ($quotationSetup as $setup) {
             $data[] = [
                 'name' => str_replace(' ', '_', $setup->name),
                 'title' => $setup->name,
@@ -113,13 +116,14 @@ class StatusQuotaionCrudController extends CrudController{
                         'orderable' => false,
                     ],
                 ],
-                'route' => url($this->crud->route.'/search?type='.$setup->name),
+                'route' => url($this->crud->route . '/search?type=' . $setup->name),
             ];
         }
         return $data;
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         $this->data['is_disabled_list'] = true;
@@ -221,10 +225,10 @@ class StatusQuotaionCrudController extends CrudController{
                                     'orderable' => false,
                                 ],
                             ],
-                            'route' => url($this->crud->route.'/search?type=hps'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?type=hps'),
+                            'route' => url($this->crud->route . '/search?type=hps'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?type=hps'),
                             'title_export_pdf' => 'Status-quotation-HPS.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?type=hps'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?type=hps'),
                             'title_export_excel' => 'Status-quotation-HPS.xlsx',
                         ]
                     ],
@@ -302,10 +306,10 @@ class StatusQuotaionCrudController extends CrudController{
                                     'orderable' => false,
                                 ],
                             ],
-                            'route' => url($this->crud->route.'/search?type=Quotation'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?type=Quotation'),
+                            'route' => url($this->crud->route . '/search?type=Quotation'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?type=Quotation'),
                             'title_export_pdf' => 'Status-quotation-Quotation.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?type=Quotation'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?type=Quotation'),
                             'title_export_excel' => 'Status-quotation-Quotation.xlsx',
                         ]
                     ],
@@ -383,10 +387,10 @@ class StatusQuotaionCrudController extends CrudController{
                                     'orderable' => false,
                                 ],
                             ],
-                            'route' => url($this->crud->route.'/search?type=Close'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?type=Close'),
+                            'route' => url($this->crud->route . '/search?type=Close'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?type=Close'),
                             'title_export_pdf' => 'Status-quotation-Close.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?type=Close'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?type=Close'),
                             'title_export_excel' => 'Status-quotation-Close.xlsx',
                         ]
                     ]
@@ -414,6 +418,15 @@ class StatusQuotaionCrudController extends CrudController{
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
 
+        $yearOptions = Quotation::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+
+        $this->crud->year_options = $yearOptions;
+
         $this->data['cards'] = $this->card;
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
@@ -427,16 +440,22 @@ class StatusQuotaionCrudController extends CrudController{
         $settings = Setting::first();
 
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
         CRUD::disableResponsiveTable();
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
+
         CRUD::addClause('where', 'status', $type);
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            CRUD::addClause('whereYear', 'created_at', request()->filter_year);
+        }
         CRUD::addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -448,14 +467,14 @@ class StatusQuotaionCrudController extends CrudController{
         ])->makeFirstColumn();
         CRUD::column(
             [
-                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
                 'name' => 'no_rfq',
                 'type'  => 'wrap_text'
             ],
         );
         CRUD::column(
             [
-                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                'label' => trans('backpack::crud.quotation.column.name_project.label'),
                 'name' => 'name_project',
                 'type'  => 'wrap_text'
             ],
@@ -464,7 +483,7 @@ class StatusQuotaionCrudController extends CrudController{
             'label' => trans('backpack::crud.quotation.column.rab.label'),
             'name' => 'rab',
             'type'  => 'closure',
-            'function' => function($entry) use($status_file){
+            'function' => function ($entry) use ($status_file) {
                 return $this->priceFormatExport($status_file, $entry->rab);
             },
             // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -476,7 +495,7 @@ class StatusQuotaionCrudController extends CrudController{
             'label' => trans('backpack::crud.quotation.column.rap.label'),
             'name' => 'rap',
             'type'  => 'closure',
-            'function' => function($entry) use($status_file){
+            'function' => function ($entry) use ($status_file) {
                 return $this->priceFormatExport($status_file, $entry->rap);
             },
             //'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
@@ -497,27 +516,28 @@ class StatusQuotaionCrudController extends CrudController{
         ]);
         CRUD::column(
             [
-                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
+                'label' => trans('backpack::crud.quotation.column.pic.label'),
                 'name' => 'pic',
                 'type'  => 'text'
             ],
         );
         CRUD::column(
             [
-                                    'label' => trans('backpack::crud.quotation.column.user.label'),
+                'label' => trans('backpack::crud.quotation.column.user.label'),
                 'name' => 'user',
                 'type'  => 'text'
             ],
         );
+        $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
         CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+            'label' => trans('backpack::crud.quotation.column.closing_date.label'),
             'name' => 'closing_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $date_format
         ]);
         CRUD::column(
             [
-                                    'label' => trans('backpack::crud.quotation.column.status.label'),
+                'label' => trans('backpack::crud.quotation.column.status.label'),
                 'name' => 'status',
                 'type'  => 'closure',
                 'function' => function ($entry) {
@@ -534,7 +554,8 @@ class StatusQuotaionCrudController extends CrudController{
         );
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->type;
 
         $this->setupListOperation();
@@ -543,10 +564,10 @@ class StatusQuotaionCrudController extends CrudController{
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -557,7 +578,7 @@ class StatusQuotaionCrudController extends CrudController{
             $all_items[] = $row_items;
         }
 
-        $title = 'Status Quotation - '.$type;
+        $title = 'Status Quotation - ' . $type;
 
         $pdf = Pdf::loadView('exports.table-pdf', [
             'columns' => $columns,
@@ -571,11 +592,12 @@ class StatusQuotaionCrudController extends CrudController{
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $type = request()->type;
 
         $this->setupListOperation();
@@ -584,10 +606,10 @@ class StatusQuotaionCrudController extends CrudController{
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -598,11 +620,13 @@ class StatusQuotaionCrudController extends CrudController{
             $all_items[] = $row_items;
         }
 
-        $name = 'Status Project - '.$type;
+        $name = 'Status Project - ' . $type;
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -612,7 +636,5 @@ class StatusQuotaionCrudController extends CrudController{
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
-
 }

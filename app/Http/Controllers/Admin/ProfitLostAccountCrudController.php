@@ -159,30 +159,6 @@ class ProfitLostAccountCrudController extends CrudController
             ]
         ]);
 
-        if ($dataset->count() > 0) {
-            // foreach($dataset as $account){
-            //     $this->card->addCard([
-            //         'name' => 'account_'.$account->id,
-            //         'line' => 'top',
-            //         'view' => 'crud::components.card-account-profit',
-            //         'params' => [
-            //             'crud' => $this->crud,
-            //             'account' => $account,
-            //             'route' => url($this->crud->route.'/search?_id='.$account->id),
-            //         ]
-            //     ]);
-            // }
-        } else {
-            // $this->card->addCard([
-            //     'name' => 'blank_account',
-            //     'line' => 'top',
-            //     'view' => 'crud::components.blank_card-account-profit',
-            //     'params' => [
-            //         'message' => 'selamat malam',
-            //     ],
-            // ]);
-        }
-
         $this->crud->filter('category77crudTable-project')
             ->label('Kategori')
             ->type('select2')
@@ -2849,6 +2825,23 @@ class ProfitLostAccountCrudController extends CrudController
         $data = $this->total_report_account_profit_lost_ajax();
 
         $name = "Laporan-laba-rugi.xlsx";
+
+        foreach ($data as $key => $d) {
+            $d['total'] = str_replace('Rp', '', $d['total']);
+            $d['total'] = str_replace('.', '', $d['total']);
+            $d['total'] = str_replace(',', '.', $d['total']);
+            $d['total'] = trim($d['total']);
+            if ($d['item']->count() > 0) {
+                $d['item'] = $d['item']->map(function ($item) {
+                    $item['total'] = str_replace('Rp', '', $item['total']);
+                    $item['total'] = str_replace('.', '', $item['total']);
+                    $item['total'] = str_replace(',', '.', $item['total']);
+                    $item['total'] = trim($item['total']);
+                    return $item;
+                });
+            }
+            $data[$key]['total'] = $d['total'];
+        }
 
         return response()->streamDownload(function () use ($data, $name) {
             echo Excel::raw(new ExportProfitLostConsolidation($data), \Maatwebsite\Excel\Excel::XLSX);

@@ -20,7 +20,8 @@ use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ProjectListReportCrudController extends CrudController {
+class ProjectListReportCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -34,7 +35,7 @@ class ProjectListReportCrudController extends CrudController {
         CRUD::setModel(Project::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/monitoring/project-report');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.project_report'), trans('backpack::crud.menu.project_report'));
-        
+
         $base = 'INDEX MONITORING PROYEK PROYEK REPORT';
         $viewMenu  = ["MENU $base"];
 
@@ -45,7 +46,8 @@ class ProjectListReportCrudController extends CrudController {
         ]);
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         $this->card->addCard([
@@ -61,6 +63,16 @@ class ProjectListReportCrudController extends CrudController {
         $this->data['title_modal_create'] = trans('backpack::crud.project_report.title_modal_create');
         $this->data['title_modal_edit'] = trans('backpack::crud.project_report.title_modal_edit');
         $this->data['title_modal_delete'] = trans('backpack::crud.project_report.title_modal_delete');
+        $yearOptions = Project::selectRaw('YEAR(start_date) as year')
+            ->union(Project::selectRaw('YEAR(end_date) as year'))
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+        $yearOptions = array_unique($yearOptions);
+        rsort($yearOptions);
+
+        $this->crud->year_options = $yearOptions;
+
         $this->data['cards'] = $this->card;
 
         $breadcrumbs = [
@@ -87,36 +99,45 @@ class ProjectListReportCrudController extends CrudController {
         $settings = Setting::first();
 
         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         $this->crud->file_title_export_pdf = "Laporan_project-report.pdf";
         $this->crud->file_title_export_excel = "Laporan_project-report.xlsx";
         $this->crud->param_uri_export = "?export=1";
 
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            $year = request()->filter_year;
+            $this->crud->query = $this->crud->query->where(function ($q) use ($year) {
+                $q->whereYear('projects.start_date', $year)
+                    ->orWhereYear('projects.end_date', $year);
+            });
+        }
+
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
 
 
-        if(request()->has('filter_category')){
-            if(request()->filter_category != 'all'){
+        if (request()->has('filter_category')) {
+            if (request()->filter_category != 'all') {
                 $this->crud->addClause('where', 'category', request()->filter_category);
             }
         }
 
-        if(request()->has('filter_client')){
-            if(request()->filter_client != 'all'){
+        if (request()->has('filter_client')) {
+            if (request()->filter_client != 'all') {
                 $this->crud->query = $this->crud->query
-                ->whereExists(function ($query) {
-                    $query->select(DB::raw(1))
-                    ->from('setup_clients')
-                    ->whereRaw('setup_clients.id = projects.client_id')
-                    ->where('setup_clients.id', request()->filter_client);
-                });
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('setup_clients')
+                            ->whereRaw('setup_clients.id = projects.client_id')
+                            ->where('setup_clients.id', request()->filter_client);
+                    });
             }
         }
 
@@ -147,7 +168,7 @@ class ProjectListReportCrudController extends CrudController {
             'label'  => trans('backpack::crud.project_report.column.price_total_include_ppn.label'),
             'name' => 'price_total_include_ppn',
             'type'  => 'closure',
-            'function' => function($entry) use($status_file){
+            'function' => function ($entry) use ($status_file) {
                 return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
             },
             // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
@@ -179,28 +200,29 @@ class ProjectListReportCrudController extends CrudController {
                 'name' => 'duration',
                 'type'  => 'closure',
                 'function' => function ($row) {
-                    if(strtoupper($row->status_po) == 'UNPAID'){
+                    if (strtoupper($row->status_po) == 'UNPAID') {
                         $total_day = $this->hitungDurasiHari($row->invoice_date);
                         $day = ($row->invoice_date) ? $total_day : '0';
-                        return $day.' Hari';
+                        return $day . ' Hari';
                     }
                     $total_day = $this->hitungDurasiHari($row->actual_end_date);
                     $day = ($row->actual_end_date) ? $total_day : '0';
-                    return $day.' Hari';
+                    return $day . ' Hari';
                 }
             ],
         );
+        $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
         CRUD::column([
             'label'  => trans('backpack::crud.project_report.column.actual_start_date.label'),
             'name' => 'actual_start_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $date_format
         ]);
         CRUD::column([
             'label'  => trans('backpack::crud.project_report.column.actual_end_date.label'),
             'name' => 'actual_end_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $date_format
         ]);
         CRUD::column(
             [
@@ -218,7 +240,8 @@ class ProjectListReportCrudController extends CrudController {
         );
     }
 
-    protected function setupCreateOperation(){
+    protected function setupCreateOperation()
+    {
         CRUD::setValidation([]);
         CRUD::addField([
             'name' => 'name',
@@ -316,7 +339,7 @@ class ProjectListReportCrudController extends CrudController {
         $tax_ppn_option = [
             '' => trans('backpack::crud.project.field.tax_ppn.placeholder'),
             ...$tarif_ppn->map(function ($value, $key) {
-                $name = number_format($value, 0, '.', ',').' %';
+                $name = number_format($value, 0, '.', ',') . ' %';
                 return $name;
             }),
         ];
@@ -389,7 +412,7 @@ class ProjectListReportCrudController extends CrudController {
             'name' => 'duration',
             'label' => trans('backpack::crud.project.field.duration.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => [
                 "step" => "any",
                 'disabled' => true,
@@ -454,7 +477,7 @@ class ProjectListReportCrudController extends CrudController {
             '' => trans('backpack::crud.project.field.client_id.placeholder'),
         ];
 
-        foreach($client as $c){
+        foreach ($client as $c) {
             $client_option[$c->id] = $c->name;
         }
 
@@ -492,7 +515,7 @@ class ProjectListReportCrudController extends CrudController {
             'name' => 'progress',
             'label' => trans('backpack::crud.project.field.progress.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -541,10 +564,10 @@ class ProjectListReportCrudController extends CrudController {
             'name' => 'logic_project',
             'type' => 'logic_project',
         ]);
-
     }
 
-    protected function setupShowOperation(){
+    protected function setupShowOperation()
+    {
         $settings = Setting::first();
         $this->setupCreateOperation();
         CRUD::field('received_po_date')->remove();
@@ -731,14 +754,15 @@ class ProjectListReportCrudController extends CrudController {
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view($this->crud->getShowView(), $this->data)->render()
         ]);
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->type;
 
         $this->setupListOperation();
@@ -747,10 +771,10 @@ class ProjectListReportCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -775,11 +799,12 @@ class ProjectListReportCrudController extends CrudController {
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $type = request()->type;
 
         $this->setupListOperation();
@@ -788,10 +813,10 @@ class ProjectListReportCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -802,11 +827,13 @@ class ProjectListReportCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        $name = 'Status Project - '.$type;
+        $name = 'Status Project - ' . $type;
 
-        return response()->streamDownload(function () use($type, $columns, $items, $all_items){
+        return response()->streamDownload(function () use ($type, $columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -816,7 +843,5 @@ class ProjectListReportCrudController extends CrudController {
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
-
 }

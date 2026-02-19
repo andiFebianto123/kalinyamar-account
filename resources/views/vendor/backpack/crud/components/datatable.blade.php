@@ -565,7 +565,7 @@
 
                         forEachFlexible(eventEmitter.events, function(key, data){
                             if(key.includes("crudTable-filter")){
-                                eventEmitter.emit(key, true);
+                                // eventEmitter.emit(key, true);
                             }
                         });
 
@@ -630,6 +630,15 @@
         $(function(){
             SIAOPS.getAttribute('crudTable-{{$name}}').load();
 
+            var tableId = '#crudTable-{{$name}}';
+            $(tableId).css('width', '100%');
+
+            if ($.fn.DataTable.isDataTable(tableId)) {
+                try {
+                $(tableId).DataTable().columns.adjust();
+                } catch(e){}
+            }
+
             @if (!isset($filter))
 
                 var datatable = SIAOPS.getAttribute('crudTable-{{$name}}').table;
@@ -640,23 +649,55 @@
                     resizeTimer = setTimeout(function() {
                         // Run code here, resizing has "stopped"
                         datatable.columns.adjust();
-                    }, 250);
+                    }, 100);
                 }
 
                 $(window).on('resize', function(e) {
                     resizeCrudTableColumnWidths();
                 });
 
-                $('.sidebar-toggler').click(function() {
-                    resizeCrudTableColumnWidths();
+                $('.sidebar-nav').on({
+                    mouseenter: function() {
+                        resizeCrudTableColumnWidths();
+                    },
+                    mouseleave: function() {
+                        resizeCrudTableColumnWidths();
+                    }
                 });
 
-
-                $(window).on('click', function(){
+                $('.nav-tabs .nav-link').on('click', function(){
                     SIAOPS.getAttribute('crudTable-{{$name}}').table.columns.adjust();
                 });
 
             @endif
         });
+        
+        // Custom function to force width 100%
+        // function adjustCrudTableWidth() {
+        //     var tableId = '#crudTable-{{$name}}';
+        //     $(tableId).css('width', '100%');
+
+        //     console.log(tableId);
+            
+        //     if ($.fn.DataTable.isDataTable(tableId)) {
+        //         try {
+        //         $(tableId).DataTable().columns.adjust();
+        //         } catch(e){}
+        //     }
+        // }
+
+        // $(document).ready(function() {
+        //      // Delay slightly to ensure table rendering
+        //      setTimeout(adjustCrudTableWidth, 1000);
+
+        //      $(window).on('resize', function() {
+        //          adjustCrudTableWidth();
+        //      });
+             
+        //      $('.sidebar-toggler').click(function() {
+        //         setTimeout(adjustCrudTableWidth, 300);
+        //     });
+        // });
+
     </script>
 @endpush

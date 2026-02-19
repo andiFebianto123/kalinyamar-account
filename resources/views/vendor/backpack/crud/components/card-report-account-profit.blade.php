@@ -112,31 +112,16 @@
                 table: "table-account-{{$name}}",
                 load: async function(){
                     var instance = this;
-
                     return new Promise((resolve, reject) => {
                         $.ajax({
                             url: instance.url,
+                            data: {
+                                filter_year: filter_tables.filter_year,
+                            },
                             type: 'GET',
                             typeData: 'json',
                             success: function (result) {
                                 $('#'+instance.table+' tbody').empty();
-                                // $('#str_tot_1').html(result.total_acct_1);
-                                // $('#str_tot_2').html(result.total_acct_2);
-                                // $('#str_tot_3').html(result.total_acct_3);
-                                // $('#str_tot_4').html(result.total_acct_4);
-                                // $('#str_tot_5').html(result.total_acct_5);
-                                // $('#str_tot_6').html(result.total_acct_6);
-                                // $('#str_tot_7').html(result.total_acct_7);
-                                // $('#str_tot_8').html(result.total_acct_8);
-                                // $('#str_tot_9').html(result.total_acct_9);
-                                // $('#str_tot_10').html(result.total_acct_10);
-                                // $('#str_tot_11').html(result.total_acct_11);
-                                // $('#str_tot_12').html(result.total_acct_12);
-                                // <tr>
-                                //     <td><strong>Pendapatan Usaha</strong></td>
-                                //     <td></td>
-                                //     <td><strong id="str_tot_1">Rp. xxx</strong></td>
-                                // </tr>
                                 var html = '';
                                 result.forEach(function(item){
                                     html += `<tr>
@@ -177,6 +162,10 @@
             // }
             // await SIAOPS.getAttribute("{{$name}}").load();
         });
+
+        eventEmitter.on("crudTable-filter_{{$name}}_load", async function(data){
+            await SIAOPS.getAttribute("{{$name}}").load();
+        });
     </script>
 @endpush
 
@@ -184,7 +173,7 @@
     @once
         <script>
             $(function(){
-                SIAOPS.getAttribute('accounts').load();
+                // SIAOPS.getAttribute('accounts').load();
 
                 $('#btn-export-consolidation-pdf').click(async function(){
                     setLoadingButton("#btn-export-consolidation-pdf", true);

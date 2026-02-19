@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -19,7 +20,8 @@ use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Controllers\Operation\PermissionAccess;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class QuotationCrudController extends CrudController {
+class QuotationCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -46,10 +48,10 @@ class QuotationCrudController extends CrudController {
             'show'   => $viewMenu,
             'print'  => true,
         ]);
-
     }
 
-    function index(){
+    function index()
+    {
         $this->crud->hasAccessOrFail('list');
 
         $this->card->addCard([
@@ -109,7 +111,7 @@ class QuotationCrudController extends CrudController {
                                     'name' => 'pic',
                                     'orderable' => true,
                                 ],
-                                 [
+                                [
                                     'label' => trans('backpack::crud.quotation.column.user.label'),
                                     'type' => 'text',
                                     'name' => 'user',
@@ -152,9 +154,9 @@ class QuotationCrudController extends CrudController {
                                 ]
                             ],
                             'route' => backpack_url('/monitoring/quotation/search?tab=quotation'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=quotation'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=quotation'),
                             'title_export_pdf' => 'Daftar-penawaran.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=quotation'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=quotation'),
                             'title_export_excel' => 'Daftar-penawaran.xlsx',
                         ],
                     ],
@@ -197,9 +199,9 @@ class QuotationCrudController extends CrudController {
                                 ],
                             ],
                             'route' => backpack_url('/monitoring/quotation/search?tab=quotation_history'),
-                            'route_export_pdf' => url($this->crud->route.'/export-pdf?tab=quotation_history'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=quotation_history'),
                             'title_export_pdf' => 'Daftar-penawaran-edit.pdf',
-                            'route_export_excel' => url($this->crud->route.'/export-excel?tab=quotation_history'),
+                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=quotation_history'),
                             'title_export_excel' => 'Daftar-penawaran-edit.xlsx',
                         ]
                     ]
@@ -228,6 +230,29 @@ class QuotationCrudController extends CrudController {
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
 
+        $yearOptionsQuo = Quotation::selectRaw('YEAR(created_at) as year')
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+
+        $yearOptionsHistory = QuotationHistory::selectRaw('YEAR(created_at) as year')
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+
+        $yearOptions = array_unique(array_merge($yearOptionsQuo, $yearOptionsHistory));
+        rsort($yearOptions);
+
+        $this->crud->year_options = $yearOptions;
+
+        $this->card->addCard([
+            'name' => 'filter',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::buttons.filter-year',
+        ]);
+
         // $list = "crud::list-custom" ?? $this->crud->getListView();
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
@@ -239,7 +264,7 @@ class QuotationCrudController extends CrudController {
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -260,7 +285,7 @@ class QuotationCrudController extends CrudController {
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -268,7 +293,8 @@ class QuotationCrudController extends CrudController {
         ]);
     }
 
-    function ruleValidation(){
+    function ruleValidation()
+    {
         return [
             'no_rfq' => 'required',
             'name_project' => 'required',
@@ -282,7 +308,8 @@ class QuotationCrudController extends CrudController {
         ];
     }
 
-    protected function setupCreateOperation(){
+    protected function setupCreateOperation()
+    {
         $settings = Setting::first();
         CRUD::setValidation($this->ruleValidation());
         CRUD::addField([
@@ -344,7 +371,7 @@ class QuotationCrudController extends CrudController {
             '' => trans('backpack::crud.project.field.client_id.placeholder'),
         ];
 
-        foreach($client as $c){
+        foreach ($client as $c) {
             $client_option[$c->id] = $c->name;
         }
 
@@ -462,13 +489,12 @@ class QuotationCrudController extends CrudController {
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
-             'withFiles' => [
+            'withFiles' => [
                 'disk' => 'public',
                 'path' => 'document_quotation',
                 'deleteWhenEntryIsDeleted' => true,
             ],
         ]);
-
     }
 
     protected function setupUpdateOperation()
@@ -479,22 +505,31 @@ class QuotationCrudController extends CrudController {
     protected function setupListOperation()
     {
         $type = request()->tab;
-         $settings = Setting::first();
+        $settings = Setting::first();
 
-         $status_file = '';
-        if(strpos(url()->current(), 'excel')){
+        $status_file = '';
+        if (strpos(url()->current(), 'excel')) {
             $status_file = 'excel';
-        }else{
+        } else {
             $status_file = 'pdf';
         }
 
-        if(!request()->has('tab')){
+        if (!request()->has('tab')) {
             $type = 'quotation';
         }
 
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
-        if($type == 'quotation'){
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            if ($type == 'quotation') {
+                CRUD::addClause('whereYear', 'created_at', request()->filter_year);
+            } else if ($type == 'quotation_history') {
+                CRUD::addClause('whereYear', 'created_at', request()->filter_year);
+            }
+        }
+        if ($type == 'quotation') {
             CRUD::setModel(Quotation::class);
             CRUD::disableResponsiveTable();
             CRUD::addColumn([
@@ -508,23 +543,23 @@ class QuotationCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
+                    'label' => trans('backpack::crud.quotation.column.no_rfq.label'),
                     'name' => 'no_rfq',
                     'type'  => 'wrap_text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
+                    'label' => trans('backpack::crud.quotation.column.name_project.label'),
                     'name' => 'name_project',
                     'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rab.label'),
+                'label' => trans('backpack::crud.quotation.column.rab.label'),
                 'name' => 'rab',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->rab);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
@@ -533,10 +568,10 @@ class QuotationCrudController extends CrudController {
                 'thousands_sep' => '.',
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rap.label'),
+                'label' => trans('backpack::crud.quotation.column.rap.label'),
                 'name' => 'rap',
                 'type'  => 'closure',
-                'function' => function($entry) use($status_file){
+                'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->rap);
                 },
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
@@ -557,36 +592,37 @@ class QuotationCrudController extends CrudController {
             ]);
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.pic.label'),
+                    'label' => trans('backpack::crud.quotation.column.pic.label'),
                     'name' => 'pic',
                     'type'  => 'text'
                 ],
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.user.label'),
+                    'label' => trans('backpack::crud.quotation.column.user.label'),
                     'name' => 'user',
                     'type'  => 'text'
                 ],
             );
 
+            $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.closing_date.label'),
+                'label' => trans('backpack::crud.quotation.column.closing_date.label'),
                 'name' => 'closing_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $date_format
             ]);
 
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.rfq_date.label'),
+                'label' => trans('backpack::crud.quotation.column.rfq_date.label'),
                 'name' => 'rfq_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $date_format
             ]);
 
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.status.label'),
+                    'label' => trans('backpack::crud.quotation.column.status.label'),
                     'name' => 'status',
                     'type'  => 'closure',
                     'function' => function ($entry) {
@@ -596,7 +632,7 @@ class QuotationCrudController extends CrudController {
             );
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.information.label'),
+                    'label' => trans('backpack::crud.quotation.column.information.label'),
                     'name' => 'information',
                     'type'  => 'wrap_text'
                 ],
@@ -606,11 +642,11 @@ class QuotationCrudController extends CrudController {
                 'label'  => 'Dokumen Penawaran',
                 'name' => 'document_path',
                 'type'  => 'text',
-                    'wrapper'   => [
+                'wrapper'   => [
                     'element' => 'a', // the element will default to "a" so you can skip it here
                     'href' => function ($crud, $column, $entry, $related_key) {
-                        if($entry->document_path != ''){
-                            return url('storage/'.$entry->document_path);
+                        if ($entry->document_path != '') {
+                            return url('storage/' . $entry->document_path);
                         }
                         return "javascript:void(0)";
                     },
@@ -618,7 +654,7 @@ class QuotationCrudController extends CrudController {
                     // 'class' => 'some-class',
                 ],
             ]);
-        }else if($type == 'quotation_history'){
+        } else if ($type == 'quotation_history') {
             CRUD::setModel(QuotationHistory::class);
             CRUD::disableResponsiveTable();
             CRUD::addColumn([
@@ -632,14 +668,14 @@ class QuotationCrudController extends CrudController {
             ])->makeFirstColumn();
             CRUD::column(
                 [
-                                    'label' => trans('backpack::crud.quotation.column.name_project.label_2'),
+                    'label' => trans('backpack::crud.quotation.column.name_project.label_2'),
                     'name' => 'name_project',
                     'type'  => 'wrap_text'
                 ],
             );
             CRUD::column([
                 // 1-n relationship
-                                    'label' => trans('backpack::crud.quotation.column.user_id.label'),
+                'label' => trans('backpack::crud.quotation.column.user_id.label'),
                 'type'      => 'select',
                 'name'      => 'user_id', // the column that contains the ID of that connected entity;
                 'entity'    => 'user', // the method that defines the relationship in your Model
@@ -648,14 +684,15 @@ class QuotationCrudController extends CrudController {
                 // OPTIONAL
                 // 'limit' => 32, // Limit the number of characters shown
             ]);
+            $date_format_history = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'DD MMM YYYY HH:mm';
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.date_update.label'),
+                'label' => trans('backpack::crud.quotation.column.date_update.label'),
                 'name' => 'date_update',
                 'type'  => 'date',
-                'format' => 'DD MMM YYYY HH:mm'
+                'format' => $date_format_history
             ]);
             CRUD::column([
-                                    'label' => trans('backpack::crud.quotation.column.history_update.label'),
+                'label' => trans('backpack::crud.quotation.column.history_update.label'),
                 'name' => 'history_update',
                 'type'  => 'wrap_text',
             ]);
@@ -671,7 +708,7 @@ class QuotationCrudController extends CrudController {
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $event = [];
             $item = new Quotation;
@@ -714,8 +751,7 @@ class QuotationCrudController extends CrudController {
                 ]);
             }
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -735,58 +771,58 @@ class QuotationCrudController extends CrudController {
 
 
         DB::beginTransaction();
-        try{
+        try {
 
             $old = DB::table('quotations')->where('id', $this->crud->getCurrentEntryId())->first();
             $item = Quotation::find($this->crud->getCurrentEntryId());
 
-            if($old->no_rfq != $request->no_rfq){
+            if ($old->no_rfq != $request->no_rfq) {
                 $flag_update = true;
             }
             $item->no_rfq = $request->no_rfq;
-            if($old->name_project != $request->name_project){
+            if ($old->name_project != $request->name_project) {
                 $flag_update = true;
             }
             $item->name_project = $request->name_project;
-            if($old->rab != $request->rab){
+            if ($old->rab != $request->rab) {
                 $flag_update = true;
             }
             $item->rab = $request->rab;
-            if($old->rap != $request->rap){
+            if ($old->rap != $request->rap) {
                 $flag_update = true;
             }
             $item->rap = $request->rap;
-            if($old->client_id != $request->client_id){
+            if ($old->client_id != $request->client_id) {
                 $flag_update = true;
             }
             $item->client_id = $request->client_id;
-            if($old->pic != $request->pic){
+            if ($old->pic != $request->pic) {
                 $flag_update = true;
             }
             $item->pic = $request->pic;
-            if($old->user != $request->user){
+            if ($old->user != $request->user) {
                 $flag_update = true;
             }
             $item->user = $request->user;
-            if($old->closing_date != $request->closing_date){
+            if ($old->closing_date != $request->closing_date) {
                 $flag_update = true;
             }
             $item->closing_date = $request->closing_date;
-            if($old->rfq_date != $request->rfq_date){
+            if ($old->rfq_date != $request->rfq_date) {
                 $flag_update = true;
             }
             $item->rfq_date = $request->rfq_date;
-            if($old->status != $request->status){
+            if ($old->status != $request->status) {
                 $flag_update = true;
             }
             $item->status = $request->status;
-            if($old->information != $request->information){
+            if ($old->information != $request->information) {
                 $flag_update = true;
             }
             $item->information = $request->information;
             $item->save();
 
-            if(isset($flag_update)){
+            if (isset($flag_update)) {
                 $item_history = new QuotationHistory;
                 $item_history->quotation_id = $item->id;
                 $item_history->name_project = $item->name_project;
@@ -819,8 +855,7 @@ class QuotationCrudController extends CrudController {
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -830,7 +865,7 @@ class QuotationCrudController extends CrudController {
         }
     }
 
-     public function destroy($id)
+    public function destroy($id)
     {
         DB::beginTransaction();
         try {
@@ -880,14 +915,15 @@ class QuotationCrudController extends CrudController {
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view($this->crud->getShowView(), $this->data)->render()
         ]);
     }
 
-    protected function setupShowOperation(){
+    protected function setupShowOperation()
+    {
         $this->setupCreateOperation();
         $this->setupListOperation();
         CRUD::column('row_number')->remove();
@@ -896,11 +932,11 @@ class QuotationCrudController extends CrudController {
             'label'  => 'Dokumen Penawaran',
             'name' => 'document_path',
             'type'  => 'text',
-                'wrapper'   => [
+            'wrapper'   => [
                 'element' => 'a', // the element will default to "a" so you can skip it here
                 'href' => function ($crud, $column, $entry, $related_key) {
-                    if($entry->document_path != ''){
-                        return url('storage/document_quotation/'.$entry->document_path);
+                    if ($entry->document_path != '') {
+                        return url('storage/document_quotation/' . $entry->document_path);
                     }
                     return "javascript:void(0)";
                 },
@@ -908,10 +944,10 @@ class QuotationCrudController extends CrudController {
                 // 'class' => 'some-class',
             ],
         ])->after('information');
-
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -923,10 +959,10 @@ class QuotationCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -937,9 +973,9 @@ class QuotationCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        if($type == 'quotation_history'){
+        if ($type == 'quotation_history') {
             $title = 'Daftar Penawaran - Edit';
-        }else{
+        } else {
             $title = 'Daftar Penawaran';
         }
 
@@ -955,11 +991,12 @@ class QuotationCrudController extends CrudController {
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
         $type = request()->tab;
 
         $this->setupListOperation();
@@ -970,10 +1007,10 @@ class QuotationCrudController extends CrudController {
 
         $row_number = 0;
         $all_items = [];
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -984,17 +1021,19 @@ class QuotationCrudController extends CrudController {
             $all_items[] = $row_items;
         }
 
-        if($type == 'quotation_history'){
+        if ($type == 'quotation_history') {
             $title = 'Daftar Penawaran - Edit';
-        }else{
+        } else {
             $title = 'Daftar Penawaran';
         }
 
         $name = 'project_list.xlsx';
 
-        return response()->streamDownload(function () use($type, $columns, $items, $all_items){
+        return response()->streamDownload(function () use ($type, $columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -1004,9 +1043,5 @@ class QuotationCrudController extends CrudController {
             'success' => false,
             'message' => 'Download Failure',
         ], 400);
-
     }
-
-
-
 }

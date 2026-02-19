@@ -285,6 +285,31 @@ class ProjectListCrudController extends CrudController
             trans('backpack::crud.menu.project_list') => backpack_url($this->crud->route)
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
+
+        $yearOptionsProject = Project::selectRaw('YEAR(start_date) as year')
+            ->union(Project::selectRaw('YEAR(end_date) as year'))
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+
+        $yearOptionsHistory = ProjectHistory::selectRaw('YEAR(created_at) as year')
+            ->pluck('year')
+            ->filter()
+            ->toArray();
+
+        $yearOptions = array_unique(array_merge($yearOptionsProject, $yearOptionsHistory));
+        rsort($yearOptions);
+
+        $this->crud->year_options = $yearOptions;
+
+        $this->card->addCard([
+            'name' => 'filter-year',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::buttons.filter-year',
+        ]);
+
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
     }
@@ -314,6 +339,7 @@ class ProjectListCrudController extends CrudController
             $status_file = 'pdf';
         }
 
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
@@ -340,6 +366,14 @@ class ProjectListCrudController extends CrudController
                 }
             }
 
+            if (request()->has('filter_year') && request()->filter_year != 'all') {
+                $year = request()->filter_year;
+                $this->crud->query = $this->crud->query->where(function ($q) use ($year) {
+                    $q->whereYear('projects.start_date', $year)
+                        ->orWhereYear('projects.end_date', $year);
+                });
+            }
+
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -363,11 +397,12 @@ class ProjectListCrudController extends CrudController
                     'type'  => 'wrap_text'
                 ],
             );
+            $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.po_date.label'),
                 'name' => 'po_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $date_format
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
@@ -427,7 +462,7 @@ class ProjectListCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
                 'name' => 'received_po_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $date_format
             ]);
             CRUD::column(
                 [
@@ -457,13 +492,13 @@ class ProjectListCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.actual_start_date.label'),
                 'name' => 'actual_start_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $date_format
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.actual_end_date.label'),
                 'name' => 'actual_end_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $date_format
             ]);
             CRUD::column(
                 [
@@ -557,6 +592,10 @@ class ProjectListCrudController extends CrudController
                 }
             }
 
+            if (request()->has('filter_year') && request()->filter_year != 'all') {
+                $this->crud->addClause('whereYear', 'project_history.created_at', request()->filter_year);
+            }
+
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -584,11 +623,12 @@ class ProjectListCrudController extends CrudController
                 // OPTIONAL
                 // 'limit' => 32, // Limit the number of characters shown
             ]);
+            $date_format_history = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'DD MMM YYYY HH:mm';
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project_edit.date_update.label'),
                 'name' => 'date_update',
                 'type'  => 'date',
-                'format' => 'DD MMM YYYY HH:mm'
+                'format' => $date_format_history
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project_edit.history_update.label'),

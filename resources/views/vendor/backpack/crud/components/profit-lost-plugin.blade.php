@@ -29,6 +29,7 @@
                     const params = new URLSearchParams(getI.table.ajax.url());
 
                     var category = params.get('category');
+                    var year = params.get('filter_year');
 
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
@@ -36,6 +37,7 @@
                         data: {
                             search: window.filterValues,
                             category: category,
+                            filter_year: year,
                         },
                         typeData: 'json',
                         success: function (result) {
