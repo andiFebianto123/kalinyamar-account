@@ -505,7 +505,7 @@ class QuotationCrudController extends CrudController
     protected function setupListOperation()
     {
         $type = request()->tab;
-        $settings = Setting::first();
+        // $settings = Setting::first();
 
         $status_file = '';
         if (strpos(url()->current(), 'excel')) {
@@ -518,9 +518,12 @@ class QuotationCrudController extends CrudController
             $type = 'quotation';
         }
 
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
+
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
-        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
 
         if (request()->has('filter_year') && request()->filter_year != 'all') {
             if ($type == 'quotation') {
@@ -610,14 +613,14 @@ class QuotationCrudController extends CrudController
                 'label' => trans('backpack::crud.quotation.column.closing_date.label'),
                 'name' => 'closing_date',
                 'type'  => 'date',
-                'format' => $date_format
+                'format' => $new_format_date
             ]);
 
             CRUD::column([
                 'label' => trans('backpack::crud.quotation.column.rfq_date.label'),
                 'name' => 'rfq_date',
                 'type'  => 'date',
-                'format' => $date_format
+                'format' => $new_format_date
             ]);
 
             CRUD::column(

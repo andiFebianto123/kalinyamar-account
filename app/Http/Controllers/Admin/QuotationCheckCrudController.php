@@ -262,14 +262,6 @@ class QuotationCheckCrudController extends CrudController
 
         $this->crud->year_options = $yearOptions;
 
-        $this->card->addCard([
-            'name' => 'filter',
-            'line' => 'top',
-            'label' => '',
-            'parent_view' => 'crud::components.filter-parent',
-            'view' => 'crud::buttons.filter-year',
-        ]);
-
         $this->data['cards'] = $this->card;
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
@@ -290,7 +282,7 @@ class QuotationCheckCrudController extends CrudController
     {
         $type = request()->tab;
         CRUD::disableResponsiveTable();
-        $settings = Setting::first();
+        // $settings = Setting::first();
 
         $status_file = '';
         if (strpos(url()->current(), 'excel')) {
@@ -299,9 +291,12 @@ class QuotationCheckCrudController extends CrudController
             $status_file = 'pdf';
         }
 
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
+
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
-        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
 
         if (request()->has('filter_year') && request()->filter_year != 'all') {
             CRUD::addClause('whereYear', 'quotation_checks.created_at', request()->filter_year);
@@ -422,7 +417,7 @@ class QuotationCheckCrudController extends CrudController
             'label' => trans('backpack::crud.quotation.column.closing_date.label'),
             'name' => 'closing_date',
             'type'  => 'date',
-            'format' => $date_format
+            'format' => $new_format_date
         ]);
         CRUD::column(
             [

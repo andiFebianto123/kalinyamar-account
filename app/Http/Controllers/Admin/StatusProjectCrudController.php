@@ -1073,6 +1073,9 @@ class StatusProjectCrudController extends CrudController
             }
         }
 
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
+
         if ($type == 'UNPAID') {
             CRUD::addButtonFromView('line', 'update-unpaid-project', 'update-unpaid-project', 'beginning');
             CRUD::addColumn([
@@ -1122,7 +1125,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
                 'name' => 'invoice_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1191,7 +1194,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
                 'name' => 'end_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1269,7 +1272,8 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
                     'name' => 'start_date,end_date',
-                    'type'  => 'date_range_custom'
+                    'type'  => 'date_range_custom',
+                    'format' => $new_format_date
                 ],
             );
             CRUD::column(
@@ -1288,7 +1292,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.actual_start_date.label'),
                 'name' => 'actual_start_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1424,7 +1428,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
                 'name' => 'end_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1503,13 +1507,13 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
                 'name' => 'invoice_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.payment_date.label'),
                 'name' => 'payment_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1530,10 +1534,13 @@ class StatusProjectCrudController extends CrudController
             $status_file = 'pdf';
         }
 
-        CRUD::disableResponsiveTable();
-        $type = request()->tab;
-        $settings = Setting::first();
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
 
+        $type = request()->tab;
+        // $settings = Setting::first();
+
+        CRUD::disableResponsiveTable();
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
@@ -1611,7 +1618,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
                 'name' => 'invoice_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1683,7 +1690,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
                 'name' => 'end_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1764,7 +1771,8 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
                     'name' => 'start_date,end_date',
-                    'type'  => 'date_range_custom'
+                    'type'  => 'date_range_custom',
+                    'format' => $new_format_date
                 ],
             );
             CRUD::column(
@@ -1783,7 +1791,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.actual_start_date.label'),
                 'name' => 'actual_start_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -1925,7 +1933,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
                 'name' => 'end_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [
@@ -2007,13 +2015,13 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
                 'name' => 'invoice_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.payment_date.label'),
                 'name' => 'payment_date',
                 'type'  => 'date',
-                'format' => 'D MMM Y'
+                'format' => $new_format_date
             ]);
             CRUD::column(
                 [

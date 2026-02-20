@@ -437,7 +437,7 @@ class StatusQuotaionCrudController extends CrudController
     protected function setupListOperation()
     {
         $type = request()->type;
-        $settings = Setting::first();
+        // $settings = Setting::first();
 
         $status_file = '';
         if (strpos(url()->current(), 'excel')) {
@@ -446,10 +446,13 @@ class StatusQuotaionCrudController extends CrudController
             $status_file = 'pdf';
         }
 
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
+
         CRUD::disableResponsiveTable();
+        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
-        CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
 
         CRUD::addClause('where', 'status', $type);
 
@@ -533,7 +536,7 @@ class StatusQuotaionCrudController extends CrudController
             'label' => trans('backpack::crud.quotation.column.closing_date.label'),
             'name' => 'closing_date',
             'type'  => 'date',
-            'format' => $date_format
+            'format' => $new_format_date
         ]);
         CRUD::column(
             [

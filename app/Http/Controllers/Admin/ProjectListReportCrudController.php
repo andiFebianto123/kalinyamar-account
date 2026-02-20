@@ -96,7 +96,7 @@ class ProjectListReportCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::disableResponsiveTable();
-        $settings = Setting::first();
+        // $settings = Setting::first();
 
         $status_file = '';
         if (strpos(url()->current(), 'excel')) {
@@ -104,6 +104,9 @@ class ProjectListReportCrudController extends CrudController
         } else {
             $status_file = 'pdf';
         }
+
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
 
         CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
@@ -191,7 +194,8 @@ class ProjectListReportCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
                 'name' => 'start_date,end_date',
-                'type'  => 'date_range_custom'
+                'type'  => 'date_range_custom',
+                'format' => $new_format_date
             ],
         );
         CRUD::column(
@@ -216,13 +220,13 @@ class ProjectListReportCrudController extends CrudController
             'label'  => trans('backpack::crud.project_report.column.actual_start_date.label'),
             'name' => 'actual_start_date',
             'type'  => 'date',
-            'format' => $date_format
+            'format' => $new_format_date
         ]);
         CRUD::column([
             'label'  => trans('backpack::crud.project_report.column.actual_end_date.label'),
             'name' => 'actual_end_date',
             'type'  => 'date',
-            'format' => $date_format
+            'format' => $new_format_date
         ]);
         CRUD::column(
             [
@@ -569,6 +573,8 @@ class ProjectListReportCrudController extends CrudController
     protected function setupShowOperation()
     {
         $settings = Setting::first();
+        // $new_format_date = 'D MMM Y';
+        $new_format_date = 'DD/MM/YYYY';
         $this->setupCreateOperation();
         CRUD::field('received_po_date')->remove();
         CRUD::field([   // date_picker
@@ -579,6 +585,7 @@ class ProjectListReportCrudController extends CrudController
             // optional:
             'date_picker_options' => [
                 'language' => App::getLocale(),
+                'format' => $new_format_date
             ],
             'wrapper'   => [
                 'class' => 'form-group col-md-12 received_po_date'
@@ -608,14 +615,14 @@ class ProjectListReportCrudController extends CrudController
             'label'  => '',
             'name' => 'po_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $new_format_date
         ]);
 
         CRUD::column([
             'label'  => '',
             'name' => 'received_po_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $new_format_date
         ]);
 
         CRUD::column([
@@ -659,7 +666,8 @@ class ProjectListReportCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
                 'name' => 'start_date,end_date',
-                'type'  => 'date_range_custom'
+                'type'  => 'date_range_custom',
+                'format' => $new_format_date
             ],
         );
 
@@ -675,14 +683,14 @@ class ProjectListReportCrudController extends CrudController
             'label'  => '',
             'name' => 'actual_start_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $new_format_date
         ]);
 
         CRUD::column([
             'label'  => '',
             'name' => 'actual_end_date',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $new_format_date
         ]);
         CRUD::column(
             [
