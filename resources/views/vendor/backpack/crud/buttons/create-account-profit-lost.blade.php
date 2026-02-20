@@ -1,5 +1,5 @@
 @if ($crud->hasAccess('create'))
-    <div class="btn-group" id="filterYear">
+    <div class="btn-group" id="createOptionProfitLost">
     <button class="btn btn-primary dropdown-toggle filter-btn" type="button" id="defaultDropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
         <i class="la la-plus"></i>
     </button>
