@@ -90,9 +90,9 @@ class MigrateWipAccount extends Command
             $this->info("- $transactionsUpdated records updated in account_transactions table.");
 
             // 3. Update Vouchers
-            $vouchersUpdated = Voucher::where('account_id', $oldAccount->id)
-                ->update(['account_id' => $newAccount->id]);
-            $this->info("- $vouchersUpdated records updated in vouchers table.");
+            // $vouchersUpdated = Voucher::where('account_id', $oldAccount->id)
+            //     ->update(['account_id' => $newAccount->id]);
+            // $this->info("- $vouchersUpdated records updated in vouchers table.");
 
             DB::commit();
             $this->info("Database records migrated successfully!");

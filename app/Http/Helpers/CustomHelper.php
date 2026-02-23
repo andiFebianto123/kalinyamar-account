@@ -26,6 +26,41 @@ class CustomHelper
 
     public static $settings;
 
+    public static function getAccountMapping($key = null): ?string
+    {
+        $accountMapping = [
+            // Assets & Accounts Receivable
+            'RECEIVABLES_INVOICE' => '10201',
+
+            // Liabilities & Taxes
+            'DEBT_VOUCHER' => '20101',
+            'DEBT_PPN' => '20301',
+            'UNIFICATION' => '20304',
+
+            // Revenue
+            'REVENUE_INVOICE' => '40101',
+
+            // Expenses & WIP
+            'WITHOUT_PO' => '50222',
+            'PPH_21' => '50301',
+            'TAX' => '50303',
+            'PPH_23' => '50306',
+            'PPH_OMZET' => '50306',
+            'PPH_4' => '50307',
+            'WIP_OLD' => '50401', // pekerjaan dalam proses
+            'WIP' => '10601',
+
+            // Equity / Special
+            'PROFIT_CONSOLIDATION' => '303',
+        ];
+
+        if (isset($accountMapping[$key])) {
+            return $accountMapping[$key];
+        }
+
+        return null;
+    }
+
     public static function merge_query_params($new_params = [])
     {
         $current_params = request()->all();
@@ -311,7 +346,7 @@ class CustomHelper
 
         $log_payment = [];
         // end invoice
-        $piutang = Account::where('code', '10201')->first();
+        $piutang = Account::where('code', self::getAccountMapping('RECEIVABLES_INVOICE'))->first();
         if ($piutang) {
             $trans_3 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $piutang->id,
@@ -339,7 +374,7 @@ class CustomHelper
             ];
         }
 
-        $acct_ppn = Account::where('code', "20301")->first();
+        $acct_ppn = Account::where('code', self::getAccountMapping('DEBT_PPN'))->first();
         if ($acct_ppn) {
             $price_ppn = $invoice->price_total_exclude_ppn * ($invoice->tax_ppn / 100);
             $trans_4 = CustomHelper::updateOrCreateJournalEntry([
@@ -438,7 +473,7 @@ class CustomHelper
     public static function invoicePaymentTransaction($transaction, $invoice, $log_payment, $status = 'out')
     {
         if ($invoice != null) {
-            $piutang = Account::where('code', '10201')->first();
+            $piutang = Account::where('code', self::getAccountMapping('RECEIVABLES_INVOICE'))->first();
             if ($piutang) {
                 // Tentukan debit/credit berdasarkan status transaksi
                 // Status OUT (Keluar) = Pembayaran invoice = Piutang berkurang (CREDIT)
@@ -479,7 +514,7 @@ class CustomHelper
 
         $price_unifikasi = $voucher->discount_pph_23 + $voucher->discount_pph_4;
         if ($price_unifikasi > 0) {
-            $account_unifikasi = Account::where('code', '20304')->first();
+            $account_unifikasi = Account::where('code', self::getAccountMapping('UNIFICATION'))->first();
             $trans_0 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account_unifikasi->id,
                 'reference_id' => $voucher->id,
@@ -506,7 +541,7 @@ class CustomHelper
             ];
         }
 
-        $hutang = Account::where('code', '20101')->first();
+        $hutang = Account::where('code', self::getAccountMapping('DEBT_VOUCHER'))->first();
         if ($hutang) {
             $trans_1 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $hutang->id,
@@ -534,7 +569,7 @@ class CustomHelper
             ];
         }
         if ($voucher->total > 0) {
-            $ppn = Account::where('code', '50303')->first();
+            $ppn = Account::where('code', self::getAccountMapping('TAX'))->first();
             $total_ppn = $voucher->bill_value * ($voucher->tax_ppn / 100);
             if ($ppn) {
                 $trans_2 = CustomHelper::updateOrCreateJournalEntry([
@@ -564,7 +599,7 @@ class CustomHelper
             }
         }
         if ($voucher->discount_pph_23 > 0) {
-            $pph_23 = Account::where('code', '50306')->first();
+            $pph_23 = Account::where('code', self::getAccountMapping('PPH_23'))->first();
             if ($pph_23) {
                 $trans_3 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $pph_23->id,
@@ -593,7 +628,7 @@ class CustomHelper
             }
         }
         if ($voucher->discount_pph_4 > 0) {
-            $pph_4 = Account::where('code', '50307')->first();
+            $pph_4 = Account::where('code', self::getAccountMapping('PPH_4'))->first();
             if ($pph_4) {
                 $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $pph_4->id,
@@ -622,7 +657,7 @@ class CustomHelper
             }
         }
         if ($voucher->discount_pph_21 > 0) {
-            $pph_21 = Account::where('code', '50301')->first();
+            $pph_21 = Account::where('code', self::getAccountMapping('PPH_21'))->first();
             if ($pph_21) {
                 $trans_5 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $pph_21->id,
@@ -674,7 +709,7 @@ class CustomHelper
             if ($voucher->count() > 0) {
                 foreach ($voucher as $v) {
                     $log_payment_voucher = [];
-                    $account_beban = Account::where('code', "50401")->first();
+                    $account_beban = Account::where('code', self::getAccountMapping('WIP'))->first();
                     $payment_transfer = $v->payment_transfer;
                     $trans_1 = CustomHelper::insertJournalEntry([
                         'account_id' => $account_beban->id,
@@ -739,7 +774,7 @@ class CustomHelper
         $log_payment = [];
 
         // kurangi hutang
-        $hutang = Account::where('code', '20101')->first();
+        $hutang = Account::where('code', self::getAccountMapping('DEBT_VOUCHER'))->first();
         if ($hutang) {
             $trans_1 = CustomHelper::insertJournalEntry([
                 'account_id' => $hutang->id,
@@ -828,7 +863,7 @@ class CustomHelper
     {
         $code = $account_code;
 
-        if ($code == '303') {
+        if ($code == self::getAccountMapping('PROFIT_CONSOLIDATION')) {
             return self::getNetProfit($startDate, $endDate);
         }
 
@@ -923,7 +958,7 @@ class CustomHelper
 
         if ($client_po->status == 'TANPA PO') {
             // ada po
-            $account = Account::where('code', "50222")->first();
+            $account = Account::where('code', self::getAccountMapping('WITHOUT_PO'))->first();
 
             $trans_1 = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account->id,
@@ -953,7 +988,7 @@ class CustomHelper
         // periksa jenis voucher
         if ($voucher->reference_type == "App\Models\PurchaseOrder" || $voucher->reference_type == "App\Models\Spk") {
             if ($invoice == null || $invoice_not_exists == true) {
-                $account = Account::where('code', "50401")->first();
+                $account = Account::where('code', self::getAccountMapping('WIP'))->first();
                 $trans_2 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
                     'reference_id' => $voucher->id,
@@ -1012,7 +1047,7 @@ class CustomHelper
         } else if ($voucher->reference_type == "App\Models\ClientPo") {
             if ($invoice == null || $invoice_not_exists == true) {
                 // jika tidak ada invoice di PO
-                $account = Account::where('code', "50401")->first();
+                $account = Account::where('code', self::getAccountMapping('WIP'))->first();
                 $payment_transfer = $voucher->payment_transfer;
                 $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $account->id,
