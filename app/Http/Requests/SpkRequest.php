@@ -29,9 +29,9 @@ class SpkRequest extends FormRequest
 
         $rule = [
             'subkon_id' => 'required|exists:subkons,id',
-            'no_spk' => 'required|string|max:255',
+            'no_spk' => 'required|string|max:255|unique:spk,no_spk,' . $id,
             'date_spk' => 'required|string',
-            'work_code' => 'required|max:30|unique:spk,work_code,'. $id,
+            'work_code' => 'required|max:30',
             'job_name' => 'required|string|max:255',
             'job_description' => 'required|string',
             'job_value' => 'required|numeric|min:1000',
@@ -40,12 +40,6 @@ class SpkRequest extends FormRequest
             'status' => 'required|in:open,close',
             'total_value_with_tax' => 'nullable|numeric',
         ];
-
-        if(request()->has('work_code')){
-            $rule['work_code'] = 'required|max:30|unique:spk,work_code,'.$id;
-        }else{
-            $rule['work_code'] = 'nullable|max:30|unique:spk,work_code,'.$id;
-        }
 
         return $rule;
     }
