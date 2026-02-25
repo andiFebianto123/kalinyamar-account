@@ -169,6 +169,7 @@ return [
         'change_order' => 'Ubah Urutan',
         'all_category' => 'Semua Kategori',
         'all_client' => 'Semua Client',
+        'all_status_project' => 'Semua Status Proyek',
     ],
 
     'card' => [
@@ -492,6 +493,8 @@ return [
             'send_invoice_revision' => "Tgl Pengiriman Invoice - Revisi",
             'document_invoice' => 'Dokumen Invoice',
             'description' => 'Deskripsi',
+            'pph' => 'PPh',
+            'discount_pph' => 'Potongan PPh',
         ],
         'field' => [
             'invoice_number' => [
@@ -589,7 +592,15 @@ return [
             'invoice_document' => [
                 'label' => 'Dokumen Invoice (Opsional)',
                 'hint' => 'Upload file invoice dalam format PDF (maksimal 30MB)',
-            ]
+            ],
+            'pph' => [
+                'label' => 'PPh',
+                'placeholder' => 'Masukan PPh',
+            ],
+            'discount_pph' => [
+                'label' => 'Potongan PPh',
+                'placeholder' => '000.000',
+            ],
         ],
     ],
     'cash_account' => [
@@ -1359,6 +1370,12 @@ return [
             'setup_ppn' => 'Setup Tarif PPn',
             'setup_ppn_title_create' => 'Tambah Data Item Setup Tarif PPn',
             'setup_ppn_title_edit' => 'Edit Data Item Setup Tarif PPn',
+            'setup_pph' => 'Setup Tarif PPh',
+            'setup_pph_title_create' => 'Tambah Data Item Setup Tarif PPh',
+            'setup_pph_title_edit' => 'Edit Data Item Setup Tarif PPh',
+            'setup_company_classification' => 'Setup Klasifikasi Perusahaan',
+            'setup_company_classification_title_create' => 'Tambah Data Item Setup Klasifikasi Perusahaan',
+            'setup_company_classification_title_edit' => 'Edit Data Item Setup Klasifikasi Perusahaan',
         ],
         'field' => [
             'setup_category_project' => [
@@ -1441,6 +1458,38 @@ return [
                     'label' => 'Pisahkan dengan koma untuk input multi data',
                 ]
             ],
+            'setup_pph' => [
+                'title' => [
+                    'label' => 'Setup Tarif PPh',
+                ],
+                'name' => [
+                    'label' => 'Nilai Item',
+                    'placeholder' => '000.000',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
+            'setup_company_classification' => [
+                'title' => [
+                    'label' => 'Setup Klasifikasi Perusahaan',
+                ],
+                'name' => [
+                    'label' => 'Nama Item',
+                    'placeholder' => 'Masukan nama item (misal: WAPU)',
+                    'errors' => [
+                        'empty' => 'Anda menginput item kosong',
+                        'unique' => 'Anda menginput item yang sudah ada',
+                    ]
+                ],
+                'comma' => [
+                    'label' => 'Pisahkan dengan koma untuk input multi data',
+                ]
+            ],
         ],
         'delete' => [
             'setup_category_project' => [
@@ -1462,6 +1511,14 @@ return [
             'setup_ppn' => [
                 'title' => 'Hapus Item Setup Tarif PPn',
                 'body' => 'Apakah anda yakin ingin menghapus data item setup tarif ppn ?',
+            ],
+            'setup_pph' => [
+                'title' => 'Hapus Item Setup Tarif PPh',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup tarif pph ?',
+            ],
+            'setup_company_classification' => [
+                'title' => 'Hapus Item Setup Klasifikasi Perusahaan',
+                'body' => 'Apakah anda yakin ingin menghapus data item setup klasifikasi perusahaan ?',
             ]
         ]
     ],
@@ -1497,8 +1554,23 @@ return [
                 'price_total_include_ppn' => [
                     'label' => 'Nilai Include PPn',
                 ],
+                'transfer_value' => [
+                    'label' => 'Nilai Transfer',
+                ],
+                'tax_pph' => [
+                    'label' => 'PPh',
+                ],
+                'price_pph' => [
+                    'label' => 'Tarif PPh',
+                ],
+                'fine_price' => [
+                    'label' => 'Denda / Lainnya',
+                ],
+                'company_classification' => [
+                    'label' => 'Klasifikasi Perusahaan',
+                ],
                 'client_id' => [
-                    'label' => 'Klient',
+                    'label' => 'Nama Perusahaan',
                 ],
                 'received_po_date' => [
                     'label' => 'Tanggal Terima PO',
@@ -1513,7 +1585,7 @@ return [
                     'label' => 'End Date',
                 ],
                 'duration' => [
-                    'label' => 'Durasi hari',
+                    'label' => 'Delivery Time',
                 ],
                 'actual_start_date' => [
                     'label' => 'Actual Start Date',
@@ -1522,7 +1594,7 @@ return [
                     'label' => 'Actual End Date',
                 ],
                 'status_po' => [
-                    'label' => 'Status PO',
+                    'label' => 'Status Proyek',
                 ],
                 'progress' => [
                     'label' => 'Progress (%)',
@@ -1597,11 +1669,21 @@ return [
             'price_total_include_ppn' => [
                 'label' => 'Nilai Include PPn',
             ],
+            'tax_pph' => [
+                'label' => 'PPh',
+                'placeholder' => '-PILIH PERSENTASE PPH'
+            ],
+            'price_pph' => [
+                'label' => 'Tarif PPh',
+            ],
+            'fine_price' => [
+                'label' => 'Denda / Lainnya',
+            ],
             'start_date' => [
                 'label' => 'Start Date - End Date',
             ],
             'duration' => [
-                'label' => 'Durasi Hari',
+                'label' => 'Delivery Time',
             ],
             'actual_start_date' => [
                 'label' => 'Actual Start Date',
@@ -1610,7 +1692,7 @@ return [
                 'label' => 'Actual End Date',
             ],
             'status_po' => [
-                'label' => 'Status PO',
+                'label' => 'Status Proyek',
                 'placeholder' => '-PILIH STATUS',
             ],
             'client_id' => [
@@ -1620,6 +1702,10 @@ return [
             'category' => [
                 'label' => 'Kategori',
                 'placeholder' => '-PILIH KATEGORI',
+            ],
+            'company_classification' => [
+                'label' => 'Klasifikasi Perusahaan',
+                'placeholder' => '-PILIH KLASIFIKASI',
             ],
             'progress' => [
                 'label' => 'Progress'
@@ -1669,7 +1755,7 @@ return [
                 'label' => 'Actual End Date',
             ],
             'status_po' => [
-                'label' => 'Status PO',
+                'label' => 'Status Proyek',
             ],
             'progress' => [
                 'label' => 'Progress (%)'
