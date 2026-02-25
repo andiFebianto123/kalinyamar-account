@@ -565,7 +565,7 @@
 
                         forEachFlexible(eventEmitter.events, function(key, data){
                             if(key.includes("crudTable-filter")){
-                                // eventEmitter.emit(key, true);
+                                eventEmitter.emit(key, true);
                             }
                         });
 
