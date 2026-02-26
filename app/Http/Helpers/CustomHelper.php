@@ -156,6 +156,11 @@ class CustomHelper
         return $results;
     }
 
+    public static function getOptionStatusProject()
+    {
+        return \App\Models\SetupStatusProject::orderBy('name', 'ASC')->get(['id', 'name'])->toArray();
+    }
+
     public static function getPaidOptions()
     {
         return [

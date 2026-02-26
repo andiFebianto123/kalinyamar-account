@@ -880,7 +880,7 @@ class CustomVoid
             ];
 
             // catat di journal
-            CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment, $status);
+            CustomHelper::invoicePaymentTransaction($newTransaction, $invoice, $log_payment);
             $journal_account_trans = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $newTransaction->account_id,
                 'reference_id' => $newTransaction->id,
