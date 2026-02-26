@@ -815,7 +815,7 @@ class CustomVoid
             }
         }
 
-        self::rollbackPayment(InvoiceClient::class, $invoice->id, "CREATE_INVOICE");
+        self::rollbackPayment(InvoiceClient::class, $invoice->id);
     }
 
     public static function storeTransaction(Object $request, String $status_account): AccountTransaction
