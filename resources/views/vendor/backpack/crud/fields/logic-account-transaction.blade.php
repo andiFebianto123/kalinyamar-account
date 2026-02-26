@@ -25,6 +25,19 @@
                 load: function(){
                     var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
+
+                    if(form == '#form-edit'){
+                        var entry = {!! json_encode($entry) !!};
+                        if(entry.reference_type == "App\\Models\\InvoiceClient"){
+                            var invoice = {!! json_encode($invoice) !!};
+                            var selectedOption = new Option(invoice.invoice_number, invoice.id, true, true);
+                            $(form+' select[name="no_invoice"]').append(selectedOption).trigger('change');
+
+                            var selectedOption = new Option(invoice.kdp, invoice.id, true, true);
+                            $(form+' select[name="kdp"]').append(selectedOption).trigger('change');
+                        }
+                    }
+
                     $(form+' select[name="kdp"]').off('select2:select').on('select2:select', function (e) {
                         var id = e.params.data.id; // id invoice
                         $.ajax({

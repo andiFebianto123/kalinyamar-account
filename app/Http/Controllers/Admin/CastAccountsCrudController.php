@@ -1333,6 +1333,11 @@ class CastAccountsCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+        if ($this->data['entry']->reference_type == 'App\Models\InvoiceClient') {
+            $invoice = InvoiceClient::where('id', $this->data['entry']->reference_id)
+                ->first();
+            $this->data['invoice'] = $invoice;
+        }
 
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
 
@@ -1946,36 +1951,43 @@ class CastAccountsCrudController extends CrudController
 
             // Logic Tombol Aksi (Pindahan dari Blade lama)
             $btn = '';
-            $isRegularTransaction = !$entry->reference_type;
-
-            if ($isRegularTransaction) {
-                if ($has_access_primary) {
-                    if (!$entry->cast_account_destination_id) {
-                        $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
-                        $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
-                        $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
-                    }
-                    if ($entry->log_payment_id) {
-                        $url_delete = url($this->crud->route . "/delete-transaction-void/" . $entry->id);
-                        $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
-                    }
-                } else {
-                    if (!$entry->cast_account_destination_id) {
-                        if (!$entry->kdp) {
-                            $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
-                            $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
-                            $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
-
-                            $url_delete = url($this->crud->route . "/delete-transaction/" . $entry->id);
-                            $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
-                        } else if ($entry->log_payment_id) {
-                            $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
-                            $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
-                            $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
-                        }
-                    }
-                }
+            // $isRegularTransaction = !$entry->reference_type;
+            if ($entry->log_payment_id) {
+                $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+                $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+                $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+                $url_delete = url($this->crud->route . "/delete-transaction-void/" . $entry->id);
+                $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
             }
+
+            // if ($isRegularTransaction) {
+            //     if ($has_access_primary) {
+            //         if (!$entry->cast_account_destination_id) {
+            //             $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+            //             $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+            //             $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+            //         }
+            //         if ($entry->log_payment_id) {
+            //             $url_delete = url($this->crud->route . "/delete-transaction-void/" . $entry->id);
+            //             $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
+            //         }
+            //     } else {
+            //         if (!$entry->cast_account_destination_id) {
+            //             if (!$entry->kdp) {
+            //                 $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+            //                 $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+            //                 $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+
+            //                 $url_delete = url($this->crud->route . "/delete-transaction/" . $entry->id);
+            //                 $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
+            //             } else if ($entry->log_payment_id) {
+            //                 $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
+            //                 $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+            //                 $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+            //             }
+            //         }
+            //     }
+            // }
 
             $data[] = [
                 'date_transaction_str' => $date_str,
