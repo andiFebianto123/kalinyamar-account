@@ -501,6 +501,7 @@ class InvoiceClientCrudController extends CrudController
                 'label'  => trans('backpack::crud.invoice_client.column.name'),
                 'name' => 'name',
                 'type'  => 'closure',
+                'width_box' => '300px',
                 'function' => function ($entry) {
                     return $entry->client_po->job_name;
                 },
