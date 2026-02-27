@@ -29,9 +29,9 @@
         <thead>
             <tr>
                 <th>No</th>
-                <th>{{trans('backpack::crud.subkon.column.name')}}</th>
                 <th>{{trans('backpack::crud.po.column.po_number')}}</th>
                 <th>{{trans('backpack::crud.po.column.date_po')}}</th>
+                <th>{{trans('backpack::crud.subkon.column.name')}}</th>
                 <th>{{trans('backpack::crud.po.column.job_name')}}</th>
                 <th>{{trans('backpack::crud.po.column.job_description')}}</th>
                 <th>{{trans('backpack::crud.po.column.job_value')}}</th>
@@ -45,9 +45,9 @@
             @foreach($items as $i => $item)
             <tr>
                 <td>{{ $i + 1 }}</td>
-                <td>{{ $item->subkon->name ?? '-' }}</td>
                 <td>{{ $item->po_number ?? '-' }}</td>
                 <td>{{ $item->date_po ? \Carbon\Carbon::parse($item->date_po)->translatedFormat('d F Y') : '-' }}</td>
+                <td>{{ $item->subkon->name ?? '-' }}</td>
                 <td>{{ $item->job_name ?? '-' }}</td>
                 <td>{{ $item->job_description ?? '-' }}</td>
                 <td>{{($settings?->currency_symbol) ? $settings->currency_symbol : "Rp."}} {{ number_format($item->job_value ?? 0) }}</td>

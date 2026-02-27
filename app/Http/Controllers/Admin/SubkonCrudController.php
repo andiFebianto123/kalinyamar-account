@@ -529,10 +529,10 @@ class SubkonCrudController extends CrudController
         // ]);
 
         CRUD::field([  // Select2
-            'label'     => trans('backpack::crud.subkon.column.bank_name'),
-            'type'      => 'select2_array',
+            'label'     => trans('backpack::crud.cash_account.field.bank_name.label'),
+            'type'      => 'select2_bank_tags',
             'name'      => 'bank_name',
-            'options'   => CustomHelper::getBanks(), // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+            'options'   => ['' => trans('backpack::crud.cash_account.field.bank_name.placeholder'), ...CustomHelper::getBanks()],
             'wrapper' => [
                 'class' => 'form-group col-md-6'
             ]

@@ -87,25 +87,99 @@ class PurchaseOrderCrudController extends CrudController
 
     public function total_price()
     {
-        $filter_year = request()->filter_year;
-        $total_open = PurchaseOrder::where('status', PurchaseOrder::OPEN);
+        $request = request();
+        $filter_year = $request->filter_year;
+
+        $total_open = PurchaseOrder::query()->where('status', PurchaseOrder::OPEN);
         if ($filter_year != null && $filter_year != 'all') {
             $total_open = $total_open->where(DB::raw("YEAR(date_po)"), $filter_year);
         }
-        $total_open = $total_open->sum('total_value_with_tax');
+        $sum_open = $total_open->sum('total_value_with_tax');
 
-        $total_closed = PurchaseOrder::where('status', PurchaseOrder::CLOSE);
+        $total_closed = PurchaseOrder::query()->where('status', PurchaseOrder::CLOSE);
         if ($filter_year != null && $filter_year != 'all') {
             $total_closed = $total_closed->where(DB::raw("YEAR(date_po)"), $filter_year);
         }
-        $total_closed = $total_closed->sum('total_value_with_tax');
+        $sum_closed = $total_closed->sum('total_value_with_tax');
 
-        $price_total_open = CustomHelper::formatRupiahWithCurrency($total_open);
-        $price_total_closed = CustomHelper::formatRupiahWithCurrency($total_closed);
+        $price_total_open = CustomHelper::formatRupiahWithCurrency($sum_open);
+        $price_total_closed = CustomHelper::formatRupiahWithCurrency($sum_closed);
         return [
             'total_open' => $price_total_open,
             'total_closed' => $price_total_closed
         ];
+    }
+
+    private function applySearchFilters($query, $request)
+    {
+        if ($request->has('columns')) {
+            // Index 1: po_number
+            if (trim($request->columns[1]['search']['value'] ?? '') != '') {
+                $search = $request->columns[1]['search']['value'];
+                $query = $query->where('po_number', 'like', "%{$search}%");
+            }
+            // Index 2: date_po
+            if (trim($request->columns[2]['search']['value'] ?? '') != '') {
+                $search = $request->columns[2]['search']['value'];
+                $query = $query->where('date_po', 'like', "%{$search}%");
+            }
+            // Index 3: subkon_id (searching by subkon.name)
+            if (trim($request->columns[3]['search']['value'] ?? '') != '') {
+                $search = $request->columns[3]['search']['value'];
+                $query = $query->whereHas('subkon', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            }
+            // Index 4: work_code
+            if (trim($request->columns[4]['search']['value'] ?? '') != '') {
+                $search = $request->columns[4]['search']['value'];
+                $query = $query->where('work_code', 'like', "%{$search}%");
+            }
+            // Index 5: job_name
+            if (trim($request->columns[5]['search']['value'] ?? '') != '') {
+                $search = $request->columns[5]['search']['value'];
+                $query = $query->where('job_name', 'like', "%{$search}%");
+            }
+            // Index 6: job_description
+            if (trim($request->columns[6]['search']['value'] ?? '') != '') {
+                $search = $request->columns[6]['search']['value'];
+                $query = $query->where('job_description', 'like', "%{$search}%");
+            }
+            // Index 7: job_value
+            if (trim($request->columns[7]['search']['value'] ?? '') != '') {
+                $search = $request->columns[7]['search']['value'];
+                $query = $query->where('job_value', 'like', "%{$search}%");
+            }
+            // Index 8: tax_ppn
+            if (trim($request->columns[8]['search']['value'] ?? '') != '') {
+                $search = $request->columns[8]['search']['value'];
+                $query = $query->where('tax_ppn', 'like', "%{$search}%");
+            }
+            // Index 9: total_value_with_tax
+            if (trim($request->columns[9]['search']['value'] ?? '') != '') {
+                $search = $request->columns[9]['search']['value'];
+                $query = $query->where('total_value_with_tax', 'like', "%{$search}%");
+            }
+            // Index 10: due_date
+            if (trim($request->columns[10]['search']['value'] ?? '') != '') {
+                $search = $request->columns[10]['search']['value'];
+                $query = $query->where(function ($q) use ($search) {
+                    $q->where('due_date', 'like', "%{$search}%")
+                        ->orWhere('date_po', 'like', "%{$search}%");
+                });
+            }
+            // Index 11: status
+            if (trim($request->columns[11]['search']['value'] ?? '') != '') {
+                $search = $request->columns[11]['search']['value'];
+                $query = $query->where('status', 'like', "%{$search}%");
+            }
+            // Index 13: additional_info
+            if (trim($request->columns[13]['search']['value'] ?? '') != '') {
+                $search = $request->columns[13]['search']['value'];
+                $query = $query->where('additional_info', 'like', "%{$search}%");
+            }
+        }
+        return $query;
     }
 
     public function index()
@@ -121,10 +195,10 @@ class PurchaseOrderCrudController extends CrudController
                     [
                         'name' => 'list_all_po',
                         'label' => trans('backpack::crud.po.tab.title_all_po'),
-                        // 'class' => '',
                         'active' => true,
                         'view' => 'crud::components.datatable',
                         'params' => [
+                            'filter' => true,
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
@@ -132,12 +206,6 @@ class PurchaseOrderCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.subkon.column.name'),
-                                    'type'      => 'select',
-                                    'name'      => 'subkon_id',
-                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.po.column.po_number'),
@@ -148,6 +216,12 @@ class PurchaseOrderCrudController extends CrudController
                                     'label'  => trans('backpack::crud.po.column.date_po'),
                                     'name' => 'date_po',
                                     'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.client_po.field.work_code.label'),
@@ -219,6 +293,7 @@ class PurchaseOrderCrudController extends CrudController
                         'active' => false,
                         'view' => 'crud::components.datatable-po',
                         'params' => [
+                            'filter' => true,
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
@@ -226,12 +301,6 @@ class PurchaseOrderCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.subkon.column.name'),
-                                    'type'      => 'select',
-                                    'name'      => 'subkon_id',
-                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.po.column.po_number'),
@@ -242,6 +311,13 @@ class PurchaseOrderCrudController extends CrudController
                                     'label'  => trans('backpack::crud.po.column.date_po'),
                                     'name' => 'date_po',
                                     'type'  => 'date'
+                                ],
+
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.client_po.field.work_code.label'),
@@ -309,6 +385,7 @@ class PurchaseOrderCrudController extends CrudController
                         'active' => false,
                         'view' => 'crud::components.datatable-po',
                         'params' => [
+                            'filter' => true,
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
@@ -316,12 +393,6 @@ class PurchaseOrderCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.subkon.column.name'),
-                                    'type'      => 'select',
-                                    'name'      => 'subkon_id',
-                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.po.column.po_number'),
@@ -332,6 +403,13 @@ class PurchaseOrderCrudController extends CrudController
                                     'label'  => trans('backpack::crud.po.column.date_po'),
                                     'name' => 'date_po',
                                     'type'  => 'date'
+
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.client_po.field.work_code.label'),
@@ -584,6 +662,7 @@ class PurchaseOrderCrudController extends CrudController
         CRUD::disableResponsiveTable();
 
         $settings = Setting::first();
+        $request = request();
 
         $app->addColumn([
             'name'      => 'row_number',
@@ -594,18 +673,6 @@ class PurchaseOrderCrudController extends CrudController
                 'element' => 'strong',
             ]
         ])->makeFirstColumn();
-
-        $app->addColumn([
-            // 1-n relationship
-            'label' => trans('backpack::crud.subkon.column.name'),
-            'type'      => 'select',
-            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
-            'entity'    => 'subkon', // the method that defines the relationship in your Model
-            'attribute' => 'name', // foreign key attribute that is shown to user
-            'model'     => "App\Models\Subkon", // foreign key model
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
-        ]);
 
         $app->addColumn(
             [
@@ -622,6 +689,18 @@ class PurchaseOrderCrudController extends CrudController
                 'type'  => 'date'
             ],
         );
+
+        $app->addColumn([
+            // 1-n relationship
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'select',
+            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'subkon', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Subkon", // foreign key model
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
 
         $app->addColumn(
             [
@@ -715,8 +794,6 @@ class PurchaseOrderCrudController extends CrudController
             ],
         );
 
-        $request = request();
-
         if ($request->has('filter_year')) {
             if ($request->filter_year != 'all') {
                 $filterYear = $request->filter_year;
@@ -724,6 +801,8 @@ class PurchaseOrderCrudController extends CrudController
                     ->where(DB::raw("YEAR(date_po)"), $filterYear);
             }
         }
+
+        $this->crud->query = $this->applySearchFilters($this->crud->query, $request);
     }
 
     /**
@@ -1235,6 +1314,74 @@ class PurchaseOrderCrudController extends CrudController
 
         if (request()->has('filter_year') && request()->filter_year != 'all') {
             $items = $items->whereYear('date_po', request()->filter_year);
+        }
+
+        if (request()->has('columns')) {
+            // Index 1: po_number
+            if (trim(request()->columns[1]['search']['value'] ?? '') != '') {
+                $search = request()->columns[1]['search']['value'];
+                $items = $items->where('po_number', 'like', "%{$search}%");
+            }
+            // Index 2: date_po
+            if (trim(request()->columns[2]['search']['value'] ?? '') != '') {
+                $search = request()->columns[2]['search']['value'];
+                $items = $items->where('date_po', 'like', "%{$search}%");
+            }
+            // Index 3: subkon_id (searching by subkon.name)
+            if (trim(request()->columns[3]['search']['value'] ?? '') != '') {
+                $search = request()->columns[3]['search']['value'];
+                $items = $items->whereHas('subkon', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            }
+            // Index 4: work_code
+            if (trim(request()->columns[4]['search']['value'] ?? '') != '') {
+                $search = request()->columns[4]['search']['value'];
+                $items = $items->where('work_code', 'like', "%{$search}%");
+            }
+            // Index 5: job_name
+            if (trim(request()->columns[5]['search']['value'] ?? '') != '') {
+                $search = request()->columns[5]['search']['value'];
+                $items = $items->where('job_name', 'like', "%{$search}%");
+            }
+            // Index 6: job_description
+            if (trim(request()->columns[6]['search']['value'] ?? '') != '') {
+                $search = request()->columns[6]['search']['value'];
+                $items = $items->where('job_description', 'like', "%{$search}%");
+            }
+            // Index 7: job_value
+            if (trim(request()->columns[7]['search']['value'] ?? '') != '') {
+                $search = request()->columns[7]['search']['value'];
+                $items = $items->where('job_value', 'like', "%{$search}%");
+            }
+            // Index 8: tax_ppn
+            if (trim(request()->columns[8]['search']['value'] ?? '') != '') {
+                $search = request()->columns[8]['search']['value'];
+                $items = $items->where('tax_ppn', 'like', "%{$search}%");
+            }
+            // Index 9: total_value_with_tax
+            if (trim(request()->columns[9]['search']['value'] ?? '') != '') {
+                $search = request()->columns[9]['search']['value'];
+                $items = $items->where('total_value_with_tax', 'like', "%{$search}%");
+            }
+            // Index 10: due_date
+            if (trim(request()->columns[10]['search']['value'] ?? '') != '') {
+                $search = request()->columns[10]['search']['value'];
+                $items = $items->where(function ($q) use ($search) {
+                    $q->where('due_date', 'like', "%{$search}%")
+                        ->orWhere('date_po', 'like', "%{$search}%");
+                });
+            }
+            // Index 11: status
+            if (trim(request()->columns[11]['search']['value'] ?? '') != '') {
+                $search = request()->columns[11]['search']['value'];
+                $items = $items->where('status', 'like', "%{$search}%");
+            }
+            // Index 13: additional_info
+            if (trim(request()->columns[13]['search']['value'] ?? '') != '') {
+                $search = request()->columns[13]['search']['value'];
+                $items = $items->where('additional_info', 'like', "%{$search}%");
+            }
         }
 
         $items = $items->get();

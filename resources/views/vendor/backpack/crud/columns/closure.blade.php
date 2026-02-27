@@ -5,9 +5,10 @@
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
     $column['text'] = $column['default'] ?? '-';
+    $column['row_number'] = $rowNumber ?? null;
 
     if($column['value'] instanceof \Closure) {
-        $column['value'] = $column['value']($entry);
+        $column['value'] = $column['value']($entry, $column['row_number']);
     }
 
     if(!empty($column['value'])) {

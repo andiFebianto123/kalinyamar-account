@@ -48,15 +48,27 @@
 
     @push('crud_fields_scripts')
     <style>
-        .select2-container--default .select2-selection--single {
+        form .select2.select2-container.select2-container--focus {
+            border-radius: 0.2rem !important;
+        }
+        form .select2.select2-container {
+            border: none !important;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__rendered {
+            line-height: 21px !important;
+            padding-left: 0px !important;
+            font-size: 1rem !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow{
+            height: 100% !important;
+        }
+        .select2-container .select2-selection--single {
             height: calc(2.25rem + 2px);
             padding: 0.375rem 0.75rem;
             border: 1px solid #ced4da;
             border-radius: 0.2rem;
-        }
-        .select2-container .select2-selection--single .select2-selection__rendered {
-            line-height: 21px !important;
-            padding-left: 0px !important;
         }
     </style>
     <script>

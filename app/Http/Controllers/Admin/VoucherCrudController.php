@@ -309,6 +309,11 @@ class VoucherCrudController extends CrudController
                                     'orderable' => false,
                                 ],
                                 [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  trans('backpack::crud.actions'),
+                                ],
+                                [
                                     'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
                                     'type'      => 'text',
                                     'name'      => 'no_voucher',
@@ -437,11 +442,11 @@ class VoucherCrudController extends CrudController
                                     'orderable' => true,
                                     'searchable' => false,
                                 ],
-                                [
-                                    'name' => 'action',
-                                    'type' => 'action',
-                                    'label' =>  trans('backpack::crud.actions'),
-                                ]
+                                // [
+                                //     'name' => 'action',
+                                //     'type' => 'action',
+                                //     'label' =>  trans('backpack::crud.actions'),
+                                // ]
                             ],
                             'route' => backpack_url('/fa/voucher/search?tab=voucher'),
                             'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher'),
@@ -565,11 +570,11 @@ class VoucherCrudController extends CrudController
             CRUD::disableResponsiveTable();
 
             CRUD::removeButtons(['delete', 'show', 'update'], 'line');
-            CRUD::addButtonFromView('line', 'show', 'show', 'end');
-            CRUD::addButtonFromView('line', 'update', 'update', 'end');
-            CRUD::addButtonFromView('line', 'print', 'print', 'end');
-            CRUD::addButtonFromView('line', 'delete', 'delete', 'end');
-            CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
+            CRUD::addButtonFromView('line_start', 'show', 'show', 'end');
+            CRUD::addButtonFromView('line_start', 'update', 'update', 'end');
+            CRUD::addButtonFromView('line_start', 'print', 'print', 'end');
+            CRUD::addButtonFromView('line_start', 'delete', 'delete', 'end');
+            CRUD::addButtonFromView('line_start', 'approve_button', 'approve_button', 'end');
 
 
             $user_id = backpack_user()->id;
@@ -778,8 +783,6 @@ class VoucherCrudController extends CrudController
 
 
 
-
-
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -789,6 +792,22 @@ class VoucherCrudController extends CrudController
                     'element' => 'strong',
                 ]
             ])->makeFirstColumn();
+
+            CRUD::addColumn([
+                'name' => 'action',
+                'type' => 'closure',
+                'label' =>  '',
+                'escaped' => false,
+                'function' => function ($entry, $rowNumber) {
+                    $crud = $this->crud;
+                    return \View::make('crud::inc.button_stack', ['stack' => 'line_start'])
+                        ->with('crud', $crud)
+                        ->with('entry', $entry)
+                        ->with('row_number', $rowNumber)
+                        ->render();
+                }
+            ]);
+
             CRUD::column([
                 'label'  => '',
                 'name' => 'no_voucher',
@@ -833,7 +852,7 @@ class VoucherCrudController extends CrudController
                 [
                     'label'  => '',
                     'name' => 'payment_description',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
                 ],
             );
             CRUD::column([
@@ -900,7 +919,7 @@ class VoucherCrudController extends CrudController
                 [
                     'label'  => '',
                     'name' => 'job_name',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
                 ],
             );
             CRUD::column(
@@ -1064,6 +1083,19 @@ class VoucherCrudController extends CrudController
         $settings = Setting::first();
         $request = request();
         if ($tab == 'voucher') {
+            $status_file = '';
+            if (strpos(url()->current(), 'excel')) {
+                $status_file = 'excel';
+            } else if (strpos(url()->current(), 'pdf')) {
+                $status_file = 'pdf';
+            }
+            $wrap_length = [];
+
+            if ($status_file == 'excel' || $status_file == 'pdf') {
+                $wrap_length = [
+                    'width_box' => '100%',
+                ];
+            }
             CRUD::setModel(Voucher::class);
 
             // voucher_edit_terbaru
@@ -1302,7 +1334,8 @@ class VoucherCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
                     'name' => 'job_name',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    ...$wrap_length
                 ],
             );
 
@@ -1368,7 +1401,8 @@ class VoucherCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.voucher.column.voucher.payment_description.label'),
                     'name' => 'payment_description',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    ...$wrap_length
                 ],
             );
 
@@ -1575,7 +1609,8 @@ class VoucherCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.voucher.field.information.label'),
                     'name' => 'information',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    ...$wrap_length
                 ],
             );
 

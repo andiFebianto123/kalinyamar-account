@@ -445,6 +445,11 @@ class VoucherPaymentCrudController extends CrudController
                                     'orderable' => false,
                                 ],
                                 [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  trans('backpack::crud.actions'),
+                                ],
+                                [
                                     'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
                                     'type'      => 'text',
                                     'name'      => 'no_voucher',
@@ -522,11 +527,6 @@ class VoucherPaymentCrudController extends CrudController
                                     'name' => 'user_approval',
                                     'orderable' => false,
                                 ],
-                                [
-                                    'name' => 'action',
-                                    'type' => 'action',
-                                    'label' =>  '',
-                                ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=NON RUTIN'),
                             'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment&type=NON+RUTIN'),
@@ -639,11 +639,6 @@ class VoucherPaymentCrudController extends CrudController
                                     'name' => 'user_approval',
                                     'orderable' => false,
                                 ],
-                                [
-                                    'name' => 'action',
-                                    'type' => 'action',
-                                    'label' =>  '',
-                                ]
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=SUBKON'),
                             'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment&type=SUBKON'),
@@ -699,7 +694,7 @@ class VoucherPaymentCrudController extends CrudController
         CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
         // CRUD::addButtonFromView('line', 'void', 'void', 'beginning');
         CRUD::removeButton('delete');
-        CRUD::addButtonFromView('line', 'approve_button', 'approve_button', 'end');
+        CRUD::addButtonFromView('line_start', 'approve_button', 'approve_button', 'end');
 
 
         if ($tab == 'voucher_payment' && $type == 'NON RUTIN') {
@@ -906,6 +901,21 @@ class VoucherPaymentCrudController extends CrudController
                     'element' => 'strong',
                 ]
             ])->makeFirstColumn();
+
+            CRUD::addColumn([
+                'name' => 'action',
+                'type' => 'closure',
+                'label' =>  '',
+                'escaped' => false,
+                'function' => function ($entry, $rowNumber) {
+                    $crud = $this->crud;
+                    return \View::make('crud::inc.button_stack', ['stack' => 'line_start'])
+                        ->with('crud', $crud)
+                        ->with('entry', $entry)
+                        ->with('row_number', $rowNumber)
+                        ->render();
+                }
+            ]);
 
             CRUD::column([
                 'label'  => '',
@@ -1250,6 +1260,21 @@ class VoucherPaymentCrudController extends CrudController
                     'element' => 'strong',
                 ]
             ])->makeFirstColumn();
+
+            CRUD::addColumn([
+                'name' => 'action',
+                'type' => 'closure',
+                'label' =>  '',
+                'escaped' => false,
+                'function' => function ($entry, $rowNumber) {
+                    $crud = $this->crud;
+                    return \View::make('crud::inc.button_stack', ['stack' => 'line_start'])
+                        ->with('crud', $crud)
+                        ->with('entry', $entry)
+                        ->with('row_number', $rowNumber)
+                        ->render();
+                }
+            ]);
 
             CRUD::column([
                 'label'  => '',

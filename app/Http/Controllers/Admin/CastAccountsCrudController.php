@@ -1904,9 +1904,16 @@ class CastAccountsCrudController extends CrudController
             $query->whereYear('account_transactions.date_transaction', request()->filter_year);
         }
 
+        $query = $query->leftJoin('invoice_clients', function ($join) {
+            $join->on('account_transactions.reference_id', 'invoice_clients.id')
+                ->where('account_transactions.reference_type', 'App\\Models\\InvoiceClient');
+        });
+
         $query->select([
             'account_transactions.*',
             'log_payments.id as log_payment_id',
+            'invoice_clients.invoice_number as invoice_number',
+            'invoice_clients.kdp as kdp'
         ]);
 
         // Access Check
@@ -1996,7 +2003,7 @@ class CastAccountsCrudController extends CrudController
                 'kdp_str' => $entry->kdp ?? '-',
                 'job_name_str' => $entry->job_name ?? '-',
                 'account_id_str' => ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-',
-                'no_invoice_str' => $entry->log_payment->no_invoice ?? ($entry->no_invoice ?? '-'),
+                'no_invoice_str' => $entry->invoice_number ?? '-',
                 'status_str' => ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status))),
                 'action_buttons' => $btn,
             ];
