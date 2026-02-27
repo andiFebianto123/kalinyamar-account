@@ -40,28 +40,21 @@ class VoucherPaymentPlanCrudController extends CrudController
         CRUD::setRoute(config('backpack.base.route_prefix') . '/voucher-payment-plan');
         CRUD::setEntityNameStrings(trans('backpack::crud.menu.voucher_payment_plan'), trans('backpack::crud.menu.voucher_payment_plan'));
 
-        $allAccess = [
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES SEMUA MENU RENCANA PEMBAYARAN'
-        ];
 
         $viewMenu = [
             'MENU INDEX RENCANA PEMBAYARAN',
         ];
 
         $this->settingPermission([
+            'approve' => ["APPROVE RENCANA BAYAR"],
             'create' => [
                 'CREATE INDEX RENCANA PEMBAYARAN',
-                'APPROVE RENCANA BAYAR',
-                ...$allAccess
             ],
             'update' => [
                 'UPDATE INDEX RENCANA PEMBAYARAN',
-                ...$allAccess
             ],
             'delete' => [
                 'DELETE INDEX RENCANA PEMBAYARAN',
-                ...$allAccess
             ],
             'list' => $viewMenu,
             'show' => $viewMenu,

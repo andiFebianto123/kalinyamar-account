@@ -44,22 +44,19 @@ class VoucherCrudController extends CrudController
         CRUD::setModel(Voucher::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher');
         CRUD::setEntityNameStrings('Voucher', 'Voucher');
-        $allAccess = [
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU FA'
-        ];
+
 
         $viewMenu = [
             'MENU INDEX FA VOUCHER'
         ];
 
         $this->settingPermission([
+            'approve' => ["APPROVE VOUCHER", "APPROVE EDIT VOUCHER"],
             'create' => [
-                ...$allAccess,
                 "CREATE INDEX FA VOUCHER",
             ],
-            'update' => [...$allAccess, "UPDATE INDEX FA VOUCHER"],
-            'delete' => [...$allAccess, "DELETE INDEX FA VOUCHER"],
+            'update' => ["UPDATE INDEX FA VOUCHER"],
+            'delete' => ["DELETE INDEX FA VOUCHER"],
             'list' => $viewMenu,
             'show' => $viewMenu,
             'print' => true,

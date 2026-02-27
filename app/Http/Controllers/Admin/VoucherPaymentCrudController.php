@@ -40,28 +40,21 @@ class VoucherPaymentCrudController extends CrudController
         CRUD::setEntityNameStrings(trans('backpack::crud.voucher_payment.title_header'), trans('backpack::crud.voucher_payment.title_header'));
 
 
-        $allAccess = [
-            'AKSES SEMUA MENU ACCOUNTING',
-            'AKSES MENU FA',
-            'APPROVE RENCANA BAYAR'
-        ];
 
         $viewMenu = [
             "MENU INDEX FA PEMBAYARAN"
         ];
 
         $this->settingPermission([
+            'approve' => ["APPROVE RENCANA BAYAR"],
             'create' => [
                 'CREATE INDEX FA PEMBAYARAN',
-                ...$allAccess
             ],
             'update' => [
                 'UPDATE INDEX FA PEMBAYARAN',
-                ...$allAccess
             ],
             'delete' => [
                 'DELETE INDEX FA PEMBAYARAN',
-                ...$allAccess
             ],
             'list' => $viewMenu,
             'show' => $viewMenu,
@@ -560,6 +553,11 @@ class VoucherPaymentCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
+                                ],
+                                [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  trans('backpack::crud.actions'),
                                 ],
                                 [
                                     'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
