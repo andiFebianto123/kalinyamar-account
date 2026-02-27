@@ -2081,7 +2081,7 @@ class VoucherPaymentPlanCrudController extends CrudController
             'value'    => function ($entry) {
                 $noApprv = $entry->user_live_no_apprv ?? '';
                 $userId = $entry->user_live_user_id ?? '';
-                return '<input type="checkbox" class="form-check-input bulk-checkbox" data-id="' . $entry->voucer_edit_id . '" data-no-apprv="' . $noApprv . '" data-user-id="' . $userId . '" />"';
+                return '<input type="checkbox" class="form-check-input bulk-checkbox" data-id="' . $entry->voucer_edit_id . '" data-no-apprv="' . $noApprv . '" data-user-id="' . $userId . '" />';
             },
             'orderable' => false,
             'searchable' => false,
