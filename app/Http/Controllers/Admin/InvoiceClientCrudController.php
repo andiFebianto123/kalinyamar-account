@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Carbon\Carbon;
 use App\Models\Setting;
 use App\Models\ClientPo;
+use App\Models\LogPayment;
 use App\Models\InvoiceClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Helpers\CustomVoid;
@@ -54,6 +55,7 @@ class InvoiceClientCrudController extends CrudController
             'create' => ["CREATE $base", ...$allAccess],
             'update' => ["UPDATE $base", ...$allAccess],
             'delete' => ["DELETE $base", ...$allAccess],
+            'void'   => ["VOID $base", ...$allAccess],
             'list'   => $viewMenu,
             'show'   => $viewMenu,
             'print'  => true,
@@ -149,15 +151,15 @@ class InvoiceClientCrudController extends CrudController
                         'orderable' => true,
                     ],
                     [
-                        'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
-                        'name' => 'invoice_date',
-                        'type'  => 'text',
-                        'orderable' => true,
-                    ],
-                    [
                         'label' => trans('backpack::crud.invoice_client.column.description'),
                         'name' => 'description',
                         'type' => 'text',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
+                        'name' => 'invoice_date',
+                        'type'  => 'text',
                         'orderable' => true,
                     ],
                     [
@@ -218,6 +220,7 @@ class InvoiceClientCrudController extends CrudController
                         'name' => 'action',
                         'type' => 'action',
                         'label' =>  trans('backpack::crud.actions'),
+                        'width_box' => '150px',
                     ]
                 ],
                 'filter_table' => collect($this->crud->filters())->slice(0, 4),
@@ -269,8 +272,8 @@ class InvoiceClientCrudController extends CrudController
             //         ->where('invoice_clients.invoice_date', 'like', '%' . $search . '%');
             // }
 
-            if (isset($request->search[5])) {
-                $search = trim($request->search[5]);
+            if (isset($request->search[4])) {
+                $search = trim($request->search[4]);
                 $total_price = $total_price
                     ->where('invoice_clients.description', 'like', '%' . $search . '%');
             }
@@ -449,6 +452,7 @@ class InvoiceClientCrudController extends CrudController
     {
         CRUD::disableResponsiveTable();
         CRUD::removeButtons(['delete', 'show', 'update'], 'line');
+        $new_format_date = 'DD/MM/YYYY';
 
         $this->crud->file_title_export_pdf = "Laporan_invoice.pdf";
         $this->crud->file_title_export_excel = "Laporan_invoice.xlsx";
@@ -462,6 +466,20 @@ class InvoiceClientCrudController extends CrudController
         CRUD::addButtonFromView('line', 'update', 'update', 'end');
         CRUD::addButtonFromView('line', 'print', 'print', 'end');
         CRUD::addButtonFromView('line', 'delete', 'delete', 'end');
+        CRUD::addButtonFromView('line', 'void_invoice', 'void_invoice', 'end');
+
+        $this->crud->query = $this->crud->query->leftJoin('log_payments as log_void', function ($join) {
+            $join->on('log_void.reference_id', '=', 'invoice_clients.id')
+                ->where('log_void.reference_type', '=', 'App\Models\InvoiceClient')
+                ->where('log_void.name', '=', 'CREATE_PAYMENT_INVOICE');
+        });
+
+        CRUD::addClause('select', [
+            DB::raw("
+                invoice_clients.*,
+                log_void.id as payment_log_id
+            ")
+        ]);
 
         $status_file = '';
         if (strpos(url()->current(), 'excel')) {
@@ -522,18 +540,19 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
-                'name' => 'invoice_date',
-                'type'  => 'date'
-            ],
-        );
-
-        CRUD::column(
-            [
                 'label' => trans('backpack::crud.invoice_client.column.description'),
                 'name' => 'description',
                 'type' => 'wrap_text'
             ]
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
+                'name' => 'invoice_date',
+                'type'  => 'date',
+                'format' => $new_format_date,
+            ],
         );
 
         CRUD::column([
@@ -553,6 +572,7 @@ class InvoiceClientCrudController extends CrudController
                 'label' => trans('backpack::crud.invoice_client.column.po_date'),
                 'name' => 'po_date',
                 'type' => 'date',
+                'format' => $new_format_date,
             ]
         );
 
@@ -594,7 +614,8 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label' => trans('backpack::crud.invoice_client.column.send_invoice_normal'),
                 'name' => 'send_invoice_normal_date',
-                'type'  => 'date'
+                'type'  => 'date',
+                'format' => $new_format_date,
             ],
         );
 
@@ -602,7 +623,8 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label' => trans('backpack::crud.invoice_client.column.send_invoice_revision'),
                 'name' => 'send_invoice_revision_date',
-                'type'  => 'date'
+                'type'  => 'date',
+                'format' => $new_format_date,
             ],
         );
 
@@ -669,8 +691,8 @@ class InvoiceClientCrudController extends CrudController
             // }
 
             // Search for Description column (index 5)
-            if (isset($request->columns[5]['search']['value'])) {
-                $search = trim($request->columns[5]['search']['value']);
+            if (isset($request->columns[4]['search']['value'])) {
+                $search = trim($request->columns[4]['search']['value']);
                 $this->crud->query = $this->crud->query
                     ->where('invoice_clients.description', 'like', '%' . $search . '%');
             }
@@ -761,6 +783,66 @@ class InvoiceClientCrudController extends CrudController
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $this->crud->query = $this->crud->query->whereYear('invoice_clients.invoice_date', $request->filter_year);
         }
+    }
+
+    public function search()
+    {
+        $this->crud->hasAccessOrFail('list');
+
+        $this->crud->applyUnappliedFilters();
+
+        $start = (int) request()->input('start');
+        $length = (int) request()->input('length');
+        $search = request()->input('search');
+
+        // check if length is allowed by developer
+        if ($length && ! in_array($length, $this->crud->getPageLengthMenu()[0])) {
+            return response()->json([
+                'error' => 'Unknown page length.',
+            ], 400);
+        }
+
+        // if a search term was present
+        if ($search && $search['value'] ?? false) {
+            // filter the results accordingly
+            $this->crud->applySearchTerm($search['value']);
+        }
+        // start the results according to the datatables pagination
+        if ($start) {
+            $this->crud->skip($start);
+        }
+        // limit the number of results according to the datatables pagination
+        if ($length) {
+            $this->crud->take($length);
+        }
+        // overwrite any order set in the setup() method with the datatables order
+        $this->crud->applyDatatableOrder();
+
+        $entries = $this->crud->getEntries();
+
+        // if show entry count is disabled we use the "simplePagination" technique to move between pages.
+        if ($this->crud->getOperationSetting('showEntryCount')) {
+            $query_clone = $this->crud->query->toBase()->clone();
+
+            $outer_query = $query_clone->newQuery();
+            $subQuery = $query_clone->cloneWithout(['limit', 'offset']);
+
+            $totalEntryCount = $outer_query->select(DB::raw('count(*) as total_rows'))
+                ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
+            $filteredEntryCount = $totalEntryCount;
+
+            // $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
+            // $filteredEntryCount = $this->crud->getFilteredQueryCount() ?? $totalEntryCount;
+        } else {
+            $totalEntryCount = $length;
+            $entryCount = $entries->count();
+            $filteredEntryCount = $entryCount < $length ? $entryCount : $length + $start + 1;
+        }
+
+        // store the totalEntryCount in CrudPanel so that multiple blade files can access it
+        $this->crud->setOperationSetting('totalEntryCount', $totalEntryCount);
+
+        return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
     }
 
     public function exportPdf()
@@ -1554,6 +1636,7 @@ class InvoiceClientCrudController extends CrudController
     protected function setupShowOperation()
     {
         $settings = Setting::first();
+        $new_format_date = 'DD/MM/YYYY';
 
         CRUD::addField([
             'name' => 'invoice_number',
@@ -1846,7 +1929,8 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.column.invoice_date'),
                 'name' => 'invoice_date',
-                'type'  => 'date'
+                'type'  => 'date',
+                'format' => $new_format_date,
             ],
         );
 
@@ -1888,6 +1972,7 @@ class InvoiceClientCrudController extends CrudController
                 'label' => trans('backpack::crud.invoice_client.column.po_date'),
                 'name' => 'po_date',
                 'type' => 'date',
+                'format' => $new_format_date,
             ]
         );
 
@@ -1978,6 +2063,7 @@ class InvoiceClientCrudController extends CrudController
                 'label' => trans('backpack::crud.invoice_client.column.po_date'),
                 'name' => 'send_invoice_normal_date',
                 'type' => 'date',
+                'format' => $new_format_date,
             ]
         );
 
@@ -1986,6 +2072,7 @@ class InvoiceClientCrudController extends CrudController
                 'label' => trans('backpack::crud.invoice_client.column.po_date'),
                 'name' => 'send_invoice_revision_date',
                 'type' => 'date',
+                'format' => $new_format_date,
             ]
         );
 
@@ -2078,5 +2165,46 @@ class InvoiceClientCrudController extends CrudController
         $pdf = Pdf::loadView('exports.invoice-client-pdf-new', $data);
         return $pdf->stream('invoice.pdf');
         return view('exports.invoice-client-pdf-new');
+    }
+    public function voidPayment($id)
+    {
+        $this->crud->hasAccessOrFail('void');
+
+        DB::beginTransaction();
+        try {
+            $invoice = InvoiceClient::findOrFail($id);
+
+            // Check if log exists
+            $log = LogPayment::where('reference_type', 'App\Models\InvoiceClient')
+                ->where('reference_id', $id)
+                ->where('name', 'CREATE_PAYMENT_INVOICE')
+                ->first();
+
+            if (!$log) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Log pembayaran tidak ditemukan.'
+                ]);
+            }
+
+            // Rollback payment logic
+            CustomVoid::rollbackPayment('App\Models\InvoiceClient', $id, 'CREATE_PAYMENT_INVOICE');
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembayaran invoice berhasil di-Void.',
+                'events' => [
+                    'crudTable-invoice_create_success' => true,
+                    'crudTable-filter_invoice_plugin_load' => true,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

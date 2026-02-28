@@ -3,21 +3,23 @@
     // {{ $entry->getKey() }}, {{ $entry->approval_no_apprv }}, {{ $entry->voucer_edit_id }}
 ?>
 @if ($user_id == $entry->user_live_user_id && $entry->user_live_status == 'Pending')
-    <button
-            type="button"
-            class="btn btn-sm btn-primary"
-            onclick="confirmApprovalOrReject(this)"
-            data-route="{{ url($crud->route.'/'.$entry->voucer_edit_id.'/approve') }}"
-            data-toggle="tooltip"
-            data-bs-toggle="modal"
-            data-bs-target="#modalApproval"
-            data-no_apprv=" {{ $entry->user_live_no_apprv }}"
-            data-title-approval="{{ trans('backpack::crud.voucher.confirm.title') }}"
-            data-body="{{ trans('backpack::crud.voucher.confirm.confirm_approved_statement') }}"
-            title="Approve"
-        >
-        Approve
-    </button>
+    @if ($crud->allowAccess('approve', $entry))
+        <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                onclick="confirmApprovalOrReject(this)"
+                data-route="{{ url($crud->route.'/'.$entry->voucer_edit_id.'/approve') }}"
+                data-toggle="tooltip"
+                data-bs-toggle="modal"
+                data-bs-target="#modalApproval"
+                data-no_apprv=" {{ $entry->user_live_no_apprv }}"
+                data-title-approval="{{ trans('backpack::crud.voucher.confirm.title') }}"
+                data-body="{{ trans('backpack::crud.voucher.confirm.confirm_approved_statement') }}"
+                title="Approve"
+            >
+            Approve
+        </button>
+    @endif
 @endif
 
 @push('after_scripts') @if (request()->ajax()) @endpush @endif

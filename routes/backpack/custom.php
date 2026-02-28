@@ -78,7 +78,7 @@ Route::group([
         Route::crud('purchase-order-tab', 'PurchaseOrderTabController');
         Route::crud('spk-trans', 'SpkCrudController');
         Route::get('spk-trans/total', [SpkCrudController::class, 'total_price']);
-        ROute::post('spk-trans/export-pdf', [SpkCrudController::class, 'exportPdf']);
+        Route::post('spk-trans/export-pdf', [SpkCrudController::class, 'exportPdf']);
         Route::post('spk-trans/export-excel', [SpkCrudController::class, 'exportExcel']);
         Route::post('download-po', 'PurchaseOrderCrudController@exportExcel');
         Route::post('download-po-pdf', 'PurchaseOrderCrudController@exportPdf');
@@ -102,6 +102,7 @@ Route::group([
     Route::post('invoice-client/select2-client-po', [InvoiceClientCrudController::class, 'select2ClientPo']);
     Route::get('invoice-client/get-client-po', [InvoiceClientCrudController::class, 'selectedClientPo']);
     Route::get('invoice-client/total', [InvoiceClientCrudController::class, 'total_price']);
+    Route::delete('invoice-client/void-payment/{id}', [InvoiceClientCrudController::class, 'voidPayment']);
 
     Route::prefix('cash-flow')->group(function () {
         Route::crud('cast-accounts', 'CastAccountsCrudController');
@@ -143,6 +144,9 @@ Route::group([
         Route::post('profit-lost/store-project', [ProfitLostAccountCrudController::class, 'storeProject']);
         Route::get('profit-lost/{id}/detail', [ProfitLostAccountCrudController::class, 'detail']);
         Route::crud('balance-sheet', 'BalanceSheetCrudController');
+        Route::get('balance-sheet-ledger', [BalanceSheetCrudController::class, 'getLedgerDataTable']);
+        Route::post('balance-sheet-ledger-pdf', [BalanceSheetCrudController::class, 'exportLedgerPdf']);
+        Route::post('balance-sheet-ledger-excel', [BalanceSheetCrudController::class, 'exportLedgerExcel']);
         Route::post('balance-sheet/export-pdf', [BalanceSheetCrudController::class, 'exportPdf']);
         Route::post('balance-sheet/export-excel', [BalanceSheetCrudController::class, 'exportExcel']);
         Route::get('show-total-account', [BalanceSheetCrudController::class, 'showTotalAccount']);
@@ -178,6 +182,7 @@ Route::group([
         Route::get('voucher/total', [VoucherCrudController::class, 'total_voucher']);
         Route::post('voucher/export-pdf', [VoucherCrudController::class, 'exportPdf']);
         Route::post('voucher/export-excel', [VoucherCrudController::class, 'exportExcel']);
+        Route::delete('voucher/void-payment/{id}', [VoucherCrudController::class, 'voidPayment']);
         Route::crud('voucher-payment', 'VoucherPaymentCrudController');
         Route::post('voucher-payment/export-pdf', [VoucherPaymentCrudController::class, 'exportPdf']);
         Route::post('voucher-payment/export-excel', [VoucherPaymentCrudController::class, 'exportExcel']);

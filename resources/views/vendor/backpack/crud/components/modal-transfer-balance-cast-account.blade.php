@@ -4,7 +4,7 @@
         <span>{{ trans('backpack::crud.modal.no_account') }} :</span> <span class="no_account fw-bold"></span>
     </p>
     <p class="mb-4">
-        <strong><span style="font-size: 20px;">Saldo</span></strong>
+        <strong><span style="font-size: 20px;">{{ trans('backpack::crud.cash_account.field_transfer.balance.label') }}</span></strong>
         <span class="total_saldo fs-4 fw-bold text-dark"></span>
     </p>
     <div class="col-md-12">
@@ -156,12 +156,20 @@
                     }
                     bpFieldInitMaskElement($('#nominal_transfer_masked'));
                 </script>
+                <script>
+                    SIAOPS.loadCSS("{{ asset('packages/select2/dist/css/select2.min.css') }}");
+                    SIAOPS.loadCSS("{{ asset('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css') }}");
+                    SIAOPS.loadScript([
+                        "{{ asset('packages/select2/dist/js/select2.full.min.js') }}"
+                    ], {
+                        async: false,
+                        defer: true,
+                    });
+                </script>
                 <div class="col-md-6"></div>
                 <div class="form-group col-md-6 required" element="div" bp-field-wrapper="true" bp-field-name="status" bp-field-type="select_from_array" bp-section="crud-field">
                     <label>{{trans("backpack::crud.cash_account.field_transfer.to_account.label")}}</label>
                     <select name="to_account" class="form-control form-select">
-                        {{-- <option value="enter">MASUK</option>
-                        <option value="out">KELUAR</option> --}}
                     </select>
                 </div>
             </div>
@@ -244,7 +252,7 @@
                                         $('#date_move_balance').datepicker('clearDates');
                                     }
                                     swal({
-                                        title: "Success",
+                                        title: "{{ trans('backpack::crud.reorder_success_title') }}",
                                         text: "{!! trans('backpack::crud.insert_success') !!}",
                                         icon: "success",
                                         timer: 4000,
@@ -281,6 +289,14 @@
                         var instance = this;
                         const myModalEl = document.getElementById('{{$name}}');
                         myModalEl.addEventListener('show.bs.modal', (event) => {
+                            var $select = $('#form-transfer-balance-cast-account select[name="to_account"]');
+                            if (!$select.hasClass("select2-hidden-accessible")) {
+                                $select.select2({
+                                    theme: "bootstrap",
+                                    dropdownParent: $('#{{$name}}')
+                                });
+                            }
+
                            // load select2
                             normalizeShowMessage('form-transfer-balance-cast-account');
                             $.ajax({
@@ -288,12 +304,12 @@
                                 type: 'GET',
                                 typeData: 'json',
                                 success: function (response) {
-                                    var option = `<option value="" selected="">{{trans("backpack::crud.cash_account.field_transfer.to_account.placeholder")}}</option>`;
-
+                                    // var option = `<option value="" selected="">{{trans("backpack::crud.cash_account.field_transfer.to_account.placeholder")}}</option>`;
+                                    var option = "<option value=''>{{ trans('backpack::crud.modal.choose_account') }}</option>";
                                     response.result.forEach((value) => {
                                         option += `<option value='${value.id}'>${value.name}</option>`;
                                     });
-                                    $('#form-transfer-balance-cast-account select[name="to_account"]').html(option);
+                                    $select.html(option).trigger('change');
                                 },
                                 error: function (xhr, status, error) {
                                     console.error(xhr);

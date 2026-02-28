@@ -113,7 +113,22 @@
                     var filter_year = params.get('filter_year') || '';
                     var filter_quarter = params.get('filter_quarter') || '';
                     var url = "{{ url($crud->route . '-ledger-pdf') }}?id=" + currentAccountId + "&filter_year=" + filter_year + "&filter_quarter=" + filter_quarter;
-                    var title = "Buku_Besar_" + currentAccountTitle.replace(/ /g, "_") + ".pdf";
+                    
+                    var fileNameFilter = '';
+                    if (filter_year) {
+                        fileNameFilter += '_' + filter_year;
+                        if (filter_quarter) {
+                            fileNameFilter += '_Q' + filter_quarter;
+                        }
+                    }
+                    var now = new Date();
+                    var timestamp = now.getFullYear() + 
+                                    ("0" + (now.getMonth() + 1)).slice(-2) + 
+                                    ("0" + now.getDate()).slice(-2) + "_" + 
+                                    ("0" + now.getHours()).slice(-2) + 
+                                    ("0" + now.getMinutes()).slice(-2) + 
+                                    ("0" + now.getSeconds()).slice(-2);
+                    var title = "Buku_Besar_" + currentAccountTitle.replace(/ /g, "_") + fileNameFilter + "_" + timestamp + ".pdf";
 
                     const {response, errors} = await API_REQUEST("DOWNLOAD", url);
 
@@ -149,7 +164,22 @@
                     var filter_year = params.get('filter_year') || '';
                     var filter_quarter = params.get('filter_quarter') || '';
                     var url = "{{ url($crud->route . '-ledger-excel') }}?id=" + currentAccountId + "&filter_year=" + filter_year + "&filter_quarter=" + filter_quarter;
-                    var title = "Buku_Besar_" + currentAccountTitle.replace(/ /g, "_") + ".xlsx";
+                    
+                    var fileNameFilter = '';
+                    if (filter_year) {
+                        fileNameFilter += '_' + filter_year;
+                        if (filter_quarter) {
+                            fileNameFilter += '_Q' + filter_quarter;
+                        }
+                    }
+                    var now = new Date();
+                    var timestamp = now.getFullYear() + 
+                                    ("0" + (now.getMonth() + 1)).slice(-2) + 
+                                    ("0" + now.getDate()).slice(-2) + "_" + 
+                                    ("0" + now.getHours()).slice(-2) + 
+                                    ("0" + now.getMinutes()).slice(-2) + 
+                                    ("0" + now.getSeconds()).slice(-2);
+                    var title = "Buku_Besar_" + currentAccountTitle.replace(/ /g, "_") + fileNameFilter + "_" + timestamp + ".xlsx";
 
                     const {response, errors} = await API_REQUEST("DOWNLOAD", url);
 

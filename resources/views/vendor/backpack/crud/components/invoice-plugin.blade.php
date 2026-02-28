@@ -20,7 +20,7 @@
                 refresh: function(){
                     var instance = this;
                     setTimeout(() => {
-                        $("#crudTable-invoice thead tr.filters th").eq(4).children('input').remove();
+                        $("#crudTable-invoice thead tr.filters th").eq(5).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(7).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(11).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(12).children('input').remove();

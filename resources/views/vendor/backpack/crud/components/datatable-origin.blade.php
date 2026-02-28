@@ -420,9 +420,13 @@
                 if (i !== 0 && i !== totalColumns - 1) {
                     const column = this;
                     const input = $(`${tableId} thead tr.filters th`).eq(i).find('input');
+                    var tabFilter = SIAOPS.getAttribute("SETUP_ALL_FILTER_{{$name}}");
+                    // tabFilter.searchValues[i] = null;
                     input.on('change clear', function () {
                         filterValues[i] = this.value;
                         column.search(this.value).draw();
+                        var tabFilter = SIAOPS.getAttribute("SETUP_ALL_FILTER_{{$name}}");
+                        tabFilter.searchValues[i] = this.value;
                     });
                 }
             });

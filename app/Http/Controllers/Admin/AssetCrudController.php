@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -74,8 +75,10 @@ class AssetCrudController extends CrudController
         return view($list, $this->data);
     }
 
-    protected function setupListOperation(){
+    protected function setupListOperation()
+    {
         CRUD::disableResponsiveTable();
+        $new_format_date = 'DD/MM/YYYY';
 
         $this->crud->file_title_export_pdf = "Laporan_daftar_asset.pdf";
         $this->crud->file_title_export_excel = "Laporan_daftar_asset.xlsx";
@@ -259,17 +262,17 @@ class AssetCrudController extends CrudController
             ],
         );
 
-        if(request()->has('filter_year')){
+        if (request()->has('filter_year')) {
             $filter_year = request()->get('filter_year');
-            if($filter_year != 'all'){
+            if ($filter_year != 'all') {
                 $this->crud->query = $this->crud->query
-                ->where(DB::raw("YEAR(year_acquisition)"), $filter_year);
+                    ->where(DB::raw("YEAR(year_acquisition)"), $filter_year);
             }
         }
-
     }
 
-    private function setupListExport(){
+    private function setupListExport()
+    {
         CRUD::disableResponsiveTable();
 
         CRUD::addButtonFromView('top', 'filter-year-asset', 'filter-year-asset', 'beginning');
@@ -450,17 +453,17 @@ class AssetCrudController extends CrudController
             ],
         );
 
-        if(request()->has('filter_year')){
+        if (request()->has('filter_year')) {
             $filter_year = request()->get('filter_year');
-            if($filter_year != 'all'){
+            if ($filter_year != 'all') {
                 $this->crud->query = $this->crud->query
-                ->where(DB::raw("YEAR(year_acquisition)"), $filter_year);
+                    ->where(DB::raw("YEAR(year_acquisition)"), $filter_year);
             }
         }
-
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -472,10 +475,10 @@ class AssetCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -500,11 +503,12 @@ class AssetCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -516,10 +520,10 @@ class AssetCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -532,9 +536,11 @@ class AssetCrudController extends CrudController
 
         $name = 'DAFTAR ASSET';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -546,7 +552,8 @@ class AssetCrudController extends CrudController
         ], 400);
     }
 
-    function ruleAsset(){
+    function ruleAsset()
+    {
         return [
             'account_id' => 'required|exists:accounts,id',
             'depreciation_account_id' => 'required|exists:accounts,id',
@@ -565,17 +572,17 @@ class AssetCrudController extends CrudController
         $search = request()->input('q');
         $dataset = \App\Models\Account::select(['id', 'name']);
 
-        if(request()->has('type')){
-            if(request()->get('type') == 'beban'){
+        if (request()->has('type')) {
+            if (request()->get('type') == 'beban') {
                 $dataset = $dataset->where('type', 'Expense');
             }
-        }else{
+        } else {
             $dataset = $dataset->where('type', 'Assets')
-            ->where('code', 'LIKE', "105%");
+                ->where('code', 'LIKE', "105%");
         }
         $dataset = $dataset
-        ->where('name', 'LIKE', "%$search%")
-        ->paginate(10);
+            ->where('name', 'LIKE', "%$search%")
+            ->paginate(10);
 
         $results = [];
         foreach ($dataset as $item) {
@@ -593,7 +600,7 @@ class AssetCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -690,7 +697,7 @@ class AssetCrudController extends CrudController
             'name' => 'economic_age',
             'label' => trans('backpack::crud.asset.field.economic_age.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             // 'suffix'     => ".00",
             'wrapper'   => [
@@ -705,7 +712,7 @@ class AssetCrudController extends CrudController
             'name' => 'tarif',
             'label' => trans('backpack::crud.asset.field.tarif.label'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => ["step" => "any"], // allow decimals
             'prefix'     => "%",
             // 'suffix'     => ".00",
@@ -846,7 +853,6 @@ class AssetCrudController extends CrudController
             'name' => 'logic_asset',
             'type' => 'logic_asset',
         ]);
-
     }
 
     function getInclusiveMonthDiff($fromDateStr)
@@ -866,7 +872,7 @@ class AssetCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $price_acquisition = (float) str_replace('.', '', $request->price_acquisition); // contoh: 1000000
             $economic_age = (int) $request->economic_age; // contoh: 5
@@ -960,8 +966,7 @@ class AssetCrudController extends CrudController
                 ]);
             }
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -985,7 +990,7 @@ class AssetCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -1007,7 +1012,7 @@ class AssetCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $price_acquisition = (float) str_replace('.', '', $request->price_acquisition); // contoh: 1000000
             $economic_age = (int) $request->economic_age; // contoh: 5
@@ -1044,7 +1049,7 @@ class AssetCrudController extends CrudController
             $aset->save();
 
             JournalEntry::where('reference_id', $request->id)
-            ->where('reference_type', Asset::class)->delete();
+                ->where('reference_type', Asset::class)->delete();
 
             CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $aset->account_id,
@@ -1106,8 +1111,7 @@ class AssetCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1134,7 +1138,7 @@ class AssetCrudController extends CrudController
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
 
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         // return view($this->crud->getShowView(), $this->data);
@@ -1143,7 +1147,8 @@ class AssetCrudController extends CrudController
         ]);
     }
 
-    protected function setupShowOperation(){
+    protected function setupShowOperation()
+    {
         $this->setupCreateOperation();
         CRUD::field('logic_asset')->remove();
 
@@ -1168,7 +1173,7 @@ class AssetCrudController extends CrudController
             $this->crud->hasAccessOrFail('delete');
             $item = $this->crud->model::findOrFail($id);
             JournalEntry::where('reference_id', $id)
-            ->where('reference_type', Asset::class)->delete();
+                ->where('reference_type', Asset::class)->delete();
             $delete = $item->delete();
             DB::commit();
             return $delete;
@@ -1180,6 +1185,4 @@ class AssetCrudController extends CrudController
             ], 500);
         }
     }
-
-
 }

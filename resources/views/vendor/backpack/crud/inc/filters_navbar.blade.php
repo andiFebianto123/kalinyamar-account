@@ -58,6 +58,9 @@
           let name_table = filterName.replace(/.*\d+/, '');
           let filter_name_origin = filterName.match(/^[^\d]+/)[0];
 
+          let nameTab = name_table.replace(/^crudTable-/, '');
+          // "SETUP_ALL_FILTER_"+nameTab --> component tab filter comingson
+
 
           var current_url = SIAOPS.getAttribute(name_table).table.ajax.url();
           var new_url = addOrUpdateUriParameter(current_url, filter_name_origin, filterValue, name_table);

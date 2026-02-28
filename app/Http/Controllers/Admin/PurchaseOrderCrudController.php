@@ -194,6 +194,7 @@ class PurchaseOrderCrudController extends CrudController
                 'tabs' => [
                     [
                         'name' => 'list_all_po',
+                        'name_tab' => 'po_tab',
                         'label' => trans('backpack::crud.po.tab.title_all_po'),
                         'active' => true,
                         'view' => 'crud::components.datatable',
@@ -288,6 +289,7 @@ class PurchaseOrderCrudController extends CrudController
                     ],
                     [
                         'name' => 'list_open',
+                        'name_tab' => 'po_tab',
                         'label' => trans('backpack::crud.po.tab.open'),
                         // 'class' => '',
                         'active' => false,
@@ -380,6 +382,7 @@ class PurchaseOrderCrudController extends CrudController
                     ],
                     [
                         'name' => 'list_close',
+                        'name_tab' => 'po_tab',
                         'label' => trans('backpack::crud.po.tab.close'),
                         // 'class' => '',
                         'active' => false,
@@ -664,6 +667,8 @@ class PurchaseOrderCrudController extends CrudController
         $settings = Setting::first();
         $request = request();
 
+        $new_format_date = 'DD/MM/YYYY';
+
         $app->addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -686,7 +691,8 @@ class PurchaseOrderCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.po.column.date_po'),
                 'name' => 'date_po',
-                'type'  => 'date'
+                'type'  => 'date',
+                'format' => $new_format_date,
             ],
         );
 
@@ -767,7 +773,8 @@ class PurchaseOrderCrudController extends CrudController
         $app->addColumn([
             'label'  => trans('backpack::crud.po.column.due_date'),
             'name' => 'due_date',
-            'type'  => 'date'
+            'type'  => 'date',
+            'format' => $new_format_date,
         ]);
 
         $app->addColumn([

@@ -9,11 +9,9 @@ use App\Models\JournalEntry;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use App\Http\Exports\ExportExcel;
-use App\Models\ProjectProfitLost;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
-use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
@@ -141,6 +139,20 @@ class BalanceSheetCrudController extends CrudController
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
 
+        $this->data['journal_years'] = JournalEntry::selectRaw('YEAR(date) as year')
+            ->groupBy('year')
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        $this->modal->addModal([
+            'name' => 'modal_ledger',
+            'title' => 'Buku Besar',
+            'size' => 'modal-xl',
+            'title_alignment' => 'center',
+            'view' => 'crud::components.modal-ledger',
+        ]);
+
         $this->data['cards'] = $this->card;
         $this->data['modals'] = $this->modal;
         $this->data['scripts'] = $this->script;
@@ -162,6 +174,7 @@ class BalanceSheetCrudController extends CrudController
         // CRUD::addButtonFromView('top', 'create', 'create-account-profit-lost', 'begining');
         CRUD::addButtonFromView('line', 'delete', "delete-account", 'beginning');
         CRUD::addButtonFromView('line', 'update', "update-account", 'beginning');
+        CRUD::addButtonFromView('line', 'view', "view-ledger", 'beginning');
         CRUD::addButtonFromView('top', 'print-all', 'print-all', 'end');
 
         $this->crud->file_title_export_pdf = "Laporan_akun_neraca.pdf";
@@ -207,7 +220,7 @@ class BalanceSheetCrudController extends CrudController
             $startDate = null;
             $endDate = null;
 
-            if ($year && $year != "") {
+            if ($year && $year != "" && $year != "all") {
                 $startDate = $year . '-01-01';
                 $endDate = $year . '-12-31';
                 if ($quarter) {
@@ -257,7 +270,7 @@ class BalanceSheetCrudController extends CrudController
         $startDate = null;
         $endDate = null;
 
-        if ($year && $year != "") {
+        if ($year && $year != "" && $year != "all") {
             $startDate = $year . '-01-01';
             $endDate = $year . '-12-31';
 
@@ -960,7 +973,7 @@ class BalanceSheetCrudController extends CrudController
         $startDate = null;
         $endDate = null;
 
-        if ($year && $year != "") {
+        if ($year && $year != "" && $year != "all") {
             $startDate = $year . '-01-01';
             $endDate = $year . '-12-31';
             if ($quarter) {
@@ -1016,6 +1029,295 @@ class BalanceSheetCrudController extends CrudController
             'total_asset' => CustomHelper::formatRupiahWithCurrency($total_asset->balance ?? 0),
             'total_liabilities' => CustomHelper::formatRupiahWithCurrency($total_liabilities->balance ?? 0),
             'total_equity' => CustomHelper::formatRupiahWithCurrency($total_equity_val),
+        ]);
+    }
+
+    public function getLedgerDataTable()
+    {
+        $id = request()->_id;
+        $account = Account::findOrFail($id);
+
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "" && $year != "all") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
+        $query = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        });
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $total_data = $query->count();
+
+        // Search
+        if ($search = request()->input('search.value')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'LIKE', "%$search%")
+                    ->orWhere('debit', 'LIKE', "%$search%")
+                    ->orWhere('credit', 'LIKE', "%$search%");
+            });
+        }
+
+        $total_filtered = $query->count();
+
+        // Order
+        $columns = ['date', 'description', 'debit', 'credit', 'id']; // for sequence
+        if ($order = request()->input('order.0')) {
+            $query->orderBy($columns[$order['column']], $order['dir']);
+        } else {
+            $query->orderBy('date', 'asc')->orderBy('id', 'asc');
+        }
+
+        // Pagination
+        $start = request()->input('start', 0);
+        $length = request()->input('length', 10);
+        $entries = $query->offset($start)->limit($length)->get();
+
+        $cumulative_balance = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })
+            ->where(function ($q) use ($entries) {
+                if ($entries->count() > 0) {
+                    $first = $entries->first();
+                    $q->where('date', '<', $first->date)
+                        ->orWhere(function ($sq) use ($first) {
+                            $sq->where('date', $first->date)->where('id', '<', $first->id);
+                        });
+                }
+            })->selectRaw('SUM(debit) - SUM(credit) as balance')->first()->balance ?? 0;
+
+        $data = [];
+        foreach ($entries as $entry) {
+            $cumulative_balance += ($entry->debit - $entry->credit);
+            $data[] = [
+                'date' => Carbon::parse($entry->date)->translatedFormat('d/m/Y'),
+                'description' => $entry->description,
+                'debit' => CustomHelper::formatRupiahWithCurrency($entry->debit),
+                'credit' => CustomHelper::formatRupiahWithCurrency($entry->credit),
+                'balance' => CustomHelper::formatRupiahWithCurrency($cumulative_balance),
+            ];
+        }
+
+        return response()->json([
+            'draw' => request()->input('draw'),
+            'recordsTotal' => $total_data,
+            'recordsFiltered' => $total_filtered,
+            'data' => $data,
+        ]);
+    }
+    public function exportLedgerPdf()
+    {
+        $id = request()->id;
+        $account = Account::findOrFail($id);
+
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "" && $year != "all") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
+        $query = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        });
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $query->orderBy('date', 'asc')->orderBy('id', 'asc');
+
+        $entries = $query->get();
+        $cumulative_balance = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })->where(function ($q) use ($startDate) {
+            if ($startDate) {
+                $q->where('date', '<', $startDate);
+            }
+        })->selectRaw('SUM(debit) - SUM(credit) as balance')->first()->balance ?? 0;
+
+        $data = [];
+        if ($startDate) {
+            $data[] = [
+                '-',
+                'SALDO AWAL',
+                '-',
+                '-',
+                CustomHelper::formatRupiahWithCurrency($cumulative_balance),
+            ];
+        }
+
+        foreach ($entries as $entry) {
+            $cumulative_balance += ($entry->debit - $entry->credit);
+            $data[] = [
+                Carbon::parse($entry->date)->translatedFormat('d/m/Y'),
+                $entry->description,
+                CustomHelper::formatRupiahWithCurrency($entry->debit),
+                CustomHelper::formatRupiahWithCurrency($entry->credit),
+                CustomHelper::formatRupiahWithCurrency($cumulative_balance),
+            ];
+        }
+
+        $columns = [
+            ['label' => 'Tanggal', 'name' => 'date'],
+            ['label' => 'Keterangan', 'name' => 'description'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.enter'), 'name' => 'debit'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.out'), 'name' => 'credit'],
+            ['label' => 'Saldo Komulatif', 'name' => 'balance'],
+        ];
+
+        $title = "LAPORAN BUKU BESAR: " . $account->code . " - " . $account->name;
+
+        $pdf = Pdf::loadView('exports.table-pdf', [
+            'columns' => $columns,
+            'items' => $data,
+            'title' => $title
+        ])->setPaper('A4', 'landscape');
+
+        $fileNameFilter = '';
+        if ($year && $year != "" && $year != "all") {
+            $fileNameFilter .= '_' . $year;
+            if ($quarter) {
+                $fileNameFilter .= '_Q' . $quarter;
+            }
+        }
+
+        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . $fileNameFilter . '_' . now()->format('Ymd_His') . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    public function exportLedgerExcel()
+    {
+        $id = request()->id;
+        $account = Account::findOrFail($id);
+
+        $year = request('filter_year') ?? request('amp;filter_year') ?? date('Y');
+        $quarter = request('filter_quarter') ?? request('amp;filter_quarter');
+        $startDate = null;
+        $endDate = null;
+
+        if ($year && $year != "" && $year != "all") {
+            $startDate = $year . '-01-01';
+            $endDate = $year . '-12-31';
+            if ($quarter) {
+                $quartersRanges = [
+                    1 => ['start' => $year . '-01-01', 'end' => $year . '-03-31'],
+                    2 => ['start' => $year . '-04-01', 'end' => $year . '-06-30'],
+                    3 => ['start' => $year . '-07-01', 'end' => $year . '-09-30'],
+                    4 => ['start' => $year . '-10-01', 'end' => $year . '-12-31'],
+                ];
+                if (isset($quartersRanges[$quarter])) {
+                    $startDate = $quartersRanges[$quarter]['start'];
+                    $endDate = $quartersRanges[$quarter]['end'];
+                }
+            }
+        }
+
+        $query = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        });
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $query->orderBy('date', 'asc')->orderBy('id', 'asc');
+
+        $entries = $query->get();
+        $cumulative_balance = JournalEntry::whereHas('account', function ($q) use ($account) {
+            $q->where('code', 'LIKE', $account->code . '%');
+        })->where(function ($q) use ($startDate) {
+            if ($startDate) {
+                $q->where('date', '<', $startDate);
+            }
+        })->selectRaw('SUM(debit) - SUM(credit) as balance')->first()->balance ?? 0;
+
+        $data = [];
+        if ($startDate) {
+            $data[] = [
+                '-',
+                'SALDO AWAL',
+                0,
+                0,
+                $cumulative_balance,
+            ];
+        }
+
+        foreach ($entries as $entry) {
+            $cumulative_balance += ($entry->debit - $entry->credit);
+            $data[] = [
+                Carbon::parse($entry->date)->format('d/m/Y'),
+                $entry->description,
+                $entry->debit,
+                $entry->credit,
+                $cumulative_balance,
+            ];
+        }
+
+        $columns = [
+            ['label' => 'Tanggal', 'name' => 'date'],
+            ['label' => 'Keterangan', 'name' => 'description'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.enter'), 'name' => 'debit'],
+            ['label' => trans('backpack::crud.cash_account.field_transaction.status.out'), 'name' => 'credit'],
+            ['label' => 'Saldo Komulatif', 'name' => 'balance'],
+        ];
+
+        $fileNameFilter = '';
+        if ($year && $year != "" && $year != "all") {
+            $fileNameFilter .= '_' . $year;
+            if ($quarter) {
+                $fileNameFilter .= '_Q' . $quarter;
+            }
+        }
+
+        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . $fileNameFilter . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->streamDownload(function () use ($columns, $data) {
+            echo Excel::raw(new ExportExcel($columns, $data), \Maatwebsite\Excel\Excel::XLSX);
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 }

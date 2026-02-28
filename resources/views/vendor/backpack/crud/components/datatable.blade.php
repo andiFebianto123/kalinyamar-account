@@ -399,16 +399,20 @@
             });
         }
 
-        function bindFilterEvents(tableInstance, tableId) {
+        function bindFilterEvents(tableInstance, tableId, tabName) {
             const totalColumns = $(tableId).find('thead tr:first th').length;
 
             tableInstance.columns().every(function (i) {
                 if (i !== 0 && i !== totalColumns - 1) {
                     const column = this;
                     const input = $(`${tableId} thead tr.filters th`).eq(i).find('input');
+                    var tabFilter = SIAOPS.getAttribute("SETUP_ALL_FILTER_"+tabName);
+                    // tabFilter.searchValues[i] = null;
                     input.on('change clear', function () {
                         filterValues[i] = this.value;
                         column.search(this.value).draw();
+                        var tabFilter = SIAOPS.getAttribute("SETUP_ALL_FILTER_"+tabName);
+                        tabFilter.searchValues[i] = this.value;
                     });
                 }
             });
@@ -420,6 +424,7 @@
                 id: $('#crudTable-{{$name}}'),
                 route: "{!! url($route) !!}",
                 table: null,
+                nameTab: "{{$name}}",
                 eventLoader: function(){
                     // event when create success
 
@@ -522,7 +527,7 @@
 
                             @if (isset($filter))
                                 setupFilterInputs('#crudTable-{{$name}}');
-                                bindFilterEvents(this.api(), '#crudTable-{{$name}}');
+                                bindFilterEvents(this.api(), '#crudTable-{{$name}}', "{{$name}}");
                             @endif
 
                         },
@@ -540,7 +545,7 @@
                    $('#crudTable-{{$name}}').on( 'draw.dt',   function () {
                         @if (isset($filter))
                             setupFilterInputs('#crudTable-{{$name}}');
-                            bindFilterEvents(SIAOPS.getAttribute('crudTable-{{$name}}').table, '#crudTable-{{$name}}');
+                            bindFilterEvents(SIAOPS.getAttribute('crudTable-{{$name}}').table, '#crudTable-{{$name}}', "{{$name}}");
                         @endif
                         // setupFilterInputs('#crudTable-{{$name}}');
                         // instance.table.fixedHeader.adjust();

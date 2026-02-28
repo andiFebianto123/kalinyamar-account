@@ -46,14 +46,14 @@
             <tr>
                 <td>{{ $i + 1 }}</td>
                 <td>{{ $item->po_number ?? '-' }}</td>
-                <td>{{ $item->date_po ? \Carbon\Carbon::parse($item->date_po)->translatedFormat('d F Y') : '-' }}</td>
+                <td>{{ $item->date_po ? \Carbon\Carbon::parse($item->date_po)->translatedFormat("d/m/Y") : '-' }}</td>
                 <td>{{ $item->subkon->name ?? '-' }}</td>
                 <td>{{ $item->job_name ?? '-' }}</td>
                 <td>{{ $item->job_description ?? '-' }}</td>
                 <td>{{($settings?->currency_symbol) ? $settings->currency_symbol : "Rp."}} {{ number_format($item->job_value ?? 0) }}</td>
                 <td>{{ $item->tax_ppn ?? 0 }} %</td>
                 <td>{{($settings?->currency_symbol) ? $settings->currency_symbol : "Rp."}} {{ number_format($item->total_value_with_tax ?? 0) }}</td>
-                <td>{{ $item->due_date ? \Carbon\Carbon::parse($item->due_date)->translatedFormat('d F Y') : '-' }}</td>
+                <td>{{ $item->due_date ? \Carbon\Carbon::parse($item->due_date)->translatedFormat("d/m/Y") : '-' }}</td>
                 <td>{{ strtoupper($item->status ?? '-') }}</td>
             </tr>
             @endforeach

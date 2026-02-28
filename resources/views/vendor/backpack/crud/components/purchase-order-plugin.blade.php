@@ -21,6 +21,9 @@
                     var url = "{{url($crud->route.'/total')}}?permalink=1"+params_url;
                     $.ajax({
                         url: url,
+                        // data: {
+                        //     search_tab_all: SIAOPS.getAttribute("SETUP_ALL_FILTER_list_all_po").searchValues,
+                        // },
                         type: 'GET',
                         typeData: 'json',
                         success: function (result) {

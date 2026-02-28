@@ -11,7 +11,6 @@ use Illuminate\Validation\Rule;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Notifications\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
@@ -112,6 +111,12 @@ class ExpenseAccountCrudController extends CrudController
             trans('backpack::crud.menu.expense_account') => backpack_url($this->crud->route)
         ];
         $this->data['breadcrumbs'] = $breadcrumbs;
+
+        $this->data['journal_years'] = JournalEntry::selectRaw('YEAR(date) as year')
+            ->groupBy('year')
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
 
         $this->modal->addModal([
             'name' => 'modal_ledger',
@@ -589,7 +594,7 @@ class ExpenseAccountCrudController extends CrudController
             $startDate = null;
             $endDate = null;
 
-            if ($year && $year != "") {
+            if ($year && $year != "" && $year != "all") {
                 $startDate = $year . '-01-01';
                 $endDate = $year . '-12-31';
                 if ($quarter) {
@@ -648,7 +653,7 @@ class ExpenseAccountCrudController extends CrudController
         $startDate = null;
         $endDate = null;
 
-        if ($year && $year != "") {
+        if ($year && $year != "" && $year != "all") {
             $startDate = $year . '-01-01';
             $endDate = $year . '-12-31';
             if ($quarter) {
@@ -884,7 +889,7 @@ class ExpenseAccountCrudController extends CrudController
         $startDate = null;
         $endDate = null;
 
-        if ($year && $year != "") {
+        if ($year && $year != "" && $year != "all") {
             $startDate = $year . '-01-01';
             $endDate = $year . '-12-31';
             if ($quarter) {
@@ -952,7 +957,7 @@ class ExpenseAccountCrudController extends CrudController
         foreach ($entries as $entry) {
             $cumulative_balance += ($entry->debit - $entry->credit);
             $data[] = [
-                'date' => Carbon::parse($entry->date)->translatedFormat('d F Y'),
+                'date' => Carbon::parse($entry->date)->translatedFormat('d/m/Y'),
                 'description' => $entry->description,
                 'debit' => CustomHelper::formatRupiahWithCurrency($entry->debit),
                 'credit' => CustomHelper::formatRupiahWithCurrency($entry->credit),
@@ -977,7 +982,7 @@ class ExpenseAccountCrudController extends CrudController
         $startDate = null;
         $endDate = null;
 
-        if ($year && $year != "") {
+        if ($year && $year != "" && $year != "all") {
             $startDate = $year . '-01-01';
             $endDate = $year . '-12-31';
             if ($quarter) {
@@ -1027,7 +1032,7 @@ class ExpenseAccountCrudController extends CrudController
         foreach ($entries as $entry) {
             $cumulative_balance += ($entry->debit - $entry->credit);
             $data[] = [
-                Carbon::parse($entry->date)->translatedFormat('d F Y'),
+                Carbon::parse($entry->date)->translatedFormat('d/m/Y'),
                 $entry->description,
                 CustomHelper::formatRupiahWithCurrency($entry->debit),
                 CustomHelper::formatRupiahWithCurrency($entry->credit),
@@ -1051,7 +1056,15 @@ class ExpenseAccountCrudController extends CrudController
             'title' => $title
         ])->setPaper('A4', 'landscape');
 
-        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . '_' . now()->format('Ymd_His') . '.pdf';
+        $fileNameFilter = '';
+        if ($year && $year != "" && $year != "all") {
+            $fileNameFilter .= '_' . $year;
+            if ($quarter) {
+                $fileNameFilter .= '_Q' . $quarter;
+            }
+        }
+
+        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . $fileNameFilter . '_' . now()->format('Ymd_His') . '.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -1071,7 +1084,7 @@ class ExpenseAccountCrudController extends CrudController
         $startDate = null;
         $endDate = null;
 
-        if ($year && $year != "") {
+        if ($year && $year != "" && $year != "all") {
             $startDate = $year . '-01-01';
             $endDate = $year . '-12-31';
             if ($quarter) {
@@ -1137,7 +1150,15 @@ class ExpenseAccountCrudController extends CrudController
             ['label' => 'Saldo Komulatif', 'name' => 'balance'],
         ];
 
-        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . '_' . now()->format('Ymd_His') . '.xlsx';
+        $fileNameFilter = '';
+        if ($year && $year != "" && $year != "all") {
+            $fileNameFilter .= '_' . $year;
+            if ($quarter) {
+                $fileNameFilter .= '_Q' . $quarter;
+            }
+        }
+
+        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . $fileNameFilter . '_' . now()->format('Ymd_His') . '.xlsx';
 
         return response()->streamDownload(function () use ($columns, $data) {
             echo Excel::raw(new ExportExcel($columns, $data), \Maatwebsite\Excel\Excel::XLSX);

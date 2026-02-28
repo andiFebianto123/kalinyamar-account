@@ -270,6 +270,7 @@ class CastAccountsLoanCrudController extends CrudController
     {
         $id = request()->id;
         $filter_year = request()->input('filter_year');
+        $new_format_date = 'DD/MM/YYYY';
         CRUD::setModel(AccountTransaction::class);
 
         $castAccount = CastAccount::where('id', $id)->first();
@@ -1642,7 +1643,7 @@ class CastAccountsLoanCrudController extends CrudController
                 $entry->nominal_str = CustomHelper::formatRupiahWithCurrency($entry->nominal);
             }
             $entry->loan_str = CustomHelper::formatRupiahWithCurrency($entry->loan_remaining);
-            $entry->date_str = \Carbon\Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
+            $entry->date_str = \Carbon\Carbon::parse($entry->date_transaction)->translatedFormat('d/m/Y');
         }
 
         $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::LOAN, $filter_year);

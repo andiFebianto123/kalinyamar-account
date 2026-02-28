@@ -24,7 +24,7 @@
             </div>
         </div>
     </div>
-    <ul class="nav nav-tabs" role="tablist">
+    <ul class="nav nav-tabs {{ $name_tab }}" role="tablist">
         @foreach ($tabs as $tab)
             @php
                 $tab['disabled'] = $tab['disabled'] ?? false;
@@ -70,29 +70,100 @@
 @push('after_scripts')
     <script>
         $(function(){
-            const activeTab = document.querySelector('.nav-tabs .nav-link.active');
 
-            if(activeTab){
-                const name = activeTab.getAttribute('data-alt-name');
-                if(SIAOPS.getAttribute('export')){
-                    SIAOPS.getAttribute('export').url_pdf = activeTab.getAttribute('data-route-export-pdf');
-                    SIAOPS.getAttribute('export').title_pdf = activeTab.getAttribute('data-title-export-pdf');
-                    SIAOPS.getAttribute('export').url_excel = activeTab.getAttribute('data-route-export-excel');
-                    SIAOPS.getAttribute('export').title_excel = activeTab.getAttribute('data-title-export-excel');
-                }
-            }
-            const tabEl = document.querySelectorAll('li[data-bs-toggle="tab"]');
-            tabEl.forEach(el => {
-                el.addEventListener('shown.bs.tab', function (event) {
-                    const name = event.target.getAttribute('data-alt-name');
-                    if(SIAOPS.getAttribute('export')){
-                        SIAOPS.getAttribute('export').url_pdf = event.target.getAttribute('data-route-export-pdf');
-                        SIAOPS.getAttribute('export').title_pdf = event.target.getAttribute('data-title-export-pdf');
-                        SIAOPS.getAttribute('export').url_excel = event.target.getAttribute('data-route-export-excel');
-                        SIAOPS.getAttribute('export').title_excel = event.target.getAttribute('data-title-export-excel');
+            var filterAll = {
+                searchValues: [],
+                filterValues: {},
+            };
+
+            SIAOPS.setAttribute("TAB_COMPONENT_{{$name_tab}}", function(){
+                return {
+                    component: document.querySelectorAll('.{{$name_tab}} li[data-bs-toggle="tab"]'),
+                    tabActive: null,
+                    start: function(){
+                        const self = this;
+                        const activeTab = document.querySelector('.{{$name_tab}}.nav-tabs .nav-link.active');
+                        self.tabActive = activeTab.getAttribute('data-alt-name');
+                        if(activeTab){
+                            // const name = activeTab.getAttribute('data-alt-name');
+                            if(SIAOPS.getAttribute('export')){
+                                SIAOPS.getAttribute('export').url_pdf = activeTab.getAttribute('data-route-export-pdf');
+                                SIAOPS.getAttribute('export').title_pdf = activeTab.getAttribute('data-title-export-pdf');
+                                SIAOPS.getAttribute('export').url_excel = activeTab.getAttribute('data-route-export-excel');
+                                SIAOPS.getAttribute('export').title_excel = activeTab.getAttribute('data-title-export-excel');
+                            }
+                            if(SIAOPS.getAttribute("SETUP_ALL_FILTER_"+self.tabActive) == null){
+                                SIAOPS.setAttribute("SETUP_ALL_FILTER_"+self.tabActive, function(){
+                                    return {
+                                        ...filterAll,
+                                    }
+                                });
+                            }
+                        }
+
+                        this.component.forEach(el => {
+                            el.addEventListener('shown.bs.tab', function (event) {
+                                const name = event.target.getAttribute('data-alt-name');
+                                self.tabActive = name;
+                                if(SIAOPS.getAttribute('export')){
+                                    SIAOPS.getAttribute('export').url_pdf = event.target.getAttribute('data-route-export-pdf');
+                                    SIAOPS.getAttribute('export').title_pdf = event.target.getAttribute('data-title-export-pdf');
+                                    SIAOPS.getAttribute('export').url_excel = event.target.getAttribute('data-route-export-excel');
+                                    SIAOPS.getAttribute('export').title_excel = event.target.getAttribute('data-title-export-excel');
+                                }
+
+                                if(SIAOPS.getAttribute("SETUP_ALL_FILTER_"+name) == null){
+                                    SIAOPS.setAttribute("SETUP_ALL_FILTER_"+name, function(){
+                                        return {
+                                            ...filterAll,
+                                        }
+                                    });
+                                }
+                            });
+                        });
                     }
-                });
-            });
+                }
+            }).getAttribute('TAB_COMPONENT_{{$name_tab}}').start();
+
+            // if(activeTab){
+            //     const name = activeTab.getAttribute('data-alt-name');
+            //     if(SIAOPS.getAttribute('export')){
+            //         SIAOPS.getAttribute('export').url_pdf = activeTab.getAttribute('data-route-export-pdf');
+            //         SIAOPS.getAttribute('export').title_pdf = activeTab.getAttribute('data-title-export-pdf');
+            //         SIAOPS.getAttribute('export').url_excel = activeTab.getAttribute('data-route-export-excel');
+            //         SIAOPS.getAttribute('export').title_excel = activeTab.getAttribute('data-title-export-excel');
+            //     }
+            //     if(SIAOPS.getAttribute("SETUP_ALL_FILTER_"+name) == null){
+            //         SIAOPS.setAttribute("SETUP_ALL_FILTER_"+name, function(){
+            //             return {
+            //                 searchValues: [],
+            //                 filterValues: {},
+            //             }
+            //         });
+            //     }
+            // }
+            // const tabEl = document.querySelectorAll('li[data-bs-toggle="tab"]');
+            // tabEl.forEach(el => {
+            //     el.addEventListener('shown.bs.tab', function (event) {
+            //         const name = event.target.getAttribute('data-alt-name');
+            //         if(SIAOPS.getAttribute('export')){
+            //             SIAOPS.getAttribute('export').url_pdf = event.target.getAttribute('data-route-export-pdf');
+            //             SIAOPS.getAttribute('export').title_pdf = event.target.getAttribute('data-title-export-pdf');
+            //             SIAOPS.getAttribute('export').url_excel = event.target.getAttribute('data-route-export-excel');
+            //             SIAOPS.getAttribute('export').title_excel = event.target.getAttribute('data-title-export-excel');
+            //         }
+
+            //         if(SIAOPS.getAttribute("SETUP_ALL_FILTER_"+name) == null){
+            //             SIAOPS.setAttribute("SETUP_ALL_FILTER_"+name, function(){
+            //                 return {
+            //                     searchValues: [],
+            //                     filterValues: {},
+            //                 }
+            //             });
+            //         }
+
+            //     });
+            // });
 
         })
 

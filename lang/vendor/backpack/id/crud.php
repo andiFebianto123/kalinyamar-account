@@ -162,6 +162,18 @@ return [
     'related_entry_created_error' => 'Tidak dapat membuat masukan terkait.',
 
     // custom
+    'void_payment' => [
+        'void' => 'Void',
+        'title' => 'Void Pembayaran Voucher',
+        'confirm_title' => 'Konfirmasi Void Pembayaran',
+        'confirm_text' => 'Apakah Anda yakin ingin membatalkan (Void) pembayaran voucher ini? Jurnal dan histori transaksi terkait akan dihapus.',
+        'button_confirm' => 'Ya, Void!',
+        'success_title' => 'Berhasil!',
+        'success_text' => 'Pembayaran voucher telah berhasil di-Void.',
+        'error_title' => 'Gagal!',
+        'error_text' => 'Terjadi kesalahan saat melakukan Void.',
+        'error_request' => 'Tidak dapat memproses permintaan Void.',
+    ],
 
     'filter' => [
         'all_year' => 'Semua Tahun',
@@ -195,6 +207,7 @@ return [
         'title_transfer_balance' => 'Transfer Saldo',
         'move' => 'Pindah',
         'cancel' => 'Batalkan',
+        'choose_account' => '-PILIH REKENING/ACCOUNT-',
     ],
 
     'dashboard' => [
@@ -706,6 +719,9 @@ return [
             ]
         ],
         'field_transfer' => [
+            'balance' => [
+                'label' => 'Saldo',
+            ],
             'nominal_transfer' => [
                 'label' => 'Nominal Yang Ingin Dipindahkan',
 

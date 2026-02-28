@@ -147,11 +147,11 @@ class ExportVendorPo implements FromCollection, WithHeadings, WithMapping, Shoul
 
         $subkonName = $entry->subkon->name ?? '-';
         $date_po = $entry->date_po
-            ? Carbon::parse($entry->date_po)->translatedFormat('d F Y')
+            ? Carbon::parse($entry->date_po)->translatedFormat("d/m/Y")
             : '-';
 
         $due_date = $entry->due_date
-            ? Carbon::parse($entry->due_date)->translatedFormat('d F Y')
+            ? Carbon::parse($entry->due_date)->translatedFormat("d/m/Y")
             : '-';
 
         $status = strtoupper($entry->status ?? '-');

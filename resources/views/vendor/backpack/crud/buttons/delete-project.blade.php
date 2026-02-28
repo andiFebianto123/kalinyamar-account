@@ -76,6 +76,34 @@
             >
             <i class="la la-trash"></i>
         </a>
+    @elseif($entry->type == 'pph')
+        <a href="javascript:void(0)"
+            onclick="deleteEntry(this)"
+            bp-button="delete"
+            data-route="{{ url($crud->route.'/'.$entry->getKey().'?type=pph') }}"
+            class="btn btn-sm btn-danger"
+            data-button-type="delete"
+            data-bs-toggle="modal"
+            data-bs-target="#modalDelete"
+            data-title-delete="{{ trans('backpack::crud.project_system_setup.delete.setup_pph.title') }}"
+            data-body="{{ trans('backpack::crud.project_system_setup.delete.setup_pph.body') }}"
+            >
+            <i class="la la-trash"></i>
+        </a>
+    @elseif($entry->type == 'company_classification')
+        <a href="javascript:void(0)"
+            onclick="deleteEntry(this)"
+            bp-button="delete"
+            data-route="{{ url($crud->route.'/'.$entry->getKey().'?type=company_classification') }}"
+            class="btn btn-sm btn-danger"
+            data-button-type="delete"
+            data-bs-toggle="modal"
+            data-bs-target="#modalDelete"
+            data-title-delete="{{ trans('backpack::crud.project_system_setup.delete.setup_company_classification.title') }}"
+            data-body="{{ trans('backpack::crud.project_system_setup.delete.setup_company_classification.body') }}"
+            >
+            <i class="la la-trash"></i>
+        </a>
     @endif
 
 @endif

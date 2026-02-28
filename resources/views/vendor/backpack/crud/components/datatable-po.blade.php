@@ -138,6 +138,7 @@
 
 @push('after_scripts')
     <script>
+        console.log("TAB_COMPONENT_{{$name_tab}}");
         SIAOPS.setAttribute('crudTable-{{$name}}', function() {
             return {
                 id: $('#crudTable-{{$name}}'),

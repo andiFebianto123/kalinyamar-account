@@ -38,7 +38,7 @@ class SpkCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\Spk::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/vendor/spk-trans');
-        CRUD::setEntityNameStrings('SPK', 'SPK');        
+        CRUD::setEntityNameStrings('SPK', 'SPK');
 
         $allAccess = [
             'AKSES SEMUA MENU ACCOUNTING',
@@ -71,16 +71,17 @@ class SpkCrudController extends CrudController
         ]);
     }
 
-    public function total_price(){
+    public function total_price()
+    {
         $filter_year = request()->filter_year;
         $total_open = Spk::where('status', Spk::OPEN);
-        if($filter_year != null && $filter_year != 'all'){
+        if ($filter_year != null && $filter_year != 'all') {
             $total_open = $total_open->where(DB::raw("YEAR(date_spk)"), $filter_year);
         }
         $total_open = $total_open->sum('total_value_with_tax');
 
         $total_closed = Spk::where('status', Spk::CLOSE);
-        if($filter_year != null && $filter_year != 'all'){
+        if ($filter_year != null && $filter_year != 'all') {
             $total_closed = $total_closed->where(DB::raw("YEAR(date_spk)"), $filter_year);
         }
         $total_closed = $total_closed->sum('total_value_with_tax');
@@ -296,7 +297,7 @@ class SpkCrudController extends CrudController
                         'params' => [
                             'crud_custom' => $this->crud,
                             'columns' => [
-                                 [
+                                [
                                     'name'      => 'row_number',
                                     'type'      => 'row_number',
                                     'label'     => 'No',
@@ -413,7 +414,7 @@ class SpkCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
@@ -428,7 +429,7 @@ class SpkCrudController extends CrudController
             'total_value_with_tax' => request()->job_value + (request()->job_value * request()->tax_ppn / 100),
         ]);
 
-        if(request()->tax_ppn == null){
+        if (request()->tax_ppn == null) {
             request()->merge([
                 'tax_ppn' => 0,
             ]);
@@ -439,7 +440,7 @@ class SpkCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $events = [];
 
@@ -465,8 +466,7 @@ class SpkCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -490,7 +490,7 @@ class SpkCrudController extends CrudController
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -506,7 +506,7 @@ class SpkCrudController extends CrudController
             'total_value_with_tax' => request()->job_value + (request()->job_value * request()->tax_ppn / 100),
         ]);
 
-        if(request()->tax_ppn == null){
+        if (request()->tax_ppn == null) {
             request()->merge([
                 'tax_ppn' => 0,
             ]);
@@ -517,7 +517,7 @@ class SpkCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $events = [];
 
@@ -546,8 +546,7 @@ class SpkCrudController extends CrudController
             }
 
             return $this->crud->performSaveAction($item->getKey());
-
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -578,20 +577,22 @@ class SpkCrudController extends CrudController
 
         CRUD::disableResponsiveTable();
 
+        $new_format_date = 'DD/MM/YYYY';
+
         $request = request();
 
-        if($request->has('filter_year')){
-            if($request->filter_year != 'all'){
+        if ($request->has('filter_year')) {
+            if ($request->filter_year != 'all') {
                 $filterYear = $request->filter_year;
                 $this->crud->query = $this->crud->query
-                ->where(DB::raw("YEAR(date_spk)"), $filterYear);
+                    ->where(DB::raw("YEAR(date_spk)"), $filterYear);
             }
         }
 
-        if($request->has('tab')){
-            if($request->tab == 'open'){
+        if ($request->has('tab')) {
+            if ($request->tab == 'open') {
                 $this->crud->query = $this->crud->query->where('status', Spk::OPEN);
-            }else if($request->tab == 'close'){
+            } else if ($request->tab == 'close') {
                 $this->crud->query = $this->crud->query->where('status', Spk::CLOSE);
             }
         }
@@ -630,7 +631,8 @@ class SpkCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.spk.column.date_spk'),
                 'name' => 'date_spk',
-                'type'  => 'date'
+                'type'  => 'date',
+                'format' => $new_format_date,
             ],
         );
 
@@ -686,7 +688,7 @@ class SpkCrudController extends CrudController
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return $entry->job_value + ($entry->job_value * $entry->tax_ppn / 100);
                 }
             ],
@@ -695,14 +697,15 @@ class SpkCrudController extends CrudController
         CRUD::addColumn([
             'label'  => trans('backpack::crud.po.column.due_date'),
             'name' => 'due_date',
-            'type'  => 'date'
+            'type'  => 'date',
+            'format' => $new_format_date,
         ]);
 
         CRUD::addColumn([
             'label'  => trans('backpack::crud.spk.column.status'),
             'name' => 'status',
             'type'  => 'closure',
-            'function' => function($entry){
+            'function' => function ($entry) {
                 return strtoupper($entry->status);
             }
         ]);
@@ -721,18 +724,18 @@ class SpkCrudController extends CrudController
                 'type'  => 'textarea'
             ],
         );
-
     }
 
-    private function setupListExport(){
+    private function setupListExport()
+    {
 
         $request = request();
 
-        if($request->has('filter_year')){
-            if($request->filter_year != 'all'){
+        if ($request->has('filter_year')) {
+            if ($request->filter_year != 'all') {
                 $filterYear = $request->filter_year;
                 $this->crud->query = $this->crud->query
-                ->where(DB::raw("YEAR(date_spk)"), $filterYear);
+                    ->where(DB::raw("YEAR(date_spk)"), $filterYear);
             }
         }
 
@@ -751,7 +754,7 @@ class SpkCrudController extends CrudController
             'label' => trans('backpack::crud.subkon.column.name'),
             'type'      => 'closure',
             'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
-            'function' => function($entry){
+            'function' => function ($entry) {
                 return $entry->subkon->name;
             }
             // OPTIONAL
@@ -816,14 +819,15 @@ class SpkCrudController extends CrudController
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
-                'function' => function($entry){
+                'function' => function ($entry) {
                     return $entry->job_value + ($entry->job_value * $entry->tax_ppn / 100);
                 }
             ],
         );
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -835,10 +839,10 @@ class SpkCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -863,11 +867,12 @@ class SpkCrudController extends CrudController
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         // $this->setupListExport();
         $this->setupListOperation();
@@ -879,10 +884,10 @@ class SpkCrudController extends CrudController
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -895,9 +900,11 @@ class SpkCrudController extends CrudController
 
         $name = 'DAFTAR SPK';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -922,25 +929,24 @@ class SpkCrudController extends CrudController
 
         $spk_prefix = [];
         $work_code_prefix = [];
-        $work_code_disable = [
-        ];
-        if(!$this->crud->getCurrentEntryId()){
-            if($settings?->spk_prefix){
+        $work_code_disable = [];
+        if (!$this->crud->getCurrentEntryId()) {
+            if ($settings?->spk_prefix) {
                 $spk_prefix = [
                     'value' => $settings->spk_prefix,
                 ];
             }
-            if($settings?->work_code_prefix){
+            if ($settings?->work_code_prefix) {
                 $work_code_prefix = [
                     'value' => $settings->work_code_prefix,
                 ];
             }
             $work_code_disable = [];
-        }else{
+        } else {
             $id = $this->crud->getCurrentEntryId();
             $voucher_exists = Voucher::where('reference_type', Spk::class)
-            ->where('reference_id', $id)->first();
-            if($voucher_exists){
+                ->where('reference_id', $id)->first();
+            if ($voucher_exists) {
                 $work_code_disable = [
                     'disabled' => true,
                 ];
@@ -1087,7 +1093,7 @@ class SpkCrudController extends CrudController
             'name' => 'tax_ppn',
             'label' => trans('backpack::crud.spk.column.tax_ppn'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => [
                 "step" => "any",
                 "placeholder" => trans('backpack::crud.spk.field.tax_ppn.placeholder'),
@@ -1108,7 +1114,7 @@ class SpkCrudController extends CrudController
             'mask_options' => [
                 'reverse' => true
             ],
-              // optionals
+            // optionals
             'attributes' => [
                 'placeholder' => trans('backpack::crud.spk.field.total_value_with_tax.placeholder'),
             ], // allow decimals
@@ -1152,7 +1158,7 @@ class SpkCrudController extends CrudController
             'wrapper'   => [
                 'class' => 'form-group col-md-6'
             ],
-             'withFiles' => [
+            'withFiles' => [
                 'disk' => 'public',
                 'path' => 'document_spk',
                 'deleteWhenEntryIsDeleted' => true,
@@ -1191,7 +1197,7 @@ class SpkCrudController extends CrudController
             'name' => 'tax_ppn',
             'label' => trans('backpack::crud.spk.column.tax_ppn'),
             'type' => 'number',
-             // optionals
+            // optionals
             'attributes' => [
                 "step" => "any",
                 "placeholder" => trans('backpack::crud.spk.field.tax_ppn.placeholder'),
@@ -1205,7 +1211,7 @@ class SpkCrudController extends CrudController
         CRUD::field('tax_ppn')->after('job_value');
     }
 
-     protected function setupShowOperation()
+    protected function setupShowOperation()
     {
         $this->setupCreateOperation();
 
@@ -1270,11 +1276,11 @@ class SpkCrudController extends CrudController
                 'label'  => trans('backpack::crud.po.column.document_path'),
                 'name' => 'document_path',
                 'type'  => 'text',
-                 'wrapper'   => [
+                'wrapper'   => [
                     'element' => 'a', // the element will default to "a" so you can skip it here
                     'href' => function ($crud, $column, $entry, $related_key) {
-                        if($entry->document_path != ''){
-                            return url('storage/document_spk/'.$entry->document_path);
+                        if ($entry->document_path != '') {
+                            return url('storage/document_spk/' . $entry->document_path);
                         }
                         return "javascript:void(0)";
                     },
@@ -1323,7 +1329,7 @@ class SpkCrudController extends CrudController
 
         $this->data['entry_value'] = $this->crud->getRowViews($this->data['entry']);
         $this->data['crud'] = $this->crud;
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview') . ' ' . $this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         // return view($this->crud->getShowView(), $this->data);

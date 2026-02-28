@@ -1850,6 +1850,7 @@ class VoucherPaymentPlanCrudController extends CrudController
         $tab = $request->tab;
         $type = $request->type;
         $settings = Setting::first();
+        $new_format_date = 'DD/MM/YYYY';
         CRUD::removeButton('delete');
         // CRUD::removeButton('create');
         CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
@@ -2207,7 +2208,7 @@ class VoucherPaymentPlanCrudController extends CrudController
             'label' => trans('backpack::crud.voucher.column.voucher.due_date.label_2'),
             'name' => 'due_date',
             'type'  => 'date',
-            'format' => 'D MMM Y',
+            'format' => $new_format_date,
             'orderLogic' => function ($query, $column, $order) {
                 return $query->orderBy('vouchers.due_date', $order);
             }
@@ -2692,9 +2693,9 @@ class VoucherPaymentPlanCrudController extends CrudController
             ->get();
 
         foreach ($voucherList as $list) {
-            $list->date_voucher_str = Carbon::parse($list->date_voucher)->format('d M Y');
-            $list->bill_date_str = Carbon::parse($list->bill_date)->format('d M Y');
-            $list->due_date_str = Carbon::parse($list->due_date)->format('d M Y');
+            $list->date_voucher_str = Carbon::parse($list->date_voucher)->format('d/m/Y');
+            $list->bill_date_str = Carbon::parse($list->bill_date)->format('d/m/Y');
+            $list->due_date_str = Carbon::parse($list->due_date)->format('d/m/Y');
             $list->payment_transfer_str = ($settings?->currency_symbol) ? $settings->currency_symbol . ' ' . CustomHelper::formatRupiah($list->payment_transfer) : "Rp." . CustomHelper::formatRupiah($list->payment_transfer);
         }
 

@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Carbon\Carbon;
-use App\Models\Setting;
-use App\Models\LogPayment;
-use App\Models\CastAccount;
-use App\Models\JournalEntry;
-use App\Models\InvoiceClient;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Http\Helpers\CustomVoid;
-use App\Http\Exports\ExportExcel;
-use App\Models\GlobalChangedLogs;
-use App\Http\Helpers\CustomHelper;
-use App\Models\AccountTransaction;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
+use App\Http\Exports\ExportExcel;
+use App\Http\Helpers\CustomHelper;
+use App\Http\Helpers\CustomVoid;
+use App\Models\Account;
+use App\Models\AccountTransaction;
+use App\Models\CastAccount;
+use App\Models\InvoiceClient;
+use App\Models\JournalEntry;
+use App\Models\LogPayment;
+use App\Models\Setting;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Class CastAccountsCrudController
@@ -306,6 +306,7 @@ class CastAccountsCrudController extends CrudController
     private function setuplistExportTrans()
     {
         $id = request()->id;
+        $new_format_date = 'DD/MM/YYYY';
         $settings = Setting::first();
         CRUD::setModel(AccountTransaction::class);
         $castAccount = CastAccount::where('id', $id)->first();
@@ -336,7 +337,7 @@ class CastAccountsCrudController extends CrudController
             'label'  => trans('backpack::crud.cash_account.field_transaction.date_transaction.label'),
             'name' => 'date_transaction',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $new_format_date,
         ]);
 
         // CRUD::column(
@@ -1686,10 +1687,19 @@ class CastAccountsCrudController extends CrudController
             'cast_account_id' => ['required', 'exists:cast_accounts,id'],
             'to_account' => [
                 'required',
-                'exists:cast_accounts,id',
                 function ($attr, $value, $fail) use ($castAccount) {
-                    if ($value == $castAccount->id) {
-                        $fail(trans('backpack::crud.cash_account.field_transfer.errors.to_account_is_same'));
+                    if (strpos($value, 'acc_') === 0) {
+                        $accountId = str_replace('acc_', '', $value);
+                        if (!\App\Models\Account::where('id', $accountId)->exists()) {
+                            $fail(trans('backpack::crud.cash_account.field_transfer.errors.account_not_found'));
+                        }
+                    } else {
+                        if (!CastAccount::where('id', $value)->exists()) {
+                            $fail(trans('backpack::crud.cash_account.field_transfer.errors.cast_account_not_found'));
+                        }
+                        if ($value == $castAccount->id) {
+                            $fail(trans('backpack::crud.cash_account.field_transfer.errors.to_account_is_same'));
+                        }
                     }
                 }
             ],
@@ -1712,13 +1722,21 @@ class CastAccountsCrudController extends CrudController
         // $date_transfer = Carbon::now();
 
         try {
+            $log_payment = [];
             $old_saldo = $balance;
             $new_saldo = $balance - $request->nominal_transfer;
             $description = $request->description;
 
+            $isAccount = strpos($request->to_account, 'acc_') === 0;
+            $target_id = str_replace('acc_', '', $request->to_account);
+
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $request->cast_account_id;
-            $newTransaction->cast_account_destination_id = $request->to_account;
+            if ($isAccount) {
+                $newTransaction->account_id = $target_id;
+            } else {
+                $newTransaction->cast_account_destination_id = $target_id;
+            }
             $newTransaction->date_transaction = $date_transfer;
             $newTransaction->nominal_transaction = $request->nominal_transfer;
             $newTransaction->total_saldo_before = $old_saldo;
@@ -1731,13 +1749,20 @@ class CastAccountsCrudController extends CrudController
             $castAccount->save();
             $castAccount->new_saldo = 'Rp' . CustomHelper::formatRupiah($new_saldo);
 
+            $log_payment[] = [
+                'id' => $newTransaction->id,
+                'type' => AccountTransaction::class,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+            ];
+
             // kurangi saldo utama
-            CustomHelper::updateOrCreateJournalEntry([
+            $journal_balance = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $castAccount->account_id,
                 'reference_id' => $newTransaction->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => $description,
-                'date' => Carbon::now(),
+                'date' => Carbon::parse($date_transfer),
                 'debit' => 0,
                 'credit' => $request->nominal_transfer,
             ], [
@@ -1746,33 +1771,54 @@ class CastAccountsCrudController extends CrudController
                 'reference_type' => AccountTransaction::class,
             ]);
 
-            // other account
-            $otherAccount = CastAccount::where('id', $request->to_account)->first();
-            $other_old_saldo = $otherAccount->total_saldo;
-            $other_new_saldo = $other_old_saldo + $newTransaction->nominal_transaction;
+            $log_payment[] = [
+                'id' => $journal_balance->id,
+                'type' => JournalEntry::class,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+            ];
 
-            $newTransaction_2 = new AccountTransaction;
-            $newTransaction_2->cast_account_id = $otherAccount->id;
-            $newTransaction_2->cast_account_destination_id = $newTransaction->cast_account_id;
-            $newTransaction_2->date_transaction = $date_transfer;
-            $newTransaction_2->nominal_transaction = $request->nominal_transfer;
-            $newTransaction_2->total_saldo_before = $other_old_saldo;
-            $newTransaction_2->total_saldo_after = $other_new_saldo;
-            $newTransaction_2->status = 'enter';
-            $newTransaction_2->description = $description;
-            $newTransaction_2->save();
+            if (!$isAccount) {
+                // other account
+                $otherAccount = CastAccount::where('id', $request->to_account)->first();
+                $other_old_saldo = $otherAccount->total_saldo;
+                $other_new_saldo = $other_old_saldo + $newTransaction->nominal_transaction;
 
-            $otherAccount->total_saldo = $other_new_saldo;
-            $otherAccount->save();
-            $otherAccount->new_saldo = 'Rp' . CustomHelper::formatRupiah($other_new_saldo);
+                $newTransaction_2 = new AccountTransaction;
+                $newTransaction_2->cast_account_id = $otherAccount->id;
+                $newTransaction_2->cast_account_destination_id = $newTransaction->cast_account_id;
+                $newTransaction_2->date_transaction = $date_transfer;
+                $newTransaction_2->nominal_transaction = $request->nominal_transfer;
+                $newTransaction_2->total_saldo_before = $other_old_saldo;
+                $newTransaction_2->total_saldo_after = $other_new_saldo;
+                $newTransaction_2->status = 'enter';
+                $newTransaction_2->description = $description;
+                $newTransaction_2->save();
+
+                $otherAccount->total_saldo = $other_new_saldo;
+                $otherAccount->save();
+                $otherAccount->new_saldo = 'Rp' . CustomHelper::formatRupiah($other_new_saldo);
+
+                $log_payment[] = [
+                    'id' => $newTransaction_2->id,
+                    'type' => AccountTransaction::class,
+                    'reference_id' => $newTransaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ];
+            } else {
+                $otherAccount = Account::where('id', $target_id)->first();
+                $otherAccount->account_id = $target_id;
+                $newTransaction_2 = $newTransaction;
+            }
+
 
             // tambah saldo di akun tujuan
-            CustomHelper::updateOrCreateJournalEntry([
+            $journal_destination = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $otherAccount->account_id,
                 'reference_id' => $newTransaction_2->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => $description,
-                'date' => Carbon::now(),
+                'date' => Carbon::parse($date_transfer),
                 'debit' => $request->nominal_transfer,
                 'credit' => 0,
             ], [
@@ -1780,6 +1826,30 @@ class CastAccountsCrudController extends CrudController
                 'reference_id' => $newTransaction_2->id,
                 'reference_type' => AccountTransaction::class,
             ]);
+
+            $log_payment[] = [
+                'id' => $journal_destination->id,
+                'type' => JournalEntry::class,
+                'reference_id' => $newTransaction->id,
+                'reference_type' => AccountTransaction::class,
+            ];
+
+            if (sizeof($log_payment) > 0) {
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = AccountTransaction::class;
+                $newLogPayment->reference_id = $newTransaction->id;
+                $newLogPayment->name = "CREATE_TRANSACTION";
+                $newLogPayment->snapshot = json_encode($log_payment);
+                $newLogPayment->save();
+                if (!$isAccount) {
+                    $newLogPayment = new LogPayment;
+                    $newLogPayment->reference_type = AccountTransaction::class;
+                    $newLogPayment->reference_id = $newTransaction_2->id;
+                    $newLogPayment->name = "CREATE_TRANSACTION";
+                    $newLogPayment->snapshot = json_encode($log_payment);
+                    $newLogPayment->save();
+                }
+            }
 
 
             $item = $newTransaction_2;
@@ -1791,13 +1861,18 @@ class CastAccountsCrudController extends CrudController
 
             DB::commit();
             if ($request->ajax()) {
+                $events = [
+                    'cast_account_store_success' => true,
+                    'card_cast_account' . $newTransaction->cast_account_id . '_create_success' => $castAccount,
+                ];
+
+                if (!$isAccount) {
+                    $events['card_cast_account' . $newTransaction_2->cast_account_id . '_create_success'] = $otherAccount;
+                }
+
                 return response()->json([
                     'success' => true,
-                    'events' => [
-                        'cast_account_store_success' => true,
-                        'card_cast_account' . $newTransaction->cast_account_id . '_create_success' => $castAccount,
-                        'card_cast_account' . $newTransaction_2->cast_account_id . '_create_success' => $otherAccount,
-                    ]
+                    'events' => $events
                 ]);
             }
             return $this->crud->performSaveAction($newTransaction_2->getKey());
@@ -1953,7 +2028,7 @@ class CastAccountsCrudController extends CrudController
 
         $data = [];
         foreach ($detail as $entry) {
-            $date_str = Carbon::parse($entry->date_transaction)->translatedFormat('j M Y');
+            $date_str = Carbon::parse($entry->date_transaction)->translatedFormat('d/m/Y');
             $nominal_str = CustomHelper::formatRupiahWithCurrency($entry->nominal_transaction);
 
             // Logic Tombol Aksi (Pindahan dari Blade lama)
@@ -1961,8 +2036,10 @@ class CastAccountsCrudController extends CrudController
             // $isRegularTransaction = !$entry->reference_type;
             if ($entry->log_payment_id) {
                 $url_edit = url($this->crud->route . '/' . $entry->id . '/edit?type=transaction&_id=' . $entry->cast_account_id);
-                $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
-                $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+                if ($entry->cast_account_destination_id == null) {
+                    $url_update = url($this->crud->route) . '/' . $entry->id . '?type=transaction&_id=' . $entry->cast_account_id;
+                    $btn .= '<a href="javascript:void(0)" onclick="editEntry(this)" data-route="' . $url_edit . '" data-route-action="' . $url_update . '" data-title-edit="Ubah Data Transaksi" class="btn btn-sm btn-primary me-1"><i class="la la-pen"></i></a>';
+                }
                 $url_delete = url($this->crud->route . "/delete-transaction-void/" . $entry->id);
                 $btn .= '<a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="' . $url_delete . '" class="btn btn-sm btn-danger" data-title-delete="Hapus Item Transaksi" data-body="Apakah anda yakin ingin menghapus data item transaksi ini ?"><i class="la la-trash"></i></a>';
             }
@@ -2032,9 +2109,31 @@ class CastAccountsCrudController extends CrudController
         $castAccounts = CastAccount::whereHas('informations', function ($q) {
             $q->where("additional_informations.id", 2);
         })->where('status', CastAccount::CASH)->get(['id', 'name']);
+
+        $usedAccountIds = CastAccount::whereNotNull('account_id')->pluck('account_id')->toArray();
+
+        $accounts = \App\Models\Account::where('level', '>', 2)
+            ->whereNotIn('id', $usedAccountIds)
+            ->get(['id', 'name', 'code']);
+
+        $result = [];
+        foreach ($castAccounts as $item) {
+            $result[] = [
+                'id' => $item->id,
+                'name' => "[Rekening Kas] " . $item->name,
+            ];
+        }
+
+        foreach ($accounts as $item) {
+            $result[] = [
+                'id' => "acc_" . $item->id,
+                'name' => "[Account] " . $item->code . " - " . $item->name,
+            ];
+        }
+
         return response()->json([
             'status' => true,
-            'result' => $castAccounts,
+            'result' => $result,
         ]);
     }
 }

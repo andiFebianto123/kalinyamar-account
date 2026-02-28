@@ -1,7 +1,12 @@
 <div class="row">
     @php
         $currentYear = date('Y');
-        $years = range($currentYear - 10, $currentYear + 10);
+        $journalYears = $journal_years ?? [];
+        
+        // Merge journal years with current year to ensure current year is always an option
+        $years = array_unique(array_merge([$currentYear], $journalYears));
+        rsort($years);
+
         $quarters = [
             1 => 'Kuartal 1 (Jan - Mar)',
             2 => 'Kuartal 2 (Apr - Jun)',
@@ -9,13 +14,15 @@
             4 => 'Kuartal 4 (Okt - Des)',
         ];
 
+        // Default to current year ONLY if no year is requested. 
+        // If "all" is requested, $selectedYear will be "all".
         $selectedYear = request('filter_year', $currentYear);
         $selectedQuarter = request('filter_quarter');
     @endphp
     <div class="form-group col-sm-2 mb-3" element="div" bp-field-wrapper="true" bp-field-name="filter_year" bp-field-type="select_from_array" bp-section="crud-field">
         <h5>{{trans('backpack::crud.balance_sheet.filters.year.label')}}</h5>
         <select name="filter_year" class="form-control form-select filter-balance-sheet">
-            <option value="">{{trans('backpack::crud.balance_sheet.filters.year.placeholder')}}</option>
+            <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Semua Tahun</option>
             @foreach($years as $year)
                 <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
             @endforeach

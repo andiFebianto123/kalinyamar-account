@@ -538,6 +538,7 @@ class ClientPoCrudController extends CrudController
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
         CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
 
+        $new_format_date = 'DD/MM/YYYY';
         $request = request();
         CRUD::disableResponsiveTable();
 
@@ -755,7 +756,8 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
                 'name' => 'start_date,end_date',
-                'type'  => 'date_range_custom'
+                'type'  => 'date_range_custom',
+                'format' => $new_format_date,
             ],
         );
 
@@ -763,7 +765,7 @@ class ClientPoCrudController extends CrudController
             'label'  => trans('backpack::crud.client_po.column.date_po'),
             'name' => 'date_po',
             'type'  => 'date',
-            'format' => 'D MMM Y'
+            'format' => $new_format_date,
         ]);
 
         CRUD::column([
@@ -1434,6 +1436,7 @@ class ClientPoCrudController extends CrudController
     protected function setupShowOperation()
     {
         $settings = Setting::first();
+        $new_format_date = 'DD/MM/YYYY';
 
         CRUD::field([   // 1-n relationship
             'label'       => trans('backpack::crud.client_po.field.client_id.label'), // Table column heading
@@ -1543,6 +1546,7 @@ class ClientPoCrudController extends CrudController
             'name'  => 'start_date,end_date', // db columns for start_date & end_date
             'label' => trans('backpack::crud.client_po.field.startdate_and_enddate.label'),
             'type'  => 'date_range',
+            'format' => $new_format_date,
 
             'date_range_options' => [
                 'drops' => 'down', // can be one of [down/up/auto]
@@ -1735,7 +1739,8 @@ class ClientPoCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
                 'name' => 'start_date,end_date',
-                'type'  => 'date_range_custom'
+                'type'  => 'date_range_custom',
+                'format' => $new_format_date,
             ],
         );
         CRUD::column(
