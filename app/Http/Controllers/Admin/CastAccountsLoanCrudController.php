@@ -1126,19 +1126,6 @@ class CastAccountsLoanCrudController extends CrudController
 
             // \Alert::success(trans('backpack::crud.insert_success'))->flash();
 
-            CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $item->account_id,
-                'reference_id' => $item->id,
-                'reference_type' => CastAccount::class,
-                'description' => '',
-                'date' => Carbon::now(),
-                'debit' => $item->total_saldo,
-                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-            ], [
-                'reference_id' => $item->id,
-                'reference_type' => CastAccount::class,
-            ]);
-
             if ($item->status == CastAccount::LOAN && $item->total_saldo > 0) {
                 $codeLoan = $this->generateCodeLoan();
 
@@ -1159,6 +1146,19 @@ class CastAccountsLoanCrudController extends CrudController
                 $loan_transaction->reference_type = LoanTransactionFlag::class;
                 $loan_transaction->reference_id = $loan_transaction_flag->id;
                 $loan_transaction->save();
+
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $item->account_id,
+                    'reference_id' => $loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => '',
+                    'date' => Carbon::now(),
+                    'debit' => $item->total_saldo,
+                    // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                ], [
+                    'reference_id' => $loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
             }
 
             $this->crud->setSaveAction();

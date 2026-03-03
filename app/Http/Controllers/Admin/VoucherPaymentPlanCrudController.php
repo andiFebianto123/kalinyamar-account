@@ -1989,12 +1989,15 @@ class VoucherPaymentPlanCrudController extends CrudController
             if (trim($request->columns[4]['search']['value'] ?? '') != '') {
                 $search = $request->columns[4]['search']['value'];
                 $this->crud->query = $this->crud->query
-                    ->whereHas('voucher', function ($q) use ($search) {
-                        $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                            $query->whereHas('subkon', function ($sub) use ($search) {
-                                $sub->where('account_holder_name', 'like', "%{$search}%");
+                    ->where(function ($query) use ($search) {
+                        $query->where('vouchers.account_holder_name', 'like', '%' . $search . '%')
+                            ->orWhereHas('voucher', function ($q) use ($search) {
+                                $q->whereHasMorph('reference', '*', function ($query) use ($search) {
+                                    $query->whereHas('subkon', function ($sub) use ($search) {
+                                        $sub->where('account_holder_name', 'like', "%{$search}%");
+                                    });
+                                });
                             });
-                        });
                     });
             }
 
@@ -2126,7 +2129,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'name' => 'account_holder_name',
                 'type'  => 'closure',
                 'function' => function ($entry) {
-                    return $entry?->voucher?->reference?->subkon?->account_holder_name;
+                    return $entry->account_holder_name ?? $entry?->voucher?->reference?->subkon?->account_holder_name;
                 },
             ],
         );
