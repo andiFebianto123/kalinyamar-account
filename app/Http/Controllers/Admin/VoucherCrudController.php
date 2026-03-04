@@ -577,7 +577,7 @@ class VoucherCrudController extends CrudController
             CRUD::addButtonFromView('line_start', 'print', 'print', 'end');
             CRUD::addButtonFromView('line_start', 'delete', 'delete', 'end');
             CRUD::addButtonFromView('line_start', 'approve_button', 'approve_button', 'end');
-            CRUD::addButtonFromView('line_start', 'void_voucher', 'void_voucher', 'end');
+            // CRUD::addButtonFromView('line_start', 'void_voucher', 'void_voucher', 'end');
 
 
             $user_id = backpack_user()->id;
@@ -2778,6 +2778,7 @@ class VoucherCrudController extends CrudController
                 CustomVoid::rollbackPayment(Voucher::class, $item->id);
                 CustomVoid::voucherCreate($item);
                 CustomVoid::voucherAllPph($item);
+                $item->payment_status = 'BELUM BAYAR';
             }
 
             $item->save();

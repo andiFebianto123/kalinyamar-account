@@ -56,6 +56,7 @@ class VoucherPaymentCrudController extends CrudController
             'delete' => [
                 'DELETE INDEX FA PEMBAYARAN',
             ],
+            'void' => ["VOID INDEX FA VOUCHER"],
             'list' => $viewMenu,
             'show' => $viewMenu,
             'print' => true,
@@ -736,6 +737,7 @@ class VoucherPaymentCrudController extends CrudController
         // CRUD::addButtonFromView('line', 'void', 'void', 'beginning');
         CRUD::removeButton('delete');
         CRUD::addButtonFromView('line_start', 'approve_button', 'approve_button', 'end');
+        CRUD::addButtonFromView('line_start', 'void_voucher_payment', 'void_voucher_payment', 'end');
 
 
         if ($tab == 'voucher_payment' && $type == 'NON RUTIN') {
@@ -753,6 +755,11 @@ class VoucherPaymentCrudController extends CrudController
 
             $this->crud->query = $this->crud->query
                 ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
+                ->leftJoin('log_payments as log_void', function ($join) {
+                    $join->on('log_void.reference_id', '=', 'vouchers.id')
+                        ->where('log_void.reference_type', '=', 'App\Models\Voucher')
+                        ->where('log_void.name', '=', 'CREATE_PAYMENT_VOUCHER');
+                })
                 ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
                     $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
                 })
@@ -807,6 +814,7 @@ class VoucherPaymentCrudController extends CrudController
                         approvals.no_apprv as approval_no_apprv,
                         payment_voucher_plan.id as voucer_edit_id,
                         payment_vouchers.voucher_id,
+                        log_void.id as payment_log_id,
                         user_live_approvals.no_apprv as user_live_no_apprv,
                         user_live_approvals.status as user_live_status,
                         user_live_approvals.user_id as user_live_user_id
@@ -824,6 +832,7 @@ class VoucherPaymentCrudController extends CrudController
                         approvals.no_apprv as approval_no_apprv,
                         payment_voucher_plan.id as voucer_edit_id,
                         payment_vouchers.voucher_id,
+                        log_void.id as payment_log_id,
                         '' as user_live_no_apprv,
                         '' as user_live_status,
                         '' as user_live_user_id
@@ -1132,6 +1141,11 @@ class VoucherPaymentCrudController extends CrudController
 
             $this->crud->query = $this->crud->query
                 ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
+                ->leftJoin('log_payments as log_void', function ($join) {
+                    $join->on('log_void.reference_id', '=', 'vouchers.id')
+                        ->where('log_void.reference_type', '=', 'App\Models\Voucher')
+                        ->where('log_void.name', '=', 'CREATE_PAYMENT_VOUCHER');
+                })
                 ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
                     $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
                 })
@@ -1155,6 +1169,7 @@ class VoucherPaymentCrudController extends CrudController
                         approvals.no_apprv as approval_no_apprv,
                         payment_voucher_plan.id as voucer_edit_id,
                         payment_vouchers.voucher_id,
+                        log_void.id as payment_log_id,
                         user_live_approvals.no_apprv as user_live_no_apprv,
                         user_live_approvals.status as user_live_status,
                         user_live_approvals.user_id as user_live_user_id
@@ -1172,6 +1187,7 @@ class VoucherPaymentCrudController extends CrudController
                         approvals.no_apprv as approval_no_apprv,
                         payment_voucher_plan.id as voucer_edit_id,
                         payment_vouchers.voucher_id,
+                        log_void.id as payment_log_id,
                         '' as user_live_no_apprv,
                         '' as user_live_status,
                         '' as user_live_user_id
@@ -1304,17 +1320,16 @@ class VoucherPaymentCrudController extends CrudController
             ])->makeFirstColumn();
 
             CRUD::addColumn([
-                'name' => 'action',
+                'name' => 'action_custom',
                 'type' => 'closure',
-                'label' =>  '',
+                'label' =>  trans('backpack::crud.actions'),
                 'escaped' => false,
-                'width_box' => "100px",
-                'function' => function ($entry, $rowNumber) {
+                'width_box' => "150px",
+                'function' => function ($entry) {
                     $crud = $this->crud;
                     return \View::make('crud::inc.button_stack', ['stack' => 'line_start'])
                         ->with('crud', $crud)
                         ->with('entry', $entry)
-                        ->with('row_number', $rowNumber)
                         ->render();
                 }
             ]);
@@ -1860,6 +1875,42 @@ class VoucherPaymentCrudController extends CrudController
             return response()->json([
                 'type' => 'errors',
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function voidPayment($id)
+    {
+        $this->crud->hasAccessOrFail('void');
+
+        DB::beginTransaction();
+        try {
+            $voucher = Voucher::findOrFail($id);
+            $voucher_id = $voucher->id;
+
+            $event = [];
+            $event['crudTable-filter_voucher_payment_plugin_load'] = true;
+
+            if ($voucher->payment_type == 'NON RUTIN') {
+                $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+            } else {
+                $event['crudTable-voucher_payment_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
+            }
+
+            CustomVoid::rollbackPayment(Voucher::class, $voucher_id, "CREATE_PAYMENT_VOUCHER");
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Pembayaran voucher berhasil di-Void.',
+                'events' => $event
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
     }
