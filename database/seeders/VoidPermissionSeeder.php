@@ -16,6 +16,7 @@ class VoidPermissionSeeder extends Seeder
         $permissions = [
             'VOID INDEX FA VOUCHER',
             'VOID INDEX INVOICE',
+            'VOID INDEX FA PEMBAYARAN',
         ];
 
         foreach ($permissions as $permissionName) {

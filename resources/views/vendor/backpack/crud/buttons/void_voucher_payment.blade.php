@@ -1,7 +1,7 @@
 @if ($crud->hasAccess('void', $entry) && $entry->payment_log_id)
     <a href="javascript:void(0)" 
         onclick="voidVoucherPayment(this)" 
-        data-route="{{ url(config('backpack.base.route_prefix').'/fa/voucher/void-payment/'.$entry->getKey()) }}" 
+        data-route="{{ url($crud->route.'/void-payment/'.$entry->getKey()) }}" 
         class="btn btn-sm btn-warning" 
         title="{{ trans('backpack::crud.void_payment.title') }}"
         style="color: white; font-weight: bold;">
@@ -64,6 +64,16 @@
                                 if (typeof crud != 'undefined' && typeof crud.table != 'undefined') {
                                     crud.table.draw(false);
                                 }
+
+                                // Custom event triggers for other UI elements
+                                if (typeof eventEmitter !== 'undefined') {
+                                    eventEmitter.emit('crudTable-voucher_payment_non_rutin_create_success', true);
+                                    eventEmitter.emit('crudTable-voucher_payment_plan_non_rutin_create_success', true);
+                                    eventEmitter.emit('crudTable-voucher_payment_rutin_create_success', true);
+                                    eventEmitter.emit('crudTable-voucher_payment_plan_rutin_create_success', true);
+                                    eventEmitter.emit('crudTable-filter_voucher_payment_plugin_load', true);
+                                }
+
                             } else {
                                 swal("{{ trans('backpack::crud.void_payment.error_title') }}", result.message || "{{ trans('backpack::crud.void_payment.error_text') }}", "error");
                             }

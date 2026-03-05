@@ -2643,7 +2643,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'min:1',
                 function ($attr, $value, $fail) {
                     foreach ($value as $id_voucher) {
-                        $payment_voucher = PaymentVoucher::find(request()->id);
+                        $payment_voucher = PaymentVoucher::where('voucher_id', $id_voucher)->first();
                         if ($payment_voucher != null) {
                             $fail(trans('backpack::crud.voucher_payment.voucher_payment_exists'));
                         }
@@ -2656,9 +2656,17 @@ class VoucherPaymentPlanCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation($this->ruleValidation());
+
+        CRUD::addField([
+            'name' => 'voucher',
+            'label' => '',
+            'type' => 'voucher-list-ajax',
+        ]);
+    }
+
+    public function datatableVoucher()
+    {
         $settings = Setting::first();
-
-
         $v_e = DB::table('voucher_edit')
             ->select(DB::raw('MAX(id) as id'), 'voucher_id')
             ->groupBy('voucher_id');
@@ -2667,8 +2675,8 @@ class VoucherPaymentPlanCrudController extends CrudController
             ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
             ->groupBy('model_type', 'model_id');
 
-
-        $voucherList = Voucher::leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
+        $query = Voucher::leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
+            ->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
             ->leftJoinSub($v_e, 'v_e', function ($join) {
                 $join->on('v_e.voucher_id', '=', 'vouchers.id');
             })
@@ -2678,35 +2686,68 @@ class VoucherPaymentPlanCrudController extends CrudController
                     ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\VoucherEdit"'));
             })
             ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
-            ->whereNotExists(function ($query) {
-                $query->select(DB::raw(1))
+            ->leftJoin('spk', function ($join) {
+                $join->on('spk.id', '=', 'vouchers.reference_id')
+                    ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\Spk"'));
+            })
+            ->leftJoin('purchase_orders', function ($join) {
+                $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
+                    ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
+            })
+            ->whereNotExists(function ($q) {
+                $q->select(DB::raw(1))
                     ->from('payment_vouchers')
                     ->whereColumn('payment_vouchers.voucher_id', 'vouchers.id');
             })
             ->where('approvals.status', Approval::APPROVED)
             ->select(DB::raw("
-            vouchers.*,
-            accounts.name as account_name,
-            accounts.code as account_code,
-            voucher_edit.id as voucer_edit_id,
-            approvals.status as approval_status,
-            approvals.user_id as approval_user_id,
-            approvals.no_apprv as approval_no_apprv
-        "))
-            ->get();
+                vouchers.*,
+                subkons.name as subkon_name,
+                spk.no_spk as spk_no,
+                purchase_orders.po_number as po_no
+            "));
 
-        foreach ($voucherList as $list) {
-            $list->date_voucher_str = Carbon::parse($list->date_voucher)->format('d/m/Y');
-            $list->bill_date_str = Carbon::parse($list->bill_date)->format('d/m/Y');
-            $list->due_date_str = Carbon::parse($list->due_date)->format('d/m/Y');
-            $list->payment_transfer_str = ($settings?->currency_symbol) ? $settings->currency_symbol . ' ' . CustomHelper::formatRupiah($list->payment_transfer) : "Rp." . CustomHelper::formatRupiah($list->payment_transfer);
+        // Searching
+        if ($search = request('search')['value']) {
+            $query->where(function ($q) use ($search) {
+                $q->where('vouchers.no_voucher', 'like', "%{$search}%")
+                    ->orWhere('subkons.name', 'like', "%{$search}%")
+                    ->orWhere('spk.no_spk', 'like', "%{$search}%")
+                    ->orWhere('vouchers.payment_description', 'like', "%{$search}%")
+                    ->orWhere('purchase_orders.po_number', 'like', "%{$search}%");
+            });
         }
 
-        CRUD::addField([
-            'name' => 'voucher',
-            'label' => '',
-            'type' => 'voucher-list',
-            'value' => $voucherList,
+        $totalData = $query->count();
+        $totalFiltered = $totalData;
+
+        $vouchers = $query->offset(request('start'))
+            ->limit(request('length'))
+            ->orderBy('vouchers.date_voucher', 'desc')
+            ->get();
+
+        $data = [];
+        foreach ($vouchers as $v) {
+            $data[] = [
+                'id' => $v->id,
+                'no_voucher' => $v->no_voucher,
+                'date_voucher' => Carbon::parse($v->date_voucher)->format('d/m/Y'),
+                'subkon_name' => $v->account_holder_name ?? $v->reference->subkon->account_holder_name,
+                'bill_date' => Carbon::parse($v->bill_date)->format('d/m/Y'),
+                'reference_no' => ($v->reference_type == 'App\Models\Spk') ? $v->spk_no : $v->po_no,
+                'payment_transfer' => ($settings?->currency_symbol) ? $settings->currency_symbol . ' ' . CustomHelper::formatRupiah($v->payment_transfer) : "Rp." . CustomHelper::formatRupiah($v->payment_transfer),
+                'due_date' => Carbon::parse($v->due_date)->format('d/m/Y'),
+                'factur_status' => $v->factur_status,
+                'payment_type' => $v->payment_type,
+                'payment_description' => $v->payment_description,
+            ];
+        }
+
+        return response()->json([
+            "draw" => intval(request('draw')),
+            "recordsTotal" => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data" => $data
         ]);
     }
 
@@ -2746,6 +2787,60 @@ class VoucherPaymentPlanCrudController extends CrudController
                 ]);
             }
             // return $this->crud->performSaveAction($payment_voucher->getKey());
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function storeSingle()
+    {
+        $this->crud->hasAccessOrFail('create');
+        $request = request();
+        $request->validate([
+            'id' => 'required|exists:vouchers,id',
+        ]);
+
+        $this->crud->registerFieldEvents();
+
+        DB::beginTransaction();
+        try {
+
+            $event = [];
+            $event['crudTable-filter_voucher_payment_plugin_load'] = true;
+
+            $voucher = Voucher::find($request->id);
+            $voucher->payment_status = 'BAYAR';
+            $voucher->payment_date = $request->date;
+            $voucher->save();
+            $type = '';
+            if ($voucher->payment_type == 'NON RUTIN') {
+                $type = 'NON RUTIN';
+                $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+            } else {
+                $type = 'SUBKON';
+                $event['crudTable-voucher_payment_rutin_create_success'] = true;
+                $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
+            }
+            CustomHelper::voucherPayment($voucher);
+
+            \Alert::success(trans('backpack::crud.insert_success'))->flash();
+
+            $this->crud->setSaveAction();
+
+            DB::commit();
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'events' => $event,
+                ]);
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

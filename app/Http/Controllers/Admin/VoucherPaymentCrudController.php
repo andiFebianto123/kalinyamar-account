@@ -1591,7 +1591,16 @@ class VoucherPaymentCrudController extends CrudController
         CRUD::setValidation($this->ruleValidation());
         $settings = Setting::first();
 
+        CRUD::addField([
+            'name' => 'voucher_payment',
+            'label' => '',
+            'type' => 'voucher-list-ajax',
+        ]);
+    }
 
+    public function datatableVoucher()
+    {
+        $settings = Setting::first();
         $p_v_p = DB::table('payment_voucher_plan')
             ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
             ->groupBy('payment_voucher_id');
@@ -1600,9 +1609,9 @@ class VoucherPaymentCrudController extends CrudController
             ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
             ->groupBy('model_type', 'model_id');
 
-
-        $voucherList = Voucher::leftJoin('payment_vouchers', 'payment_vouchers.voucher_id', 'vouchers.id')
+        $query = Voucher::leftJoin('payment_vouchers', 'payment_vouchers.voucher_id', 'vouchers.id')
             ->leftJoin('accounts', 'accounts.id', '=', 'vouchers.account_id')
+            ->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
             ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
                 $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
             })
@@ -1612,30 +1621,64 @@ class VoucherPaymentCrudController extends CrudController
                     ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
             })
             ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id')
+            ->leftJoin('spk', function ($join) {
+                $join->on('spk.id', '=', 'vouchers.reference_id')
+                    ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\Spk"'));
+            })
+            ->leftJoin('purchase_orders', function ($join) {
+                $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
+                    ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
+            })
             ->where('approvals.status', Approval::APPROVED)
             ->where('vouchers.payment_status', 'BELUM BAYAR')
             ->select(DB::raw("
-            vouchers.*,
-            accounts.name as account_name,
-            accounts.code as account_code,
-            approvals.status as approval_status,
-            approvals.user_id as approval_user_id,
-            approvals.no_apprv as approval_no_apprv
-        "))
-            ->get();
+                vouchers.*,
+                subkons.name as subkon_name,
+                spk.no_spk as spk_no,
+                purchase_orders.po_number as po_no
+            "));
 
-        foreach ($voucherList as $list) {
-            $list->date_voucher_str = Carbon::parse($list->date_voucher)->format('d M Y');
-            $list->bill_date_str = Carbon::parse($list->bill_date)->format('d M Y');
-            $list->due_date_str = Carbon::parse($list->due_date)->format('d M Y');
-            $list->payment_transfer_str = ($settings?->currency_symbol) ? $settings->currency_symbol . ' ' . CustomHelper::formatRupiah($list->payment_transfer) : "Rp." . CustomHelper::formatRupiah($list->payment_transfer);
+        // Searching
+        if ($search = request('search')['value']) {
+            $query->where(function ($q) use ($search) {
+                $q->where('vouchers.no_voucher', 'like', "%{$search}%")
+                    ->orWhere('subkons.name', 'like', "%{$search}%")
+                    ->orWhere('spk.no_spk', 'like', "%{$search}%")
+                    ->orWhere('vouchers.payment_description', 'like', "%{$search}%")
+                    ->orWhere('purchase_orders.po_number', 'like', "%{$search}%");
+            });
         }
 
-        CRUD::addField([
-            'name' => 'voucher_payment',
-            'label' => '',
-            'type' => 'voucher-list',
-            'value' => $voucherList,
+        $totalData = $query->count();
+        $totalFiltered = $totalData;
+
+        $vouchers = $query->offset(request('start'))
+            ->limit(request('length'))
+            ->orderBy('vouchers.date_voucher', 'desc')
+            ->get();
+
+        $data = [];
+        foreach ($vouchers as $v) {
+            $data[] = [
+                'id' => $v->id,
+                'no_voucher' => $v->no_voucher,
+                'date_voucher' => Carbon::parse($v->date_voucher)->format('d/m/Y'),
+                'subkon_name' => $v->subkon_name,
+                'bill_date' => Carbon::parse($v->bill_date)->format('d/m/Y'),
+                'reference_no' => ($v->reference_type == 'App\Models\Spk') ? $v->spk_no : $v->po_no,
+                'payment_transfer' => ($settings?->currency_symbol) ? $settings->currency_symbol . ' ' . CustomHelper::formatRupiah($v->payment_transfer) : "Rp." . CustomHelper::formatRupiah($v->payment_transfer),
+                'due_date' => Carbon::parse($v->due_date)->format('d/m/Y'),
+                'factur_status' => $v->factur_status,
+                'payment_type' => $v->payment_type,
+                'payment_description' => $v->payment_description,
+            ];
+        }
+
+        return response()->json([
+            "draw" => intval(request('draw')),
+            "recordsTotal" => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data" => $data
         ]);
     }
 
@@ -1714,20 +1757,19 @@ class VoucherPaymentCrudController extends CrudController
             $event['crudTable-filter_voucher_payment_plugin_load'] = true;
 
             $voucher = Voucher::find($request->id);
-            $voucher->payment_status = 'BAYAR';
-            $voucher->payment_date = $request->date;
-            $voucher->save();
-            $type = '';
+            $castAccount = $voucher->account_source;
             if ($voucher->payment_type == 'NON RUTIN') {
-                $type = 'NON RUTIN';
                 $event['crudTable-voucher_payment_non_rutin_create_success'] = true;
                 $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
             } else {
-                $type = 'SUBKON';
                 $event['crudTable-voucher_payment_rutin_create_success'] = true;
                 $event['crudTable-voucher_payment_plan_rutin_create_success'] = true;
             }
-            CustomHelper::voucherPayment($voucher);
+            CustomVoid::voucherPayment($voucher, $request->date);
+            $balance_out = CustomHelper::balanceAccount($castAccount->account->code);
+            if ($balance_out < 0) {
+                throw new \Exception(trans('backpack::crud.cash_account.field_transfer.errors.balance_not_enough', ['castname' => $castAccount->name]));
+            }
 
             \Alert::success(trans('backpack::crud.insert_success'))->flash();
 

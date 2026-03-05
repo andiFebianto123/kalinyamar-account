@@ -507,7 +507,7 @@ return [
             'document_invoice' => 'Dokumen Invoice',
             'description' => 'Deskripsi',
             'pph' => 'PPh',
-            'discount_pph' => 'Potongan PPh',
+            'discount_pph' => 'Nominal PPh',
         ],
         'field' => [
             'invoice_number' => [
@@ -611,7 +611,7 @@ return [
                 'placeholder' => 'Masukan PPh',
             ],
             'discount_pph' => [
-                'label' => 'Potongan PPh',
+                'label' => 'Nominal PPh',
                 'placeholder' => '000.000',
             ],
         ],

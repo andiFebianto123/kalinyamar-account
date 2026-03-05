@@ -436,7 +436,7 @@ class CustomVoid
         }
     }
 
-    public static function voucherPayment(Voucher $voucher)
+    public static function voucherPayment(Voucher $voucher, $payment_date = null)
     {
         $client_po = $voucher->client_po;
         $cast_account = CastAccount::where('id', $voucher->account_source_id)->first();
@@ -467,7 +467,7 @@ class CustomVoid
             ];
         }
 
-        $payment_date = Carbon::now();
+        $payment_date = $payment_date ?? Carbon::now();
 
         $transaksi = new AccountTransaction;
         $transaksi->cast_account_id = $voucher->account_source_id;

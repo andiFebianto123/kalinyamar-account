@@ -169,6 +169,8 @@ Route::group([
     });
 
     Route::crud('voucher-payment-plan', VoucherPaymentPlanCrudController::class);
+    Route::get('voucher-payment-plan/datatable-voucher', [VoucherPaymentPlanCrudController::class, 'datatableVoucher']);
+    Route::post('voucher-payment-plan/single-store', [VoucherPaymentPlanCrudController::class, 'storeSingle']);
     Route::post('voucher-payment-plan/total', [VoucherPaymentPlanCrudController::class, 'total_voucher']);
     Route::post('voucher-payment-plan/{id}/approve', [VoucherPaymentPlanCrudController::class, 'approvedStore']);
     Route::post('voucher-payment-plan/export-pdf', [VoucherPaymentPlanCrudController::class, 'exportPdf']);
@@ -185,9 +187,12 @@ Route::group([
         Route::post('voucher/export-excel', [VoucherCrudController::class, 'exportExcel']);
         Route::delete('voucher/void-payment/{id}', [VoucherCrudController::class, 'voidPayment']);
         Route::crud('voucher-payment', 'VoucherPaymentCrudController');
+        Route::get('voucher-payment/datatable-voucher', [VoucherPaymentCrudController::class, 'datatableVoucher']);
+        Route::post('voucher-payment/single-store', [VoucherPaymentCrudController::class, 'storeSingle']);
+        Route::post('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);
         Route::post('voucher-payment/export-pdf', [VoucherPaymentCrudController::class, 'exportPdf']);
         Route::post('voucher-payment/export-excel', [VoucherPaymentCrudController::class, 'exportExcel']);
-        Route::post('voucher-payment/single-store', [VoucherPaymentCrudController::class, 'storeSingle']);
+        Route::delete('voucher-payment/void-payment/{id}', [VoucherPaymentCrudController::class, 'voidPayment']);
 
         Route::post('voucher-payment/{id}/approve', [VoucherPaymentCrudController::class, 'approvedStore']);
         Route::post('voucher-payment/total', [VoucherPaymentCrudController::class, 'total_voucher']);

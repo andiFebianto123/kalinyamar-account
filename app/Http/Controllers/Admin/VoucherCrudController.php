@@ -2779,6 +2779,7 @@ class VoucherCrudController extends CrudController
                 CustomVoid::voucherCreate($item);
                 CustomVoid::voucherAllPph($item);
                 $item->payment_status = 'BELUM BAYAR';
+                $item->payment_date = null;
             }
 
             $item->save();
