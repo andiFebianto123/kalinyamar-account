@@ -530,6 +530,7 @@ class CastAccountsLoanCrudController extends CrudController
             'account_id' => 'required|exists:accounts,id',
             'total_saldo' => 'required|numeric|min:0',
             'status' => 'required|in:loan',
+            'date_transaction_init' => 'nullable|date',
         ];
     }
 
@@ -1054,6 +1055,21 @@ class CastAccountsLoanCrudController extends CrudController
             ]);
 
             CRUD::addField([
+                'name'  => 'date_transaction_init',
+                'type'  => 'date_picker',
+                'label' => trans('backpack::crud.cash_account.field_transaction.date_transaction.label'),
+                'date_picker_options' => [
+                    'language' => App::getLocale(),
+                ],
+                'wrapper' => [
+                    'class' => 'form-group col-md-6'
+                ],
+                'attributes' => [
+                    'placeholder' => trans('backpack::crud.cash_account.field_transaction.date_transaction.placeholder')
+                ]
+            ]);
+
+            CRUD::addField([
                 'type' => 'hidden',
                 'name' => 'status',
                 'value' => CastAccount::LOAN,
@@ -1129,6 +1145,11 @@ class CastAccountsLoanCrudController extends CrudController
             if ($item->status == CastAccount::LOAN && $item->total_saldo > 0) {
                 $codeLoan = $this->generateCodeLoan();
 
+                // Gunakan tanggal dari input user, fallback ke Carbon::now() jika tidak ada
+                $dateTransactionInit = $request->date_transaction_init
+                    ? Carbon::parse($request->date_transaction_init)
+                    : Carbon::now();
+
                 $loan_transaction_flag = new LoanTransactionFlag;
                 $loan_transaction_flag->kode = $codeLoan;
                 $loan_transaction_flag->total_price = $item->total_saldo;
@@ -1136,7 +1157,7 @@ class CastAccountsLoanCrudController extends CrudController
 
                 $loan_transaction = new AccountTransaction;
                 $loan_transaction->cast_account_id = $item->id;
-                $loan_transaction->date_transaction = Carbon::now();
+                $loan_transaction->date_transaction = $dateTransactionInit;
                 $loan_transaction->nominal_transaction = $item->total_saldo;
                 $loan_transaction->total_saldo_before = $item->total_saldo;
                 $loan_transaction->total_saldo_after = $item->total_saldo;
@@ -1151,8 +1172,8 @@ class CastAccountsLoanCrudController extends CrudController
                     'account_id' => $item->account_id,
                     'reference_id' => $loan_transaction->id,
                     'reference_type' => AccountTransaction::class,
-                    'description' => '',
-                    'date' => Carbon::now(),
+                    'description' => $loan_transaction->description,
+                    'date' => $dateTransactionInit,
                     'debit' => $item->total_saldo,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
                 ], [
