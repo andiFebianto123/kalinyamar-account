@@ -1422,25 +1422,29 @@ class CastAccountsCrudController extends CrudController
 
         $old_item = AccountTransaction::find($request->id);
 
-        $has_access_primary = $this->accessAccount($old_item->cast_account_id);
-        // Tentukan status: prioritas dari form jika transaksi murni (tanpa reference_type)
-        if (empty($old_item->reference_type)) {
-            $status_account = $request->input('status', $old_item->status);
+        if ($request->has('status') && in_array($request->status, ['enter', 'out'])) {
+            $status_account = $request->status;
         } else {
-            // Logika otomatis fallback untuk transaksi dengan referensi (backward compatibility)
-            $status_account = AccountTransaction::OUT;
-            $has_payment_access = $this->accessPaymentAccount($old_item->cast_account_id);
-            if ($has_payment_access > 0 || $has_access_primary > 0) {
-                $status_account = AccountTransaction::ENTER;
-            }
-        }
-
-        if (request()->has('type')) {
-            // edit
-            if ($has_access_primary > 0) {
-                $request->validate($this->ruleValidationStoreTransactionAccountPrimary());
+            $has_access_primary = $this->accessAccount($old_item->cast_account_id);
+            // Tentukan status: prioritas dari form jika transaksi murni (tanpa reference_type)
+            if (empty($old_item->reference_type)) {
+                $status_account = $request->input('status', $old_item->status);
             } else {
-                $request->validate($this->ruleValidationEditTransactionAccountSecondary());
+                // Logika otomatis fallback untuk transaksi dengan referensi (backward compatibility)
+                $status_account = AccountTransaction::OUT;
+                $has_payment_access = $this->accessPaymentAccount($old_item->cast_account_id);
+                if ($has_payment_access > 0 || $has_access_primary > 0) {
+                    $status_account = AccountTransaction::ENTER;
+                }
+            }
+
+            if (request()->has('type')) {
+                // edit
+                if ($has_access_primary > 0) {
+                    $request->validate($this->ruleValidationStoreTransactionAccountPrimary());
+                } else {
+                    $request->validate($this->ruleValidationEditTransactionAccountSecondary());
+                }
             }
         }
 
