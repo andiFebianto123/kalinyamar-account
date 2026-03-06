@@ -179,19 +179,20 @@
                         return `<input type="checkbox" class="form-check-input voucher-checkbox" value="${data}" ${checked}>`;
                     }
                 },
-                { data: 'no_voucher' },
-                { data: 'date_voucher' },
-                { data: 'subkon_name' },
-                { data: 'payment_transfer' },
+                { data: 'no_voucher', orderable: false },
+                { data: 'date_voucher', name: 'date_voucher', orderable: true },
+                { data: 'subkon_name', orderable: false },
+                { data: 'payment_transfer', orderable: false },
                 { 
                     data: 'payment_description',
+                    orderable: false,
                     render: function(data, type, row) {
                         return `<div style="white-space: normal; min-width: 300px;">${data || ''}</div>`;
                     }
                 },
-                { data: 'reference_no' },
-                { data: 'due_date' },
-                { data: 'payment_type' }
+                { data: 'reference_no', orderable: false },
+                { data: 'due_date', orderable: false },
+                { data: 'payment_type', name: 'payment_type', orderable: true }
             ];
 
             if (fieldName === 'voucher_payment') {
@@ -215,7 +216,7 @@
                     type: "GET"
                 },
                 columns: datatable_columns,
-                order: [[1, 'desc']],
+                order: [[3, 'desc']],
                 drawCallback: function() {
                     let totalCheckboxes = $('.voucher-checkbox').length;
                     let checkedCheckboxes = $('.voucher-checkbox:checked').length;

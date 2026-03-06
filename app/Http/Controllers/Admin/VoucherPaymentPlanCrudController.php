@@ -2707,10 +2707,13 @@ class VoucherPaymentPlanCrudController extends CrudController
                 purchase_orders.po_number as po_no
             "));
 
+        $totalData = (clone $query)->count('vouchers.id');
+
         // Searching
         if ($search = request('search')['value']) {
             $query->where(function ($q) use ($search) {
                 $q->where('vouchers.no_voucher', 'like', "%{$search}%")
+                    ->orWhere('vouchers.account_holder_name', 'like', "%{$search}%")
                     ->orWhere('subkons.name', 'like', "%{$search}%")
                     ->orWhere('spk.no_spk', 'like', "%{$search}%")
                     ->orWhere('vouchers.payment_description', 'like', "%{$search}%")
@@ -2718,12 +2721,30 @@ class VoucherPaymentPlanCrudController extends CrudController
             });
         }
 
-        $totalData = $query->count();
-        $totalFiltered = $totalData;
+        $totalFiltered = (clone $query)->count('vouchers.id');
+
+        // Ordering for restricted columns
+        $order = request('order');
+        if (isset($order[0]['column'])) {
+            $columnIndex = $order[0]['column'];
+            $columnDir = $order[0]['dir'];
+            $columns = request('columns');
+            $columnData = $columns[$columnIndex]['data'] ?? '';
+            $columnName = $columns[$columnIndex]['name'] ?? '';
+
+            if ($columnName == 'date_voucher' || $columnData == 'date_voucher') {
+                $query->orderBy('vouchers.date_voucher', $columnDir);
+            } elseif ($columnName == 'payment_type' || $columnData == 'payment_type') {
+                $query->orderBy('vouchers.payment_type', $columnDir);
+            } else {
+                $query->orderBy('vouchers.date_voucher', 'desc');
+            }
+        } else {
+            $query->orderBy('vouchers.date_voucher', 'desc');
+        }
 
         $vouchers = $query->offset(request('start'))
             ->limit(request('length'))
-            ->orderBy('vouchers.date_voucher', 'desc')
             ->get();
 
         $data = [];
