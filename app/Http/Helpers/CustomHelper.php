@@ -475,7 +475,7 @@ class CustomHelper
         CustomHelper::rollbackPayment(InvoiceClient::class, $invoice->id, "CREATE_INVOICE");
     }
 
-    public static function invoicePaymentTransaction($transaction, $invoice, $log_payment, $status = 'out')
+    public static function invoicePaymentTransaction($transaction, $invoice, &$log_payment, $status = 'out')
     {
         if ($invoice != null) {
             $piutang = Account::where('code', self::getAccountMapping('RECEIVABLES_INVOICE'))->first();
