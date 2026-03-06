@@ -1454,6 +1454,13 @@ class CastAccountsCrudController extends CrudController
             })->exists();
 
             if ($log_payment_exists) {
+                if ($request->has('kdp') || $request->has('no_invoice')) {
+                    $id = $request->kdp ?? $request->no_invoice;
+                    $invoice = InvoiceClient::find($id);
+                    if ($invoice) {
+                        CustomVoid::rollbackPayment(InvoiceClient::class, $invoice->id, 'CREATE_PAYMENT_INVOICE');
+                    }
+                }
                 CustomVoid::rollbackPayment(AccountTransaction::class, $request->id);
                 $storeTransaction = CustomVoid::storeTransaction($request, $status_account);
                 $item = $storeTransaction;
