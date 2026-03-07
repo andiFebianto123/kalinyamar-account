@@ -720,33 +720,33 @@ class CustomVoid
         }
 
         // Tambahkan jurnal Pendapatan (Revenue)
-        $acct_revenue = Account::where('code', CustomHelper::getAccountMapping('REVENUE_INVOICE'))->first();
-        if ($acct_revenue) {
-            $trans_5 = CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $acct_revenue->id,
-                'reference_id' => $invoice->id,
-                'reference_type' => InvoiceClient::class,
-                'description' => "Pendapatan invoice " . $invoice->invoice_number,
-                'date' => Carbon::now(),
-                'debit' => 0,
-                'credit' => $invoice->price_total_exclude_ppn,
-            ], [
-                'account_id' => $acct_revenue->id,
-                'reference_id' => $invoice->id,
-                'reference_type' => InvoiceClient::class,
-            ]);
-            $log_payment[] = [
-                'id' => $trans_5->id,
-                'account_id' => $acct_revenue->id,
-                'reference_id' => $invoice->id,
-                'reference_type' => InvoiceClient::class,
-                'description' => "Pendapatan invoice " . $invoice->invoice_number,
-                'date' => Carbon::now(),
-                'debit' => 0,
-                'credit' => $invoice->price_total_exclude_ppn,
-                'type' => JournalEntry::class,
-            ];
-        }
+        // $acct_revenue = Account::where('code', CustomHelper::getAccountMapping('REVENUE_INVOICE'))->first();
+        // if ($acct_revenue) {
+        //     $trans_5 = CustomHelper::updateOrCreateJournalEntry([
+        //         'account_id' => $acct_revenue->id,
+        //         'reference_id' => $invoice->id,
+        //         'reference_type' => InvoiceClient::class,
+        //         'description' => "Pendapatan invoice " . $invoice->invoice_number,
+        //         'date' => Carbon::now(),
+        //         'debit' => 0,
+        //         'credit' => $invoice->price_total_exclude_ppn,
+        //     ], [
+        //         'account_id' => $acct_revenue->id,
+        //         'reference_id' => $invoice->id,
+        //         'reference_type' => InvoiceClient::class,
+        //     ]);
+        //     $log_payment[] = [
+        //         'id' => $trans_5->id,
+        //         'account_id' => $acct_revenue->id,
+        //         'reference_id' => $invoice->id,
+        //         'reference_type' => InvoiceClient::class,
+        //         'description' => "Pendapatan invoice " . $invoice->invoice_number,
+        //         'date' => Carbon::now(),
+        //         'debit' => 0,
+        //         'credit' => $invoice->price_total_exclude_ppn,
+        //         'type' => JournalEntry::class,
+        //     ];
+        // }
 
         self::invoiceAllPph($invoice, $log_payment);
 
