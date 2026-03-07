@@ -246,6 +246,37 @@ return [
         'setting' => 'Pengaturan',
         'setting_system' => 'Pengaturan Sistem',
         'voucher_payment_plan' => 'Rencana Pembayaran',
+        'tracker' => 'Monitoring Tracker',
+    ],
+    'monitoring_tracker' => [
+        'tab' => [
+            'tracker' => 'Monitoring Tracker',
+            'tracker_edit' => 'Riwayat Edit',
+        ],
+        'column' => [
+            'no' => 'No',
+            'no_po_spk' => 'No. PO/SPK',
+            'name' => 'Nama Proyek',
+            'client_id' => 'Nama Perusahaan',
+            'actual_end_date' => 'Actual End Date',
+            'total_time' => 'Total Time',
+            'progress' => 'Progress (%)',
+            'status' => 'Status',
+            'pic' => 'PIC',
+            'user' => 'User',
+            'information' => 'Keterangan',
+            'information_tracker' => 'Keterangan Tracker',
+            'duration' => 'Durasi',
+            'search_client' => 'Cari nama perusahaan...',
+        ],
+        'breadcrumb' => [
+            'monitoring' => 'Monitoring',
+            'tracker' => 'Monitoring Tracker',
+        ],
+        'title' => [
+            'monitoring_tracker' => 'Monitoring Tracker',
+        ],
+        'history_update_text' => 'Mengedit data monitoring tracker',
     ],
     'user' => [
         'field' => [

@@ -233,6 +233,15 @@
             ])->count() > 0)
         <x-menu-group-item-custom title="{{trans('backpack::crud.menu.project_report')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/project-report')" />
     @endif
+
+    @if($permissions->whereIn('name', [
+                // 'AKSES SEMUA VIEW PROJECT',
+                // 'AKSES SEMUA MENU PROJECT',
+                'MENU INDEX MONITORING TRACKER',
+            ])->count() > 0)
+        <x-menu-group-item-custom title="{{trans('backpack::crud.menu.tracker')}}" icon="la la-circle-notch" :link="backpack_url('monitoring/tracker')" />
+    @endif
+
     @if($permissions->whereIn('name', [
             // 'AKSES SEMUA VIEW PROJECT',
             // 'AKSES SEMUA MENU PROJECT',

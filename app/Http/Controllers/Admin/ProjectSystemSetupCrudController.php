@@ -1,7 +1,10 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Models\SetupPpn;
+use App\Models\SetupPph;
+use App\Models\SetupCompanyClassification;
 use App\Models\SetupClient;
 use App\Models\SetupOffering;
 use App\Models\CategoryProject;
@@ -16,7 +19,8 @@ use App\Http\Controllers\Operation\PermissionAccess;
 use PhpOffice\PhpSpreadsheet\Calculation\Category;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ProjectSystemSetupCrudController extends CrudController{
+class ProjectSystemSetupCrudController extends CrudController
+{
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -28,7 +32,7 @@ class ProjectSystemSetupCrudController extends CrudController{
         $this->crud->setModel(CategoryProject::class);
         $this->crud->setRoute(config('backpack.base.route_prefix') . '/monitoring/project-system-setup');
         $this->crud->setEntityNameStrings(trans('backpack::crud.menu.project_system_setup'), trans('backpack::crud.menu.project_system_setup'));
-        
+
         $base = 'INDEX MONITORING PROYEK PROYEK SYSTEM SETUP';
         $allAccess = ['AKSES SEMUA MENU PROJECT'];
         $viewMenu  = ["MENU $base"];
@@ -43,7 +47,8 @@ class ProjectSystemSetupCrudController extends CrudController{
         ]);
     }
 
-    function listCardComponents(){
+    function listCardComponents()
+    {
         $this->card->addCard([
             'name' => 'setup_category_project',
             'line' => 'top',
@@ -52,9 +57,9 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'title' => trans('backpack::crud.project_system_setup.card.setup_category_project'),
                 'title_create' => trans('backpack::crud.project_system_setup.card.setup_category_project_title_create'),
                 'crud' => $this->crud,
-                'route' => url($this->crud->route.'/search?_type=category_project'),
-                'route_create' => url($this->crud->route.'/create?_type=category_project'),
-                'route_store' => url($this->crud->route.'?_type=category_project'),
+                'route' => url($this->crud->route . '/search?_type=category_project'),
+                'route_create' => url($this->crud->route . '/create?_type=category_project'),
+                'route_store' => url($this->crud->route . '?_type=category_project'),
             ]
         ]);
 
@@ -66,9 +71,9 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'title' => trans('backpack::crud.project_system_setup.card.setup_status_project'),
                 'title_create' => trans('backpack::crud.project_system_setup.card.setup_status_project_title_create'),
                 'crud' => $this->crud,
-                'route' => url($this->crud->route.'/search?_type=status_project'),
-                'route_create' => url($this->crud->route.'/create?_type=status_project'),
-                'route_store' => url($this->crud->route.'?_type=status_project'),
+                'route' => url($this->crud->route . '/search?_type=status_project'),
+                'route_create' => url($this->crud->route . '/create?_type=status_project'),
+                'route_store' => url($this->crud->route . '?_type=status_project'),
             ]
         ]);
 
@@ -80,9 +85,9 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'title' => trans('backpack::crud.project_system_setup.card.setup_status_offering'),
                 'title_create' => trans('backpack::crud.project_system_setup.card.setup_status_offering_title_create'),
                 'crud' => $this->crud,
-                'route' => url($this->crud->route.'/search?_type=status_offering'),
-                'route_create' => url($this->crud->route.'/create?_type=status_offering'),
-                'route_store' => url($this->crud->route.'?_type=status_offering'),
+                'route' => url($this->crud->route . '/search?_type=status_offering'),
+                'route_create' => url($this->crud->route . '/create?_type=status_offering'),
+                'route_store' => url($this->crud->route . '?_type=status_offering'),
             ]
         ]);
 
@@ -94,9 +99,9 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'title' => trans('backpack::crud.project_system_setup.card.setup_client'),
                 'title_create' => trans('backpack::crud.project_system_setup.card.setup_client_title_create'),
                 'crud' => $this->crud,
-                'route' => url($this->crud->route.'/search?_type=client'),
-                'route_create' => url($this->crud->route.'/create?_type=client'),
-                'route_store' => url($this->crud->route.'?_type=client'),
+                'route' => url($this->crud->route . '/search?_type=client'),
+                'route_create' => url($this->crud->route . '/create?_type=client'),
+                'route_store' => url($this->crud->route . '?_type=client'),
             ]
         ]);
 
@@ -108,12 +113,39 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'title' => trans('backpack::crud.project_system_setup.card.setup_ppn'),
                 'title_create' => trans('backpack::crud.project_system_setup.card.setup_ppn_title_create'),
                 'crud' => $this->crud,
-                'route' => url($this->crud->route.'/search?_type=ppn'),
-                'route_create' => url($this->crud->route.'/create?_type=ppn'),
-                'route_store' => url($this->crud->route.'?_type=ppn'),
+                'route' => url($this->crud->route . '/search?_type=ppn'),
+                'route_create' => url($this->crud->route . '/create?_type=ppn'),
+                'route_store' => url($this->crud->route . '?_type=ppn'),
             ]
         ]);
 
+        $this->card->addCard([
+            'name' => 'setup_pph',
+            'line' => 'top',
+            'view' => 'crud::components.card-project',
+            'params' => [
+                'title' => trans('backpack::crud.project_system_setup.card.setup_pph'),
+                'title_create' => trans('backpack::crud.project_system_setup.card.setup_pph_title_create'),
+                'crud' => $this->crud,
+                'route' => url($this->crud->route . '/search?_type=pph'),
+                'route_create' => url($this->crud->route . '/create?_type=pph'),
+                'route_store' => url($this->crud->route . '?_type=pph'),
+            ]
+        ]);
+
+        $this->card->addCard([
+            'name' => 'setup_company_classification',
+            'line' => 'top',
+            'view' => 'crud::components.card-project',
+            'params' => [
+                'title' => trans('backpack::crud.project_system_setup.card.setup_company_classification'),
+                'title_create' => trans('backpack::crud.project_system_setup.card.setup_company_classification_title_create'),
+                'crud' => $this->crud,
+                'route' => url($this->crud->route . '/search?_type=company_classification'),
+                'route_create' => url($this->crud->route . '/create?_type=company_classification'),
+                'route_store' => url($this->crud->route . '?_type=company_classification'),
+            ]
+        ]);
     }
 
     public function create()
@@ -122,29 +154,30 @@ class ProjectSystemSetupCrudController extends CrudController{
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add') . ' ' . $this->crud->entity_name;
 
         return response()->json([
             'html' => view('crud::create', $this->data)->render()
         ]);
     }
 
-    function fieldCreatesetupCategory(){
+    function fieldCreatesetupCategory()
+    {
 
         $id = request()->id;
 
         $rule = [
             'name' => [
                 'required',
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $val = explode(',', $value);
-                    foreach($val as $v){
-                        if(strlen(trim($v)) == 0){
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
                             $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
                             return;
-                        }else{
+                        } else {
                             $data = CategoryProject::where('name', $v)->first();
-                            if($data){
+                            if ($data) {
                                 $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
                                 return;
                             }
@@ -154,9 +187,9 @@ class ProjectSystemSetupCrudController extends CrudController{
             ],
         ];
 
-        if(request()->has('edit')){
+        if (request()->has('edit')) {
             $rule = [
-                'name' => 'required|max:30|unique:cateogry_projects,name,'.$id
+                'name' => 'required|max:30|unique:cateogry_projects,name,' . $id
             ];
         }
 
@@ -186,7 +219,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ]);
 
-        if(!request()->has('edit')){
+        if (!request()->has('edit')) {
             CRUD::addField([
                 'name' => 'comma',
                 'label' => trans('backpack::crud.project_system_setup.field.setup_category_project.comma.label'),
@@ -199,26 +232,25 @@ class ProjectSystemSetupCrudController extends CrudController{
                 ]
             ]);
         }
-
-
     }
 
-    function fieldCreatestatusCategory(){
+    function fieldCreatestatusCategory()
+    {
 
         $id = request()->id;
 
         $rule = [
             'name' => [
                 'required',
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $val = explode(',', $value);
-                    foreach($val as $v){
-                        if(strlen(trim($v)) == 0){
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
                             $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
                             return;
-                        }else{
+                        } else {
                             $data = SetupStatusProject::where('name', $v)->first();
-                            if($data){
+                            if ($data) {
                                 $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
                                 return;
                             }
@@ -228,9 +260,9 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ];
 
-        if(request()->has('edit')){
+        if (request()->has('edit')) {
             $rule = [
-                'name' => 'required|max:30|unique:setup_status_projects,name,'.$id
+                'name' => 'required|max:30|unique:setup_status_projects,name,' . $id
             ];
         }
 
@@ -260,7 +292,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ]);
 
-        if(!request()->has('edit')){
+        if (!request()->has('edit')) {
             CRUD::addField([
                 'name' => 'comma',
                 'label' => trans('backpack::crud.project_system_setup.field.setup_status_project.comma.label'),
@@ -273,26 +305,24 @@ class ProjectSystemSetupCrudController extends CrudController{
                 ]
             ]);
         }
-
-
-
     }
 
-    function fieldCreatestatusOffering(){
+    function fieldCreatestatusOffering()
+    {
         $id = request()->id;
 
         $rule = [
             'name' => [
                 'required',
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $val = explode(',', $value);
-                    foreach($val as $v){
-                        if(strlen(trim($v)) == 0){
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
                             $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
                             return;
-                        }else{
+                        } else {
                             $data = SetupOffering::where('name', $v)->first();
-                            if($data){
+                            if ($data) {
                                 $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
                                 return;
                             }
@@ -302,9 +332,9 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ];
 
-        if(request()->has('edit')){
+        if (request()->has('edit')) {
             $rule = [
-                'name' => 'required|max:30|unique:setup_offering,name,'.$id
+                'name' => 'required|max:30|unique:setup_offering,name,' . $id
             ];
         }
 
@@ -334,7 +364,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ]);
 
-        if(!request()->has('edit')){
+        if (!request()->has('edit')) {
             CRUD::addField([
                 'name' => 'comma',
                 'label' => trans('backpack::crud.project_system_setup.field.setup_status_offering.comma.label'),
@@ -347,25 +377,24 @@ class ProjectSystemSetupCrudController extends CrudController{
                 ]
             ]);
         }
-
-
     }
 
-    function fieldCreateClient(){
+    function fieldCreateClient()
+    {
         $id = request()->id;
 
         $rule = [
             'name' => [
                 'required',
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $val = explode(',', $value);
-                    foreach($val as $v){
-                        if(strlen(trim($v)) == 0){
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
                             $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
                             return;
-                        }else{
+                        } else {
                             $data = SetupClient::where('name', $v)->first();
-                            if($data){
+                            if ($data) {
                                 $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
                                 return;
                             }
@@ -375,9 +404,9 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ];
 
-        if(request()->has('edit')){
+        if (request()->has('edit')) {
             $rule = [
-                'name' => 'required|max:30|unique:setup_clients,name,'.$id
+                'name' => 'required|max:30|unique:setup_clients,name,' . $id
             ];
         }
 
@@ -407,7 +436,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ]);
 
-        if(!request()->has('edit')){
+        if (!request()->has('edit')) {
             CRUD::addField([
                 'name' => 'comma',
                 'label' => trans('backpack::crud.project_system_setup.field.setup_client.comma.label'),
@@ -422,21 +451,22 @@ class ProjectSystemSetupCrudController extends CrudController{
         }
     }
 
-    function fieldCreatePpn(){
+    function fieldCreatePpn()
+    {
         $id = request()->id;
 
         $rule = [
             'name' => [
                 'required',
-                function($attribute, $value, $fail) use($id){
+                function ($attribute, $value, $fail) use ($id) {
                     $val = explode(',', $value);
-                    foreach($val as $v){
-                        if(strlen(trim($v)) == 0){
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
                             $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
                             return;
-                        }else{
+                        } else {
                             $data = SetupPpn::where('name', $v)->first();
-                            if($data){
+                            if ($data) {
                                 $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
                                 return;
                             }
@@ -446,9 +476,9 @@ class ProjectSystemSetupCrudController extends CrudController{
             ],
         ];
 
-        if(request()->has('edit')){
+        if (request()->has('edit')) {
             $rule = [
-                'name' => 'required|numeric|unique:setup_ppn,name,'.$id
+                'name' => 'required|numeric|unique:setup_ppn,name,' . $id
             ];
         }
 
@@ -480,7 +510,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]
         ]);
 
-        if(!request()->has('edit')){
+        if (!request()->has('edit')) {
             CRUD::addField([
                 'name' => 'comma',
                 'label' => trans('backpack::crud.project_system_setup.field.setup_ppn.comma.label'),
@@ -493,22 +523,176 @@ class ProjectSystemSetupCrudController extends CrudController{
                 ]
             ]);
         }
+    }
 
+    function fieldCreatePph()
+    {
+        $id = request()->id;
+
+        $rule = [
+            'name' => [
+                'required',
+                function ($attribute, $value, $fail) use ($id) {
+                    $val = explode(',', $value);
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
+                            $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
+                            return;
+                        } else if (!is_numeric(trim($v))) {
+                            $fail("Item harus berupa angka");
+                            return;
+                        } else {
+                            $data = SetupPph::where('name', trim($v))->first();
+                            if ($data) {
+                                $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
+                                return;
+                            }
+                        }
+                    }
+                }
+            ],
+        ];
+
+        if (request()->has('edit')) {
+            $rule = [
+                'name' => 'required|numeric|unique:setup_pph,name,' . $id
+            ];
+        }
+
+        CRUD::setValidation($rule);
+
+        CRUD::addField([
+            'name' => 'title',
+            'label' => trans('backpack::crud.project_system_setup.field.setup_pph.title.label'),
+            'type' => 'title-project',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'class' => 'd-none',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'name',
+            'label' => trans('backpack::crud.project_system_setup.field.setup_pph.name.label'),
+            'type' => 'text',
+            'attributes' => ["step" => "any"], // allow decimals
+            'prefix'     => "%",
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        if (!request()->has('edit')) {
+            CRUD::addField([
+                'name' => 'comma',
+                'label' => trans('backpack::crud.project_system_setup.field.setup_pph.comma.label'),
+                'type' => 'comma-statement-project',
+                'wrapper'   => [
+                    'class' => 'form-group col-md-12',
+                ],
+                'attributes' => [
+                    'class' => 'd-none',
+                ]
+            ]);
+        }
     }
 
 
-    protected function setupCreateOperation(){
+
+    function fieldCreateCompanyClassification()
+    {
+        $id = request()->id;
+
+        $rule = [
+            'name' => [
+                'required',
+                function ($attribute, $value, $fail) use ($id) {
+                    $val = explode(',', $value);
+                    foreach ($val as $v) {
+                        if (strlen(trim($v)) == 0) {
+                            $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.empty'));
+                            return;
+                        } else {
+                            $data = SetupCompanyClassification::where('name', trim($v))->first();
+                            if ($data) {
+                                $fail(trans('backpack::crud.project_system_setup.field.setup_category_project.name.errors.unique'));
+                                return;
+                            }
+                        }
+                    }
+                }
+            ],
+        ];
+
+        if (request()->has('edit')) {
+            $rule = [
+                'name' => 'required|max:255|unique:setup_company_classifications,name,' . $id
+            ];
+        }
+
+        CRUD::setValidation($rule);
+
+        CRUD::addField([
+            'name' => 'title',
+            'label' => trans('backpack::crud.project_system_setup.field.setup_company_classification.title.label'),
+            'type' => 'title-project',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'class' => 'd-none',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'name',
+            'label' => trans('backpack::crud.project_system_setup.field.setup_company_classification.name.label'),
+            'type' => 'text',
+            'wrapper'   => [
+                'class' => 'form-group col-md-12',
+            ],
+            'attributes' => [
+                'placeholder' => trans('backpack::crud.project_system_setup.field.setup_company_classification.name.placeholder'),
+            ]
+        ]);
+
+        if (!request()->has('edit')) {
+            CRUD::addField([
+                'name' => 'comma',
+                'label' => trans('backpack::crud.project_system_setup.field.setup_company_classification.comma.label'),
+                'type' => 'comma-statement-project',
+                'wrapper'   => [
+                    'class' => 'form-group col-md-12',
+                ],
+                'attributes' => [
+                    'class' => 'd-none',
+                ]
+            ]);
+        }
+    }
+
+    protected function setupCreateOperation()
+    {
         $request = request();
-        if($request->_type == 'category_project'){
+        if ($request->_type == 'category_project') {
             $this->fieldCreatesetupCategory();
-        }else if($request->_type == 'status_project'){
+        } else if ($request->_type == 'status_project') {
             $this->fieldCreatestatusCategory();
-        }else if($request->_type == 'status_offering'){
+        } else if ($request->_type == 'status_offering') {
             $this->fieldCreatestatusOffering();
-        }else if($request->_type == 'client'){
+        } else if ($request->_type == 'client') {
             $this->fieldCreateClient();
-        }else if($request->_type == 'ppn'){
+        } else if ($request->_type == 'ppn') {
             $this->fieldCreatePpn();
+        } else if ($request->_type == 'pph') {
+            $this->fieldCreatePph();
+        } else if ($request->_type == 'company_classification') {
+            $this->fieldCreateCompanyClassification();
         }
     }
 
@@ -554,27 +738,33 @@ class ProjectSystemSetupCrudController extends CrudController{
 
         $request = request();
         $type = $request->_type;
-        if($type == 'category_project'){
+        if ($type == 'category_project') {
             $item = CategoryProject::find($id);
-        }else if($type == 'status_project'){
+        } else if ($type == 'status_project') {
             CRUD::setModel(SetupStatusProject::class);
             $item = SetupStatusProject::find($id);
-        }else if($type == 'status_offering'){
+        } else if ($type == 'status_offering') {
             CRUD::setModel(SetupOffering::class);
             $item = SetupOffering::find($id);
-        }else if($type == 'client'){
+        } else if ($type == 'client') {
             CRUD::setModel(SetupClient::class);
             $item = SetupClient::find($id);
-        }else if($type == 'ppn'){
+        } else if ($type == 'ppn') {
             CRUD::setModel(SetupPpn::class);
             $item = SetupPpn::find($id);
+        } else if ($type == 'pph') {
+            CRUD::setModel(SetupPph::class);
+            $item = SetupPph::find($id);
+        } else if ($type == 'company_classification') {
+            CRUD::setModel(SetupCompanyClassification::class);
+            $item = SetupCompanyClassification::find($id);
         }
 
         $this->data['entry'] = $item;
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
         $this->data['id'] = $id;
 
         return response()->json([
@@ -593,7 +783,7 @@ class ProjectSystemSetupCrudController extends CrudController{
         CRUD::addButtonFromView('top', 'export-excel-table', 'export-excel-table', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf-table', 'export-pdf-table', 'beginning');
 
-        if($type == 'category_project'){
+        if ($type == 'category_project') {
             CRUD::setModel(CategoryProject::class);
             CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
             CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
@@ -601,15 +791,15 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'label'  => '',
                 'name' => 'name',
                 'type'  => 'custom_html',
-                'value' => function($entry){
-                    return "&bull; ".$entry->name;
+                'value' => function ($entry) {
+                    return "&bull; " . $entry->name;
                 }
             ]);
             CRUD::addClause('select', DB::raw("
                 cateogry_projects.*,
                 'category_project' as type
             "));
-        }else if($type == 'status_project'){
+        } else if ($type == 'status_project') {
             CRUD::setModel(SetupStatusProject::class);
             CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
             CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
@@ -617,15 +807,15 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'label'  => '',
                 'name' => 'name',
                 'type'  => 'custom_html',
-                'value' => function($entry){
-                    return "&bull; ".$entry->name;
+                'value' => function ($entry) {
+                    return "&bull; " . $entry->name;
                 }
             ]);
             CRUD::addClause('select', DB::raw("
                 setup_status_projects.*,
                 'status_project' as type
             "));
-        }else if($type == 'status_offering'){
+        } else if ($type == 'status_offering') {
             CRUD::setModel(SetupOffering::class);
             CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
             CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
@@ -633,15 +823,15 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'label'  => '',
                 'name' => 'name',
                 'type'  => 'custom_html',
-                'value' => function($entry){
-                    return "&bull; ".$entry->name;
+                'value' => function ($entry) {
+                    return "&bull; " . $entry->name;
                 }
             ]);
             CRUD::addClause('select', DB::raw("
                 setup_offering.*,
                 'status_offering' as type
             "));
-        }else if($type == 'client'){
+        } else if ($type == 'client') {
             CRUD::setModel(SetupClient::class);
             CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
             CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
@@ -649,15 +839,15 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'label'  => '',
                 'name' => 'name',
                 'type'  => 'custom_html',
-                'value' => function($entry){
-                    return "&bull; ".$entry->name;
+                'value' => function ($entry) {
+                    return "&bull; " . $entry->name;
                 }
             ]);
             CRUD::addClause('select', DB::raw("
                 setup_clients.*,
                 'client' as type
             "));
-        }else if($type == 'ppn'){
+        } else if ($type == 'ppn') {
             CRUD::setModel(SetupPpn::class);
             CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
             CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
@@ -665,13 +855,45 @@ class ProjectSystemSetupCrudController extends CrudController{
                 'label'  => '',
                 'name' => 'name',
                 'type'  => 'custom_html',
-                'value' => function($entry){
-                    return "&bull; ".number_format($entry->name, 0, '.', ',').' %';
+                'value' => function ($entry) {
+                    return "&bull; " . number_format($entry->name, 0, '.', ',') . ' %';
                 }
             ]);
             CRUD::addClause('select', DB::raw("
                 setup_ppn.*,
                 'ppn' as type
+            "));
+        } else if ($type == 'pph') {
+            CRUD::setModel(SetupPph::class);
+            CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
+            CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
+            CRUD::column([
+                'label'  => '',
+                'name' => 'name',
+                'type'  => 'custom_html',
+                'value' => function ($entry) {
+                    return "&bull; " . number_format($entry->name, 0, '.', ',') . ' %';
+                }
+            ]);
+            CRUD::addClause('select', DB::raw("
+                setup_pph.*,
+                'pph' as type
+            "));
+        } else if ($type == 'company_classification') {
+            CRUD::setModel(SetupCompanyClassification::class);
+            CRUD::addButtonFromView('line', 'update-project', 'update-project', 'end');
+            CRUD::addButtonFromView('line', 'delete-project', 'delete-project', 'end');
+            CRUD::column([
+                'label'  => '',
+                'name' => 'name',
+                'type'  => 'custom_html',
+                'value' => function ($entry) {
+                    return "&bull; " . $entry->name;
+                }
+            ]);
+            CRUD::addClause('select', DB::raw("
+                setup_company_classifications.*,
+                'company_classification' as type
             "));
         }
     }
@@ -681,34 +903,48 @@ class ProjectSystemSetupCrudController extends CrudController{
         // CRUD::removeButtons(['show', 'delete', 'update'], 'line');
         CRUD::setModel(CategoryProject::class);
         $this->crud->query = $this->crud->query
-        ->unionAll(
-            DB::table('setup_status_projects')
-            ->select(DB::raw("
+            ->unionAll(
+                DB::table('setup_status_projects')
+                    ->select(DB::raw("
                 setup_status_projects.name as name,
                 'status_project' as type
             "))
-        )
-        ->unionAll(
-            DB::table('setup_offering')
-            ->select(DB::raw("
+            )
+            ->unionAll(
+                DB::table('setup_offering')
+                    ->select(DB::raw("
                 setup_offering.name as name,
                 'status_offering' as type
             "))
-        )
-        ->unionAll(
-            DB::table('setup_clients')
-            ->select(DB::raw("
+            )
+            ->unionAll(
+                DB::table('setup_clients')
+                    ->select(DB::raw("
                 setup_clients.name as name,
                 'client' as type
             "))
-        )
-        ->unionAll(
-            DB::table('setup_ppn')
-            ->select(DB::raw("
+            )
+            ->unionAll(
+                DB::table('setup_ppn')
+                    ->select(DB::raw("
                 setup_ppn.name as name,
                 'ppn' as type
             "))
-        );
+            )
+            ->unionAll(
+                DB::table('setup_pph')
+                    ->select(DB::raw("
+                setup_pph.name as name,
+                'pph' as type
+            "))
+            )
+            ->unionAll(
+                DB::table('setup_company_classifications')
+                    ->select(DB::raw("
+                setup_company_classifications.name as name,
+                'company_classification' as type
+            "))
+            );
 
         CRUD::addClause('select', DB::raw("
             cateogry_projects.name as name,
@@ -729,9 +965,9 @@ class ProjectSystemSetupCrudController extends CrudController{
             'label'  => 'Nama Setup',
             'name' => 'name',
             'type'  => 'closure',
-            'function' => function($entry){
-                if($entry->type == 'ppn'){
-                    return number_format($entry->name, 0, '.', ',').' %';
+            'function' => function ($entry) {
+                if ($entry->type == 'ppn' || $entry->type == 'pph') {
+                    return number_format($entry->name, 0, '.', ',') . ' %';
                 }
                 return $entry->name;
             }
@@ -740,23 +976,28 @@ class ProjectSystemSetupCrudController extends CrudController{
             'label'  => 'Kategori',
             'name' => 'type',
             'type'  => 'closure',
-            'function' => function($entry){
-                if($entry->type == 'category_project'){
+            'function' => function ($entry) {
+                if ($entry->type == 'category_project') {
                     return "Setup Ketegori Proyek";
-                }else if($entry->type == 'status_project'){
+                } else if ($entry->type == 'status_project') {
                     return "Setup Status Proyek";
-                }else if($entry->type == 'status_offering'){
+                } else if ($entry->type == 'status_offering') {
                     return "Setup Status Penawaran";
-                }else if($entry->type == 'client'){
+                } else if ($entry->type == 'client') {
                     return "Setup Data Client";
-                }else if($entry->type == 'ppn'){
+                } else if ($entry->type == 'ppn') {
                     return "Setup Tarif PPn";
+                } else if ($entry->type == 'pph') {
+                    return "Setup Tarif PPh";
+                } else if ($entry->type == 'company_classification') {
+                    return "Setup Klasifikasi Perusahaan";
                 }
             }
         ]);
     }
 
-    public function exportPdf(){
+    public function exportPdf()
+    {
 
         $this->setupListExport();
 
@@ -767,10 +1008,10 @@ class ProjectSystemSetupCrudController extends CrudController{
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -795,11 +1036,12 @@ class ProjectSystemSetupCrudController extends CrudController{
             echo $pdf->output();
         }, $fileName, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
         ]);
     }
 
-    public function exportExcel(){
+    public function exportExcel()
+    {
 
         $this->setupListExport();
 
@@ -810,10 +1052,10 @@ class ProjectSystemSetupCrudController extends CrudController{
 
         $all_items = [];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $row_items = [];
             $row_number++;
-            foreach($columns as $column){
+            foreach ($columns as $column) {
                 $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
                 $item_value = str_replace('<span>', '', $item_value);
                 $item_value = str_replace('</span>', '', $item_value);
@@ -826,9 +1068,11 @@ class ProjectSystemSetupCrudController extends CrudController{
 
         $name = 'DAFTAR SPK';
 
-        return response()->streamDownload(function () use($columns, $items, $all_items){
+        return response()->streamDownload(function () use ($columns, $items, $all_items) {
             echo Excel::raw(new ExportExcel(
-                $columns, $all_items), \Maatwebsite\Excel\Excel::XLSX);
+                $columns,
+                $all_items
+            ), \Maatwebsite\Excel\Excel::XLSX);
         }, $name, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
@@ -849,49 +1093,65 @@ class ProjectSystemSetupCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $event = [];
 
             $type = $request->_type;
-            if($type == 'category_project'){
+            if ($type == 'category_project') {
                 $event['setup_category_project_create_success'] = true;
 
                 $val = explode(',', $request->name);
-                foreach($val as $v){
+                foreach ($val as $v) {
                     $item = new CategoryProject;
                     $item->name = strtoupper(trim($v));
                     $item->save();
                 }
-            }else if($type == 'status_project'){
+            } else if ($type == 'status_project') {
                 $event['setup_status_project_create_success'] = true;
                 $val = explode(',', $request->name);
-                foreach($val as $v){
+                foreach ($val as $v) {
                     $item = new SetupStatusProject;
                     $item->name = strtoupper(trim($v));
                     $item->save();
                 }
-            }else if($type == 'status_offering'){
+            } else if ($type == 'status_offering') {
                 $event['setup_status_offering_create_success'] = true;
                 $val = explode(',', $request->name);
-                foreach($val as $v){
+                foreach ($val as $v) {
                     $item = new SetupOffering;
                     $item->name = strtoupper(trim($v));
                     $item->save();
                 }
-            }else if($type == 'client'){
+            } else if ($type == 'client') {
                 $event['setup_client_create_success'] = true;
                 $val = explode(',', $request->name);
-                foreach($val as $v){
+                foreach ($val as $v) {
                     $item = new SetupClient;
                     $item->name = strtoupper(trim($v));
                     $item->save();
                 }
-            }else if($type == 'ppn'){
+            } else if ($type == 'ppn') {
                 $event['setup_ppn_create_success'] = true;
                 $val = explode(',', $request->name);
-                foreach($val as $v){
+                foreach ($val as $v) {
                     $item = new SetupPpn;
+                    $item->name = strtoupper(trim($v));
+                    $item->save();
+                }
+            } else if ($type == 'pph') {
+                $event['setup_pph_create_success'] = true;
+                $val = explode(',', $request->name);
+                foreach ($val as $v) {
+                    $item = new SetupPph;
+                    $item->name = strtoupper(trim($v));
+                    $item->save();
+                }
+            } else if ($type == 'company_classification') {
+                $event['setup_company_classification_create_success'] = true;
+                $val = explode(',', $request->name);
+                foreach ($val as $v) {
+                    $item = new SetupCompanyClassification;
                     $item->name = strtoupper(trim($v));
                     $item->save();
                 }
@@ -910,7 +1170,7 @@ class ProjectSystemSetupCrudController extends CrudController{
                 ]);
             }
             // return $this->crud->performSaveAction($item->getKey());
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -929,34 +1189,44 @@ class ProjectSystemSetupCrudController extends CrudController{
         $this->crud->registerFieldEvents();
 
         DB::beginTransaction();
-        try{
+        try {
 
             $event = [];
 
             $type = $request->_type;
-            if($type == 'category_project'){
+            if ($type == 'category_project') {
                 $event['setup_category_project_create_success'] = true;
                 $item = CategoryProject::find($request->id);
                 $item->name = $request->name;
                 $item->save();
-            }else if($type == 'status_project'){
+            } else if ($type == 'status_project') {
                 $event['setup_status_project_create_success'] = true;
                 $item = SetupStatusProject::find($request->id);
                 $item->name = $request->name;
                 $item->save();
-            }else if($type == 'status_offering'){
+            } else if ($type == 'status_offering') {
                 $event['setup_status_offering_create_success'] = true;
                 $item = SetupOffering::find($request->id);
                 $item->name = $request->name;
                 $item->save();
-            }else if($type == 'client'){
+            } else if ($type == 'client') {
                 $event['setup_client_create_success'] = true;
                 $item = SetupClient::find($request->id);
                 $item->name = $request->name;
                 $item->save();
-            }else if($type == 'ppn'){
+            } else if ($type == 'ppn') {
                 $event['setup_ppn_create_success'] = true;
                 $item = SetupPpn::find($request->id);
+                $item->name = $request->name;
+                $item->save();
+            } else if ($type == 'pph') {
+                $event['setup_pph_create_success'] = true;
+                $item = SetupPph::find($request->id);
+                $item->name = $request->name;
+                $item->save();
+            } else if ($type == 'company_classification') {
+                $event['setup_company_classification_create_success'] = true;
+                $item = SetupCompanyClassification::find($request->id);
                 $item->name = $request->name;
                 $item->save();
             }
@@ -975,7 +1245,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             ]);
             // return $this->crud->performSaveAction($item->getKey());
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => false,
@@ -1028,7 +1298,7 @@ class ProjectSystemSetupCrudController extends CrudController{
             $subQuery = $query_clone->cloneWithout(['limit', 'offset']);
 
             $totalEntryCount = $outer_query->select(DB::raw('count(*) as total_rows'))
-            ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
+                ->fromSub($subQuery, 'total_aggregator')->cursor()->first()->total_rows;
             $filteredEntryCount = $totalEntryCount;
 
             // $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
@@ -1054,25 +1324,33 @@ class ProjectSystemSetupCrudController extends CrudController{
             $event = [];
             $request = request();
 
-            if($request->type == 'category_project'){
+            if ($request->type == 'category_project') {
                 $item = CategoryProject::find($id);
                 $event['setup_category_project_create_success'] = true;
                 $item->delete();
-            }else if($request->type == 'status_project'){
+            } else if ($request->type == 'status_project') {
                 $item = SetupStatusProject::find($id);
                 $event['setup_status_project_create_success'] = true;
                 $item->delete();
-            }else if($request->type == 'status_offering'){
+            } else if ($request->type == 'status_offering') {
                 $item = SetupOffering::find($id);
                 $event['setup_status_offering_create_success'] = true;
                 $item->delete();
-            }else if($request->type == 'client'){
+            } else if ($request->type == 'client') {
                 $item = SetupClient::find($id);
                 $event['setup_client_create_success'] = true;
                 $item->delete();
-            }else if($request->type == 'ppn'){
+            } else if ($request->type == 'ppn') {
                 $item = SetupPpn::find($id);
                 $event['setup_ppn_create_success'] = true;
+                $item->delete();
+            } else if ($request->type == 'pph') {
+                $item = SetupPph::find($id);
+                $event['setup_pph_create_success'] = true;
+                $item->delete();
+            } else if ($request->type == 'company_classification') {
+                $item = SetupCompanyClassification::find($id);
+                $event['setup_company_classification_create_success'] = true;
                 $item->delete();
             }
 
@@ -1089,6 +1367,4 @@ class ProjectSystemSetupCrudController extends CrudController{
             ], 500);
         }
     }
-
-
 }

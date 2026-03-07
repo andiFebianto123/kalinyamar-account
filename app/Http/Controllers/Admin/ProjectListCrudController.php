@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\SetupPpn;
+use App\Models\SetupPph;
+use App\Models\SetupCompanyClassification;
 use App\Models\SetupClient;
 use App\Models\PurchaseOrder;
 use App\Models\ProjectHistory;
@@ -84,6 +86,11 @@ class ProjectListCrudController extends CrudController
                                     'orderable' => false,
                                 ],
                                 [
+                                    'name' => 'action',
+                                    'type' => 'action',
+                                    'label' =>  trans('backpack::crud.actions'),
+                                ],
+                                [
                                     'name' => 'no_po_spk',
                                     'type' => 'text',
                                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
@@ -96,10 +103,22 @@ class ProjectListCrudController extends CrudController
                                     'orderable' => true,
                                 ],
                                 [
-                                    'name' => 'po_date',
+                                    'name' => 'price_total_include_ppn',
                                     'type' => 'text',
-                                    'label' => trans('backpack::crud.project.column.project.po_date.label'),
+                                    'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
                                     'orderable' => true,
+                                ],
+                                [
+                                    'name' => 'transfer_value',
+                                    'type' => 'text',
+                                    'label' => trans('backpack::crud.project.column.project.transfer_value.label'),
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'name' => 'client_id',
+                                    'type' => 'text',
+                                    'label' => trans('backpack::crud.project.column.project.client_id.label'),
+                                    'orderable' => false,
                                 ],
                                 [
                                     'name' => 'price_total_exclude_ppn',
@@ -120,21 +139,39 @@ class ProjectListCrudController extends CrudController
                                     'orderable' => true,
                                 ],
                                 [
-                                    'name' => 'price_total_include_ppn',
+                                    'name' => 'price_pph',
                                     'type' => 'text',
-                                    'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
+                                    'label' => trans('backpack::crud.project.column.project.price_pph.label'),
                                     'orderable' => true,
                                 ],
                                 [
-                                    'name' => 'client_id',
+                                    'name' => 'tax_pph',
                                     'type' => 'text',
-                                    'label' => trans('backpack::crud.project.column.project.client_id.label'),
-                                    'orderable' => false,
+                                    'label' => trans('backpack::crud.project.column.project.tax_pph.label'),
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'name' => 'fine_price',
+                                    'type' => 'text',
+                                    'label' => trans('backpack::crud.project.column.project.fine_price.label'),
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'name' => 'company_classification',
+                                    'type' => 'text',
+                                    'label' => trans('backpack::crud.project.column.project.company_classification.label'),
+                                    'orderable' => true,
                                 ],
                                 [
                                     'name' => 'received_po_date',
                                     'type' => 'text',
                                     'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
+                                    'orderable' => true,
+                                ],
+                                [
+                                    'name' => 'po_date',
+                                    'type' => 'text',
+                                    'label' => trans('backpack::crud.project.column.project.po_date.label'),
                                     'orderable' => true,
                                 ],
                                 [
@@ -203,11 +240,11 @@ class ProjectListCrudController extends CrudController
                                     'label' => 'Dokumen Proyek',
                                     'orderable' => false,
                                 ],
-                                [
-                                    'name' => 'action',
-                                    'type' => 'action',
-                                    'label' =>  trans('backpack::crud.actions'),
-                                ]
+                                // [
+                                //     'name' => 'action',
+                                //     'type' => 'action',
+                                //     'label' =>  trans('backpack::crud.actions'),
+                                // ]
                             ],
                             'route' => backpack_url('/monitoring/project-list/search?tab=project'),
                             'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=project'),
@@ -302,14 +339,6 @@ class ProjectListCrudController extends CrudController
 
         $this->crud->year_options = $yearOptions;
 
-        $this->card->addCard([
-            'name' => 'filter-year',
-            'line' => 'top',
-            'label' => '',
-            'parent_view' => 'crud::components.filter-parent',
-            'view' => 'crud::buttons.filter-year',
-        ]);
-
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);
     }
@@ -344,8 +373,16 @@ class ProjectListCrudController extends CrudController
 
         CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
+        CRUD::addButtonFromView('top', 'filter-status-project', 'filter-status-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
         CRUD::addButtonFromView('top', 'export-pdf', 'export-pdf', 'beginning');
+
+        $this->crud->removeButtonFromStack('update', 'line');
+        $this->crud->removeButtonFromStack('delete', 'line');
+        $this->crud->removeButtonFromStack('show', 'line');
+        $this->crud->addButton('line_start', 'show', 'view', 'crud::buttons.show', 'end');
+        $this->crud->addButton('line_start', 'update', 'view', 'crud::buttons.update', 'end');
+        $this->crud->addButton('line_start', 'delete', 'view', 'crud::buttons.delete', 'end');
 
         if ($type == 'project') {
             CRUD::setModel(Project::class);
@@ -377,6 +414,12 @@ class ProjectListCrudController extends CrudController
                 });
             }
 
+            if (request()->has('filter_status_project')) {
+                if (request()->filter_status_project != 'all') {
+                    $this->crud->addClause('where', 'status_po', request()->filter_status_project);
+                }
+            }
+
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -386,26 +429,85 @@ class ProjectListCrudController extends CrudController
                     'element' => 'strong',
                 ]
             ])->makeFirstColumn();
+
+            CRUD::addColumn([
+                'name' => 'action',
+                'type' => 'closure',
+                'label' =>  '',
+                'escaped' => false,
+                'function' => function ($entry, $rowNumber) {
+                    $crud = $this->crud;
+                    return \View::make('crud::inc.button_stack', ['stack' => 'line_start'])
+                        ->with('crud', $crud)
+                        ->with('entry', $entry)
+                        ->with('row_number', $rowNumber)
+                        ->render();
+                }
+            ]);
+
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('no_po_spk', 'like', '%' . $searchTerm . '%');
+                    }
                 ],
             );
             CRUD::column(
                 [
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('name', 'like', '%' . $searchTerm . '%');
+                    }
                 ],
             );
-            $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
             CRUD::column([
-                'label' => trans('backpack::crud.project.column.project.po_date.label'),
-                'name' => 'po_date',
-                'type'  => 'date',
-                'format' => $new_format_date
+                'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
+                'name' => 'price_total_include_ppn',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ]);
+            CRUD::column([
+                'label' => trans('backpack::crud.project.column.project.transfer_value.label'),
+                'name' => 'transfer_value',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    $price_pph = $entry->price_pph ?? 0;
+                    $price_fine = $entry->fine_price ?? 0;
+                    if ($entry->company_classification == 'WAPU') {
+                        $transfer_value = $entry->price_total_exclude_ppn - $price_pph - $price_fine;
+                    } else if ($entry->company_classification == 'NON WAPU') {
+                        $transfer_value = $entry->price_total_include_ppn - $price_pph - $price_fine;
+                    } else {
+                        return '-';
+                    }
+                    return $this->priceFormatExport($status_file, $transfer_value);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ]);
+            CRUD::column([
+                // 1-n relationship
+                'label' => trans('backpack::crud.client_po.column.client_id'),
+                'type'      => 'select',
+                'name'      => 'client_id', // the column that contains the ID of that connected entity;
+                'entity'    => 'setup_client', // the method that defines the relationship in your Model
+                'attribute' => 'name', // foreign key attribute that is shown to user
+                'model'     => "App\Models\SetupClient", // foreign key model
+                // OPTIONAL
+                'limit' => 50, // Limit the number of characters shown
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.price_total_exclude_ppn.label'),
@@ -426,7 +528,6 @@ class ProjectListCrudController extends CrudController
                 'function' => function ($entry) use ($status_file) {
                     return $this->priceFormatExport($status_file, $entry->price_ppn);
                 },
-                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
@@ -439,31 +540,48 @@ class ProjectListCrudController extends CrudController
                 'suffix' => '%',
             ]);
             CRUD::column([
-                'label' => trans('backpack::crud.project.column.project.price_total_include_ppn.label'),
-                'name' => 'price_total_include_ppn',
+                'label' => trans('backpack::crud.project.column.project.price_pph.label'),
+                'name' => 'price_pph',
                 'type'  => 'closure',
                 'function' => function ($entry) use ($status_file) {
-                    return $this->priceFormatExport($status_file, $entry->price_total_include_ppn);
+                    return $this->priceFormatExport($status_file, $entry->price_pph);
                 },
-                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'decimals'      => 2,
                 'dec_point'     => ',',
                 'thousands_sep' => '.',
             ]);
             CRUD::column([
-                // 1-n relationship
-                'label' => trans('backpack::crud.client_po.column.client_id'),
-                'type'      => 'select',
-                'name'      => 'client_id', // the column that contains the ID of that connected entity;
-                'entity'    => 'setup_client', // the method that defines the relationship in your Model
-                'attribute' => 'name', // foreign key attribute that is shown to user
-                'model'     => "App\Models\SetupClient", // foreign key model
-                // OPTIONAL
-                'limit' => 50, // Limit the number of characters shown
+                'label' => trans('backpack::crud.project.column.project.tax_pph.label'),
+                'name' => 'tax_pph',
+                'type'  => 'number',
+                'suffix' => '%',
+            ]);
+            CRUD::column([
+                'label' => trans('backpack::crud.project.column.project.fine_price.label'),
+                'name' => 'fine_price',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->fine_price);
+                },
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ]);
+            CRUD::column([
+                'label' => trans('backpack::crud.project.column.project.company_classification.label'),
+                'name' => 'company_classification',
+                'type'  => 'text',
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.received_po_date.label'),
                 'name' => 'received_po_date',
+                'type'  => 'date',
+                'format' => $new_format_date
+            ]);
+            $date_format = ($status_file == 'excel') ? 'DD/MM/YYYY' : 'D MMM Y';
+            CRUD::column([
+                'label' => trans('backpack::crud.project.column.project.po_date.label'),
+                'name' => 'po_date',
                 'type'  => 'date',
                 'format' => $new_format_date
             ]);
@@ -481,12 +599,7 @@ class ProjectListCrudController extends CrudController
                     'name' => 'duration',
                     'type'  => 'closure',
                     'value' => function ($row) {
-                        if (strtoupper($row->status_po) == 'UNPAID') {
-                            $total_day = $this->hitungDurasiHari($row->invoice_date);
-                            $day = ($row->invoice_date) ? $total_day : '0';
-                            return $day . ' Hari';
-                        }
-                        $total_day = $this->hitungDurasiHari($row->actual_end_date);
+                        $total_day = $this->hitungDurasiHari($row->actual_start_date, $row->actual_end_date);
                         $day = ($row->actual_end_date) ? $total_day : '0';
                         return $day . ' Hari';
                     }
@@ -600,6 +713,18 @@ class ProjectListCrudController extends CrudController
                 $this->crud->addClause('whereYear', 'project_history.created_at', request()->filter_year);
             }
 
+            if (request()->has('filter_status_project')) {
+                if (request()->filter_status_project != 'all') {
+                    $filter_status = request()->filter_status_project;
+                    $this->crud->addClause('whereExists', function ($query) use ($filter_status) {
+                        $query->select(DB::raw(1))
+                            ->from('projects')
+                            ->whereRaw('projects.id = project_history.project_id')
+                            ->where('projects.status_po', $filter_status);
+                    });
+                }
+            }
+
             CRUD::addColumn([
                 'name'      => 'row_number',
                 'type'      => 'row_number',
@@ -613,7 +738,10 @@ class ProjectListCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project_edit.name.label'),
                     'name' => 'name',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        $query->orWhere('name', 'like', '%' . $searchTerm . '%');
+                    }
                 ],
             );
             CRUD::column([
@@ -654,6 +782,7 @@ class ProjectListCrudController extends CrudController
             'status_po' => 'required',
             'client_id' => 'required|exists:setup_clients,id',
             'category' => 'required',
+            'company_classification' => 'required',
             'actual_start_date' => 'nullable|date',
             'actual_end_date' => 'nullable|date|after_or_equal:actual_start_date'
         ];
@@ -726,22 +855,6 @@ class ProjectListCrudController extends CrudController
                 'name' => 'po_status_check',
             ]
         ]);
-
-        // CRUD::addField([
-        //     'label'       => trans('backpack::crud.project.field.no_po_spk.label'), // Table column heading
-        //     'type'        => "select2_ajax_po_spk",
-        //     'name'        => 'no_po_spk',
-        //     'entity'      => 'setup_client',
-        //     'model'       => 'App\Models\SetupClient',
-        //     'attribute'   => "name",
-        //     'data_source' => backpack_url('fa/voucher/select2-po-spk'),
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6 no_po_spk',
-        //     ],
-        //     'attributes' => [
-        //         'placeholder' => trans('backpack::crud.project.field.no_po_spk.placeholder'),
-        //     ]
-        // ]);
 
         CRUD::addField([
             'name' => 'no_po_spk',
@@ -878,6 +991,63 @@ class ProjectListCrudController extends CrudController
             ]
         ]);
 
+        $tarif_pph = SetupPph::pluck('name', 'name');
+        $tax_pph_option = [
+            '' => trans('backpack::crud.project.field.tax_pph.placeholder'),
+            ...$tarif_pph->map(function ($value, $key) {
+                return number_format($value, 0, '.', ',') . ' %';
+            }),
+        ];
+
+        CRUD::addField([
+            'label'     => trans('backpack::crud.project.field.tax_pph.label'),
+            'type'      => 'select2_array',
+            'name'      => 'tax_pph',
+            'options'   => $tax_pph_option,
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'price_pph',
+            'label' =>  trans('backpack::crud.project.field.price_pph.label'),
+            'type' => 'text',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'disabled' => true,
+                'placeholder' => '000.000',
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'fine_price',
+            'label' =>  trans('backpack::crud.project.field.fine_price.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'placeholder' => '000.000',
+                ...$attributes_added,
+            ]
+        ]);
+
         CRUD::field([   // date_range
             'name'  => 'start_date,end_date', // db columns for start_date & end_date
             'label' => trans('backpack::crud.project.field.start_date.label'),
@@ -979,7 +1149,7 @@ class ProjectListCrudController extends CrudController
 
 
         CRUD::addField([  // Select2
-            'label'     => trans('backpack::crud.project.field.client_id.label'),
+            'label'     => trans('backpack::crud.project.column.project.client_id.label'),
             'type'      => 'select2_array',
             'name'      => 'client_id',
             'options'   => $client_option, // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
@@ -1005,6 +1175,27 @@ class ProjectListCrudController extends CrudController
             'type'      => 'select2_array',
             'name'      => 'category',
             'options'   => $category_option, // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
+            'wrapper' => [
+                'class' => 'form-group col-md-6'
+            ],
+            'attributes' => [
+                ...$attributes_added,
+            ]
+        ]);
+
+        $company_classification = SetupCompanyClassification::pluck('name', 'name');
+        $company_classification_option = [
+            '' => trans('backpack::crud.project.field.company_classification.placeholder'),
+            ...$company_classification->map(function ($value, $key) {
+                return $value;
+            }),
+        ];
+
+        CRUD::addField([  // Select2
+            'label'     => trans('backpack::crud.project.field.company_classification.label'),
+            'type'      => 'select2_array',
+            'name'      => 'company_classification',
+            'options'   => $company_classification_option,
             'wrapper' => [
                 'class' => 'form-group col-md-6'
             ],
@@ -1093,19 +1284,24 @@ class ProjectListCrudController extends CrudController
     }
 
 
-    function hitungDurasiHari($actualEndDate)
+    function hitungDurasiHari($actualStartDate, $actualEndDate)
     {
-        $today = Carbon::today();
+        if ($actualStartDate == null || $actualEndDate == null) {
+            return 0;
+        }
+
+        $startDate = Carbon::parse($actualStartDate);
         $endDate = Carbon::parse($actualEndDate);
 
         // Selisih termasuk hari ini
-        return $endDate->diffInDays($today);
+        return $startDate->diffInDays($endDate);
     }
 
     function calculateAll($request)
     {
         $excludePpn = floatval($request->input('price_total_exclude_ppn')); // harga belum termasuk ppn
         $ppn = floatval($request->input('tax_ppn')); // nilai ppn dalam persen, misalnya 11
+        $pph = floatval($request->input('tax_pph')); // nilai pph dalam persen
 
         // Hitung nilai PPN
         $nilaiPpn = ($ppn == 0) ? 0 : ($excludePpn * ($ppn / 100));
@@ -1113,12 +1309,8 @@ class ProjectListCrudController extends CrudController
         // Total dengan PPN
         $totalWithPpn = $excludePpn + $nilaiPpn;
 
-        // Ambil tanggal
-        // $startDate = Carbon::parse($request->input('start_date'));
-        // $endDate = Carbon::parse($request->input('end_date'));
-
-        // // Hitung durasi hari (inklusif)
-        // $totalDays = (int) $startDate->diffInDays($endDate) + 1;
+        // Hitung nilai PPH
+        $nilaiPph = ($pph == 0) ? 0 : ($excludePpn * ($pph / 100));
 
         // Return atau set ke variabel lain sesuai kebutuhan
         $data = [
@@ -1126,7 +1318,8 @@ class ProjectListCrudController extends CrudController
             'price_total_include_ppn_masked' => $totalWithPpn,
             'actual_price_ppn' => $nilaiPpn,
             'actual_price_total_include_ppn' => $totalWithPpn,
-            'actual_duration' => ($request->actual_end_date) ? $this->hitungDurasiHari($request->actual_end_date) : 0,
+            'actual_price_pph' => $nilaiPph,
+            'actual_duration' => ($request->actual_end_date || $request->actual_start_date) ? $this->hitungDurasiHari($request->actual_start_date, $request->actual_end_date) : 0,
         ];
         return $data;
     }
@@ -1188,6 +1381,8 @@ class ProjectListCrudController extends CrudController
             $item->price_total_exclude_ppn = $request->price_total_exclude_ppn;
             $item->tax_ppn = $request->tax_ppn;
             $item->price_ppn = $calculate['actual_price_ppn'];
+            $item->tax_pph = $request->tax_pph;
+            $item->price_pph = $calculate['actual_price_pph'];
             $item->price_total_include_ppn = $calculate['actual_price_total_include_ppn'];
             $item->start_date = $request->start_date;
             $item->end_date = $request->end_date;
@@ -1197,10 +1392,12 @@ class ProjectListCrudController extends CrudController
             $item->status_po = $request->status_po;
             $item->client_id = $request->client_id;
             $item->category = $request->category;
+            $item->company_classification = $request->company_classification;
             $item->progress = $request->progress;
             $item->pic = $request->pic;
             $item->user = $request->user;
             $item->information = $request->information;
+            $item->fine_price = $request->fine_price;
             $item->save();
 
             $project_history = new ProjectHistory;
@@ -1253,6 +1450,7 @@ class ProjectListCrudController extends CrudController
         $objdata->no_type = null;
         $objdata->po_status = $project->po_status;
         $objdata->actual_price_ppn = $project->price_ppn;
+        $objdata->actual_price_pph = $project->price_pph;
         $objdata->actual_price_total_include_ppn = $project->price_total_include_ppn;
         $objdata->actual_duration = $project->duration;
         $this->data['no_po_spk'] = $objdata;
@@ -1432,8 +1630,23 @@ class ProjectListCrudController extends CrudController
                 $flag_update = true;
             }
 
+            $item->tax_pph = $request->tax_pph;
+            if ($old->tax_pph != $item->tax_pph) {
+                $flag_update = true;
+            }
+
+            $item->price_pph = $calculate['actual_price_pph'];
+            if ($old->price_pph != $item->price_pph) {
+                $flag_update = true;
+            }
+
             $item->price_total_include_ppn = $calculate['actual_price_total_include_ppn'];
             if ($old->price_total_include_ppn != $item->price_total_include_ppn) {
+                $flag_update = true;
+            }
+
+            $item->fine_price = $request->fine_price;
+            if ($old->fine_price != $item->fine_price) {
                 $flag_update = true;
             }
 
@@ -1474,6 +1687,11 @@ class ProjectListCrudController extends CrudController
 
             $item->category = $request->category;
             if ($old->category != $item->category) {
+                $flag_update = true;
+            }
+
+            $item->company_classification = $request->company_classification;
+            if ($old->company_classification != $item->company_classification) {
                 $flag_update = true;
             }
 
@@ -1542,6 +1760,14 @@ class ProjectListCrudController extends CrudController
     protected function setupShowOperation()
     {
         $this->setupCreateOperation();
+
+        // Add Transfer Value field for display
+        CRUD::field([
+            'name' => 'transfer_value',
+            'label' => trans('backpack::crud.project.column.project.transfer_value.label'),
+            'type' => 'text'
+        ])->after('price_total_include_ppn');
+
         CRUD::field('received_po_date')->remove();
         CRUD::field([   // date_picker
             'name'  => 'received_po_date',
@@ -1559,37 +1785,19 @@ class ProjectListCrudController extends CrudController
         CRUD::field('space')->remove();
         CRUD::field('logic_project')->remove();
         CRUD::field('po_status')->remove();
-        // column
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'name',
-                'type'  => 'wrap_text'
-            ],
-        );
 
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'no_po_spk',
-                'type'  => 'wrap_text'
-            ],
-        );
+        // Columns must follow the exact order of fields to align with custom show.blade.php
+        $status_file = 'pdf';
 
-        CRUD::column([
-            'label'  => '',
-            'name' => 'po_date',
-            'type'  => 'date',
-            'format' => 'D MMM Y'
-        ]);
-
-        CRUD::column([
-            'label'  => '',
-            'name' => 'received_po_date',
-            'type'  => 'date',
-            'format' => 'D MMM Y'
-        ]);
-
+        // 1. name
+        CRUD::column(['label' => '', 'name' => 'name', 'type' => 'wrap_text']);
+        // 2. no_po_spk
+        CRUD::column(['label' => '', 'name' => 'no_po_spk', 'type' => 'wrap_text']);
+        // 3. po_date
+        CRUD::column(['label' => '', 'name' => 'po_date', 'type' => 'date', 'format' => 'D MMM Y']);
+        // 4. received_po_date
+        CRUD::column(['label' => '', 'name' => 'received_po_date', 'type' => 'date', 'format' => 'D MMM Y']);
+        // 5. price_total_exclude_ppn
         CRUD::column([
             'label'  => '',
             'name' => 'price_total_exclude_ppn',
@@ -1599,7 +1807,14 @@ class ProjectListCrudController extends CrudController
             'dec_point'     => ',',
             'thousands_sep' => '.',
         ]);
-
+        // 6. tax_ppn
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.tax_ppn'),
+            'name' => 'tax_ppn',
+            'type'  => 'number',
+            'suffix' => '%',
+        ]);
+        // 7. price_ppn
         CRUD::column([
             'label'  => '',
             'name' => 'price_ppn',
@@ -1609,14 +1824,7 @@ class ProjectListCrudController extends CrudController
             'dec_point'     => ',',
             'thousands_sep' => '.',
         ]);
-
-        CRUD::column([
-            'label'  => trans('backpack::crud.client_po.column.tax_ppn'),
-            'name' => 'tax_ppn',
-            'type'  => 'number',
-            'suffix' => '%',
-        ]);
-
+        // 8. price_total_include_ppn
         CRUD::column([
             'label'  => '',
             'name' => 'price_total_include_ppn',
@@ -1626,96 +1834,93 @@ class ProjectListCrudController extends CrudController
             'dec_point'     => ',',
             'thousands_sep' => '.',
         ]);
-
-        CRUD::column(
-            [
-                'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
-                'name' => 'start_date,end_date',
-                'type'  => 'date_range_custom'
-            ],
-        );
-
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'duration',
-                'type'  => 'text'
-            ],
-        );
-
+        // 9. transfer_value (Calculated)
+        CRUD::column([
+            'label' => '',
+            'name' => 'transfer_value',
+            'type'  => 'closure',
+            'function' => function ($entry) use ($status_file) {
+                $price_pph = $entry->price_pph ?? 0;
+                $price_fine = $entry->fine_price ?? 0;
+                if ($entry->company_classification == 'WAPU') {
+                    $transfer_value = $entry->price_total_exclude_ppn - $price_pph - $price_fine;
+                } else if ($entry->company_classification == 'NON WAPU') {
+                    $transfer_value = $entry->price_total_include_ppn - $price_pph - $price_fine;
+                } else {
+                    return '-';
+                }
+                return $this->priceFormatExport($status_file, $transfer_value);
+            },
+        ]);
+        // 10. tax_pph
         CRUD::column([
             'label'  => '',
-            'name' => 'actual_start_date',
-            'type'  => 'date',
-            'format' => 'D MMM Y'
+            'name' => 'tax_pph',
+            'type'  => 'number',
+            'suffix' => '%',
         ]);
-
+        // 11. price_pph
         CRUD::column([
             'label'  => '',
-            'name' => 'actual_end_date',
-            'type'  => 'date',
-            'format' => 'D MMM Y'
+            'name' => 'price_pph',
+            'type'  => 'number',
+            'prefix' => "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
         ]);
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'status_po',
-                'type'  => 'text'
-            ],
-        );
+        // 12. fine_price
         CRUD::column([
-            // 1-n relationship
+            'label'  => '',
+            'name' => 'fine_price',
+            'type'  => 'number',
+            'prefix' => "Rp.",
+            'decimals'      => 2,
+            'dec_point'     => ',',
+            'thousands_sep' => '.',
+        ]);
+        // 13. start_date,end_date
+        CRUD::column([
+            'label'  => trans('backpack::crud.client_po.column.startdate_and_enddate'),
+            'name' => 'start_date,end_date',
+            'type'  => 'date_range_custom'
+        ]);
+        // 14. duration
+        CRUD::column(['label'  => '', 'name' => 'duration', 'type'  => 'text']);
+        // 15. actual_start_date
+        CRUD::column(['label'  => '', 'name' => 'actual_start_date', 'type'  => 'date', 'format' => 'D MMM Y']);
+        // 16. actual_end_date
+        CRUD::column(['label'  => '', 'name' => 'actual_end_date', 'type'  => 'date', 'format' => 'D MMM Y']);
+        // 17. status_po
+        CRUD::column(['label'  => '', 'name' => 'status_po', 'type'  => 'text']);
+        // 18. client_id
+        CRUD::column([
             'label' => trans('backpack::crud.client_po.column.client_id'),
             'type'      => 'select',
-            'name'      => 'client_id', // the column that contains the ID of that connected entity;
-            'entity'    => 'setup_client', // the method that defines the relationship in your Model
-            'attribute' => 'name', // foreign key attribute that is shown to user
-            'model'     => "App\Models\SetupClient", // foreign key model
-            // OPTIONAL
-            'limit' => 50, // Limit the number of characters shown
+            'name'      => 'client_id',
+            'entity'    => 'setup_client',
+            'attribute' => 'name',
+            'model'     => "App\Models\SetupClient",
         ]);
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'category',
-                'type'  => 'text'
-            ],
-        );
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'progress',
-                'type'  => 'text'
-            ],
-        );
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'pic',
-                'type'  => 'text'
-            ],
-        );
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'user',
-                'type'  => 'text'
-            ],
-        );
-        CRUD::column(
-            [
-                'label'  => '',
-                'name' => 'information',
-                'type'  => 'wrap_text'
-            ],
-        );
-
+        // 19. category
+        CRUD::column(['label'  => '', 'name' => 'category', 'type'  => 'text']);
+        // 20. company_classification
+        CRUD::column(['label'  => '', 'name' => 'company_classification', 'type'  => 'text']);
+        // 21. progress
+        CRUD::column(['label'  => '', 'name' => 'progress', 'type'  => 'text', 'suffix' => '%']);
+        // 22. pic
+        CRUD::column(['label'  => '', 'name' => 'pic', 'type'  => 'text']);
+        // 23. user
+        CRUD::column(['label'  => '', 'name' => 'user', 'type'  => 'text']);
+        // 24. information
+        CRUD::column(['label'  => '', 'name' => 'information', 'type'  => 'wrap_text']);
+        // 25. document_path
         CRUD::column([
             'label'  => 'Dokumen Proyek',
             'name' => 'document_path',
             'type'  => 'text',
             'wrapper'   => [
-                'element' => 'a', // the element will default to "a" so you can skip it here
+                'element' => 'a',
                 'href' => function ($crud, $column, $entry, $related_key) {
                     if ($entry->document_path != '') {
                         return url('storage/document_proyek/' . $entry->document_path);
@@ -1723,7 +1928,6 @@ class ProjectListCrudController extends CrudController
                     return "javascript:void(0)";
                 },
                 'target' => '_blank',
-                // 'class' => 'some-class',
             ],
         ]);
     }
@@ -1791,6 +1995,7 @@ class ProjectListCrudController extends CrudController
 
         $this->setupListOperation();
 
+        CRUD::removeColumn('action');
         CRUD::removeColumn('document_path');
 
         $columns = $this->crud->columns();
@@ -1835,6 +2040,7 @@ class ProjectListCrudController extends CrudController
         $type = request()->tab;
 
         $this->setupListOperation();
+        CRUD::removeColumn('action');
         CRUD::removeColumn('document_path');
 
         $columns = $this->crud->columns();

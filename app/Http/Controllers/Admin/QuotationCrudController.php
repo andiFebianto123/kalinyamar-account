@@ -245,14 +245,6 @@ class QuotationCrudController extends CrudController
 
         $this->crud->year_options = $yearOptions;
 
-        $this->card->addCard([
-            'name' => 'filter',
-            'line' => 'top',
-            'label' => '',
-            'parent_view' => 'crud::components.filter-parent',
-            'view' => 'crud::buttons.filter-year',
-        ]);
-
         // $list = "crud::list-custom" ?? $this->crud->getListView();
         $list = "crud::list-blank" ?? $this->crud->getListView();
         return view($list, $this->data);

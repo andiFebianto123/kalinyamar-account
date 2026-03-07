@@ -203,6 +203,39 @@ return [
     'no_attributes_translated' => 'This entry is not translated in :locale.',
     'no_attributes_translated_href_text' => 'Fill inputs from :locale',
 
+    'menu' => [
+        'tracker' => 'Monitoring Tracker',
+    ],
+    'monitoring_tracker' => [
+        'tab' => [
+            'tracker' => 'Monitoring Tracker',
+            'tracker_edit' => 'Edit History',
+        ],
+        'column' => [
+            'no' => 'No',
+            'no_po_spk' => 'No. PO/SPK',
+            'name' => 'Project Name',
+            'client_id' => 'Company Name',
+            'actual_end_date' => 'Actual End Date',
+            'total_time' => 'Total Time',
+            'progress' => 'Progress (%)',
+            'status' => 'Status',
+            'pic' => 'PIC',
+            'user' => 'User',
+            'information' => 'Information',
+            'information_tracker' => 'Tracker Information',
+            'duration' => 'Duration',
+            'search_client' => 'Search company name...',
+        ],
+        'breadcrumb' => [
+            'monitoring' => 'Monitoring',
+            'tracker' => 'Monitoring Tracker',
+        ],
+        'title' => [
+            'monitoring_tracker' => 'Monitoring Tracker',
+        ],
+        'history_update_text' => 'Edit monitoring tracker data',
+    ],
     'subkon' => [
         'title_header' => 'List Subkon',
         'title_modal_create' => 'Data Vendor (Subkon)',

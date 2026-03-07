@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\CastAccountsLoanCrudController;
 use App\Http\Controllers\Admin\ProfitLostAccountCrudController;
 use App\Http\Controllers\Admin\ProjectListReportCrudController;
 use App\Http\Controllers\Admin\ProjectSystemSetupCrudController;
+use App\Http\Controllers\Admin\MonitoringTrackerCrudController;
 use App\Http\Controllers\Admin\VoucherPaymentPlanCrudController;
 
 
@@ -228,6 +229,11 @@ Route::group([
         Route::post('project-status/export-excel', [StatusProjectCrudController::class, 'exportExcel']);
         Route::post('project-status/export-resume-pdf', [StatusProjectCrudController::class, 'exportResumePdf']);
         Route::post('project-status/export-resume-excel', [StatusProjectCrudController::class, 'exportResumeExcel']);
+        Route::crud('tracker', 'MonitoringTrackerCrudController');
+        Route::post('tracker/select2-project', [MonitoringTrackerCrudController::class, 'select2Project']);
+        Route::post('tracker/select2-client', [MonitoringTrackerCrudController::class, 'select2Client']);
+        Route::post('tracker/export-pdf', [MonitoringTrackerCrudController::class, 'exportPdf']);
+        Route::post('tracker/export-excel', [MonitoringTrackerCrudController::class, 'exportExcel']);
     });
 
 

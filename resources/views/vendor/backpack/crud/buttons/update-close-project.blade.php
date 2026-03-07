@@ -6,7 +6,7 @@
             data-route-action="{{ url($crud->route.'/'.$entry->getKey()) }}"
             data-bs-toggle="modal"
             data-bs-target="#modalEdit"
-            data-title-edit="{{ trans('backpack::crud.project_status.title_model_edit_close') }}"
+            data-title-edit="Edit Project Close"
             bp-button="update" class="btn btn-sm btn-primary">
                 <i class="la la-pen"></i>
         </a>
@@ -52,7 +52,7 @@
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr);
-                    alert('An error occurred while loading the create form.');
+                    alert('An error occurred while loading the edit form.');
                 }
             });
         }

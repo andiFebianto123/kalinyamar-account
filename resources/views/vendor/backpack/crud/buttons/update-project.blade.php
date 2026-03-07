@@ -60,6 +60,30 @@
                 bp-button="update" class="btn btn-sm btn-primary">
                     <i class="la la-pen"></i>
             </a>
+        @elseif($entry->type == 'pph')
+            {{-- Single edit button --}}
+            <a href="javascript:void(0)"
+                onclick="editEntry(this)"
+                data-route="{{ url($crud->route.'/'.$entry->getKey().'/edit?_type=pph&edit=1') }}"
+                data-route-action="{{ url($crud->route.'/'.$entry->getKey().'?_type=pph&edit=1') }}"
+                data-bs-toggle="modal"
+                data-bs-target="#modalEdit"
+                data-title-edit="{{ trans('backpack::crud.project_system_setup.card.setup_pph_title_edit') }}"
+                bp-button="update" class="btn btn-sm btn-primary">
+                    <i class="la la-pen"></i>
+            </a>
+        @elseif($entry->type == 'company_classification')
+            {{-- Single edit button --}}
+            <a href="javascript:void(0)"
+                onclick="editEntry(this)"
+                data-route="{{ url($crud->route.'/'.$entry->getKey().'/edit?_type=company_classification&edit=1') }}"
+                data-route-action="{{ url($crud->route.'/'.$entry->getKey().'?_type=company_classification&edit=1') }}"
+                data-bs-toggle="modal"
+                data-bs-target="#modalEdit"
+                data-title-edit="{{ trans('backpack::crud.project_system_setup.card.setup_company_classification_title_edit') }}"
+                bp-button="update" class="btn btn-sm btn-primary">
+                    <i class="la la-pen"></i>
+            </a>
         @endif
 	@else
 

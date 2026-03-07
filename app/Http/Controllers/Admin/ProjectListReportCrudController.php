@@ -84,13 +84,17 @@ class ProjectListReportCrudController extends CrudController
         return view($list, $this->data);
     }
 
-    function hitungDurasiHari($actualEndDate)
+    function hitungDurasiHari($actualStartDate, $actualEndDate)
     {
-        $today = Carbon::today();
+        if ($actualStartDate == null || $actualEndDate == null) {
+            return 0;
+        }
+
+        $startDate = Carbon::parse($actualStartDate);
         $endDate = Carbon::parse($actualEndDate);
 
         // Selisih termasuk hari ini
-        return $endDate->diffInDays($today);
+        return $startDate->diffInDays($endDate);
     }
 
     protected function setupListOperation()
@@ -110,6 +114,7 @@ class ProjectListReportCrudController extends CrudController
 
         CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
+        CRUD::addButtonFromView('top', 'filter-status-project', 'filter-status-project', 'beginning');
         $this->crud->file_title_export_pdf = "Laporan_project-report.pdf";
         $this->crud->file_title_export_excel = "Laporan_project-report.xlsx";
         $this->crud->param_uri_export = "?export=1";
@@ -144,6 +149,12 @@ class ProjectListReportCrudController extends CrudController
             }
         }
 
+        if (request()->has('filter_status_project')) {
+            if (request()->filter_status_project != 'all') {
+                $this->crud->addClause('where', 'status_po', request()->filter_status_project);
+            }
+        }
+
         CRUD::addColumn([
             'name'      => 'row_number',
             'type'      => 'row_number',
@@ -157,14 +168,20 @@ class ProjectListReportCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.project_report.column.no_po_spk.label'),
                 'name' => 'no_po_spk',
-                'type'  => 'wrap_text'
+                'type'  => 'wrap_text',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $query->orWhere('no_po_spk', 'like', '%' . $searchTerm . '%');
+                }
             ],
         );
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.project_report.column.name.label'),
                 'name' => 'name',
-                'type'  => 'wrap_text'
+                'type'  => 'wrap_text',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $query->orWhere('name', 'like', '%' . $searchTerm . '%');
+                }
             ],
         );
         CRUD::column([
@@ -198,18 +215,30 @@ class ProjectListReportCrudController extends CrudController
                 'format' => $new_format_date
             ],
         );
+        // CRUD::column(
+        //     [
+        //         'label'  => trans('backpack::crud.project_report.column.duration.label'),
+        //         'name' => 'duration',
+        //         'type'  => 'closure',
+        //         'function' => function ($row) {
+        //             if (strtoupper($row->status_po) == 'UNPAID') {
+        //                 $total_day = $this->hitungDurasiHari($row->invoice_date);
+        //                 $day = ($row->invoice_date) ? $total_day : '0';
+        //                 return $day . ' Hari';
+        //             }
+        //             $total_day = $this->hitungDurasiHari($row->actual_end_date);
+        //             $day = ($row->actual_end_date) ? $total_day : '0';
+        //             return $day . ' Hari';
+        //         }
+        //     ],
+        // );
         CRUD::column(
             [
-                'label'  => trans('backpack::crud.project_report.column.duration.label'),
+                'label' => trans('backpack::crud.project.column.project.duration.label'),
                 'name' => 'duration',
                 'type'  => 'closure',
-                'function' => function ($row) {
-                    if (strtoupper($row->status_po) == 'UNPAID') {
-                        $total_day = $this->hitungDurasiHari($row->invoice_date);
-                        $day = ($row->invoice_date) ? $total_day : '0';
-                        return $day . ' Hari';
-                    }
-                    $total_day = $this->hitungDurasiHari($row->actual_end_date);
+                'value' => function ($row) {
+                    $total_day = $this->hitungDurasiHari($row->actual_start_date, $row->actual_end_date);
                     $day = ($row->actual_end_date) ? $total_day : '0';
                     return $day . ' Hari';
                 }

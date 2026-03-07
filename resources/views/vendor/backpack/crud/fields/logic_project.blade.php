@@ -9,6 +9,7 @@
 @include('crud::fields.inc.wrapper_start')
   <input type="hidden" name="no_type" />
   <input type="hidden" name="actual_price_ppn" />
+  <input type="hidden" name="actual_price_pph" />
   <input type="hidden" name="actual_price_total_include_ppn" />
   <input type="hidden" name="actual_duration">
   <input
@@ -45,10 +46,14 @@
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
                     var nilai_exclude_ppn = getInputNumber(form+' #price_total_exclude_ppn');
                     var ppn = getInputNumber(form+' select[name="tax_ppn"]');
+                    var pph = getInputNumber(form+' select[name="tax_pph"]');
 
                     var nilai_ppn = (ppn == 0) ? 0 : (nilai_exclude_ppn * (ppn / 100));
                     var total_with_ppn = nilai_ppn + nilai_exclude_ppn;
+                    var nilai_pph = (pph == 0) ? 0 : (nilai_exclude_ppn * (pph / 100));
+
                     setInputNumber2(form+' input[name="price_ppn"]', nilai_ppn); 
+                    setInputNumber2(form+' input[name="price_pph"]', nilai_pph);
                     setInputNumber2(form+' input[name="price_total_include_ppn"]', total_with_ppn);
 
                     var start_date = $(form + ' input[name="start_date"]').val();
@@ -63,6 +68,7 @@
                     // $(form+ ' input[name="duration"]').val(totalDays);
 
                     $(form+' input[name="actual_price_ppn"]').val(nilai_ppn);
+                    $(form+' input[name="actual_price_pph"]').val(nilai_pph);
                     $(form+' input[name="actual_price_total_include_ppn"]').val(total_with_ppn);
                     $(form+' input[name="actual_duration"]').val(totalDays);
 
@@ -71,16 +77,16 @@
                     var instance = this;
                     var form = (this.form_type == 'create') ? '#form-create' : '#form-edit';
 
-                    function hitungDurasiHari(actualEndDate) {
+                    function hitungDurasiHari(actualStartDate, actualEndDate) {
                         const [day, month, year] = actualEndDate.split('/');
+                        const [day_start, month_start, year_start] = actualStartDate.split('/');
 
                         const endDate = new Date(year, month - 1, day);
+                        const startDate = new Date(year_start, month_start - 1, day_start);
 
-                        const today = new Date();
+                        const selisihMs = endDate - startDate;
 
-                        const selisihMs = today - endDate;
-
-                        const durasiHari = Math.floor(selisihMs / (1000 * 60 * 60 * 24));
+                        const durasiHari = Math.floor(selisihMs / (1000 * 60 * 60 * 24)) + 1;
 
                         return durasiHari;
                     }
@@ -88,6 +94,7 @@
                     @if ($set_value != null)
                     var data_po_spk = {!! json_encode($set_value) !!};
                         $(form+' input[name="actual_price_ppn"]').val(data_po_spk.actual_price_ppn);
+                        $(form+' input[name="actual_price_pph"]').val(data_po_spk.actual_price_pph);
                         $(form+' input[name="actual_price_total_include_ppn"]').val(data_po_spk.actual_price_total_include_ppn);
                         $(form+' input[name="actual_duration"]').val(data_po_spk.actual_duration);
                         $(form+' input[name="no_type"]').val(data_po_spk.no_type);
@@ -127,6 +134,10 @@
                         instance.logicFormulaNoPO();
                     });
 
+                    $(form + ' select[name="tax_pph"]').off('select2:select').on('select2:select', function (e) {
+                        instance.logicFormulaNoPO();
+                    });
+
                     $(form + " #start_date_end_date").on('apply.daterangepicker hide.daterangepicker', function(e, picker){
                         instance.logicFormulaNoPO();
                     });
@@ -147,7 +158,14 @@
 
                     $(form+' #actual_end_date').change(function(){
                         var end_date = $(form+' #actual_end_date').val();
-                        $(form+ ' input[name="duration"]').val(hitungDurasiHari(end_date));
+                        var start_date = $(form+' #actual_start_date').val();
+                        $(form+ ' input[name="duration"]').val(hitungDurasiHari(start_date, end_date));
+                    });
+
+                    $(form+' #actual_start_date').change(function(){
+                        var end_date = $(form+' #actual_end_date').val();
+                        var start_date = $(form+' #actual_start_date').val();
+                        $(form+ ' input[name="duration"]').val(hitungDurasiHari(start_date, end_date));
                     });
 
 
