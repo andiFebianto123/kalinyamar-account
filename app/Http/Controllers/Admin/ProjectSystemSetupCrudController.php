@@ -856,7 +856,8 @@ class ProjectSystemSetupCrudController extends CrudController
                 'name' => 'name',
                 'type'  => 'custom_html',
                 'value' => function ($entry) {
-                    return "&bull; " . number_format($entry->name, 0, '.', ',') . ' %';
+                    // return "&bull; " . number_format($entry->name, 0, '.', ',') . ' %';
+                    return "&bull; " . str_replace('.00', '', $entry->name) . ' %';
                 }
             ]);
             CRUD::addClause('select', DB::raw("
@@ -872,7 +873,7 @@ class ProjectSystemSetupCrudController extends CrudController
                 'name' => 'name',
                 'type'  => 'custom_html',
                 'value' => function ($entry) {
-                    return "&bull; " . number_format($entry->name, 0, '.', ',') . ' %';
+                    return "&bull; " . str_replace('.00', '', $entry->name) . ' %';
                 }
             ]);
             CRUD::addClause('select', DB::raw("

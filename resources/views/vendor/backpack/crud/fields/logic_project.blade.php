@@ -105,8 +105,8 @@
                             $(form+' .received_po_date').hide();
                             $(form+' .space').hide();
                         }else if(data_po_spk.po_status == 0){
-                            var selectedOption = new Option(data_po_spk.no_po_spk.no_po_spk, data_po_spk.no_po_spk.id, true, true);
-                            $(form+ ' select[name="no_po_spk"]').append(selectedOption).trigger('change');
+                            //var selectedOption = new Option(data_po_spk.no_po_spk.no_po_spk, data_po_spk.no_po_spk.id, true, true);
+                            // $(form+ ' select[name="no_po_spk"]').append(selectedOption).trigger('change');
                             $(form+' .no_po_spk').show();
                             $(form+' .po_date').show();
                             $(form+' .received_po_date').show();

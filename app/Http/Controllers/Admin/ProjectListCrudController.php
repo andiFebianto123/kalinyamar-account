@@ -536,8 +536,11 @@ class ProjectListCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.tax_ppn.label'),
                 'name' => 'tax_ppn',
-                'type'  => 'number',
-                'suffix' => '%',
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    $val = number_format($entry->tax_ppn, 2, ',', '.');
+                    return str_replace(',00', '', $val) . '%';
+                }
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.price_pph.label'),
@@ -553,8 +556,11 @@ class ProjectListCrudController extends CrudController
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.tax_pph.label'),
                 'name' => 'tax_pph',
-                'type'  => 'number',
-                'suffix' => '%',
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    $val = number_format($entry->tax_pph, 2, ',', '.');
+                    return str_replace(',00', '', $val) . '%';
+                }
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.fine_price.label'),
@@ -628,7 +634,11 @@ class ProjectListCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project.progress.label'),
                     'name' => 'progress',
-                    'type'  => 'text'
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        $val = number_format($entry->progress, 2, ',', '.');
+                        return str_replace(',00', '', $val);
+                    }
                 ],
             );
             CRUD::column(
@@ -936,7 +946,7 @@ class ProjectListCrudController extends CrudController
         $tax_ppn_option = [
             '' => trans('backpack::crud.project.field.tax_ppn.placeholder'),
             ...$tarif_ppn->map(function ($value, $key) {
-                $name = number_format($value, 0, '.', ',') . ' %';
+                $name = str_replace('.00', '', $value) . ' %';
                 return $name;
             }),
         ];
@@ -995,7 +1005,7 @@ class ProjectListCrudController extends CrudController
         $tax_pph_option = [
             '' => trans('backpack::crud.project.field.tax_pph.placeholder'),
             ...$tarif_pph->map(function ($value, $key) {
-                return number_format($value, 0, '.', ',') . ' %';
+                return str_replace('.00', '', $value) . ' %';
             }),
         ];
 
@@ -1811,8 +1821,11 @@ class ProjectListCrudController extends CrudController
         CRUD::column([
             'label'  => trans('backpack::crud.client_po.column.tax_ppn'),
             'name' => 'tax_ppn',
-            'type'  => 'number',
-            'suffix' => '%',
+            'type'  => 'closure',
+            'function' => function ($entry) {
+                $val = number_format($entry->tax_ppn, 2, ',', '.');
+                return str_replace(',00', '', $val) . '%';
+            }
         ]);
         // 7. price_ppn
         CRUD::column([
@@ -1856,8 +1869,11 @@ class ProjectListCrudController extends CrudController
         CRUD::column([
             'label'  => '',
             'name' => 'tax_pph',
-            'type'  => 'number',
-            'suffix' => '%',
+            'type'  => 'closure',
+            'function' => function ($entry) {
+                $val = number_format($entry->tax_pph, 2, ',', '.');
+                return str_replace(',00', '', $val) . '%';
+            }
         ]);
         // 11. price_pph
         CRUD::column([
@@ -1907,7 +1923,15 @@ class ProjectListCrudController extends CrudController
         // 20. company_classification
         CRUD::column(['label'  => '', 'name' => 'company_classification', 'type'  => 'text']);
         // 21. progress
-        CRUD::column(['label'  => '', 'name' => 'progress', 'type'  => 'text', 'suffix' => '%']);
+        CRUD::column([
+            'label'  => '',
+            'name' => 'progress',
+            'type'  => 'closure',
+            'function' => function ($entry) {
+                $val = number_format($entry->progress, 2, ',', '.');
+                return str_replace(',00', '', $val);
+            }
+        ]);
         // 22. pic
         CRUD::column(['label'  => '', 'name' => 'pic', 'type'  => 'text']);
         // 23. user

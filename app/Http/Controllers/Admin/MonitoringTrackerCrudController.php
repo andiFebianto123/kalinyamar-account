@@ -327,10 +327,11 @@ class MonitoringTrackerCrudController extends CrudController
             CRUD::column([
                 'label'    => 'Progress (%)',
                 'name'     => 'progress',
-                'type'     => 'closure',
+                'type'  => 'closure',
                 'function' => function ($entry) {
-                    return ($entry->progress !== null) ? number_format($entry->progress, 0) . '%' : '-';
-                },
+                    $val = number_format($entry->progress, 2, ',', '.');
+                    return ($entry->progress == 0) ? "0" : str_replace(',00', '', $val);
+                }
             ]);
 
             CRUD::column([

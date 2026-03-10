@@ -448,13 +448,13 @@ class StatusProjectCrudController extends CrudController
                         'name' => 'invoice_date',
                         'type' => 'text',
                         'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
-                        'orderable' => false,
+                        'orderable' => true,
                     ],
                     [
                         'name' => 'payment_date',
                         'type' => 'text',
                         'label' => trans('backpack::crud.project.column.project.payment_date.label'),
-                        'orderable' => false,
+                        'orderable' => true,
                     ],
                     [
                         'name' => 'information',
@@ -1105,14 +1105,20 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label'  => trans('backpack::crud.project.column.project.no_po_spk.label'),
                     'name' => 'no_po_spk',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        return $query->orWhere('no_po_spk', 'like', "%{$searchTerm}%");
+                    },
                 ],
             );
             CRUD::column(
                 [
                     'label'  => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
-                    'type'  => 'wrap_text'
+                    'type'  => 'wrap_text',
+                    'searchLogic' => function ($query, $column, $searchTerm) {
+                        return $query->orWhere('name', 'like', "%{$searchTerm}%");
+                    },
                 ],
             );
             CRUD::column([
@@ -1570,7 +1576,7 @@ class StatusProjectCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.invoice_date.label'),
                 'name' => 'invoice_date',
                 'type'  => 'date',
-                'format' => $new_format_date
+                'format' => $new_format_date,
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.payment_date.label'),
@@ -1807,7 +1813,7 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
         } else if ($type == 'BELUM SELESAI') {
@@ -1887,7 +1893,7 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
         } else if ($type == 'RETENSI') {
@@ -1941,7 +1947,7 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
         } else if ($type == 'BELUM ADA PO') {
@@ -2022,7 +2028,7 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
         } else if ($type == 'CLOSE') {
@@ -2114,7 +2120,7 @@ class StatusProjectCrudController extends CrudController
                 [
                     'label' => trans('backpack::crud.project.column.project.information.label'),
                     'name' => 'information',
-                    'type'  => 'text'
+                    'type'  => 'wrap_text'
                 ],
             );
         }
