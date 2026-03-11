@@ -68,8 +68,14 @@
             }
         }
 
+        // Helper: get the currently active tab name
+        function getActiveTabName() {
+            var $activeTab = $('.nav-tabs li.active, .nav-tabs .nav-link.active');
+            return $activeTab.data('alt-name') || '';
+        }
+
         // Reset state when tab changes
-        $(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
+        $(document).on('shown.bs.tab', '[data-bs-toggle="tab"]', function (e) {
             window.bulkSelectedIds = [];
             window.bulkSelectedApprovalData = [];
             updateBulkUI();
@@ -77,6 +83,9 @@
             // Uncheck header checkboxes
             $('#bulk-select-all').prop('checked', false);
             $('.bulk_all_checkbox').prop('checked', false);
+            
+            // Uncheck individual row checkboxes
+            $('.bulk-checkbox').prop('checked', false);
         });
 
         // Helper: get the currently active datatable table element
@@ -95,7 +104,7 @@
                 $(this).prop('checked', checked);
                 var id = $(this).data('id');
                 var noApprv = $(this).data('no-apprv');
-                var userId = $(this).data('user_id');
+                var userId = $(this).data('user-id');
 
                 if (checked) {
                     if (window.bulkSelectedIds.indexOf(id) === -1) {
@@ -138,7 +147,7 @@
             var id = $(this).data('id');
             var noApprv = $(this).data('no-apprv');
             var checked = $(this).is(':checked');
-            var userId = $(this).data('user_id');
+            var userId = $(this).data('user-id');
             var $activeTable = getActiveTable();
 
             if (checked) {
@@ -224,6 +233,7 @@
                         method: 'POST',
                         data: {
                             entries: JSON.stringify(window.bulkSelectedApprovalData),
+                            tab: getActiveTabName()
                         },
                         success: function(response) {
                             btn.prop('disabled', false).html('<i class="la la-check-double"></i> Approve');
@@ -284,6 +294,7 @@
                         method: 'POST',
                         data: {
                             entries: JSON.stringify(window.bulkSelectedIds),
+                            tab: getActiveTabName()
                         },
                         success: function(response) {
                             btn.prop('disabled', false).html('<i class="la la-trash"></i> {{ trans("backpack::crud.delete") }}');
@@ -326,22 +337,19 @@
                 },
                 refresh: function(){
                     var instance = this;
+                    var filterNonRutin = SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_non_rutin');
+                    var filterSubkon = SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_subkon');
+
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'POST',
                         data: {
-                            ...window.filter_tables,
-                            searchNonRutin: SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_non_rutin').searchValues || [],
-                            searchSubkon: (SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_subkon')) ? SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_subkon').searchValues : [],
+                            ...(window.filter_tables || {}),
+                            searchNonRutin: (filterNonRutin) ? (filterNonRutin.searchValues || []) : [],
+                            searchSubkon: (filterSubkon) ? (filterSubkon.searchValues || []) : [],
                         },
                         typeData: 'json',
                         success: function (result) {
-                            // $('#panel-voucher_payment_non_rutin').html(`
-                            //     <div class="d-flex justify-content-start">
-                            //         <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : ${result.voucher_payment_non_rutin_total}</strong></div>
-                            //     </div>
-                            // `);
-
                             $('#panel-voucher_payment_plan_non_rutin').html(`
                                 <div class="d-flex justify-content-start">
                                     <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_non_rutin_total}</strong></div>
@@ -353,16 +361,10 @@
                                     <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_subkon_total}</strong></div>
                                 </div>
                             `);
-
-                            // $('#panel-voucher_payment_plan_subkon').html(`
-                            //     <div class="d-flex justify-content-start">
-                            //         <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_rutin_total}</strong></div>
-                            //     </div>
-                            // `);
                         },
                         error: function (xhr, status, error) {
                             console.error(xhr);
-                            alert('An error occurred while loading the create form.');
+                            // alert('An error occurred while loading the create form.');
                         }
                     });
                 },

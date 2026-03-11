@@ -3240,6 +3240,9 @@ class VoucherPaymentPlanCrudController extends CrudController
         DB::beginTransaction();
         try {
             $deleted_count = 0;
+            $event = [
+                'crudTable-filter_voucher_payment_plugin_load' => true,
+            ];
 
             foreach ($entries as $payment_plan_id) {
                 $payment_voucher_plan = PaymentVoucherPlan::find($payment_plan_id);
@@ -3253,6 +3256,11 @@ class VoucherPaymentPlanCrudController extends CrudController
                 }
 
                 $voucher = Voucher::find($payment_voucher->voucher_id);
+                if ($voucher->payment_type == 'SUBKON') {
+                    $event['crudTable-voucher_payment_plan_subkon_create_success'] = true;
+                } else {
+                    $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+                }
 
                 Approval::where('model_type', 'App\Models\PaymentVoucherPlan')
                     ->where('model_id', $payment_voucher_plan->id)
@@ -3268,12 +3276,6 @@ class VoucherPaymentPlanCrudController extends CrudController
 
                 $deleted_count++;
             }
-
-            $event = [
-                'crudTable-filter_voucher_payment_plugin_load' => true,
-                'crudTable-voucher_payment_plan_non_rutin_create_success' => true,
-                'crudTable-voucher_payment_plan_rutin_create_success' => true,
-            ];
 
             DB::commit();
             return response()->json([
