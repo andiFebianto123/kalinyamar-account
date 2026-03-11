@@ -1,18 +1,10 @@
 @push('inline_scripts')
     @once
         <style>
-            #crudTable-voucher_payment_non_rutin_wrapper .dataTables_scrollHead table thead tr th {
-                background-color: #FCD72D !important;
-            }
-
-            #crudTable-voucher_payment_plan_non_rutin_wrapper .dataTables_scrollHead table thead tr th {
-                background-color: #FCD72D !important;
-            }
-
-            #crudTable-voucher_payment_rutin_wrapper .dataTables_scrollHead table thead tr th {
-                background-color: #FCD72D !important;
-            }
-
+            #crudTable-voucher_payment_non_rutin_wrapper .dataTables_scrollHead table thead tr th,
+            #crudTable-voucher_payment_plan_non_rutin_wrapper .dataTables_scrollHead table thead tr th,
+            #crudTable-voucher_payment_plan_subkon_wrapper .dataTables_scrollHead table thead tr th,
+            #crudTable-voucher_payment_rutin_wrapper .dataTables_scrollHead table thead tr th,
             #crudTable-voucher_payment_plan_rutin_wrapper .dataTables_scrollHead table thead tr th {
                 background-color: #FCD72D !important;
             }
@@ -76,13 +68,30 @@
             }
         }
 
+        // Reset state when tab changes
+        $(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
+            window.bulkSelectedIds = [];
+            window.bulkSelectedApprovalData = [];
+            updateBulkUI();
+            
+            // Uncheck header checkboxes
+            $('#bulk-select-all').prop('checked', false);
+            $('.bulk_all_checkbox').prop('checked', false);
+        });
+
+        // Helper: get the currently active datatable table element
+        function getActiveTable() {
+            return $('.tab-pane.active table.dataTable');
+        }
+
         // ========================================
         // Checkbox Event Bindings
         // ========================================
         
         // Helper: toggle semua checkbox baris + sync kedua header checkbox
         function toggleAllCheckboxes(checked) {
-            $('#crudTable-voucher_payment_plan_non_rutin tbody .bulk-checkbox').each(function() {
+            var $activeTable = getActiveTable();
+            $activeTable.find('tbody .bulk-checkbox').each(function() {
                 $(this).prop('checked', checked);
                 var id = $(this).data('id');
                 var noApprv = $(this).data('no-apprv');
@@ -109,7 +118,7 @@
 
             // Sync kedua checkbox header
             $('#bulk-select-all').prop('checked', checked);
-            $('.bulk_all_checkbox').prop('checked', checked);
+            $activeTable.find('.bulk_all_checkbox').prop('checked', checked);
 
             updateBulkUI();
         }
@@ -130,6 +139,7 @@
             var noApprv = $(this).data('no-apprv');
             var checked = $(this).is(':checked');
             var userId = $(this).data('user_id');
+            var $activeTable = getActiveTable();
 
             if (checked) {
                 if (window.bulkSelectedIds.indexOf(id) === -1) {
@@ -149,30 +159,36 @@
                 });
             }
 
-            // Update kedua header checkbox
-            var totalCheckboxes = $('#crudTable-voucher_payment_plan_non_rutin tbody .bulk-checkbox').length;
-            var checkedCheckboxes = $('#crudTable-voucher_payment_plan_non_rutin tbody .bulk-checkbox:checked').length;
+            // Update both header checkboxes
+            var totalCheckboxes = $activeTable.find('tbody .bulk-checkbox').length;
+            var checkedCheckboxes = $activeTable.find('tbody .bulk-checkbox:checked').length;
             var allChecked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
             $('#bulk-select-all').prop('checked', allChecked);
-            $('.bulk_all_checkbox').prop('checked', allChecked);
+            $activeTable.find('.bulk_all_checkbox').prop('checked', allChecked);
 
             updateBulkUI();
         });
 
         // After DataTable redraw, re-check checkboxes for already selected items
-        $(document).on('draw.dt', '#crudTable-voucher_payment_plan_non_rutin', function() {
-            $('#crudTable-voucher_payment_plan_non_rutin tbody .bulk-checkbox').each(function() {
+        $(document).on('draw.dt', 'table.dataTable', function() {
+            var $table = $(this);
+            $table.find('tbody .bulk-checkbox').each(function() {
                 var id = $(this).data('id');
                 if (window.bulkSelectedIds.indexOf(id) !== -1) {
                     $(this).prop('checked', true);
                 }
             });
 
-            var totalCheckboxes = $('#crudTable-voucher_payment_plan_non_rutin tbody .bulk-checkbox').length;
-            var checkedCheckboxes = $('#crudTable-voucher_payment_plan_non_rutin tbody .bulk-checkbox:checked').length;
+            var totalCheckboxes = $table.find('tbody .bulk-checkbox').length;
+            var checkedCheckboxes = $table.find('tbody .bulk-checkbox:checked').length;
             var allChecked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
-            $('#bulk-select-all').prop('checked', allChecked);
-            $('.bulk_all_checkbox').prop('checked', allChecked);
+
+            $table.find('.bulk_all_checkbox').prop('checked', allChecked);
+            
+            // Sync toolbar checkbox if this table is in the active tab
+            if ($table.is(getActiveTable())) {
+                $('#bulk-select-all').prop('checked', allChecked);
+            }
         });
 
         // ========================================
@@ -314,15 +330,17 @@
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'POST',
                         data: {
-                            search: window.filterValues,
+                            ...window.filter_tables,
+                            searchNonRutin: SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_non_rutin').searchValues || [],
+                            searchSubkon: (SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_subkon')) ? SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_subkon').searchValues : [],
                         },
                         typeData: 'json',
                         success: function (result) {
-                            $('#panel-voucher_payment_non_rutin').html(`
-                                <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : ${result.voucher_payment_non_rutin_total}</strong></div>
-                                </div>
-                            `);
+                            // $('#panel-voucher_payment_non_rutin').html(`
+                            //     <div class="d-flex justify-content-start">
+                            //         <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : ${result.voucher_payment_non_rutin_total}</strong></div>
+                            //     </div>
+                            // `);
 
                             $('#panel-voucher_payment_plan_non_rutin').html(`
                                 <div class="d-flex justify-content-start">
@@ -330,17 +348,17 @@
                                 </div>
                             `);
 
-                            $('#panel-voucher_payment_rutin').html(`
+                            $('#panel-voucher_payment_plan_subkon').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_value')}} : ${result.voucher_payment_rutin_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_subkon_total}</strong></div>
                                 </div>
                             `);
 
-                            $('#panel-voucher_payment_plan_rutin').html(`
-                                <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_rutin_total}</strong></div>
-                                </div>
-                            `);
+                            // $('#panel-voucher_payment_plan_subkon').html(`
+                            //     <div class="d-flex justify-content-start">
+                            //         <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_rutin_total}</strong></div>
+                            //     </div>
+                            // `);
                         },
                         error: function (xhr, status, error) {
                             console.error(xhr);

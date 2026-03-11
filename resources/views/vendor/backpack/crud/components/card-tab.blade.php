@@ -71,11 +71,6 @@
     <script>
         $(function(){
 
-            var filterAll = {
-                searchValues: [],
-                filterValues: {},
-            };
-
             SIAOPS.setAttribute("TAB_COMPONENT_{{$name_tab}}", function(){
                 return {
                     component: document.querySelectorAll('.{{$name_tab}} li[data-bs-toggle="tab"]'),
@@ -87,15 +82,18 @@
                         if(activeTab){
                             // const name = activeTab.getAttribute('data-alt-name');
                             if(SIAOPS.getAttribute('export')){
-                                SIAOPS.getAttribute('export').url_pdf = activeTab.getAttribute('data-route-export-pdf');
-                                SIAOPS.getAttribute('export').title_pdf = activeTab.getAttribute('data-title-export-pdf');
-                                SIAOPS.getAttribute('export').url_excel = activeTab.getAttribute('data-route-export-excel');
-                                SIAOPS.getAttribute('export').title_excel = activeTab.getAttribute('data-title-export-excel');
+                                var componentExport = SIAOPS.getAttribute('export');
+                                componentExport.tab_active = self.tabActive;
+                                componentExport.url_pdf = activeTab.getAttribute('data-route-export-pdf');
+                                componentExport.title_pdf = activeTab.getAttribute('data-title-export-pdf');
+                                componentExport.url_excel = activeTab.getAttribute('data-route-export-excel');
+                                componentExport.title_excel = activeTab.getAttribute('data-title-export-excel');
                             }
                             if(SIAOPS.getAttribute("SETUP_ALL_FILTER_"+self.tabActive) == null){
                                 SIAOPS.setAttribute("SETUP_ALL_FILTER_"+self.tabActive, function(){
                                     return {
-                                        ...filterAll,
+                                        searchValues: [],
+                                        filterValues: {},
                                     }
                                 });
                             }
@@ -106,16 +104,19 @@
                                 const name = event.target.getAttribute('data-alt-name');
                                 self.tabActive = name;
                                 if(SIAOPS.getAttribute('export')){
-                                    SIAOPS.getAttribute('export').url_pdf = event.target.getAttribute('data-route-export-pdf');
-                                    SIAOPS.getAttribute('export').title_pdf = event.target.getAttribute('data-title-export-pdf');
-                                    SIAOPS.getAttribute('export').url_excel = event.target.getAttribute('data-route-export-excel');
-                                    SIAOPS.getAttribute('export').title_excel = event.target.getAttribute('data-title-export-excel');
+                                    var componentExport = SIAOPS.getAttribute('export');
+                                    componentExport.tab_active = name;
+                                    componentExport.url_pdf = event.target.getAttribute('data-route-export-pdf');
+                                    componentExport.title_pdf = event.target.getAttribute('data-title-export-pdf');
+                                    componentExport.url_excel = event.target.getAttribute('data-route-export-excel');
+                                    componentExport.title_excel = event.target.getAttribute('data-title-export-excel');
                                 }
 
                                 if(SIAOPS.getAttribute("SETUP_ALL_FILTER_"+name) == null){
                                     SIAOPS.setAttribute("SETUP_ALL_FILTER_"+name, function(){
                                         return {
-                                            ...filterAll,
+                                            searchValues: [],
+                                            filterValues: {},
                                         }
                                     });
                                 }

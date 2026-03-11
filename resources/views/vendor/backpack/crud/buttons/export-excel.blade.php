@@ -8,6 +8,7 @@
         if(SIAOPS.getAttribute('export') == null){
             SIAOPS.setAttribute('export', function(){
                 return {
+                    tab_active: "",
                     url_pdf: "",
                     title_pdf: "",
                     url_excel: "",
@@ -22,13 +23,18 @@
 
             var get_url_export = SIAOPS.getAttribute('export').url_excel;
             var get_title_export = SIAOPS.getAttribute('export').title_excel;
+            var tab_active = SIAOPS.getAttribute('export').tab_active;
+
 
             var params_url = MakeParamUrl(window.filter_tables || {});
-            if(window.filterValues){
-                var filter_params_url = generateDataTableParams(window.filterValues || {});
-            }else{
-                var filter_params_url = '';
+
+            var filter_params_url = "";
+            if(SIAOPS.getAttribute('SETUP_ALL_FILTER_'+tab_active)){
+                filter_params_url = generateDataTableParams(SIAOPS.getAttribute('SETUP_ALL_FILTER_'+tab_active).searchValues);
+            }else if(window.filterValues){
+                filter_params_url = generateDataTableParams(window.filterValues || {});
             }
+
             var url_export_with_params = get_url_export + params_url + '&' + filter_params_url;
 
 

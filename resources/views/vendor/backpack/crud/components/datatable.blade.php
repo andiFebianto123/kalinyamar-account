@@ -375,7 +375,8 @@
 @push('after_scripts')
     <script>
         var filterValues = [];
-        function setupFilterInputs(tableId) {
+        function setupFilterInputs(tableId, tabName) {
+            var tabFilter = SIAOPS.getAttribute("SETUP_ALL_FILTER_"+tabName);
             const $table = $(tableId);
             const totalColumns = $(tableId+' thead tr th').length;
 
@@ -393,9 +394,15 @@
             });
 
             $table.find('thead tr.filters th input').each(function (i) {
-                if (filterValues[i] !== undefined) {
+                if(tabFilter){
+                    // searchValues
+                    if(tabFilter.searchValues[i]){
+                        $(this).val(tabFilter.searchValues[i]);
+                    }
+                } else if (filterValues[i] !== undefined) {
                     $(this).val(filterValues[i]);
                 }
+                
             });
         }
 
@@ -526,7 +533,7 @@
                             // SIAOPS.getAttribute('crudTable-{{$name}}').table.columns.adjust();
 
                             @if (isset($filter))
-                                setupFilterInputs('#crudTable-{{$name}}');
+                                setupFilterInputs('#crudTable-{{$name}}', "{{$name}}");
                                 bindFilterEvents(this.api(), '#crudTable-{{$name}}', "{{$name}}");
                             @endif
 
@@ -544,7 +551,7 @@
 
                    $('#crudTable-{{$name}}').on( 'draw.dt',   function () {
                         @if (isset($filter))
-                            setupFilterInputs('#crudTable-{{$name}}');
+                            setupFilterInputs('#crudTable-{{$name}}', "{{$name}}");
                             bindFilterEvents(SIAOPS.getAttribute('crudTable-{{$name}}').table, '#crudTable-{{$name}}', "{{$name}}");
                         @endif
                         // setupFilterInputs('#crudTable-{{$name}}');
