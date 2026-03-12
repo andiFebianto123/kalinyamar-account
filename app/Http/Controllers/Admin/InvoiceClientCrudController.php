@@ -194,6 +194,12 @@ class InvoiceClientCrudController extends CrudController
                         'orderable' => true,
                     ],
                     [
+                        'label'  => trans('backpack::crud.invoice_client.column.discount_pph'),
+                        'name' => 'discount_pph',
+                        'type'  => 'text',
+                        'orderable' => true,
+                    ],
+                    [
                         'label' => trans('backpack::crud.invoice_client.column.send_invoice_normal'),
                         'name' => 'send_invoice_normal',
                         'type'  => 'text',
@@ -241,7 +247,8 @@ class InvoiceClientCrudController extends CrudController
     {
         $total_price = InvoiceClient::select(
             DB::raw("SUM(price_total_exclude_ppn) as total_price_exclude_ppn"),
-            DB::raw("SUM(price_total_include_ppn) as total_price_include_ppn")
+            DB::raw("SUM(price_total_include_ppn) as total_price_include_ppn"),
+            DB::raw("SUM(discount_pph) as total_discount_pph")
         );
 
         $request = request();
@@ -310,20 +317,26 @@ class InvoiceClientCrudController extends CrudController
                     ->where('invoice_clients.price_total_include_ppn', 'like', '%' . $search . '%');
             }
 
-            // if (isset($request->search[11])) {
-            //     $search = trim($request->search[11]);
-            //     $total_price = $total_price
-            //         ->where('invoice_clients.send_invoice_normal_date', 'like', '%' . $search . '%');
-            // }
+            if (isset($request->search[11])) {
+                $search = trim($request->search[11]);
+                $total_price = $total_price
+                    ->where('invoice_clients.discount_pph', 'like', '%' . $search . '%');
+            }
 
             // if (isset($request->search[12])) {
             //     $search = trim($request->search[12]);
             //     $total_price = $total_price
-            //         ->where('invoice_clients.send_invoice_revision_date', 'like', '%' . $search . '%');
+            //         ->where('invoice_clients.send_invoice_normal_date', 'like', '%' . $search . '%');
             // }
 
             // if (isset($request->search[13])) {
             //     $search = trim($request->search[13]);
+            //     $total_price = $total_price
+            //         ->where('invoice_clients.send_invoice_revision_date', 'like', '%' . $search . '%');
+            // }
+
+            // if (isset($request->search[14])) {
+            //     $search = trim($request->search[14]);
             //     $total_price = $total_price
             //         ->where('invoice_clients.status', 'like', '%' . $search . '%');
             // }
@@ -366,6 +379,7 @@ class InvoiceClientCrudController extends CrudController
         return response()->json([
             'total_price_exclude_ppn' => CustomHelper::formatRupiahWithCurrency($total_price->total_price_exclude_ppn),
             'total_price_include_ppn' => CustomHelper::formatRupiahWithCurrency($total_price->total_price_include_ppn),
+            'total_discount_pph' => CustomHelper::formatRupiahWithCurrency($total_price->total_discount_pph),
         ]);
     }
 
@@ -609,6 +623,16 @@ class InvoiceClientCrudController extends CrudController
                 },
             ],
         );
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.invoice_client.column.discount_pph'),
+                'name' => 'discount_pph',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->discount_pph);
+                },
+            ],
+        );
 
         CRUD::column(
             [
@@ -733,20 +757,26 @@ class InvoiceClientCrudController extends CrudController
                     ->where('invoice_clients.price_total_include_ppn', 'like', '%' . $search . '%');
             }
 
-            // if (isset($request->columns[10]['search']['value'])) {
-            //     $search = trim($request->columns[10]['search']['value']);
+            if (isset($request->columns[11]['search']['value'])) {
+                $search = trim($request->columns[11]['search']['value']);
+                $this->crud->query = $this->crud->query
+                    ->where('invoice_clients.discount_pph', 'like', '%' . $search . '%');
+            }
+
+            // if (isset($request->columns[12]['search']['value'])) {
+            //     $search = trim($request->columns[12]['search']['value']);
             //     $this->crud->query = $this->crud->query
             //         ->where('invoice_clients.send_invoice_normal_date', 'like', '%' . $search . '%');
             // }
 
-            // if (isset($request->columns[11]['search']['value'])) {
-            //     $search = trim($request->columns[11]['search']['value']);
+            // if (isset($request->columns[13]['search']['value'])) {
+            //     $search = trim($request->columns[13]['search']['value']);
             //     $this->crud->query = $this->crud->query
             //         ->where('invoice_clients.send_invoice_revision_date', 'like', '%' . $search . '%');
             // }
 
-            // if (isset($request->columns[12]['search']['value'])) {
-            //     $search = trim($request->columns[12]['search']['value']);
+            // if (isset($request->columns[14]['search']['value'])) {
+            //     $search = trim($request->columns[14]['search']['value']);
             //     $this->crud->query = $this->crud->query
             //         ->where('invoice_clients.status', 'like', '%' . $search . '%');
             // }

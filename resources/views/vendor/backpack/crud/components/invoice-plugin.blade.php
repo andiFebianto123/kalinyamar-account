@@ -22,7 +22,6 @@
                     setTimeout(() => {
                         $("#crudTable-invoice thead tr.filters th").eq(5).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(7).children('input').remove();
-                        $("#crudTable-invoice thead tr.filters th").eq(11).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(12).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(13).children('input').remove();
                         $("#crudTable-invoice thead tr.filters th").eq(14).children('input').remove();
@@ -37,10 +36,10 @@
                         typeData: 'json',
                         success: function (result) {
                             $('#panel-invoice').html(`
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-around">
                                     <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.voucher.total_exclude_ppn')}} : ${result.total_price_exclude_ppn}</strong></div>
                                     <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.voucher.total_include_ppn')}} : ${result.total_price_include_ppn}</strong></div>
-                                    <div class="p-2 bd-highlight"></div>
+                                    <div class="p-2 bd-highlight"><strong class='fs-6'>{{trans('backpack::crud.invoice_client.column.discount_pph')}} : ${result.total_discount_pph}</strong></div>
                                 </div>
                             `);
                         },

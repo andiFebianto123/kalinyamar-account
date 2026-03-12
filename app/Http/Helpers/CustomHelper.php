@@ -1159,6 +1159,7 @@ class CustomHelper
                 "client_po.job_value",
                 "client_po.category",
                 "client_po.job_value_include_ppn",
+                "client_po.date_po",
                 "invoice.invoice_date",
                 "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                 "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
@@ -1173,8 +1174,7 @@ class CustomHelper
         });
         $profitLost = $profitLost->select(
             DB::raw("
-                project_profit_lost.price_after_year,
-                project_profit_lost.price_general,
+                project_profit_lost.*,
                 vouchers.payment_transfer as payment_voucher,
                 vouchers.biaya as voucher_biaya,
                 client_po.invoice_price_job_exlude_ppn,
@@ -1186,6 +1186,7 @@ class CustomHelper
                 client_po.reimburse_type as reimburse_type,
                 client_po.job_name as job_name,
                 client_po.job_value as job_value,
+                client_po.date_po,
                 client_po.job_value_include_ppn_logic as job_value_include_ppn,
                 IFNULL(project_profit_lost.price_small_cash, 0) as total_small_cash,
                 (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) as price_total_str,
