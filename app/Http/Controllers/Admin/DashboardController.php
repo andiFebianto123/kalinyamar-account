@@ -78,7 +78,7 @@ class DashboardController extends CrudController
         ];
         $projects = Project::groupBy('status_po')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('created_at', $year);
+                $q->whereYear('invoice_date', $year);
             })
             ->select(DB::raw('
             SUM(price_total_include_ppn) as total,
@@ -95,7 +95,7 @@ class DashboardController extends CrudController
             ->where('status_po', 'Unpaid')
             ->where('category', 'RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('created_at', $year);
+                $q->whereYear('invoice_date', $year);
             })
             ->get();
         $projects_unpaid_non_rutin = Project::select(DB::raw('
@@ -104,7 +104,7 @@ class DashboardController extends CrudController
             ->where('status_po', 'Unpaid')
             ->where('category', 'NON RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('created_at', $year);
+                $q->whereYear('invoice_date', $year);
             })
             ->get();
         $projects_Tertunda_rutin = Project::select(DB::raw('
@@ -113,7 +113,7 @@ class DashboardController extends CrudController
             ->where('status_po', 'Tertunda')
             ->where('category', 'RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('created_at', $year);
+                $q->whereYear('invoice_date', $year);
             })
             ->get();
         $projects_Tertunda_non_rutin = Project::select(DB::raw('
@@ -122,7 +122,7 @@ class DashboardController extends CrudController
             ->where('status_po', 'Tertunda')
             ->where('category', 'NON RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('created_at', $year);
+                $q->whereYear('invoice_date', $year);
             })
             ->get();
         return [
@@ -138,7 +138,7 @@ class DashboardController extends CrudController
     {
         $quotations = Quotation::groupBy('status')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('created_at', $year);
+                $q->whereYear('closing_date', $year);
             })
             ->select(DB::raw("SUM(rab) as total, status"))->get();
 
