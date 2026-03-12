@@ -1124,7 +1124,7 @@ class CustomHelper
         }
     }
 
-    public static function profitLostRepository()
+    public static function profitLostRepository($year = [])
     {
         $voucher = DB::table('vouchers')->select(
             'client_po_id',
@@ -1139,6 +1139,12 @@ class CustomHelper
                 DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
                 DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
             )
+            ->when(!empty($year), function ($query) use ($year) {
+                $filter_year = is_array($year) ? ($year['filter_year'] ?? null) : $year;
+                if ($filter_year && $filter_year != 'all') {
+                    return $query->whereYear('invoice_clients.invoice_date', $filter_year);
+                }
+            })
             ->groupBy('invoice_clients.client_po_id');
 
         $client_po_query_exclude_ppn = DB::table("client_po")

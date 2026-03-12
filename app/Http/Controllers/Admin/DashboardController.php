@@ -199,7 +199,7 @@ class DashboardController extends CrudController
 
     public function totalJobRealisasion($year = null)
     {
-        $omset_rutin = CustomHelper::profitLostRepository()
+        $omset_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'RUTIN')
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
@@ -212,7 +212,7 @@ class DashboardController extends CrudController
             ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
             ->first();
 
-        $biaya_rutin = CustomHelper::profitLostRepository()
+        $biaya_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'RUTIN')
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
@@ -225,7 +225,7 @@ class DashboardController extends CrudController
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
 
-        $omset_non_rutin = CustomHelper::profitLostRepository()
+        $omset_non_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
@@ -241,7 +241,7 @@ class DashboardController extends CrudController
             )
             ->first();
 
-        $biaya_non_rutin = CustomHelper::profitLostRepository()
+        $biaya_non_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
@@ -332,7 +332,7 @@ class DashboardController extends CrudController
 
     public function dataNonRutinMonitoring($year = null)
     {
-        $monitoring_result = CustomHelper::profitLostRepository()
+        $monitoring_result = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
