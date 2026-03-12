@@ -1078,13 +1078,13 @@ class StatusProjectCrudController extends CrudController
         $this->crud->addClause('where', 'status_po', $type);
 
         if (request()->has('filter_year') && request()->filter_year != 'all') {
-            if ($type == 'CLOSE') {
-                $this->crud->addClause('whereYear', 'payment_date', request()->filter_year);
-            } elseif ($type == 'BELUM_SELESAI') {
-                $this->crud->addClause('whereYear', 'start_date', request()->filter_year);
-            } else {
-                $this->crud->addClause('whereYear', 'invoice_date', request()->filter_year);
-            }
+            // if ($type == 'CLOSE') {
+            //     $this->crud->addClause('whereYear', 'payment_date', request()->filter_year);
+            // } elseif ($type == 'BELUM_SELESAI') {
+            //     $this->crud->addClause('whereYear', 'start_date', request()->filter_year);
+            // } else {
+            // }
+            $this->crud->addClause('whereYear', 'invoice_date', request()->filter_year);
         }
 
         // $new_format_date = 'D MMM Y';
