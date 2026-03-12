@@ -171,7 +171,7 @@ class InvoiceClientCrudController extends CrudController
                     ],
                     [
                         'label' => trans('backpack::crud.invoice_client.column.po_date'),
-                        'name' => 'po_date',
+                        'name' => 'po_date_from_po',
                         'type' => 'text',
                         'orderable' => true,
                     ],
@@ -335,8 +335,9 @@ class InvoiceClientCrudController extends CrudController
         }
 
         if ($request->has('po_date')) {
-            $total_price = $total_price
-                ->where('invoice_clients.po_date', $request->po_date);
+            $total_price = $total_price->whereHas('client_po', function ($query) use ($request) {
+                $query->where('date_po', $request->po_date);
+            });
         }
 
         if ($request->has('send_invoice_normal')) {
@@ -416,7 +417,7 @@ class InvoiceClientCrudController extends CrudController
         $this->crud->registerFieldEvents();
 
         $entry = $this->crud->getEntryWithLocale($id);
-        $entry->po_date = Carbon::createFromFormat('Y-m-d', $entry->po_date)->format('d/m/Y');
+        $entry->po_date = Carbon::parse($entry->client_po->date_po)->format('d/m/Y');
         // $entry->client_name = $entry->client->name;
         $entry->price_total_exclude_ppn = $entry->price_total_exclude_ppn;
         $entry->price_total_include_ppn = $entry->price_total_include_ppn;
@@ -472,12 +473,13 @@ class InvoiceClientCrudController extends CrudController
             $join->on('log_void.reference_id', '=', 'invoice_clients.id')
                 ->where('log_void.reference_type', '=', 'App\Models\InvoiceClient')
                 ->where('log_void.name', '=', 'CREATE_PAYMENT_INVOICE');
-        });
+        })->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id');
 
         CRUD::addClause('select', [
             DB::raw("
                 invoice_clients.*,
-                log_void.id as payment_log_id
+                log_void.id as payment_log_id,
+                client_po.date_po as po_date_from_po
             ")
         ]);
 
@@ -525,9 +527,7 @@ class InvoiceClientCrudController extends CrudController
                 },
                 'orderable' => true,
                 'orderLogic' => function ($query, $column, $columnDir) {
-                    return $query->leftJoin('client_po', 'client_po.id', '=', 'invoice_clients.client_po_id')
-                        ->orderBy('client_po.job_name', $columnDir)
-                        ->select('invoice_clients.*');
+                    return $query->orderBy('client_po.job_name', $columnDir);
                 },
                 // 'searchable' => true,
                 // 'searchLogic' => function ($query, $column, $searchTerm) {
@@ -570,7 +570,7 @@ class InvoiceClientCrudController extends CrudController
         CRUD::column(
             [
                 'label' => trans('backpack::crud.invoice_client.column.po_date'),
-                'name' => 'po_date',
+                'name' => 'po_date_from_po',
                 'type' => 'date',
                 'format' => $new_format_date,
             ]
@@ -759,7 +759,7 @@ class InvoiceClientCrudController extends CrudController
 
         if ($request->has('po_date')) {
             $this->crud->query = $this->crud->query
-                ->where('invoice_clients.po_date', $request->po_date);
+                ->where('client_po.date_po', $request->po_date);
         }
 
         if ($request->has('send_invoice_normal')) {
