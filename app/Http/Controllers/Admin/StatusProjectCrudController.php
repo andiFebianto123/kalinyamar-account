@@ -937,7 +937,7 @@ class StatusProjectCrudController extends CrudController
             $total_invoice_4 += $val4->price_total_include_ppn;
             // $val4->price_total_include_ppn_str = CustomHelper::formatRupiahWithCurrency($val4->price_total_include_ppn);
             $val4->price_total_include_ppn_str = $this->priceFormatExport($status_file, $val4->price_total_include_ppn);
-            $val4->client_name_str = $val4->setup_client->name;
+            $val4->client_name_str = $val4->name;
         }
         $grand_total += $total_invoice_4;
         $data['invoice_4_total'] = $total_invoice_4;
@@ -1051,6 +1051,10 @@ class StatusProjectCrudController extends CrudController
         $type = request()->tab;
         $settings = Setting::first();
 
+        $wrap_length = [
+            'width_box' => '500px',
+        ];
+
         CRUD::addButtonFromView('top', 'filter_year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
         CRUD::addButtonFromView('top', 'export-excel', 'export-excel', 'beginning');
@@ -1116,6 +1120,7 @@ class StatusProjectCrudController extends CrudController
                     'label'  => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text',
+                    ...$wrap_length,
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         return $query->orWhere('name', 'like', "%{$searchTerm}%");
                     },
@@ -1213,6 +1218,7 @@ class StatusProjectCrudController extends CrudController
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text',
+                    ...$wrap_length,
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         return $query->orWhere('name', 'like', "%{$searchTerm}%");
                     },
@@ -1298,6 +1304,7 @@ class StatusProjectCrudController extends CrudController
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text',
+                    ...$wrap_length,
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         return $query->orWhere('name', 'like', "%{$searchTerm}%");
                     },
@@ -1383,6 +1390,7 @@ class StatusProjectCrudController extends CrudController
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text',
+                    ...$wrap_length,
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         return $query->orWhere('name', 'like', "%{$searchTerm}%");
                     },
@@ -1441,6 +1449,7 @@ class StatusProjectCrudController extends CrudController
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text',
+                    ...$wrap_length,
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         return $query->orWhere('name', 'like', "%{$searchTerm}%");
                     },
@@ -1526,6 +1535,7 @@ class StatusProjectCrudController extends CrudController
                     'label' => trans('backpack::crud.project.column.project.name.label'),
                     'name' => 'name',
                     'type'  => 'wrap_text',
+                    ...$wrap_length,
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         return $query->orWhere('name', 'like', "%{$searchTerm}%");
                     },

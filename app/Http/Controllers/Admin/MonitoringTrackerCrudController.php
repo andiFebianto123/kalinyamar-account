@@ -185,6 +185,14 @@ class MonitoringTrackerCrudController extends CrudController
             ],
         ]);
 
+        $this->card->addCard([
+            'name' => 'hightlight',
+            'line' => 'top',
+            'label' => '',
+            'parent_view' => 'crud::components.filter-parent',
+            'view' => 'crud::components.hightligh-column',
+        ]);
+
         $this->data['crud']               = $this->crud;
         $this->data['title']              = $this->crud->getTitle() ?? trans('backpack::crud.monitoring_tracker.title.monitoring_tracker');
         $this->data['title_modal_create'] = trans('backpack::crud.monitoring_tracker.title.monitoring_tracker');

@@ -111,6 +111,10 @@ class ProjectListReportCrudController extends CrudController
             $status_file = 'pdf';
         }
 
+        $wrap_length = [
+            'width_box' => '500px',
+        ];
+
         // $new_format_date = 'D MMM Y';
         $new_format_date = 'DD/MM/YYYY';
 
@@ -199,6 +203,7 @@ class ProjectListReportCrudController extends CrudController
                 'label' => trans('backpack::crud.project.column.project.name.label'),
                 'name' => 'name',
                 'type'  => 'wrap_text',
+                ...$wrap_length,
                 'searchLogic' => function ($query, $column, $searchTerm) {
                     $query->orWhere('name', 'like', '%' . $searchTerm . '%');
                 }
