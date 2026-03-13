@@ -1950,6 +1950,10 @@ class VoucherPaymentCrudController extends CrudController
             $voucher = Voucher::findOrFail($id);
             $voucher_id = $voucher->id;
 
+            $voucher->payment_status = 'BELUM BAYAR';
+            $voucher->payment_date = null;
+            $voucher->save();
+
             $event = [];
             $event['crudTable-filter_voucher_payment_plugin_load'] = true;
 
