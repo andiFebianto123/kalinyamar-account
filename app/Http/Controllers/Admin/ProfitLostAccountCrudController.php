@@ -2169,14 +2169,14 @@ class ProfitLostAccountCrudController extends CrudController
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
                 }
 
-                if ($request->has('filter_year') && $request->filter_year != 'all') {
-                    $this->crud->query = $this->crud->query->whereExists(function ($query) use ($request) {
-                        $query->select(DB::raw(1))
-                            ->from('invoice_clients')
-                            ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id')
-                            ->whereYear('invoice_date', $request->filter_year);
-                    });
-                }
+                $this->crud->query = $this->crud->query->whereExists(function ($query) use ($request) {
+                    $query->select(DB::raw(1))
+                        ->from('invoice_clients')
+                        ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id');
+                    if ($request->has('filter_year') && $request->filter_year != 'all') {
+                        $query->whereYear('invoice_date', $request->filter_year);
+                    }
+                });
 
                 $this->crud->addColumn([
                     'name'      => 'row_number',
