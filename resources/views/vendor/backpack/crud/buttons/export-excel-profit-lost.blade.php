@@ -35,6 +35,11 @@
                 return;
             }
 
+            const currentParams = window.location.search;
+            if (currentParams) {
+                get_url_export += currentParams.replace('?', '&');
+            }
+
             const {response, errors} = await API_REQUEST("DOWNLOAD", get_url_export);
             if(errors){
                 var errorResponse = await errors;

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Exports;
 
 
@@ -32,13 +33,12 @@ class ProfitLostExcel implements FromView, WithStyles, WithColumnWidths, WithEve
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
                 $sheet->getStyle('B6:B17')
-                      ->getNumberFormat()
-                      ->setFormatCode('#,##0');
-
+                    ->getNumberFormat()
+                    ->setFormatCode('0');
             },
         ];
     }

@@ -468,13 +468,31 @@ class ProfitLostAccountCrudController extends CrudController
 
     public function total_detail_project($id, $pure = 0)
     {
+        $req = request();
         $profitLost = ProjectProfitLost::where('id', $id)->first();
         $po = $profitLost->clientPo;
         $account_material = Account::where('code', 50101)->first();
 
-        $profit_lost_all_price = CustomHelper::profitLostRepository(['filter_year' => 2025])
+        $filter = [];
+        if ($req->has('filter_year')) {
+            $filter['filter_year'] = $req->filter_year;
+        }
+
+        $profit_lost_all_price = CustomHelper::profitLostRepository($filter)
             ->where('project_profit_lost.client_po_id', $po->id)
+            ->whereExists(function ($query) use ($filter) {
+                $query->select(DB::raw(1))
+                    ->from('invoice_clients')
+                    ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($filter['filter_year']) {
+                    $query->whereYear('invoice_date', $filter['filter_year']);
+                }
+            })
             ->first();
+
+        if ($profit_lost_all_price == null) {
+            abort(404);
+        }
 
         $price_po_excl_ppn = $profit_lost_all_price->price_job_exlude_ppn_logic; // Use logic from repo
 
@@ -542,16 +560,16 @@ class ProfitLostAccountCrudController extends CrudController
 
         if ($pure) {
             return [
-                'price_po_excl_ppn' => $price_po_excl_ppn,
-                'price_material' => $material_data,
-                'price_subkon' => $subkon_data,
-                'price_btkl' => $btkl_data,
-                'price_other' => $price_other_data,
-                'price_profit_lost_project' => $price_profit_lost,
-                'price_total' => $price_total,
-                'price_profit_lost_po' => $price_profit_lost_po,
-                'price_general' => $price_general,
-                'price_profit_final' => $price_profit_final
+                'price_po_excl_ppn' => CustomHelper::formatRupiahExcel($price_po_excl_ppn),
+                'price_material' => CustomHelper::formatRupiahExcel($material_data),
+                'price_subkon' => CustomHelper::formatRupiahExcel($subkon_data),
+                'price_btkl' => CustomHelper::formatRupiahExcel($btkl_data),
+                'price_other' => CustomHelper::formatRupiahExcel($price_other_data),
+                'price_profit_lost_project' => CustomHelper::formatRupiahExcel($price_profit_lost),
+                'price_total' => CustomHelper::formatRupiahExcel($price_total),
+                'price_profit_lost_po' => CustomHelper::formatRupiahExcel($price_profit_lost_po),
+                'price_general' => CustomHelper::formatRupiahExcel($price_general),
+                'price_profit_final' => CustomHelper::formatRupiahExcel($price_profit_final)
             ];
         }
 
