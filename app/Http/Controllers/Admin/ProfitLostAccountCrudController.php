@@ -472,7 +472,7 @@ class ProfitLostAccountCrudController extends CrudController
         $po = $profitLost->clientPo;
         $account_material = Account::where('code', 50101)->first();
 
-        $profit_lost_all_price = CustomHelper::profitLostRepository()
+        $profit_lost_all_price = CustomHelper::profitLostRepository(['filter_year' => 2025])
             ->where('project_profit_lost.client_po_id', $po->id)
             ->first();
 
