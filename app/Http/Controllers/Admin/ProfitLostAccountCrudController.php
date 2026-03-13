@@ -384,20 +384,22 @@ class ProfitLostAccountCrudController extends CrudController
             $total_excl_ppn_logic = $total_excl_ppn_logic->where('dummy_query.category', $category);
         }
 
-        if ($filter_year && $filter_year != 'all') {
-            $mainQuery = $mainQuery->whereExists(function ($query) use ($filter_year) {
-                $query->select(DB::raw(1))
-                    ->from('invoice_clients')
-                    ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id')
-                    ->whereYear('invoice_date', $filter_year);
-            });
-            $total_excl_ppn_logic = $total_excl_ppn_logic->whereExists(function ($query) use ($filter_year) {
-                $query->select(DB::raw(1))
-                    ->from('invoice_clients')
-                    ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id')
-                    ->whereYear('invoice_date', $filter_year);
-            });
-        }
+        $mainQuery = $mainQuery->whereExists(function ($query) use ($filter_year) {
+            $query->select(DB::raw(1))
+                ->from('invoice_clients')
+                ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id');
+            if ($filter_year && $filter_year != 'all') {
+                $query->whereYear('invoice_date', $filter_year);
+            }
+        });
+        $total_excl_ppn_logic = $total_excl_ppn_logic->whereExists(function ($query) use ($filter_year) {
+            $query->select(DB::raw(1))
+                ->from('invoice_clients')
+                ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id');
+            if ($filter_year && $filter_year != 'all') {
+                $query->whereYear('invoice_date', $filter_year);
+            }
+        });
 
         $total_excl_ppn_logic = $total_excl_ppn_logic->first();
 
@@ -1799,14 +1801,14 @@ class ProfitLostAccountCrudController extends CrudController
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
                 }
 
-                if ($request->has('filter_year') && $request->filter_year != 'all') {
-                    $this->crud->query = $this->crud->query->whereExists(function ($query) use ($request) {
-                        $query->select(DB::raw(1))
-                            ->from('invoice_clients')
-                            ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id')
-                            ->whereYear('invoice_date', $request->filter_year);
-                    });
-                }
+                $this->crud->query = $this->crud->query->whereExists(function ($query) use ($request) {
+                    $query->select(DB::raw(1))
+                        ->from('invoice_clients')
+                        ->whereColumn('invoice_clients.client_po_id', 'project_profit_lost.client_po_id');
+                    if ($request->has('filter_year') && $request->filter_year != 'all') {
+                        $query->whereYear('invoice_date', $request->filter_year);
+                    }
+                });
 
                 $this->crud->addColumn([
                     'name'      => 'row_number',
