@@ -88,6 +88,20 @@
             $('.bulk-checkbox').prop('checked', false);
         });
 
+        // Reset bulk selection on DataTable search/filter
+        $(document).on('search.dt', 'table.dataTable', function (e, settings) {
+            window.bulkSelectedIds = [];
+            window.bulkSelectedApprovalData = [];
+            updateBulkUI();
+            
+            // Uncheck header checkboxes
+            $('#bulk-select-all').prop('checked', false);
+            $('.bulk_all_checkbox').prop('checked', false);
+            
+            // Uncheck individual row checkboxes
+            $('.bulk-checkbox').prop('checked', false);
+        });
+
         // Helper: get the currently active datatable table element
         function getActiveTable() {
             return $('.tab-pane.active table.dataTable');
@@ -196,7 +210,8 @@
             
             // Sync toolbar checkbox if this table is in the active tab
             if ($table.is(getActiveTable())) {
-                $('#bulk-select-all').prop('checked', allChecked);
+                var checkedAll = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
+                $('#bulk-select-all').prop('checked', checkedAll);
             }
         });
 
@@ -337,6 +352,7 @@
                 },
                 refresh: function(){
                     var instance = this;
+                    var filterAll = SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_all');
                     var filterNonRutin = SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_non_rutin');
                     var filterSubkon = SIAOPS.getAttribute('SETUP_ALL_FILTER_voucher_payment_plan_subkon');
 
@@ -345,11 +361,18 @@
                         type: 'POST',
                         data: {
                             ...(window.filter_tables || {}),
+                            searchAll: (filterAll) ? (filterAll.searchValues || []) : [],
                             searchNonRutin: (filterNonRutin) ? (filterNonRutin.searchValues || []) : [],
                             searchSubkon: (filterSubkon) ? (filterSubkon.searchValues || []) : [],
                         },
                         typeData: 'json',
                         success: function (result) {
+                            $('#panel-voucher_payment_plan_all').html(`
+                                <div class="d-flex justify-content-start">
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_all_total}</strong></div>
+                                </div>
+                            `);
+
                             $('#panel-voucher_payment_plan_non_rutin').html(`
                                 <div class="d-flex justify-content-start">
                                     <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_non_rutin_total}</strong></div>

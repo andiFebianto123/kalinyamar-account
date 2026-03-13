@@ -65,6 +65,7 @@ class VoucherPaymentPlanCrudController extends CrudController
     function total_voucher()
     {
         $request = request();
+        $searchAll = $request->get('searchAll', []);
         $searchNonRutin = $request->get('searchNonRutin', []);
         $searchSubkon = $request->get('searchSubkon', []);
 
@@ -176,8 +177,8 @@ class VoucherPaymentPlanCrudController extends CrudController
             ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
             ->groupBy('model_type', 'model_id');
 
-        $basePlanQuery = function ($type) use ($p_v_p, $a_p) {
-            return PaymentVoucher::select(DB::raw('SUM(vouchers.payment_transfer) as jumlah_nilai_transfer'))
+        $basePlanQuery = function ($type = null) use ($p_v_p, $a_p) {
+            $query = PaymentVoucher::select(DB::raw('SUM(vouchers.payment_transfer) as jumlah_nilai_transfer'))
                 ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
                 ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
                     $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
@@ -198,9 +199,22 @@ class VoucherPaymentPlanCrudController extends CrudController
                 })
                 ->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id')
                 ->where('vouchers.payment_status', 'BELUM BAYAR')
-                ->where('payment_vouchers.payment_type', $type)
                 ->where('approvals.status', Approval::APPROVED);
+
+            if ($type) {
+                $query->where('payment_vouchers.payment_type', $type);
+            }
+
+            return $query;
         };
+
+        // 0. ALL PLAN
+        $queryAll = $basePlanQuery();
+        if ($request->has('filter_year') && $request->filter_year != 'all') {
+            $queryAll = $queryAll->whereYear('vouchers.date_voucher', $request->filter_year);
+        }
+        $queryAll = $applyFilters($queryAll, $searchAll);
+        $total_voucher_plan_data_all = $queryAll->first();
 
         // 1. NON RUTIN PLAN
         $queryNonRutin = $basePlanQuery('NON RUTIN');
@@ -232,6 +246,7 @@ class VoucherPaymentPlanCrudController extends CrudController
         $total_voucher_plan_data_subkon = $querySubkon->first();
 
         return response()->json([
+            'voucher_payment_plan_all_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_plan_data_all != null) ? $total_voucher_plan_data_all->jumlah_nilai_transfer : 0),
             'voucher_payment_plan_non_rutin_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_plan_data_non_rutin != null) ? $total_voucher_plan_data_non_rutin->jumlah_nilai_transfer : 0),
             'voucher_payment_subkon_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_data_subkon != null) ? $total_voucher_data_subkon->jumlah_nilai_transfer : 0),
             'voucher_payment_plan_subkon_total' => CustomHelper::formatRupiahWithCurrency(($total_voucher_plan_data_subkon != null) ? $total_voucher_plan_data_subkon->jumlah_nilai_transfer : 0),
@@ -357,10 +372,26 @@ class VoucherPaymentPlanCrudController extends CrudController
             'params' => [
                 'tabs' => [
                     [
+                        'name' => 'voucher_payment_plan_all',
+                        'label' => 'Data',
+                        'view' => 'crud::components.datatable',
+                        'active' => true,
+                        'params' => [
+                            'filter' => true,
+                            'crud_custom' => $this->crud,
+                            'columns' => $columns,
+                            'route' => backpack_url('voucher-payment-plan/search?tab=voucher_payment_plan_all&type=all'),
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment_plan_all'),
+                            'title_export_pdf' => 'Voucher-payment-plan-all.pdf',
+                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=voucher_payment_plan_all'),
+                            'title_export_excel' => 'Voucher-payment-plan-all.xlsx',
+                        ]
+                    ],
+                    [
                         'name' => 'voucher_payment_plan_non_rutin',
                         'label' => 'Non Rutin',
                         'view' => 'crud::components.datatable',
-                        'active' => true,
+                        'active' => false,
                         'params' => [
                             'filter' => true,
                             'crud_custom' => $this->crud,
@@ -2785,6 +2816,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                 } else {
                     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
                 }
+                $event['crudTable-voucher_payment_plan_all_create_success'] = true;
                 CustomVoid::voucherPaymentPlan($voucher);
             }
 
@@ -3158,6 +3190,8 @@ class VoucherPaymentPlanCrudController extends CrudController
             $approved_count = 0;
             $user_id = $user->id;
 
+            $event = [];
+
             foreach ($entries as $entry) {
                 $payment_plan_id = $entry['id'];
                 $no_apprv = $entry['no_apprv'] ?? null;
@@ -3168,6 +3202,13 @@ class VoucherPaymentPlanCrudController extends CrudController
                 }
 
                 $payment_voucher = PaymentVoucher::where('id', $voucher_payment_plan->payment_voucher_id)->first();
+
+                if ($payment_voucher->voucher->payment_type == 'SUBKON') {
+                    $event['crudTable-voucher_payment_plan_subkon_create_success'] = true;
+                } else {
+                    $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
+                }
+                $event['crudTable-voucher_payment_plan_all_create_success'] = true;
 
                 $approval = Approval::where('model_type', PaymentVoucherPlan::class)
                     ->where('model_id', $voucher_payment_plan->id)
@@ -3203,10 +3244,8 @@ class VoucherPaymentPlanCrudController extends CrudController
                 $approved_count++;
             }
 
-            $event = [
-                'crudTable-filter_voucher_payment_plugin_load' => true,
-                'crudTable-voucher_payment_plan_non_rutin_create_success' => true,
-            ];
+            $event['crudTable-filter_voucher_payment_plugin_load'] = true;
+
 
             DB::commit();
             return response()->json([
@@ -3261,6 +3300,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                 } else {
                     $event['crudTable-voucher_payment_plan_non_rutin_create_success'] = true;
                 }
+                $event['crudTable-voucher_payment_plan_all_create_success'] = true;
 
                 Approval::where('model_type', 'App\Models\PaymentVoucherPlan')
                     ->where('model_id', $payment_voucher_plan->id)
