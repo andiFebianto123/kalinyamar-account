@@ -201,10 +201,13 @@ class DashboardController extends CrudController
     {
         $omset_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'RUTIN')
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year) {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             // ->when($year, function ($query) use ($year) {
             //     $query->whereYear('project_profit_lost.created_at', $year);
@@ -214,10 +217,13 @@ class DashboardController extends CrudController
 
         $biaya_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'RUTIN')
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year) {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             // ->when($year, function ($query) use ($year) {
             //     $query->whereYear('project_profit_lost.created_at', $year);
@@ -227,10 +233,13 @@ class DashboardController extends CrudController
 
         $omset_non_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year) {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             // ->when($year, function ($query) use ($year) {
             //     $query->whereYear('project_profit_lost.created_at', $year);
@@ -243,10 +252,13 @@ class DashboardController extends CrudController
 
         $biaya_non_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year) {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             // ->when($year, function ($query) use ($year) {
             //     $query->whereYear('project_profit_lost.created_at', $year);
