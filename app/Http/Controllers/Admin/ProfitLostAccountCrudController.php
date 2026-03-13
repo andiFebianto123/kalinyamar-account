@@ -484,7 +484,7 @@ class ProfitLostAccountCrudController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($filter['filter_year']) {
+                if (!empty($filter['filter_year'])) {
                     $query->whereYear('invoice_date', $filter['filter_year']);
                 }
             })
