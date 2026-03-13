@@ -321,6 +321,10 @@ class CastAccountsCrudController extends CrudController
             $this->crud->query = $this->crud->query->whereYear('account_transactions.date_transaction', request()->filter_year);
         }
 
+        $wrap_length = [
+            'width_box' => '300px',
+        ];
+
         $this->crud->query = $this->crud->query->orderBy('date_transaction', 'ASC');
 
         $this->crud->addColumn([
@@ -362,7 +366,8 @@ class CastAccountsCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.cash_account.field_transaction.description.label'),
                 'name' => 'description',
-                'type'  => 'export'
+                'type'  => 'wrap_text',
+                ...$wrap_length
             ],
         );
 
@@ -378,7 +383,8 @@ class CastAccountsCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.cash_account.field_transaction.job_name.label'),
                 'name' => 'job_name',
-                'type'  => 'export'
+                'type'  => 'wrap_text',
+                ...$wrap_length
             ],
         );
 

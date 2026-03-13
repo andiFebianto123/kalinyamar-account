@@ -480,6 +480,7 @@ class CustomVoid
         $transaksi->status = CastAccount::OUT;
         $transaksi->kdp = $client_po?->work_code;
         $transaksi->job_name = $voucher?->job_name;
+        $transaksi->description = 'Pembayaran Voucher ' . $voucher->no_voucher;
         $transaksi->save();
 
         $log_payment[] = [
@@ -487,7 +488,7 @@ class CustomVoid
             'account_id' => $hutang->id,
             'reference_id' => $voucher->id,
             'reference_type' => Voucher::class,
-            'description' => 'Pembayaran Voucher',
+            'description' => 'Pembayaran Voucher ' . $voucher->no_voucher,
             'date' => Carbon::now(),
             'type' => AccountTransaction::class,
         ];
