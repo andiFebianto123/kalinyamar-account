@@ -5,6 +5,7 @@
             #crudTable-voucher_payment_plan_non_rutin_wrapper .dataTables_scrollHead table thead tr th,
             #crudTable-voucher_payment_plan_subkon_wrapper .dataTables_scrollHead table thead tr th,
             #crudTable-voucher_payment_rutin_wrapper .dataTables_scrollHead table thead tr th,
+            #crudTable-voucher_payment_plan_all_wrapper .dataTables_scrollHead table thead tr th,
             #crudTable-voucher_payment_plan_rutin_wrapper .dataTables_scrollHead table thead tr th {
                 background-color: #FCD72D !important;
             }
