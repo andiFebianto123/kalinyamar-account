@@ -326,5 +326,16 @@ return [
                 'error_ajax' => 'Error occurred while saving bank.',
             ]
         ]
-    ]
+    ],
+    'invoice_client' => [
+        'column' => [
+            'withholding_agent' => 'Withholding Agent',
+        ],
+        'field' => [
+            'withholding_agent' => [
+                'label' => 'Withholding Agent',
+                'placeholder' => '- SELECT WITHHOLDING AGENT -',
+            ],
+        ],
+    ],
 ];

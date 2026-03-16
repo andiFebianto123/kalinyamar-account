@@ -663,27 +663,28 @@ class CustomVoid
         $invoice_id = $invoice->id;
         // ambil voucher yang belum dibayar
 
-        $piutang = Account::where('code', CustomHelper::getAccountMapping('RECEIVABLES_INVOICE'))->first();
-        if ($piutang) {
-            $trans_3 = CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $piutang->id,
+        // masuk pendapatan
+        $revenue = Account::where('code', CustomHelper::getAccountMapping('REVENUE_INVOICE'))->first();
+        if ($revenue) {
+            $trans_1 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $revenue->id,
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
-                'description' => "Piutang invoice " . $invoice->invoice_number,
+                'description' => "Pendapatan invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
                 'debit' => $invoice->price_total_exclude_ppn,
                 'credit' => 0,
             ], [
-                'account_id' => $piutang->id,
+                'account_id' => $revenue->id,
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
             ]);
             $log_payment[] = [
-                'id' => $trans_3->id,
-                'account_id' => $piutang->id,
+                'id' => $trans_1->id,
+                'account_id' => $revenue->id,
                 'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
-                'description' => "Piutang invoice " . $invoice->invoice_number,
+                'description' => "Pendapatan invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
                 'debit' => $invoice->price_total_exclude_ppn,
                 'credit' => 0,
@@ -691,7 +692,9 @@ class CustomVoid
             ];
         }
 
-        $acct_ppn = Account::where('code', CustomHelper::getAccountMapping('DEBT_PPN'))->first();
+
+        // keluar PPN
+        $acct_ppn = Account::where('code', CustomHelper::getAccountMapping('TAX'))->first();
         if ($acct_ppn) {
             $price_ppn = $invoice->price_total_exclude_ppn * ($invoice->tax_ppn / 100);
             $trans_4 = CustomHelper::updateOrCreateJournalEntry([
@@ -700,8 +703,8 @@ class CustomVoid
                 'reference_type' => InvoiceClient::class,
                 'description' => "PPN invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $price_ppn,
-                'credit' => 0,
+                'debit' => 0,
+                'credit' => $price_ppn,
             ], [
                 'account_id' => $acct_ppn->id,
                 'reference_id' => $invoice->id,
@@ -714,42 +717,48 @@ class CustomVoid
                 'reference_type' => InvoiceClient::class,
                 'description' => "PPN invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
-                'debit' => $price_ppn,
-                'credit' => 0,
+                'debit' => 0,
+                'credit' => $price_ppn,
                 'type' => JournalEntry::class,
             ];
         }
 
-        // Tambahkan jurnal Pendapatan (Revenue)
-        // $acct_revenue = Account::where('code', CustomHelper::getAccountMapping('REVENUE_INVOICE'))->first();
-        // if ($acct_revenue) {
-        //     $trans_5 = CustomHelper::updateOrCreateJournalEntry([
-        //         'account_id' => $acct_revenue->id,
-        //         'reference_id' => $invoice->id,
-        //         'reference_type' => InvoiceClient::class,
-        //         'description' => "Pendapatan invoice " . $invoice->invoice_number,
-        //         'date' => Carbon::now(),
-        //         'debit' => 0,
-        //         'credit' => $invoice->price_total_exclude_ppn,
-        //     ], [
-        //         'account_id' => $acct_revenue->id,
-        //         'reference_id' => $invoice->id,
-        //         'reference_type' => InvoiceClient::class,
-        //     ]);
-        //     $log_payment[] = [
-        //         'id' => $trans_5->id,
-        //         'account_id' => $acct_revenue->id,
-        //         'reference_id' => $invoice->id,
-        //         'reference_type' => InvoiceClient::class,
-        //         'description' => "Pendapatan invoice " . $invoice->invoice_number,
-        //         'date' => Carbon::now(),
-        //         'debit' => 0,
-        //         'credit' => $invoice->price_total_exclude_ppn,
-        //         'type' => JournalEntry::class,
-        //     ];
-        // }
-
         self::invoiceAllPph($invoice, $log_payment);
+
+        // WAPU & NON WAPU
+        $acct_piutang = null;
+        if ($invoice->withholding_agent == InvoiceClient::WITHHOLDING_AGENT['WAPU']) {
+            $acct_piutang = Account::where('code', CustomHelper::getAccountMapping('WAPU'))->first();
+        } else if ($invoice->withholding_agent == InvoiceClient::WITHHOLDING_AGENT['NON_WAPU']) {
+            $acct_piutang = Account::where('code', CustomHelper::getAccountMapping('NON_WAPU'))->first();
+        }
+
+        if ($acct_piutang) {
+            $trans_5 = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $acct_piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Piutang " . $invoice->withholding_agent . " invoice " . $invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->price_total_exclude_ppn,
+                'credit' => 0,
+            ], [
+                'account_id' => $acct_piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+            ]);
+            $log_payment[] = [
+                'id' => $trans_5->id,
+                'account_id' => $acct_piutang->id,
+                'reference_id' => $invoice->id,
+                'reference_type' => InvoiceClient::class,
+                'description' => "Piutang " . $invoice->withholding_agent . " invoice " . $invoice->invoice_number,
+                'date' => Carbon::now(),
+                'debit' => $invoice->price_total_exclude_ppn,
+                'credit' => 0,
+                'type' => JournalEntry::class,
+            ];
+        }
 
         if (sizeof($log_payment) > 0) {
             $newLogPayment = new LogPayment;
@@ -834,13 +843,8 @@ class CustomVoid
         $cast_account = CastAccount::where('id', $cast_account_id)->first();
         $before_saldo = $cast_account->total_saldo;
 
-        if ($status == AccountTransaction::ENTER) {
-            $new_saldo = $before_saldo + $nominal_transaction;
-        } else {
-            $new_saldo = $before_saldo - $nominal_transaction;
-        }
-
         $invoice = null;
+        $nominal_transfer_account = 0; // real nominal transfer
 
         if ($request->has('kdp') || $request->has('no_invoice')) {
             $id = $request->kdp ?? $request->no_invoice;
@@ -850,13 +854,31 @@ class CustomVoid
             $no_invoice = $invoice->no_invoice;
             $invoice->status = 'Paid';
             $invoice->save();
+
+            if ($invoice->withholding_agent == InvoiceClient::WITHHOLDING_AGENT['WAPU']) {
+                $nominal_transfer_account = $invoice->price_total_exclude_ppn - $invoice->discount_pph;
+            } else if ($invoice->witholding_agent == InvoiceClient::WITHHOLDING_AGENT['NON_WAPU']) {
+                $price_ppn = $invoice->price_total_exclude_ppn * ($invoice->tax_ppn / 100);
+                $pirce_pph = $invoice->discount_pph;
+                $nominal_transfer_account = $invoice->price_total_exclude_ppn + $price_ppn - $pirce_pph;
+            } else {
+                $nominal_transfer_account = $nominal_transaction;
+            }
+        } else {
+            $nominal_transfer_account = $nominal_transaction;
+        }
+
+        if ($status == AccountTransaction::ENTER) {
+            $new_saldo = $before_saldo + $nominal_transfer_account;
+        } else {
+            $new_saldo = $before_saldo - $nominal_transfer_account;
         }
 
         $newTransaction = new AccountTransaction;
         $newTransaction->cast_account_id = $cast_account_id;
         $newTransaction->date_transaction = $date_transaction;
         $newTransaction->no_invoice = $no_invoice;
-        $newTransaction->nominal_transaction = $nominal_transaction;
+        $newTransaction->nominal_transaction = $nominal_transfer_account;
         $newTransaction->total_saldo_before = $before_saldo;
         $newTransaction->total_saldo_after = $new_saldo;
         $newTransaction->status = $status;
@@ -888,8 +910,8 @@ class CustomVoid
                 'reference_type' => AccountTransaction::class,
                 'description' => $description,
                 'date' => Carbon::now(),
-                'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
-                'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
+                'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transfer_account : 0,
+                'credit' => ($status == AccountTransaction::OUT) ? $nominal_transfer_account : 0,
             ], [
                 'account_id' => $newTransaction->account_id,
                 'reference_id' => $newTransaction->id,
@@ -923,8 +945,8 @@ class CustomVoid
             'reference_type' => AccountTransaction::class,
             'description' => $description,
             'date' => Carbon::now(),
-            'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transaction : 0,
-            'credit' => ($status == AccountTransaction::OUT) ? $nominal_transaction : 0,
+            'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transfer_account : 0,
+            'credit' => ($status == AccountTransaction::OUT) ? $nominal_transfer_account : 0,
         ], [
             'account_id' => $updateAccount->account_id,
             'reference_id' => $newTransaction->id,

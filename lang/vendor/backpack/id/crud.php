@@ -539,6 +539,7 @@ return [
             'description' => 'Deskripsi',
             'pph' => 'PPh',
             'discount_pph' => 'Nominal PPh',
+            'withholding_agent' => 'Wajib Pungut',
         ],
         'field' => [
             'invoice_number' => [
@@ -644,6 +645,10 @@ return [
             'discount_pph' => [
                 'label' => 'Nominal PPh',
                 'placeholder' => '000.000',
+            ],
+            'withholding_agent' => [
+                'label' => 'Wajib Pungut',
+                'placeholder' => '- PILIH WAJIB PUNGUT -',
             ],
         ],
     ],

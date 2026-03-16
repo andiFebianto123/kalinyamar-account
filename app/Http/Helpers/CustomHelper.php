@@ -50,6 +50,9 @@ class CustomHelper
             'WIP_OLD' => '50401', // pekerjaan dalam proses
             'WIP' => '10601',
 
+            'NON_WAPU' => '10201',
+            'WAPU' => '10202',
+
             // Equity / Special
             'PROFIT_CONSOLIDATION' => '303',
         ];

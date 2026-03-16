@@ -18,6 +18,11 @@ class InvoiceClient extends Model
     |--------------------------------------------------------------------------
     */
 
+    const WITHHOLDING_AGENT = [
+        'WAPU' => 'WAPU',
+        'NON_WAPU' => 'NON WAPU',
+    ];
+
     protected $table = 'invoice_clients';
     // protected $primaryKey = 'id';
     // public $timestamps = false;
@@ -37,15 +42,18 @@ class InvoiceClient extends Model
     |--------------------------------------------------------------------------
     */
 
-    function client_po(){
+    function client_po()
+    {
         return $this->belongsTo(ClientPo::class, 'client_po_id');
     }
 
-    function client(){
+    function client()
+    {
         return $this->belongsTo(ClientTransaction::class, 'client_id');
     }
 
-    function invoice_client_details(){
+    function invoice_client_details()
+    {
         return $this->hasMany(InvoiceClientDetail::class, 'invoice_client_id');
     }
 
