@@ -430,6 +430,7 @@
             return {
                 id: $('#crudTable-{{$name}}'),
                 route: "{!! url($route) !!}",
+                name: "#crudTable-{{$name}}",
                 table: null,
                 nameTab: "{{$name}}",
                 eventLoader: function(){
@@ -636,6 +637,12 @@
                         }
                     });
 
+                },
+                resize: function(){
+                    var instance = this;
+                    instance.table.columns.adjust();
+                    setupFilterInputs(instance.name, instance.nameTab);
+                    bindFilterEvents(instance.table, instance.name, instance.nameTab);
                 }
             };
         });
@@ -651,7 +658,6 @@
                 } catch(e){}
             }
 
-            @if (!isset($filter))
 
                 var datatable = SIAOPS.getAttribute('crudTable-{{$name}}').table;
 
@@ -665,23 +671,26 @@
                 }
 
                 $(window).on('resize', function(e) {
-                    resizeCrudTableColumnWidths();
+                    // resizeCrudTableColumnWidths();
+                    SIAOPS.getAttribute('crudTable-{{$name}}').resize();
                 });
 
                 $('.sidebar-nav').on({
                     mouseenter: function() {
-                        resizeCrudTableColumnWidths();
+                        // resizeCrudTableColumnWidths();
+                        SIAOPS.getAttribute('crudTable-{{$name}}').resize();
                     },
                     mouseleave: function() {
-                        resizeCrudTableColumnWidths();
+                        // resizeCrudTableColumnWidths();
+                        SIAOPS.getAttribute('crudTable-{{$name}}').resize();
                     }
                 });
 
                 $('.nav-tabs .nav-link').on('click', function(){
-                    SIAOPS.getAttribute('crudTable-{{$name}}').table.columns.adjust();
+                    // SIAOPS.getAttribute('crudTable-{{$name}}').table.columns.adjust();
+                    SIAOPS.getAttribute('crudTable-{{$name}}').resize();
                 });
 
-            @endif
         });
         
         // Custom function to force width 100%

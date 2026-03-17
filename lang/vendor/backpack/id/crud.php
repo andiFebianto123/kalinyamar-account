@@ -1403,6 +1403,7 @@ return [
         ],
         'total_payment_value' => 'Jumlah Nilai Transfer',
         'total_payment_approve_value' => 'Total Nilai Transfer Approved',
+        'total_payment_plan_subkon' => 'UNPAID INCL PPN',
     ],
     'project_system_setup' => [
         'title_header' => 'Project System Setup',

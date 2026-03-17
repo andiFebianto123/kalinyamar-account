@@ -376,13 +376,13 @@
 
                             $('#panel-voucher_payment_plan_non_rutin').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_non_rutin_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_plan_subkon')}} : ${result.voucher_payment_plan_non_rutin_total}</strong></div>
                                 </div>
                             `);
 
                             $('#panel-voucher_payment_plan_subkon').html(`
                                 <div class="d-flex justify-content-start">
-                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_approve_value')}} : ${result.voucher_payment_plan_subkon_total}</strong></div>
+                                    <div class="p-2 bd-highlight"><strong>{{trans('backpack::crud.voucher_payment.total_payment_plan_subkon')}} : ${result.voucher_payment_plan_subkon_total}</strong></div>
                                 </div>
                             `);
                         },
