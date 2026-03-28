@@ -856,11 +856,11 @@ class CustomVoid
             $invoice->save();
 
             if ($invoice->withholding_agent == InvoiceClient::WITHHOLDING_AGENT['WAPU']) {
-                $nominal_transfer_account = $invoice->price_total_exclude_ppn - $invoice->discount_pph;
+                $nominal_transfer_account = $nominal_transaction - $invoice->discount_pph;
             } else if ($invoice->witholding_agent == InvoiceClient::WITHHOLDING_AGENT['NON_WAPU']) {
-                $price_ppn = $invoice->price_total_exclude_ppn * ($invoice->tax_ppn / 100);
+                $price_ppn = $nominal_transaction * ($invoice->tax_ppn / 100);
                 $pirce_pph = $invoice->discount_pph;
-                $nominal_transfer_account = $invoice->price_total_exclude_ppn + $price_ppn - $pirce_pph;
+                $nominal_transfer_account = $nominal_transaction + $price_ppn - $pirce_pph;
             } else {
                 $nominal_transfer_account = $nominal_transaction;
             }

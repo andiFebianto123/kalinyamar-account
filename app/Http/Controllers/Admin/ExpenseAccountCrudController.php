@@ -292,7 +292,48 @@ class ExpenseAccountCrudController extends CrudController
 
     protected function setupUpdateOperation()
     {
-        $this->setupCreateOperation();
+        if (request('type') == 'add_balance') {
+            CRUD::addField([
+                'name' => 'id',
+                'type' => 'hidden',
+            ]);
+            CRUD::addField([
+                'name' => 'code',
+                'label' => trans('backpack::crud.expense_account.column.code'),
+                'type' => 'text',
+                'attributes' => [
+                    'readonly' => 'readonly',
+                ]
+            ]);
+            CRUD::addField([
+                'name' => 'name',
+                'label' => trans('backpack::crud.expense_account.column.name'),
+                'type' => 'text',
+                'attributes' => [
+                    'readonly' => 'readonly',
+                ]
+            ]);
+
+            $settings = Setting::first();
+            CRUD::addField([
+                'name' => 'balance',
+                'label' => trans('backpack::crud.expense_account.column.balance_initial'),
+                'type' => 'mask',
+                'mask' => '000.000.000.000.000.000',
+                'mask_options' => [
+                    'reverse' => true
+                ],
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+                'wrapper'   => [
+                    'class' => 'form-group col-md-12',
+                ],
+                'attributes' => [
+                    'placeholder' => trans('backpack::crud.expense_account.field.balance.placeholder'),
+                ]
+            ]);
+        } else {
+            $this->setupCreateOperation();
+        }
     }
 
     public function update()
@@ -305,6 +346,36 @@ class ExpenseAccountCrudController extends CrudController
 
         DB::beginTransaction();
         try {
+            $item = Account::where('id', $request->id)->first();
+
+            if (request('type') == 'add_balance') {
+                CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $item->id,
+                    'reference_id' => $item->id,
+                    'reference_type' => Account::class,
+                    'description' => 'FIRST BALANCE',
+                    'date' => Carbon::now(),
+                    'debit' => $request->balance,
+                ], [
+                    'reference_id' => $item->id,
+                    'reference_type' => Account::class,
+                ]);
+
+                $rootParent = $this->getRootParentAccount($item->code);
+                $events = [];
+                if ($rootParent) {
+                    $events['account_' . $rootParent->id . '_update_success'] = true;
+                }
+
+                \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+                DB::commit();
+                return response()->json([
+                    'success' => true,
+                    'data' => $item,
+                    'events' => $events
+                ]);
+            }
 
             $old_account = Account::find($request->id);
             $rootParent_1 = $this->getRootParentAccount($old_account->code);
@@ -322,36 +393,12 @@ class ExpenseAccountCrudController extends CrudController
             }
             $rootParant_2 = $this->getRootParentAccount($new_code);
 
-            $item = Account::where('id', $request->id)->first();
             $item->code = $new_code;
             $item->name = $request->name;
             if ($new_parent) {
                 $item->level = $new_parent->level + 1;
             }
             $item->save();
-
-            // if($request->balance > 0){
-            //     $journal = JournalEntry::where('account_id', $item->id)
-            //     ->where('reference_type', Account::class)
-            //     ->first();
-            //     if($journal){
-            //         $journal->debit = $request->balance;
-            //         $journal->credit = 0;
-            //         $journal->save();
-            //     }else{
-            //         CustomHelper::updateOrCreateJournalEntry([
-            //             'account_id' => $item->id,
-            //             'reference_id' => $item->id,
-            //             'reference_type' => Account::class,
-            //             'description' => 'FIRST BALANCE',
-            //             'date' => Carbon::now(),
-            //             'debit' => $request->balance,
-            //         ], [
-            //             'reference_id' => $item->id,
-            //             'reference_type' => Account::class,
-            //         ]);
-            //     }
-            // }
 
             $events = [];
 
@@ -548,6 +595,7 @@ class ExpenseAccountCrudController extends CrudController
 
         CRUD::addButtonFromView('line', 'delete', "delete-account", 'beginning');
         CRUD::addButtonFromView('line', 'update', "update-account", 'beginning');
+        CRUD::addButtonFromView('line', 'add_balance', "add-balance-account", 'beginning');
         CRUD::addButtonFromView('line', 'view', "view-ledger", 'beginning');
 
 

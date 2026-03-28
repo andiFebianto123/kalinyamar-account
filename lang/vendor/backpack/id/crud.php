@@ -747,6 +747,18 @@ return [
                 'label' => 'Nominal Transaksi',
                 'placeholder' => '000.000',
             ],
+            'withholding_agent_status' => [
+                'label' => 'Wajib Pungut',
+            ],
+            'tax_ppn_nominal' => [
+                'label' => 'PPN',
+            ],
+            'pph_nominal' => [
+                'label' => 'PPh',
+            ],
+            'total_nominal_transfer' => [
+                'label' => 'Total Nilai Transfer',
+            ],
             'status' => [
                 'label' => 'Keluar/Masuk',
                 'placeholder' => 'Pilih Status',
@@ -836,6 +848,7 @@ return [
             'code' => 'Kode Akun',
             'name' => 'Nama Akun',
             'balance' => 'Saldo',
+            'balance_initial' => 'Jumlah Saldo Awal',
             'action' => 'Action',
         ],
         'field' => [
@@ -849,6 +862,9 @@ return [
             ],
             'name' => [
                 'placeholder' => 'Masukan nama akun',
+            ],
+            'balance' => [
+                'placeholder' => '000.000',
             ],
         ]
     ],

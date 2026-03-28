@@ -481,7 +481,8 @@ class CustomHelper
     public static function invoicePaymentTransaction($transaction, $invoice, &$log_payment, $status = 'out')
     {
         if ($invoice != null) {
-            $piutang = Account::where('code', self::getAccountMapping('RECEIVABLES_INVOICE'))->first();
+            $account_key = ($invoice->withholding_agent == InvoiceClient::WITHHOLDING_AGENT['WAPU']) ? 'WAPU' : 'NON_WAPU';
+            $piutang = Account::where('code', self::getAccountMapping($account_key))->first();
             if ($piutang) {
                 // Tentukan debit/credit berdasarkan status transaksi
                 // Status OUT (Keluar) = Pembayaran invoice = Piutang berkurang (CREDIT)
@@ -492,14 +493,17 @@ class CustomHelper
                     ? "Keluar piutang invoice " . $invoice->invoice_number
                     : "Masuk piutang invoice " . $invoice->invoice_number;
 
+                // Nominal journal yang masuk itu adalah nilai excl ppn
+                $nominal = $invoice->price_total_exclude_ppn;
+
                 $piutang_trans = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,
                     'reference_type' => AccountTransaction::class,
                     'description' => $description,
                     'date' => Carbon::now(),
-                    'debit' => $is_out ? 0 : $transaction->nominal_transaction,      // DEBIT jika ENTER
-                    'credit' => $is_out ? $transaction->nominal_transaction : 0,     // CREDIT jika OUT
+                    'debit' => $is_out ? 0 : $nominal,      // DEBIT jika ENTER
+                    'credit' => $is_out ? $nominal : 0,     // CREDIT jika OUT
                 ], [
                     'account_id' => $piutang->id,
                     'reference_id' => $transaction->id,

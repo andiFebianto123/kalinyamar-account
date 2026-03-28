@@ -884,7 +884,12 @@ class CastAccountsCrudController extends CrudController
             invoice_clients.kdp,
             invoice_clients.invoice_number,
             client_po.job_name,
-            invoice_clients.price_total
+            invoice_clients.price_total_exclude_ppn,
+            invoice_clients.price_total_include_ppn,
+            invoice_clients.tax_ppn,
+            invoice_clients.pph,
+            invoice_clients.discount_pph,
+            invoice_clients.withholding_agent
         '))
             ->first();
         return response()->json($invoice);
@@ -1036,6 +1041,69 @@ class CastAccountsCrudController extends CrudController
         ]);
 
         CRUD::addField([
+            'name' => 'withholding_agent_status',
+            'label' => trans('backpack::crud.cash_account.field_transaction.withholding_agent_status.label'),
+            'type' => 'text',
+            'wrapper' => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'readonly' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'tax_ppn_nominal',
+            'label' => trans('backpack::crud.cash_account.field_transaction.tax_ppn_nominal.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'readonly' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'pph_nominal',
+            'label' => trans('backpack::crud.cash_account.field_transaction.pph_nominal.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'readonly' => true,
+            ]
+        ]);
+
+        CRUD::addField([
+            'name' => 'total_nominal_transfer',
+            'label' => trans('backpack::crud.cash_account.field_transaction.total_nominal_transfer.label'),
+            'type' => 'mask',
+            'mask' => '000.000.000.000.000.000',
+            'mask_options' => [
+                'reverse' => true
+            ],
+            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            'wrapper'   => [
+                'class' => 'form-group col-md-6',
+            ],
+            'attributes' => [
+                'readonly' => true,
+            ]
+        ]);
+
+        CRUD::addField([
             'name'        => 'status',
             'label'       => trans('backpack::crud.cash_account.field_transaction.status.label'),
             'type'        => 'select_from_array',
@@ -1124,18 +1192,6 @@ class CastAccountsCrudController extends CrudController
             ]
         ]);
 
-        // CRUD::addField([
-        //     'name' => 'no_invoice',
-        //     'label' => trans('backpack::crud.cash_account.field_transaction.no_invoice.label'),
-        //     'type' => 'text',
-        //     'wrapper'   => [
-        //         'class' => 'form-group col-md-6',
-        //     ],
-        //     'attributes' => [
-        //         'placeholder' => trans('backpack::crud.cash_account.field_transaction.no_invoice.placeholder'),
-        //     ]
-        // ]);
-
         CRUD::addField([
             'label' => trans('backpack::crud.cash_account.field_transaction.no_invoice.label'),
             'type'        => "select2_ajax_custom",
@@ -1151,6 +1207,8 @@ class CastAccountsCrudController extends CrudController
                 ...$invoice_disabled,
             ]
         ]);
+
+
 
         CRUD::addField([
             'name' => 'logic_account_transaction',

@@ -325,6 +325,20 @@ return [
                 'error_empty' => 'Bank name cannot be empty!',
                 'error_ajax' => 'Error occurred while saving bank.',
             ]
+        ],
+        'field_transaction' => [
+            'withholding_agent_status' => [
+                'label' => 'Withholding Agent',
+            ],
+            'tax_ppn_nominal' => [
+                'label' => 'VAT',
+            ],
+            'pph_nominal' => [
+                'label' => 'Income Tax',
+            ],
+            'total_nominal_transfer' => [
+                'label' => 'Total Transfer Value',
+            ],
         ]
     ],
     'invoice_client' => [
@@ -335,6 +349,20 @@ return [
             'withholding_agent' => [
                 'label' => 'Withholding Agent',
                 'placeholder' => '- SELECT WITHHOLDING AGENT -',
+            ],
+        ],
+    ],
+    'expense_account' => [
+        'title_header' => 'Chart Of Account',
+        'column' => [
+            'code' => 'Account Code',
+            'name' => 'Account Name',
+            'balance' => 'Balance',
+            'balance_initial' => 'Initial Balance',
+        ],
+        'field' => [
+            'balance' => [
+                'placeholder' => '000.000',
             ],
         ],
     ],
