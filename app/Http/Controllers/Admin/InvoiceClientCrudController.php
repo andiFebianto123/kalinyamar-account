@@ -806,7 +806,7 @@ class InvoiceClientCrudController extends CrudController
         if ($request->has('filter_paid_status')) {
             if ($request->filter_paid_status != 'all') {
                 $this->crud->query = $this->crud->query
-                    ->where('status', $request->filter_paid_status);
+                    ->where('invoice_clients.status', $request->filter_paid_status);
             }
         }
 
