@@ -701,27 +701,28 @@ class CustomVoid
                 $trans_4 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $acct_ppn->id,
                     'reference_id' => $invoice->id,
-                'reference_type' => InvoiceClient::class,
-                'description' => "PPN invoice " . $invoice->invoice_number,
-                'date' => Carbon::now(),
-                'debit' => 0,
-                'credit' => $price_ppn,
-            ], [
-                'account_id' => $acct_ppn->id,
-                'reference_id' => $invoice->id,
-                'reference_type' => InvoiceClient::class,
-            ]);
-            $log_payment[] = [
-                'id' => $trans_4->id,
-                'account_id' => $acct_ppn->id,
-                'reference_id' => $invoice->id,
-                'reference_type' => InvoiceClient::class,
-                'description' => "PPN invoice " . $invoice->invoice_number,
-                'date' => Carbon::now(),
-                'debit' => 0,
-                'credit' => $price_ppn,
-                'type' => JournalEntry::class,
-            ];
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPN invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $price_ppn,
+                ], [
+                    'account_id' => $acct_ppn->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_4->id,
+                    'account_id' => $acct_ppn->id,
+                    'reference_id' => $invoice->id,
+                    'reference_type' => InvoiceClient::class,
+                    'description' => "PPN invoice " . $invoice->invoice_number,
+                    'date' => Carbon::now(),
+                    'debit' => 0,
+                    'credit' => $price_ppn,
+                    'type' => JournalEntry::class,
+                ];
+            }
         }
 
         self::invoiceAllPph($invoice, $log_payment);
