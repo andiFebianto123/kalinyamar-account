@@ -250,7 +250,7 @@ class CustomVoid
         if ($voucher->total > 0) {
             $ppn = Account::where('code', CustomHelper::getAccountMapping('TAX'))->first();
             $total_ppn = $voucher->bill_value * ($voucher->tax_ppn / 100);
-            if ($ppn) {
+            if ($ppn && $total_ppn != 0) {
                 $trans_2 = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $ppn->id,
                     'reference_id' => $voucher->id,
