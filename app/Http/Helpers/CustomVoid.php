@@ -697,9 +697,10 @@ class CustomVoid
         $acct_ppn = Account::where('code', CustomHelper::getAccountMapping('TAX'))->first();
         if ($acct_ppn) {
             $price_ppn = $invoice->price_total_exclude_ppn * ($invoice->tax_ppn / 100);
-            $trans_4 = CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $acct_ppn->id,
-                'reference_id' => $invoice->id,
+            if ($price_ppn != 0) {
+                $trans_4 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $acct_ppn->id,
+                    'reference_id' => $invoice->id,
                 'reference_type' => InvoiceClient::class,
                 'description' => "PPN invoice " . $invoice->invoice_number,
                 'date' => Carbon::now(),
