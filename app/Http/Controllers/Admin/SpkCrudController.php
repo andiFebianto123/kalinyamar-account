@@ -111,6 +111,7 @@ class SpkCrudController extends CrudController
                         'active' => true,
                         'view' => 'crud::components.datatable',
                         'params' => [
+                            // 'filter' => false,
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
@@ -118,12 +119,6 @@ class SpkCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.subkon.column.name'),
-                                    'type'      => 'select',
-                                    'name'      => 'subkon_id',
-                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.spk.column.no_spk'),
@@ -134,6 +129,12 @@ class SpkCrudController extends CrudController
                                     'label'  => trans('backpack::crud.spk.column.date_spk'),
                                     'name' => 'date_spk',
                                     'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.client_po.field.work_code.label'),
@@ -203,8 +204,9 @@ class SpkCrudController extends CrudController
                         'label' => trans('backpack::crud.po.tab.open'),
                         // 'class' => '',
                         'active' => false,
-                        'view' => 'crud::components.datatable-po',
+                        'view' => 'crud::components.datatable',
                         'params' => [
+                            // 'filter' => false,
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
@@ -212,12 +214,6 @@ class SpkCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.subkon.column.name'),
-                                    'type'      => 'select',
-                                    'name'      => 'subkon_id',
-                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.spk.column.no_spk'),
@@ -228,6 +224,12 @@ class SpkCrudController extends CrudController
                                     'label'  => trans('backpack::crud.spk.column.date_spk'),
                                     'name' => 'date_spk',
                                     'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.client_po.field.work_code.label'),
@@ -293,8 +295,9 @@ class SpkCrudController extends CrudController
                         'label' => trans('backpack::crud.po.tab.close'),
                         // 'class' => '',
                         'active' => false,
-                        'view' => 'crud::components.datatable-po',
+                        'view' => 'crud::components.datatable',
                         'params' => [
+                            // 'filter' => false,
                             'crud_custom' => $this->crud,
                             'columns' => [
                                 [
@@ -302,12 +305,6 @@ class SpkCrudController extends CrudController
                                     'type'      => 'row_number',
                                     'label'     => 'No',
                                     'orderable' => false,
-                                ],
-                                [
-                                    'label' => trans('backpack::crud.subkon.column.name'),
-                                    'type'      => 'select',
-                                    'name'      => 'subkon_id',
-                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.spk.column.no_spk'),
@@ -318,6 +315,12 @@ class SpkCrudController extends CrudController
                                     'label'  => trans('backpack::crud.spk.column.date_spk'),
                                     'name' => 'date_spk',
                                     'type'  => 'date'
+                                ],
+                                [
+                                    'label' => trans('backpack::crud.subkon.column.name'),
+                                    'type'      => 'select',
+                                    'name'      => 'subkon_id',
+                                    'orderable' => true,
                                 ],
                                 [
                                     'label'  => trans('backpack::crud.client_po.field.work_code.label'),
@@ -607,18 +610,6 @@ class SpkCrudController extends CrudController
             ]
         ])->makeFirstColumn();
 
-        CRUD::column([
-            // 1-n relationship
-            'label' => trans('backpack::crud.subkon.column.name'),
-            'type'      => 'select',
-            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
-            'entity'    => 'subkon', // the method that defines the relationship in your Model
-            'attribute' => 'name', // foreign key attribute that is shown to user
-            'model'     => "App\Models\Subkon", // foreign key model
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
-        ]);
-
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.spk.column.no_spk'),
@@ -635,6 +626,18 @@ class SpkCrudController extends CrudController
                 'format' => $new_format_date,
             ],
         );
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'select',
+            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'subkon', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Subkon", // foreign key model
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
 
         CRUD::addColumn(
             [
@@ -749,18 +752,6 @@ class SpkCrudController extends CrudController
             ]
         ])->makeFirstColumn();
 
-        CRUD::column([
-            // 1-n relationship
-            'label' => trans('backpack::crud.subkon.column.name'),
-            'type'      => 'closure',
-            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
-            'function' => function ($entry) {
-                return $entry->subkon->name;
-            }
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
-        ]);
-
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.spk.column.no_spk'),
@@ -776,6 +767,18 @@ class SpkCrudController extends CrudController
                 'type'  => 'export'
             ],
         );
+
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'closure',
+            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
+            'function' => function ($entry) {
+                return $entry->subkon->name;
+            }
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
 
         CRUD::column(
             [

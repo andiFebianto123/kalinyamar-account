@@ -433,6 +433,7 @@
                 name: "#crudTable-{{$name}}",
                 table: null,
                 nameTab: "{{$name}}",
+                filter_status: "{!! $filter ?? 'false' !!}",
                 eventLoader: function(){
                     // event when create success
 
@@ -641,8 +642,10 @@
                 resize: function(){
                     var instance = this;
                     instance.table.columns.adjust();
-                    setupFilterInputs(instance.name, instance.nameTab);
-                    bindFilterEvents(instance.table, instance.name, instance.nameTab);
+                    @if (isset($filter))
+                        setupFilterInputs(instance.name, instance.nameTab);
+                        bindFilterEvents(instance.table, instance.name, instance.nameTab);
+                    @endif
                 }
             };
         });
