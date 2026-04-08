@@ -289,7 +289,7 @@ class MonitoringTrackerCrudController extends CrudController
             CRUD::column([
                 'label'       => trans('backpack::crud.monitoring_tracker.column.no_po_spk'),
                 'name'        => 'no_po_spk',
-                'type'        => 'text',
+                'type'        => 'wrap_text',
             ]);
 
             CRUD::column([
@@ -325,7 +325,7 @@ class MonitoringTrackerCrudController extends CrudController
                     }
                     $endDate = Carbon::parse($entry->actual_end_date);
                     $today   = Carbon::today();
-                    $diff    = $today->diffInDays($endDate, false);
+                    $diff    = $endDate->diffInDays($today, false);
 
                     return $diff;
                 },
@@ -697,7 +697,7 @@ class MonitoringTrackerCrudController extends CrudController
                 }
                 $endDate = \Carbon\Carbon::parse($entry->actual_end_date);
                 $today   = \Carbon\Carbon::today();
-                $diff    = $today->diffInDays($endDate, false);
+                $diff    = $endDate->diffInDays($today, false);
 
                 return $diff;
             },

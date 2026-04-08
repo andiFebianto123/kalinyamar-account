@@ -216,7 +216,7 @@ class VoucherPaymentPlanCrudController extends CrudController
 
             if (isset($search[6]) && trim($search[6]) !== '') {
                 $value = trim($search[6]);
-                $query = $query->where('payment_transfer', 'like', "%{$value}%");
+                $query = $query->where('total', 'like', "%{$value}%");
             }
 
             if (isset($search[7]) && trim($search[7]) !== '') {
@@ -467,8 +467,8 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'orderable' => false,
             ],
             [
-                'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
-                'name' => 'payment_transfer',
+                'label' => trans('backpack::crud.voucher.column.voucher.total.label'),
+                'name' => 'total',
                 'type' => 'text',
                 'orderable' => true,
             ],
@@ -1989,9 +1989,9 @@ class VoucherPaymentPlanCrudController extends CrudController
         $new_format_date = 'DD/MM/YYYY';
 
         $status_file = '';
-        if (strpos(url()->current(), 'excel')) {
+        if (strpos(url()->current(), 'export-excel')) {
             $status_file = 'excel';
-        } else if (strpos(url()->current(), 'pdf')) {
+        } else {
             $status_file = 'pdf';
         }
 
@@ -2061,7 +2061,7 @@ class VoucherPaymentPlanCrudController extends CrudController
 
             if (isset($request->columns[6]['search']['value'])) {
                 $this->crud->query = $this->crud->query
-                    ->where('payment_transfer', 'like', '%' . $request->columns[6]['search']['value'] . '%');
+                    ->where('total', 'like', '%' . $request->columns[6]['search']['value'] . '%');
             }
 
             if (isset($request->columns[7]['search']['value'])) {
@@ -2125,10 +2125,17 @@ class VoucherPaymentPlanCrudController extends CrudController
             );
 
             CRUD::addColumn([
-                'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
-                'name' => 'payment_transfer',
-                'type' => 'number',
-                'decimals' => 2,
+                'label' => trans('backpack::crud.voucher.column.voucher.total.label'),
+                'name' => 'total',
+                'type' => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->total);
+                },
+                // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+                'orderable' => false,
             ]);
 
             CRUD::addColumn([
@@ -2383,6 +2390,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'label' => trans('backpack::crud.voucher.column.voucher.bank.label'),
                 'name' => 'bank_name',
                 'type'  => 'closure',
+                'width_box' => '70px',
                 'function' => function ($entry) {
                     return $entry?->voucher?->subkon?->bank_name;
                 },
@@ -2398,6 +2406,7 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'label' => trans('backpack::crud.voucher.column.voucher.number_account.label'),
                 'name' => 'bank_account',
                 'type'  => 'closure',
+                'width_box' => '120px',
                 'function' => function ($entry) {
                     return $entry?->voucher?->subkon?->bank_account;
                 },
@@ -2454,7 +2463,6 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'label' => trans('backpack::crud.voucher.column.voucher.payment_description.label'),
                 'name' => 'payment_description',
                 'type'  => 'wrap_text',
-                ...$wrap_length,
             ],
         );
 
@@ -2488,7 +2496,6 @@ class VoucherPaymentPlanCrudController extends CrudController
                 'label' => trans('backpack::crud.voucher.column.voucher.job_name.label'),
                 'name' => 'job_name',
                 'type'  => 'wrap_text',
-                ...$wrap_length,
             ], // BELUM FILTER
         );
 
