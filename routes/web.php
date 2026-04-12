@@ -9,3 +9,7 @@ Route::get('/', function () {
     return redirect('/admin/login');
 });
 
+Route::get('/phpinfo', function () {
+    phpinfo();
+    exit;
+});
