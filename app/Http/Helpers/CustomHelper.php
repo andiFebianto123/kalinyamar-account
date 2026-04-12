@@ -174,6 +174,10 @@ class CustomHelper
 
     public static function formatRupiah($number, $decimal_digits = 0)
     {
+        if ($number < 0 && $number > -1) {
+            $number = 0;
+        }
+
         $is_negative = $number < 0;
 
         $absolute = abs($number);
@@ -190,6 +194,10 @@ class CustomHelper
 
     public static function formatRupiahExcel($number, $decimal_digits = 0)
     {
+        if ($number < 0 && $number > -1) {
+            $number = 0;
+        }
+
         $is_negative = $number < 0;
 
         $absolute = abs($number);
@@ -207,6 +215,11 @@ class CustomHelper
     public static function formatRupiahWithCurrency($number, $decimal_digits = 0)
     {
         self::init();
+
+        if ($number < 0 && $number > -1) {
+            $number = 0;
+        }
+
         $is_negative = $number < 0;
 
         $absolute = abs($number);

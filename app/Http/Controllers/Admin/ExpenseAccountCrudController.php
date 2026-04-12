@@ -751,6 +751,9 @@ class ExpenseAccountCrudController extends CrudController
             'name' => 'balance',
             'type'  => 'number',
             'value' => function ($entry) {
+                if ($entry->balance < 0 && $entry->balance > -1) {
+                    return 0;
+                }
                 return $entry->balance;
             },
             'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
