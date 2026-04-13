@@ -16,7 +16,7 @@ use App\Models\VoucherEdit;
 use App\Models\InvoiceClient;
 use App\Models\LogPayment;
 use App\Models\PurchaseOrder;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mpdf\Mpdf;
 use App\Http\Helpers\CustomVoid;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
@@ -1438,8 +1438,8 @@ class VoucherCrudController extends CrudController
                 // 'type'  => 'bald',
                 // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->bill_value);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->bill_value);
                 },
             ]);
 
@@ -1447,27 +1447,29 @@ class VoucherCrudController extends CrudController
                 'name' => 'tax_ppn',
                 'label' => trans('backpack::crud.voucher.field.tax_ppn.label'),
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->tax_ppn);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->tax_ppn);
                 },
             ]);
 
             CRUD::column([
                 'name' => 'total_price_ppn',
                 'label' => trans('backpack::crud.voucher.field.total_price_ppn.label'),
-                'type'  => 'number',
-                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
-                'decimals'      => 2,
-                'dec_point'     => ',',
-                'thousands_sep' => '.',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($status_file) {
+                    $total_price_ppn = ($entry->bill_value * $entry->tax_ppn / 100);
+                    $total_price_ppn = str_replace('.00', '', $total_price_ppn);
+                    $total_price_ppn = str_replace('.0', '', $total_price_ppn);
+                    return $this->priceFormatExport($status_file, $total_price_ppn);
+                },
             ]);
 
             CRUD::column([
                 'label' => trans('backpack::crud.voucher.column.voucher.total.label'),
                 'name' => 'total',
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->total);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->total);
                 },
             ]);
 
@@ -1484,8 +1486,8 @@ class VoucherCrudController extends CrudController
                 'name' => 'discount_pph_23',
                 'label' => trans('backpack::crud.voucher.field.discount_pph_23.label'),
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->discount_pph_23);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->discount_pph_23);
                 },
             ]);
 
@@ -1502,8 +1504,8 @@ class VoucherCrudController extends CrudController
                 'name' => 'discount_pph_4',
                 'label' =>  trans('backpack::crud.voucher.field.discount_pph_4.label'),
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->discount_pph_4);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->discount_pph_4);
                 },
             ]);
 
@@ -1520,8 +1522,8 @@ class VoucherCrudController extends CrudController
                 'name' => 'discount_pph_21',
                 'label' =>  trans('backpack::crud.voucher.field.discount_pph_21.label'),
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->discount_pph_21);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->discount_pph_21);
                 },
             ]);
 
@@ -1529,8 +1531,8 @@ class VoucherCrudController extends CrudController
                 'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label'),
                 'name' => 'payment_transfer',
                 'type'  => 'closure',
-                'function' => function ($entry) {
-                    return str_replace('.00', '', $entry->payment_transfer);
+                'function' => function ($entry) use ($status_file) {
+                    return $this->priceFormatExport($status_file, $entry->payment_transfer);
                 },
             ]);
 
@@ -4155,11 +4157,29 @@ class VoucherCrudController extends CrudController
 
         $voucher->date_now_str = Carbon::now()->translatedFormat('d F Y');
 
-        $pdf = Pdf::loadView('exports.voucher-pdf-origin', [
+        $html = view('exports.voucher-pdf-origin', [
             'voucher' => $voucher,
-        ])
-            ->setPaper('A4', 'portrait');
-        return $pdf->stream("voucher-$voucher->no_voucher.pdf");
+        ])->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-P',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        $fileName = "voucher-$voucher->no_voucher.pdf";
+
+        return response()->streamDownload(function () use ($mpdf) {
+            echo $mpdf->Output('', 'S');
+        }, $fileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
     }
 
     public function exportPdf()
@@ -4167,44 +4187,86 @@ class VoucherCrudController extends CrudController
         $type = request()->tab;
 
         $this->setupListExport($type);
-        // $this->setupListOperation();
 
         $columns = $this->crud->columns();
-        $items =  $this->crud->getEntries();
+        $this->crud->autoEagerLoadRelationshipColumns();
+
+        $entries = $this->crud->query->cursor();
 
         $row_number = 0;
-
-        $all_items = [];
-
-        foreach ($items as $item) {
-            $row_items = [];
-            $row_number++;
-            foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
-                $item_value = str_replace('<span>', '', $item_value);
-                $item_value = str_replace('</span>', '', $item_value);
-                $item_value = str_replace("\n", '', $item_value);
-                $item_value = CustomHelper::clean_html($item_value);
-                $row_items[] = trim($item_value);
-            }
-            $all_items[] = $row_items;
-        }
 
         $title = "VOUCHER";
         if ($type == 'voucher_edit') {
             $title = "VOUCHER EDIT";
         }
 
-        $pdf = Pdf::loadView('exports.table-pdf', [
-            'columns' => $columns,
-            'items' => $all_items,
-            'title' => $title
-        ])->setPaper('A4', 'landscape');
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+        ]);
+
+        // Style and Table Header
+        $html = '
+        <html>
+        <head>
+            <style>
+                body { font-family: sans-serif; font-size: 12px; }
+                table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-top: 10px; 
+                    table-layout: auto;
+                }
+                th, td { 
+                    border: 1px solid #000; 
+                    padding: 3px; 
+                    text-align: center; 
+                    word-wrap: break-word;
+                }
+                th { font-weight: bold; background-color: #eee; white-space: normal; }
+            </style>
+        </head>
+        <body>
+            <h3 style="text-align:center;">' . $title . '</h3>
+            <table autosize="1">
+                <thead>
+                    <tr>';
+        foreach ($columns as $col) {
+            $html .= '<th>' . ($col['label'] ?? '') . '</th>';
+        }
+        $html .= '</tr>
+                </thead>
+                <tbody>';
+
+        $mpdf->WriteHTML($html);
+
+        foreach ($entries as $entry) {
+            $entry->addFakes($this->crud->getFakeColumnsAsArray());
+            $row_number++;
+            $row_html = '<tr>';
+            foreach ($columns as $column) {
+                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $entry, $row_number);
+
+                // Clean HTML
+                $item_value = str_replace(['<span>', '</span>', "\n"], '', $item_value);
+                $item_value = CustomHelper::clean_html($item_value);
+
+                $row_html .= '<td>' . trim($item_value) . '</td>';
+            }
+            $row_html .= '</tr>';
+            $mpdf->WriteHTML($row_html);
+        }
+
+        $mpdf->WriteHTML('</tbody></table></body></html>');
 
         $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
+        return response()->streamDownload(function () use ($mpdf) {
+            echo $mpdf->Output('', 'S');
         }, $fileName, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
