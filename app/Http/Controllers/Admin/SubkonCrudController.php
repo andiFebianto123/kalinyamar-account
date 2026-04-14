@@ -669,18 +669,21 @@ class SubkonCrudController extends CrudController
         CRUD::addColumn([
             'name'  => 'name',
             'label' => trans('backpack::crud.subkon.column.name'),
-            'type'  => 'text',
+            'type'  => 'wrap_text',
+            'width_box' => '350px',
         ]);
         CRUD::addColumn([
             'name'  => 'address',
             'label' => trans('backpack::crud.subkon.column.address'),
-            'type'  => 'text',
+            'type'  => 'wrap_text',
+            'width_box' => '350px',
         ]);
 
         CRUD::addColumn([
             'name'  => 'npwp',
             'label' => trans('backpack::crud.subkon.column.npwp'),
-            'type'  => 'text',
+            'type'  => 'wrap_text',
+            'width_box' => '350px',
         ]);
 
         CRUD::addColumn([
@@ -704,7 +707,8 @@ class SubkonCrudController extends CrudController
         CRUD::addColumn([
             'name'  => 'account_holder_name',
             'label' => trans('backpack::crud.subkon.column.account_holder_name'),
-            'type'  => 'text',
+            'type'  => 'wrap_text',
+            'width_box' => '350px',
         ]);
 
         CRUD::addColumn([
@@ -712,9 +716,9 @@ class SubkonCrudController extends CrudController
             'label'    => trans('backpack::crud.subkon.column.list_po'),
             'type'     => 'custom_html',
             'value' => function ($entry) {
-                return "" . $entry->purchase_orders->map(function ($item, $key) {
+                return "<ul style='margin: 8px; padding: 0;'>" . $entry->purchase_orders->map(function ($item, $key) {
                     return "<li>" . $item->po_number . "</li>";
-                })->implode('') . "";
+                })->implode('') . "</ul>";
             },
             'searchLogic' => function ($query, $column, $searchTerm) {
                 $query->orWhereHas('purchase_orders', function ($q) use ($column, $searchTerm) {
@@ -728,9 +732,9 @@ class SubkonCrudController extends CrudController
             'label'    => trans('backpack::crud.subkon.column.list_spk'),
             'type'     => 'custom_html',
             'value' => function ($entry) {
-                return "" . $entry->spks->map(function ($item, $key) {
+                return "<ul style='margin: 8px; padding: 0;'>" . $entry->spks->map(function ($item, $key) {
                     return "<li>" . $item->no_spk . "</li>";
-                })->implode('') . "";
+                })->implode('') . "</ul>";
             },
             'searchLogic' => function ($query, $column, $searchTerm) {
                 $query->orWhereHas('spks', function ($q) use ($column, $searchTerm) {
