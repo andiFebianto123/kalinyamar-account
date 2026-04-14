@@ -1103,6 +1103,8 @@ class PurchaseOrderCrudController extends CrudController
     protected function setupShowOperation()
     {
         $this->setupCreateOperation();
+        $settings = Setting::first();
+        $new_format_date = 'DD/MM/YYYY';
 
         // update field hidden
         CRUD::field('space')->remove();
@@ -1152,14 +1154,117 @@ class PurchaseOrderCrudController extends CrudController
         ])->after('document_path');
 
         // load entry data
-        $this->setupListOperation();
+        // $this->setupListOperation();
 
         // remove row number
-        CRUD::column('row_number')->remove();
+        // CRUD::column('row_number')->remove();
+        CRUD::column([
+            // 1-n relationship
+            'label' => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'select',
+            'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
+            'entity'    => 'subkon', // the method that defines the relationship in your Model
+            'attribute' => 'name', // foreign key attribute that is shown to user
+            'model'     => "App\Models\Subkon", // foreign key model
+            // OPTIONAL
+            // 'limit' => 32, // Limit the number of characters shown
+        ]);
 
-        // update document path
-        CRUD::column('document_path')->remove();
-        CRUD::column('additional_info')->remove();
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.po_number'),
+                'name' => 'po_number',
+                'type'  => 'text'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.date_po'),
+                'name' => 'date_po',
+                'type'  => 'date',
+                'format' => $new_format_date,
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.client_po.field.work_code.label'),
+                'name' => 'work_code',
+                'type'  => 'text'
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.job_name'),
+                'name' => 'job_name',
+                'type'  => 'wrap_text',
+                'limit' => 600,
+                'width_box' => '350px',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.job_description'),
+                'name' => 'job_description',
+                'type'  => 'wrap_text',
+                'limit' => 600,
+                'width_box' => '400px',
+            ],
+        );
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.job_value'),
+                'name' => 'job_value',
+                'type'  => 'number',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+            ],
+        );
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.po.column.tax_ppn'),
+            'name' => 'tax_ppn',
+            'type'  => 'number',
+            'suffix' => '%',
+        ]);
+
+        CRUD::column(
+            [
+                'label'  => trans('backpack::crud.po.column.total_value_with_tax'),
+                'name' => 'total_value_with_tax',
+                'type'  => 'number-custom',
+                'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                'decimals'      => 2,
+                'dec_point'     => ',',
+                'thousands_sep' => '.',
+                'function' => function ($entry) {
+                    return $entry->job_value + ($entry->job_value * $entry->tax_ppn / 100);
+                }
+            ],
+        );
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.po.column.due_date'),
+            'name' => 'due_date',
+            'type'  => 'date',
+            'format' => $new_format_date,
+        ]);
+
+        CRUD::column([
+            'label'  => trans('backpack::crud.po.column.status'),
+            'name' => 'status',
+            'type'  => 'closure',
+            'function' => function ($entry) {
+                return strtoupper($entry->status);
+            }
+        ]);
+
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.po.column.document_path'),
@@ -1179,27 +1284,13 @@ class PurchaseOrderCrudController extends CrudController
             ],
         );
 
-        // update date_po
-        CRUD::column('date_po')->remove();
-        CRUD::column([
-            'name' => 'date_po',
-            'label' => trans('backpack::crud.po.column.date_po'),
-            'type' => 'date',
-            'format' => 'DD/MM/Y',
-            'attributes' => [
-                'placeholder' => trans('backpack::crud.po.field.date_po.placeholder'),
-            ],
-            'wrapper'   => [
-                'class' => 'form-group col-md-6'
-            ],
-        ])->after('po_number');
         CRUD::column(
             [
                 'label'  => trans('backpack::crud.po.column.additional_info'),
                 'name' => 'additional_info',
                 'type'  => 'textarea'
             ],
-        )->after('document_path');
+        );
     }
 
     /**
