@@ -579,7 +579,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_2 = $invoice_2->where(function ($q) use ($request) {
-                $q->whereYear('projects.invoice_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -616,7 +616,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_3 = $invoice_3->where(function ($q) use ($request) {
-                $q->whereYear('projects.invoice_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -651,7 +651,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_4 = $invoice_4->where(function ($q) use ($request) {
-                $q->whereYear('projects.invoice_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -687,7 +687,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_5 = $invoice_5->where(function ($q) use ($request) {
-                $q->whereYear('projects.invoice_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -723,7 +723,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_6 = $invoice_6->where(function ($q) use ($request) {
-                $q->whereYear('projects.invoice_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -794,8 +794,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_1 = $invoice_1->where(function ($q) use ($request) {
-                $q->whereYear('projects.start_date', $request->filter_year)
-                    ->orWhereYear('projects.end_date', $request->filter_year);
+                $q->whereYear('projects.invoice_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -835,8 +834,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_2 = $invoice_2->where(function ($q) use ($request) {
-                $q->whereYear('projects.start_date', $request->filter_year)
-                    ->orWhereYear('projects.end_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -874,8 +872,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_3 = $invoice_3->where(function ($q) use ($request) {
-                $q->whereYear('projects.start_date', $request->filter_year)
-                    ->orWhereYear('projects.end_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -912,8 +909,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_4 = $invoice_4->where(function ($q) use ($request) {
-                $q->whereYear('projects.start_date', $request->filter_year)
-                    ->orWhereYear('projects.end_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -951,8 +947,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_5 = $invoice_5->where(function ($q) use ($request) {
-                $q->whereYear('projects.start_date', $request->filter_year)
-                    ->orWhereYear('projects.end_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -990,8 +985,7 @@ class StatusProjectCrudController extends CrudController
 
         if ($request->has('filter_year') && $request->filter_year != 'all') {
             $invoice_6 = $invoice_6->where(function ($q) use ($request) {
-                $q->whereYear('projects.start_date', $request->filter_year)
-                    ->orWhereYear('projects.end_date', $request->filter_year);
+                $q->whereYear('projects.actual_end_date', $request->filter_year);
             });
         }
         if ($request->has('filter_category') && $request->filter_category != 'all') {
@@ -1076,13 +1070,11 @@ class StatusProjectCrudController extends CrudController
         $this->crud->addClause('where', 'status_po', $type);
 
         if (request()->has('filter_year') && request()->filter_year != 'all') {
-            // if ($type == 'CLOSE') {
-            //     $this->crud->addClause('whereYear', 'payment_date', request()->filter_year);
-            // } elseif ($type == 'BELUM_SELESAI') {
-            //     $this->crud->addClause('whereYear', 'start_date', request()->filter_year);
-            // } else {
-            // }
-            $this->crud->addClause('whereYear', 'invoice_date', request()->filter_year);
+            if ($type == 'UNPAID' || $type == 'CLOSE') {
+                $this->crud->addClause('whereYear', 'invoice_date', request()->filter_year);
+            } else {
+                $this->crud->addClause('whereYear', 'actual_end_date', request()->filter_year);
+            }
         }
 
         // $new_format_date = 'D MMM Y';
@@ -1638,6 +1630,14 @@ class StatusProjectCrudController extends CrudController
             }
         }
         $this->crud->addClause('where', 'status_po', $type);
+
+        if (request()->has('filter_year') && request()->filter_year != 'all') {
+            if ($type == 'UNPAID' || $type == 'CLOSE') {
+                $this->crud->addClause('whereYear', 'invoice_date', request()->filter_year);
+            } else {
+                $this->crud->addClause('whereYear', 'actual_end_date', request()->filter_year);
+            }
+        }
 
         if ($type == 'UNPAID') {
             CRUD::addButtonFromView('line', 'update-unpaid-project', 'update-unpaid-project', 'beginning');
