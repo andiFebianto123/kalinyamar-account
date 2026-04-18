@@ -325,10 +325,14 @@ class CastAccountsCrudController extends CrudController
             ->leftJoin('invoice_clients as voucher_invoice', function ($join) {
                 $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
             })
+            ->leftJoin('accounts as voucher_account', 'vouchers.account_id', '=', 'voucher_account.id')
             ->select([
                 'account_transactions.*',
                 'invoice_clients.kdp as invoice_kdp',
                 'vouchers.work_code as voucher_kdp',
+                'vouchers.payment_description as voucher_description',
+                'voucher_account.code as voucher_account_code',
+                'voucher_account.name as voucher_account_name',
                 'invoice_clients.invoice_number as direct_invoice_number',
                 'voucher_invoice.invoice_number as indirect_invoice_number'
             ])
@@ -384,7 +388,10 @@ class CastAccountsCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.cash_account.field_transaction.description.label'),
                 'name' => 'description',
-                'type'  => 'wrap_text',
+                'type'  => 'closure',
+                'function' => function ($row) {
+                    return $row->voucher_description ?: ($row->description ?? '-');
+                },
                 ...$wrap_length
             ],
         );
@@ -415,7 +422,7 @@ class CastAccountsCrudController extends CrudController
                 'name' => 'account',
                 'type'  => 'closure',
                 'function' => function ($row) {
-                    return ($row->account_id) ? $row->account->code . ' - ' . $row->account->name : '-';
+                    return ($row->voucher_account_code) ? $row->voucher_account_code . ' - ' . $row->voucher_account_name : (($row->account_id) ? $row->account->code . ' - ' . $row->account->name : '-');
                 }
             ],
         );
@@ -2089,12 +2096,17 @@ class CastAccountsCrudController extends CrudController
             $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
         });
 
+        $query = $query->leftJoin('accounts as voucher_account', 'vouchers.account_id', '=', 'voucher_account.id');
+
         $query->select([
             'account_transactions.*',
             'log_payments.id as log_payment_id',
             'invoice_clients.invoice_number as invoice_number',
             'invoice_clients.kdp as invoice_kdp',
             'vouchers.work_code as voucher_kdp',
+            'vouchers.payment_description as voucher_description',
+            'voucher_account.code as voucher_account_code',
+            'voucher_account.name as voucher_account_name',
             'voucher_invoice.invoice_number as indirect_invoice_number'
         ]);
 
@@ -2183,10 +2195,10 @@ class CastAccountsCrudController extends CrudController
             $data[] = [
                 'date_transaction_str' => $date_str,
                 'nominal_transaction_str' => $nominal_str,
-                'description_str' => $entry->description ?? '-',
+                'description_str' => $entry->voucher_description ?: ($entry->description ?? '-'),
                 'kdp_str' => $entry->invoice_kdp ?: ($entry->voucher_kdp ?: ($entry->kdp ?? '-')),
                 'job_name_str' => $entry->job_name ?? '-',
-                'account_id_str' => ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-',
+                'account_id_str' => ($entry->voucher_account_code) ? $entry->voucher_account_code . ' - ' . $entry->voucher_account_name : (($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-'),
                 'no_invoice_str' => $entry->invoice_number ?: ($entry->indirect_invoice_number ?? '-'),
                 'status_str' => ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status))),
                 'action_buttons' => $btn,
