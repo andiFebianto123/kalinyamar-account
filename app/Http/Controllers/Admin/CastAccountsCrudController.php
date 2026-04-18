@@ -314,8 +314,26 @@ class CastAccountsCrudController extends CrudController
         // ->where('is_first', 0)
         // ->orderBy('date_transaction', 'ASC')->get();
         $this->crud->query = $this->crud->query
-            ->where('cast_account_id', $id)
-            ->where('is_first', 0);
+            ->leftJoin('invoice_clients', function ($join) {
+                $join->on('account_transactions.reference_id', 'invoice_clients.id')
+                    ->where('account_transactions.reference_type', 'App\\Models\\InvoiceClient');
+            })
+            ->leftJoin('vouchers', function ($join) {
+                $join->on('account_transactions.reference_id', 'vouchers.id')
+                    ->where('account_transactions.reference_type', 'App\\Models\\Voucher');
+            })
+            ->leftJoin('invoice_clients as voucher_invoice', function ($join) {
+                $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
+            })
+            ->select([
+                'account_transactions.*',
+                'invoice_clients.kdp as invoice_kdp',
+                'vouchers.work_code as voucher_kdp',
+                'invoice_clients.invoice_number as direct_invoice_number',
+                'voucher_invoice.invoice_number as indirect_invoice_number'
+            ])
+            ->where('account_transactions.cast_account_id', $id)
+            ->where('account_transactions.is_first', 0);
 
         if (request()->has('filter_year') && request()->filter_year != 'all') {
             $this->crud->query = $this->crud->query->whereYear('account_transactions.date_transaction', request()->filter_year);
@@ -375,7 +393,10 @@ class CastAccountsCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.cash_account.field_transaction.kdp.label'),
                 'name' => 'kdp',
-                'type'  => 'export'
+                'type'  => 'closure',
+                'function' => function ($row) {
+                    return $row->invoice_kdp ?: ($row->voucher_kdp ?: ($row->kdp ?? '-'));
+                }
             ],
         );
 
@@ -405,7 +426,7 @@ class CastAccountsCrudController extends CrudController
                 'name' => 'no_invoice',
                 'type'  => 'closure',
                 'function' => function ($row) {
-                    return ($row->no_invoice) ? $row->no_invoice : '-';
+                    return $row->direct_invoice_number ?: ($row->indirect_invoice_number ?: ($row->no_invoice ?? '-'));
                 }
             ],
         );
@@ -2059,11 +2080,22 @@ class CastAccountsCrudController extends CrudController
                 ->where('account_transactions.reference_type', 'App\\Models\\InvoiceClient');
         });
 
+        $query = $query->leftJoin('vouchers', function ($join) {
+            $join->on('account_transactions.reference_id', 'vouchers.id')
+                ->where('account_transactions.reference_type', 'App\\Models\\Voucher');
+        });
+
+        $query = $query->leftJoin('invoice_clients as voucher_invoice', function ($join) {
+            $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
+        });
+
         $query->select([
             'account_transactions.*',
             'log_payments.id as log_payment_id',
             'invoice_clients.invoice_number as invoice_number',
-            'invoice_clients.kdp as kdp'
+            'invoice_clients.kdp as invoice_kdp',
+            'vouchers.work_code as voucher_kdp',
+            'voucher_invoice.invoice_number as indirect_invoice_number'
         ]);
 
         // Access Check
@@ -2152,10 +2184,10 @@ class CastAccountsCrudController extends CrudController
                 'date_transaction_str' => $date_str,
                 'nominal_transaction_str' => $nominal_str,
                 'description_str' => $entry->description ?? '-',
-                'kdp_str' => $entry->kdp ?? '-',
+                'kdp_str' => $entry->invoice_kdp ?: ($entry->voucher_kdp ?: ($entry->kdp ?? '-')),
                 'job_name_str' => $entry->job_name ?? '-',
                 'account_id_str' => ($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-',
-                'no_invoice_str' => $entry->invoice_number ?? '-',
+                'no_invoice_str' => $entry->invoice_number ?: ($entry->indirect_invoice_number ?? '-'),
                 'status_str' => ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status))),
                 'action_buttons' => $btn,
             ];
