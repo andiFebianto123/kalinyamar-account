@@ -366,4 +366,7 @@ return [
             ],
         ],
     ],
+    'filter' => [
+        'all_year' => 'All Years',
+    ],
 ];

@@ -9,9 +9,9 @@
                 <div class="d-flex align-items-center">
                     <label for="filter_year" class="me-2 fw-bold text-nowrap">Pilih Tahun:</label>
                     <select id="filter_year" class="form-select form-select-sm w-auto" style="min-width: 150px; font-weight:bold;">
-                        <option value="">Semua Tahun</option>
+                        <option value="all" {{ request('year') == 'all' ? 'selected' : '' }}>Semua Tahun</option>
                         @for ($i = date('Y'); $i >= 2020; $i--)
-                            <option value="{{ $i }}" {{ $i == date('Y') ? 'selected' : '' }}>{{ $i }}</option>
+                            <option value="{{ $i }}" {{ $i == (request('year') ?: date('Y')) ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
                 </div>
@@ -435,7 +435,8 @@
 
 
         $('#filter_year').change(function(){
-            SIAOPS.getAttribute('dashboard').load();
+            var year = $(this).val();
+            window.location.href = "{{ url($crud->route) }}?year=" + year;
         });
     });
 </script>

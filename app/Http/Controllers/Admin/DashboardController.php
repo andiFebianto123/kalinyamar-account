@@ -40,7 +40,7 @@ class DashboardController extends CrudController
     {
         $date = Carbon::now();
 
-        if ($year && $year != date('Y')) {
+        if ($year && $year != "all") {
             // Find the latest date from 3 sources: Invoices, Vouchers, Project Created
             $latest_invoice = InvoiceClient::whereYear('invoice_date', $year)->max('invoice_date');
             $latest_voucher = Voucher::whereYear('created_at', $year)->max('created_at');
@@ -57,7 +57,8 @@ class DashboardController extends CrudController
                 $date = trans('backpack::crud.dashboard.no_data');
             }
         } else {
-            $date = $date->locale(App::getLocale())->translatedFormat('d F Y');
+            // $date = $date->locale(App::getLocale())->translatedFormat('d F Y');
+            $date = trans('backpack::crud.filter.all_year');
         }
 
         return [
@@ -78,7 +79,21 @@ class DashboardController extends CrudController
         ];
         $projects = Project::groupBy('status_po')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('invoice_date', $year);
+                if ($year && $year != 'all') {
+                    $q->where(function ($q) use ($year) {
+                        // Filter by invoice_date for UNPAID and CLOSE
+                        $q->where(function ($qq) use ($year) {
+                            $qq->whereIn('status_po', ['UNPAID', 'CLOSE'])
+                                ->whereYear('invoice_date', $year);
+                        });
+
+                        // Filter by actual_end_date for other statuses
+                        $q->orWhere(function ($qq) use ($year) {
+                            $qq->whereNotIn('status_po', ['UNPAID', 'CLOSE'])
+                                ->whereYear('actual_end_date', $year);
+                        });
+                    });
+                }
             })
             ->select(DB::raw('
             SUM(price_total_include_ppn) as total,
@@ -92,37 +107,45 @@ class DashboardController extends CrudController
         $projects_unpaid_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-            ->where('status_po', 'Unpaid')
+            ->where('status_po', 'UNPAID')
             ->where('category', 'RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('invoice_date', $year);
+                if ($year && $year != 'all') {
+                    $q->whereYear('invoice_date', $year);
+                }
             })
             ->get();
         $projects_unpaid_non_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-            ->where('status_po', 'Unpaid')
+            ->where('status_po', 'UNPAID')
             ->where('category', 'NON RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('invoice_date', $year);
+                if ($year && $year != 'all') {
+                    $q->whereYear('invoice_date', $year);
+                }
             })
             ->get();
         $projects_Tertunda_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-            ->where('status_po', 'Tertunda')
+            ->where('status_po', 'TERTUNDA')
             ->where('category', 'RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('invoice_date', $year);
+                if ($year && $year != 'all') {
+                    $q->whereYear('actual_end_date', $year);
+                }
             })
             ->get();
         $projects_Tertunda_non_rutin = Project::select(DB::raw('
             SUM(price_total_include_ppn) as total
         '))
-            ->where('status_po', 'Tertunda')
+            ->where('status_po', 'TERTUNDA')
             ->where('category', 'NON RUTIN')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('invoice_date', $year);
+                if ($year && $year != 'all') {
+                    $q->whereYear('actual_end_date', $year);
+                }
             })
             ->get();
         return [
@@ -138,7 +161,9 @@ class DashboardController extends CrudController
     {
         $quotations = Quotation::groupBy('status')
             ->when($year, function ($q) use ($year) {
-                $q->whereYear('closing_date', $year);
+                if ($year && $year != 'all') {
+                    $q->whereYear('closing_date', $year);
+                }
             })
             ->select(DB::raw("SUM(rab) as total, status"))->get();
 
@@ -205,7 +230,7 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year) {
+                if ($year && $year != 'all') {
                     $query->whereYear('invoice_date', $year);
                 }
             })
@@ -221,7 +246,7 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year) {
+                if ($year && $year != 'all') {
                     $query->whereYear('invoice_date', $year);
                 }
             })
@@ -237,7 +262,7 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year) {
+                if ($year && $year != 'all') {
                     $query->whereYear('invoice_date', $year);
                 }
             })
@@ -256,7 +281,7 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year) {
+                if ($year && $year != 'all') {
                     $query->whereYear('invoice_date', $year);
                 }
             })
@@ -289,7 +314,7 @@ class DashboardController extends CrudController
         ];
     }
 
-    public function dataLabaCategory()
+    public function dataLabaCategory($year = null)
     {
 
         // $voucher_query = DB::table('vouchers')
@@ -307,12 +332,16 @@ class DashboardController extends CrudController
         //     )
         //     ->get();
 
-        $profit_lost_rutin = CustomHelper::profitLostRepository()
+
+        $profit_lost_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'RUTIN')
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year && $year != 'all') {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             ->get();
 
@@ -326,12 +355,15 @@ class DashboardController extends CrudController
         //         DB::raw("(IFNULL(invoice_clients.price_total_exclude_ppn,0) - IFNULL(voucher.total,0)) as total_laba")
         //     )->get();
 
-        $profit_lost_non_rutin = CustomHelper::profitLostRepository()
+        $profit_lost_non_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year && $year != 'all') {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             ->get();
 
@@ -346,10 +378,13 @@ class DashboardController extends CrudController
     {
         $monitoring_result = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
-            ->whereNotExists(function ($query) {
+            ->whereNotExists(function ($query) use ($year) {
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
+                if ($year && $year != 'all') {
+                    $query->whereYear('invoice_date', $year);
+                }
             })
             // ->when($year, function ($query) use ($year) {
             //     $query->whereYear('project_profit_lost.created_at', $year);
@@ -395,14 +430,17 @@ class DashboardController extends CrudController
         // dd($this->totalJobRealisasion());
         // dd($this->totalLabaCategory());
 
+        $request = request();
+        $year = $request->input('year') ?? date('Y');
+
         $this->card->addCard([
             'name' => 'dashboard',
             'line' => 'top',
             'view' => 'crud::components.dashboard',
             'parent_view' => 'crud::components.filter-parent',
             'params' => [
-                'data_laba' => $this->dataLabaCategory(),
-                'data_monitoring' => $this->dataNonRutinMonitoring(),
+                'data_laba' => $this->dataLabaCategory($year),
+                'data_monitoring' => $this->dataNonRutinMonitoring($year),
             ]
         ]);
 
