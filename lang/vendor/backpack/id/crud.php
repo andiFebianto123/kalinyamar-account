@@ -617,6 +617,9 @@ return [
             'nominal_information' => [
                 'label' => 'Total Sisa Pembayaran',
             ],
+            'nominal_information_show' => [
+                'label' => 'Estimasi Nilai Transfer',
+            ],
             'item' => [
                 'label' => 'Invoice Item',
                 'new_item_label' => 'Tambah Item',

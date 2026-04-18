@@ -1854,7 +1854,7 @@ class InvoiceClientCrudController extends CrudController
 
         CRUD::addField([
             'name' => 'nominal_information',
-            'label' => trans('backpack::crud.invoice_client.field.nominal_information.label'),
+            'label' => trans('backpack::crud.invoice_client.field.nominal_information_show.label'),
             'type' => 'text',
             'wrapper'   => [
                 'class' => 'form-group col-md-6',
@@ -2066,13 +2066,22 @@ class InvoiceClientCrudController extends CrudController
         );
 
         CRUD::column([
-            'label' => trans('backpack::crud.invoice_client.field.nominal_information.label'),
+            'label' => trans('backpack::crud.invoice_client.field.nominal_information_show.label'),
             'name' => 'price_total',
-            'type' => 'number',
-            'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
-            'decimals'      => 2,
-            'dec_point'     => ',',
-            'thousands_sep' => '.',
+            'type' => 'closure',
+            // 'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : 'Rp.',
+            // 'decimals'      => 2,
+            // 'dec_point'     => ',',
+            // 'thousands_sep' => '.',
+            'function' => function ($entry) {
+                if ($entry->withholding_agent == "NON WAPU" || $entry->withholding_agent == "" || $entry->withholding_agent == null) {
+                    return CustomHelper::formatRupiahWithCurrency($entry->price_total);
+                } else if ($entry->withholding_agent == "WAPU") {
+                    return CustomHelper::formatRupiahWithCurrency($entry->price_total_exclude_ppn - $entry->discount_pph);
+                } else {
+                    return CustomHelper::formatRupiahWithCurrency($entry->price_total);
+                }
+            }
         ]);
 
         CRUD::column([
