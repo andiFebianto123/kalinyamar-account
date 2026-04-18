@@ -1055,7 +1055,7 @@ class CastAccountsCrudController extends CrudController
         CRUD::addField([
             'name' => 'tax_ppn_nominal',
             'label' => trans('backpack::crud.cash_account.field_transaction.tax_ppn_nominal.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -1072,7 +1072,7 @@ class CastAccountsCrudController extends CrudController
         CRUD::addField([
             'name' => 'pph_nominal',
             'label' => trans('backpack::crud.cash_account.field_transaction.pph_nominal.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true
@@ -1089,7 +1089,7 @@ class CastAccountsCrudController extends CrudController
         CRUD::addField([
             'name' => 'total_nominal_transfer',
             'label' => trans('backpack::crud.cash_account.field_transaction.total_nominal_transfer.label'),
-            'type' => 'mask',
+            'type' => 'text',
             'mask' => '000.000.000.000.000.000',
             'mask_options' => [
                 'reverse' => true

@@ -69,6 +69,18 @@
                         }
                     }
 
+                    function formatIdr(angka){
+                        const formatter = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR'
+                        });
+
+                        let hasilFormat = formatter.format(angka);
+                        let tanpaRp = hasilFormat.replace('Rp', '').trim();
+
+                        return tanpaRp;
+                    }
+
                     toggleCalculationFields(false);
 
                     instance.tax_ppn_percent = 0;
@@ -112,15 +124,16 @@
                                     
                                     if (instance.is_wapu) {
                                         total_transfer = excl_ppn - pph_nominal;
-                                        setInputMasked('tax_ppn_nominal', 0);
+                                        // $(form + ' [name="tax_ppn_nominal"]').val(formatIdr(ppn_nominal));
                                     } else {
                                         total_transfer = excl_ppn + ppn_nominal - pph_nominal;
-                                        setInputMasked('tax_ppn_nominal', ppn_nominal);
+                                        // $(form + ' [name="tax_ppn_nominal"]').val(formatIdr(ppn_nominal));
                                     }
 
                                     setInputMasked('nominal_transaction', excl_ppn);
-                                    setInputMasked('pph_nominal', pph_nominal);
-                                    setInputMasked('total_nominal_transfer', total_transfer);
+                                    $(form + ' [name="tax_ppn_nominal"]').val(formatIdr(ppn_nominal));
+                                    $(form + ' [name="pph_nominal"]').val(formatIdr(pph_nominal));
+                                    $(form + ' [name="total_nominal_transfer"]').val(formatIdr(total_transfer));
                                     $(form + ' [name="withholding_agent_status"]').val(instance.withholding_agent);
                                     
                                     if (job_name) {
