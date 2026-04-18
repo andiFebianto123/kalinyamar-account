@@ -822,15 +822,18 @@ class ProjectListCrudController extends CrudController
         $total_permission = $permissions->whereIn('name', [
             'EDIT KOLOM PROGRES DAN KETERANGAN DAFTAR PROJECT'
         ])->count();
-        if ($total_permission) {
-            CRUD::setValidation([
-                'progress' => 'nullable|numeric',
-                'information' => 'nullable',
-            ]);
-            $edit_column_progress_and_information = true;
-        } else {
-            CRUD::setValidation($this->ruleValidation());
-            $edit_column_progress_and_information = false;
+        $edit_column_progress_and_information = false;
+        if (!$user->hasRole('Super Admin')) {
+            if ($total_permission) {
+                CRUD::setValidation([
+                    'progress' => 'nullable|numeric',
+                    'information' => 'nullable',
+                ]);
+                $edit_column_progress_and_information = true;
+            } else {
+                CRUD::setValidation($this->ruleValidation());
+                $edit_column_progress_and_information = false;
+            }
         }
 
         $attributes_added = [];

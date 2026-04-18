@@ -1232,7 +1232,7 @@ class StatusProjectCrudController extends CrudController
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
-                'name' => 'end_date',
+                'name' => 'actual_end_date',
                 'type'  => 'date',
                 'format' => $new_format_date
             ]);
@@ -1463,7 +1463,7 @@ class StatusProjectCrudController extends CrudController
             ]);
             CRUD::column([
                 'label' => trans('backpack::crud.project.column.project.end_date.label'),
-                'name' => 'end_date',
+                'name' => 'actual_end_date',
                 'type'  => 'date',
                 'format' => $new_format_date
             ]);
