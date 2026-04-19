@@ -734,7 +734,8 @@ return [
             ],
             'account_id' => [
                 'label' => 'Akun',
-                'placeholder' => '-AKUN'
+                'placeholder' => '-AKUN',
+                'hint_invoice_payment' => 'saat pembayaran invoice akun tidak perlu di isi',
             ],
             'account' => [
                 'label' => 'Akun',

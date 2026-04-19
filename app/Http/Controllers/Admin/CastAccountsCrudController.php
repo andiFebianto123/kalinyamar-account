@@ -326,6 +326,8 @@ class CastAccountsCrudController extends CrudController
                 $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
             })
             ->leftJoin('accounts as voucher_account', 'vouchers.account_id', '=', 'voucher_account.id')
+            ->leftJoin('cast_accounts as trans_cast_account', 'account_transactions.cast_account_id', '=', 'trans_cast_account.id')
+            ->leftJoin('accounts as trans_account', 'trans_cast_account.account_id', '=', 'trans_account.id')
             ->select([
                 'account_transactions.*',
                 'invoice_clients.kdp as invoice_kdp',
@@ -333,6 +335,8 @@ class CastAccountsCrudController extends CrudController
                 'vouchers.payment_description as voucher_description',
                 'voucher_account.code as voucher_account_code',
                 'voucher_account.name as voucher_account_name',
+                'trans_account.code as trans_account_code',
+                'trans_account.name as trans_account_name',
                 'invoice_clients.invoice_number as direct_invoice_number',
                 'voucher_invoice.invoice_number as indirect_invoice_number'
             ])
@@ -422,7 +426,7 @@ class CastAccountsCrudController extends CrudController
                 'name' => 'account',
                 'type'  => 'closure',
                 'function' => function ($row) {
-                    return ($row->voucher_account_code) ? $row->voucher_account_code . ' - ' . $row->voucher_account_name : (($row->account_id) ? $row->account->code . ' - ' . $row->account->name : '-');
+                    return ($row->voucher_account_code) ? $row->voucher_account_code . ' - ' . $row->voucher_account_name : (($row->trans_account_code) ? $row->trans_account_code . ' - ' . $row->trans_account_name : '-');
                 }
             ],
         );
@@ -683,6 +687,10 @@ class CastAccountsCrudController extends CrudController
             'no_invoice' => 'max:100',
             'account_id' => 'required|exists:accounts,id',
         ];
+
+        if (request()->has('no_invoice') && request()->no_invoice != '' && request()->has('kdp') && request()->kdp != '') {
+            $rule['account_id'] = 'nullable';
+        }
 
         // Validasi saldo hanya untuk transaksi keluar (out) dan bukan primary/payment account
         if ($has_access_primary == 0 && $status == 'out') {
@@ -2098,6 +2106,9 @@ class CastAccountsCrudController extends CrudController
 
         $query = $query->leftJoin('accounts as voucher_account', 'vouchers.account_id', '=', 'voucher_account.id');
 
+        $query = $query->leftJoin('cast_accounts as trans_cast_account', 'account_transactions.cast_account_id', '=', 'trans_cast_account.id');
+        $query = $query->leftJoin('accounts as trans_account', 'trans_cast_account.account_id', '=', 'trans_account.id');
+
         $query->select([
             'account_transactions.*',
             'log_payments.id as log_payment_id',
@@ -2107,6 +2118,8 @@ class CastAccountsCrudController extends CrudController
             'vouchers.payment_description as voucher_description',
             'voucher_account.code as voucher_account_code',
             'voucher_account.name as voucher_account_name',
+            'trans_account.code as trans_account_code',
+            'trans_account.name as trans_account_name',
             'voucher_invoice.invoice_number as indirect_invoice_number'
         ]);
 
@@ -2198,7 +2211,7 @@ class CastAccountsCrudController extends CrudController
                 'description_str' => $entry->voucher_description ?: ($entry->description ?? '-'),
                 'kdp_str' => $entry->invoice_kdp ?: ($entry->voucher_kdp ?: ($entry->kdp ?? '-')),
                 'job_name_str' => $entry->job_name ?? '-',
-                'account_id_str' => ($entry->voucher_account_code) ? $entry->voucher_account_code . ' - ' . $entry->voucher_account_name : (($entry->account_id) ? $entry->account->code . ' - ' . $entry->account->name : '-'),
+                'account_id_str' => ($entry->voucher_account_code) ? $entry->voucher_account_code . ' - ' . $entry->voucher_account_name : (($entry->trans_account_code) ? $entry->trans_account_code . ' - ' . $entry->trans_account_name : '-'),
                 'no_invoice_str' => $entry->invoice_number ?: ($entry->indirect_invoice_number ?? '-'),
                 'status_str' => ucfirst(strtolower(trans('backpack::crud.cash_account.field_transaction.status.' . $entry->status))),
                 'action_buttons' => $btn,

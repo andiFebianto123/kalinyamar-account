@@ -57,6 +57,23 @@
                                 $el.closest('.form-group').hide();
                             }
                         });
+
+                        var $accountId = $(form + ' [name="account_id"]');
+                        var $msg = $accountId.closest('.form-group').find('.invoice-account-msg');
+                        if (show) {
+                            $accountId.prop('disabled', true).val(null).trigger('change');
+                            $msg.removeClass('d-none');
+                        } else {
+                            $accountId.prop('disabled', false).trigger('change');
+                            $msg.addClass('d-none');
+                        }
+                    }
+
+                    // Prepend message to account_id field
+                    var $accountIdField = $(form + ' [name="account_id"]');
+                    var $accountIdWrapper = $accountIdField.closest('.form-group');
+                    if ($accountIdWrapper.length && !$accountIdWrapper.find('.invoice-account-msg').length) {
+                        $accountIdWrapper.append('<small class="invoice-account-msg text-danger d-none">{{ trans("backpack::crud.cash_account.field_transaction.account_id.hint_invoice_payment") }}</small>');
                     }
 
                     function setInputMasked(name, value) {
