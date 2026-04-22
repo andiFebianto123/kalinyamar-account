@@ -1088,7 +1088,7 @@ class StatusProjectCrudController extends CrudController
                 $this->crud->addClause('whereYear', 'actual_end_date', request()->filter_year);
             }
         } else {
-            if ($type == 'UNPAID' || $type == 'CLOSE') {
+            if ($type == 'CLOSE') {
                 $this->crud->query->whereNotNull('invoice_date');
             } else {
                 $this->crud->query->whereNotNull('actual_end_date');
