@@ -1299,13 +1299,7 @@ class SpkCrudController extends CrudController
             'name' => 'date_spk',
             'label' => trans('backpack::crud.po.column.date_spk'),
             'type' => 'date',
-            'format' => 'DD/MM/Y',
-            'attributes' => [
-                'placeholder' => trans('backpack::crud.po.field.date_spk.placeholder'),
-            ],
-            'wrapper'   => [
-                'class' => 'form-group col-md-6'
-            ],
+            'format' => 'DD/MM/YYYY',
         ])->after('no_spk');
         CRUD::column(
             [
@@ -1314,6 +1308,9 @@ class SpkCrudController extends CrudController
                 'type'  => 'textarea'
             ],
         )->after('document_path');
+
+        CRUD::column('subkon_id')->before('no_spk');
+        CRUD::column('no_spk')->after('subkon_id');
     }
 
     public function show($id)
