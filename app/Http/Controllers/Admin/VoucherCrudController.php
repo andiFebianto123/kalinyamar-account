@@ -4174,6 +4174,10 @@ class VoucherCrudController extends CrudController
 
         $fileName = "voucher-$voucher->no_voucher.pdf";
 
+        // return response($mpdf->Output('', 'S'))
+        //     ->header('Content-Type', 'application/pdf')
+        //     ->header('Content-Disposition', 'inline; filename="' . $fileName . '"');
+
         return response()->streamDownload(function () use ($mpdf) {
             echo $mpdf->Output('', 'S');
         }, $fileName, [

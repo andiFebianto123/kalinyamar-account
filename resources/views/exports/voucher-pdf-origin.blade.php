@@ -87,6 +87,7 @@
             text-decoration: underline;
         }
 
+
     </style>
 </head>
 <body>
@@ -312,7 +313,23 @@
                     <table width="80%" border="0" align="center" style="font-size: 12px;">
                         <tr>
                             <td align="center">
-                                <div style="height: 110px; padding-top:20px;">
+                                <div style="height: 100px; padding-top:20px;">
+                                    <div style="font-size: 12px; visibility: hidden;">
+                                        Telah dibayarkan Pada <br> Tanggal
+                                    </div>
+                                    <div style="
+                                        width: 180px;
+                                        height: 25px;
+                                        box-sizing: border-box;
+                                        border: 1px solid #ccc;
+                                        background: #e8eef9;
+                                        margin: 10px auto;
+                                        text-align: center;
+                                        padding-top: 8px;
+                                        visibility: hidden;
+                                    ">
+                                        12 April 2026
+                                    </div>
                                 </div>
                                 <div>
                                     <span style="border-bottom: 1px solid black;">Ida Noorma Z</span> <br>
@@ -332,9 +349,16 @@
                                         background: #e8eef9;
                                         margin: 10px auto;
                                         text-align: center;
-                                        padding-top: 8px;
+                                        padding-top: 20px;
+                                        @if($voucher?->payment_date_str == null)
+                                            visibility: hidden;
+                                        @endif
                                     ">
-                                        {{$voucher?->payment_date_str}}
+                                        @if($voucher?->payment_date_str == null)
+                                            12 April 2026
+                                        @else
+                                            {{$voucher?->payment_date_str}}
+                                        @endif
                                     </div>
                                 </div>
                                 <div>
