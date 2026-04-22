@@ -1388,6 +1388,7 @@ return [
             'alert_success' => '',
             'update_failed_status' => 'Anda tidak bisa melakukan edit voucher karena status voucher saat ini sudah Approve',
             'update_failed_plan_exists' => 'Anda tidak bisa melakukan edit voucher karena voucher sudah masuk rencana bayar',
+            'account_loan' => 'Akun tidak boleh pinjaman',
         ],
         'total_exclude_ppn' => 'Jumlah Exlude PPn',
         'total_include_ppn' => 'Jumlah Include PPn',

@@ -1892,7 +1892,16 @@ class VoucherCrudController extends CrudController
             'payment_type' => 'required|max:50',
             'payment_status' => 'nullable|max:50',
             'priority' => 'required|max:50',
-            'account_source_id' => 'required',
+            'account_source_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $account = CastAccount::find($value);
+                    if ($account && $account->status == CastAccount::LOAN) {
+                        $fail(trans('backpack::crud.voucher.confirm.account_loan'));
+                    }
+                    return true;
+                }
+            ],
             'reference_id' => 'nullable',
             'subkon_id' => 'required',
             'client_po_id' => 'required',
@@ -1983,7 +1992,7 @@ class VoucherCrudController extends CrudController
             ]
         ]);
 
-        $cash_accounts = CastAccount::get();
+        $cash_accounts = CastAccount::where('status', '!=', CastAccount::LOAN)->get();
 
         $cash_account_options = [
             '' => trans('backpack::crud.voucher.field.account_source_id.placeholder'),

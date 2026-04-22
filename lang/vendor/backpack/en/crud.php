@@ -369,4 +369,9 @@ return [
     'filter' => [
         'all_year' => 'All Years',
     ],
+    'voucher' => [
+        'confirm' => [
+            'account_loan' => 'Account cannot be a loan account',
+        ],
+    ],
 ];
