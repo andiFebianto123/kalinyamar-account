@@ -290,12 +290,18 @@ class MonitoringTrackerCrudController extends CrudController
                 'label'       => trans('backpack::crud.monitoring_tracker.column.no_po_spk'),
                 'name'        => 'no_po_spk',
                 'type'        => 'wrap_text',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $query->orWhere('projects.no_po_spk', 'like', "%{$searchTerm}%");
+                },
             ]);
 
             CRUD::column([
                 'label'       => trans('backpack::crud.monitoring_tracker.column.name'),
                 'name'        => 'name',
                 'type'        => 'wrap_text',
+                'searchLogic' => function ($query, $column, $searchTerm) {
+                    $query->orWhere('projects.name', 'like', "%{$searchTerm}%");
+                },
             ]);
 
             CRUD::column([
