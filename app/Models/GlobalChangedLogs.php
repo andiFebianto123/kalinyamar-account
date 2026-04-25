@@ -45,7 +45,7 @@ class GlobalChangedLogs extends Model
             'action' => self::UPDATE,
             'old_values' => json_encode($old_data_entry),
             'new_values' => json_encode($new_data_entry),
-            'changed_by' => backpack_user()->id,
+            'changed_by' => backpack_user()->id ?? 'system',
             'created_at' => Carbon::now(),
         ]);
     }
