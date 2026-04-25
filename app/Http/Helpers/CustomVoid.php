@@ -937,8 +937,6 @@ class CustomVoid
             ];
         }
 
-        dd(99, $request->all());
-
         $updateAccount = CastAccount::where('id', $cast_account_id)->first();
         $updateAccount->total_saldo = $new_saldo;
         $updateAccount->save();
@@ -966,6 +964,8 @@ class CustomVoid
         ];
 
         $item = $newTransaction;
+
+        dd(100, $request->all());
 
         // Hitung saldo terakhir menggunakan helper untuk akurasi
         $actual_saldo = CustomHelper::total_balance_cast_account(
