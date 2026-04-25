@@ -981,10 +981,12 @@ class CustomVoid
             $newLogPayment->save();
 
             if (isset($old_invoice) && $invoice != null) {
+                dd([
+                    'status',
+                ], $old_invoice, $invoice, $newLogPayment->id);
                 GlobalChangedLogs::addCapture([
                     'status',
                 ], $old_invoice, $invoice, $newLogPayment->id);
-                dd(200, $request->all());
             }
         }
 
