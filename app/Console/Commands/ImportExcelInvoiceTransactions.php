@@ -73,6 +73,7 @@ class ImportExcelInvoiceTransactions extends Command
                 $keterangan  = $row['keterangan'] ?? null;
                 $status      = strtolower($row['status'] ?? 'enter');
                 $noInvoice   = $row['no_invoice'] ?? null;
+                $jobName     = $row['job_name'] ?? null;
 
                 if (!$kodeAkunKas || !$nominal) {
                     $bar->advance();
@@ -131,6 +132,7 @@ class ImportExcelInvoiceTransactions extends Command
                         'nominal_transaction' => $nominal,
                         'description'         => $keterangan ?? "Import via Command Terminal",
                         'no_invoice'          => $invoiceId,
+                        'job_name'            => $jobName,
                     ]);
 
                     CustomVoid::storeTransaction($mockRequest, $status);
