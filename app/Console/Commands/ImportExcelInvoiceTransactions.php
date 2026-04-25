@@ -133,10 +133,9 @@ class ImportExcelInvoiceTransactions extends Command
                         'no_invoice'          => $invoiceId,
                     ]);
 
-                    dd(1, $mockRequest->all());
-
                     CustomVoid::storeTransaction($mockRequest, $status);
 
+                    dd(7, $mockRequest->all());
                     DB::commit();
                     $successCount++;
                 } catch (\Exception $e) {
