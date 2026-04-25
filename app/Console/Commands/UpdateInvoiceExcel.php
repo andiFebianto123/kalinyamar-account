@@ -73,8 +73,8 @@ class UpdateInvoiceExcel extends Command
                 // kode_invoice, nominal_exclude_ppn, ppn, pph, wajib_pungut
                 $noInvoice      = $row['kode_invoice'] ?? null;
                 $nominalExclude = $row['nominal_exclude_ppn'] ?? null;
-                $taxPpn         = $row['ppn'] ?? 0;
-                $taxPph         = $row['pph'] ?? 0;
+                $taxPpn         = $row['ppn'] ?? null;
+                $taxPph         = $row['pph'] ?? null;
                 $wajibPungut    = $row['wajib_pungut'] ?? null;
 
                 if (!$noInvoice) {
@@ -97,12 +97,14 @@ class UpdateInvoiceExcel extends Command
 
                     $oldPoId = $invoice->client_po_id;
 
-                    // Update data dasar
-                    if ($nominalExclude !== null) {
+                    // Update data dasar (Hanya jika ada nilai di Excel)
+                    if ($nominalExclude !== null && $nominalExclude !== '') {
                         $invoice->price_total_exclude_ppn = (float) $nominalExclude;
                     }
-                    $invoice->tax_ppn = (float) $taxPpn;
-                    $invoice->pph = (float) $taxPph;
+                    if ($taxPpn !== null && $taxPpn !== '') {
+                        $invoice->tax_ppn = (float) $taxPpn;
+                    }
+                    $invoice->pph = (float) ($taxPph ?? 0);
 
                     if ($wajibPungut) {
                         // Pastikan format sesuai (WAPU atau NON WAPU)
