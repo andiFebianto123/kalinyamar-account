@@ -69,13 +69,17 @@ class UpdateInvoiceExcel extends Command
             $failCount = 0;
 
             foreach ($rows as $index => $row) {
-                // Header yang diharapkan (otomatis dislug oleh Maatwebsite Excel):
+                // Normalisasi semua key di row menjadi lowercase agar lebih aman
+                $row = array_change_key_case($row, CASE_LOWER);
+
+                // Header yang diharapkan:
                 // kode_invoice, nominal_exclude_ppn, ppn, pph, wajib_pungut
                 $noInvoice      = $row['kode_invoice'] ?? null;
                 $nominalExclude = $row['nominal_exclude_ppn'] ?? null;
                 $taxPpn         = $row['ppn'] ?? null;
                 $taxPph         = $row['pph'] ?? null;
                 $wajibPungut    = $row['wajib_pungut'] ?? null;
+                dd($row);
 
                 if (!$noInvoice) {
                     $this->warn("\nBaris " . ($index + 2) . ": Kode Invoice kosong. Dilewati.");
