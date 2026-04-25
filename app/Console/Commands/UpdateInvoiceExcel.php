@@ -79,7 +79,6 @@ class UpdateInvoiceExcel extends Command
                 $taxPpn         = $row['ppn'] ?? null;
                 $taxPph         = $row['pph'] ?? null;
                 $wajibPungut    = $row['wajib_pungut'] ?? null;
-                dd($row);
 
                 if (!$noInvoice) {
                     $this->warn("\nBaris " . ($index + 2) . ": Kode Invoice kosong. Dilewati.");
