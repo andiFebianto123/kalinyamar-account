@@ -133,6 +133,8 @@ class ImportExcelInvoiceTransactions extends Command
                         'no_invoice'          => $invoiceId,
                     ]);
 
+                    dd(1);
+
                     CustomVoid::storeTransaction($mockRequest, $status);
 
                     DB::commit();
