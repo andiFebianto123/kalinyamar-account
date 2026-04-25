@@ -893,6 +893,8 @@ class CustomVoid
             $newTransaction->reference_id = $invoice->id;
         }
 
+        dd(10, $request->all());
+
         if ($request->has('account_id')) {
             $newTransaction->account_id = $request->account_id;
             $newTransaction->save();

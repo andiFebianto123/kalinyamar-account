@@ -135,7 +135,6 @@ class ImportExcelInvoiceTransactions extends Command
 
                     CustomVoid::storeTransaction($mockRequest, $status);
 
-                    dd(7, $mockRequest->all());
                     DB::commit();
                     $successCount++;
                 } catch (\Exception $e) {
