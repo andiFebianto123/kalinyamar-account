@@ -893,7 +893,6 @@ class CustomVoid
             $newTransaction->reference_id = $invoice->id;
         }
 
-        dd(10, $request->all());
 
         if ($request->has('account_id')) {
             $newTransaction->account_id = $request->account_id;
@@ -937,6 +936,8 @@ class CustomVoid
                 'type' => AccountTransaction::class,
             ];
         }
+
+        dd(99, $request->all());
 
         $updateAccount = CastAccount::where('id', $cast_account_id)->first();
         $updateAccount->total_saldo = $new_saldo;
