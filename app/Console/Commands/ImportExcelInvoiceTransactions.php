@@ -95,8 +95,7 @@ class ImportExcelInvoiceTransactions extends Command
 
                     $invoiceId = null;
                     if ($noInvoice) {
-                        $invoice = InvoiceClient::where('no_invoice', $noInvoice)
-                            ->orWhere('invoice_number', $noInvoice)
+                        $invoice = InvoiceClient::where('invoice_number', $noInvoice)
                             ->first();
 
                         if ($invoice) {
