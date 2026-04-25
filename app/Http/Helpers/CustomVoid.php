@@ -965,8 +965,6 @@ class CustomVoid
 
         $item = $newTransaction;
 
-        dd(100, $request->all());
-
         // Hitung saldo terakhir menggunakan helper untuk akurasi
         $actual_saldo = CustomHelper::total_balance_cast_account(
             $cast_account_id,
@@ -988,6 +986,8 @@ class CustomVoid
                 ], $old_invoice, $invoice, $newLogPayment->id);
             }
         }
+
+        dd(101, $request->all());
 
         if ($invoice) {
             // jika adalah invoice
