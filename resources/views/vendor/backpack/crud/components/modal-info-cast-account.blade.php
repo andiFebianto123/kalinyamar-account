@@ -32,6 +32,17 @@
                 <th>{{ trans('backpack::crud.cash_account.field_transaction.status.label') }}</th>
                 <th></th>
                 </tr>
+                <tr class="filters">
+                <th></th>
+                <th><input type="text" class="form-control form-control-sm" /></th>
+                <th><input type="text" class="form-control form-control-sm" /></th>
+                <th><input type="text" class="form-control form-control-sm" /></th>
+                <th><input type="text" class="form-control form-control-sm" /></th>
+                <th><input type="text" class="form-control form-control-sm" /></th>
+                <th><input type="text" class="form-control form-control-sm" /></th>
+                <th></th>
+                <th></th>
+                </tr>
             </thead>
             <tbody>
             </tbody>
@@ -301,9 +312,10 @@
                             $('.info-cast-account').DataTable({
                                 processing: true,
                                 serverSide: true,
+                                orderCellsTop: true,
                                 pageLength: 20,
                                 autoWidth: false,
-                                searching: false,
+                                searching: true,
                                 lengthChange: false,
                                 dom: "<'row'<'col-sm-12'tr>>" +
                                      "<'row mt-2'<'col-sm-12 col-md-6'p><'col-sm-12 col-md-6 text-end'i>>",
@@ -340,6 +352,20 @@
                                         $('#{{$name}} .total_saldo').html(json.header.total_saldo_str);
                                         return json.data;
                                     }
+                                },
+                                initComplete: function () {
+                                    var api = this.api();
+                                    api.columns().eq(0).each(function (colIdx) {
+                                        var cell = $('.filters th', api.table().header()).eq(colIdx);
+                                        var input = $('input', cell);
+                                        if (input.length) {
+                                            input.off('keyup change clear').on('keyup change clear', function () {
+                                                if (api.column(colIdx).search() !== this.value) {
+                                                    api.column(colIdx).search(this.value).draw();
+                                                }
+                                            });
+                                        }
+                                    });
                                 },
                                 columns: [
                                     { data: 'date_transaction_str', name: 'date_transaction' },

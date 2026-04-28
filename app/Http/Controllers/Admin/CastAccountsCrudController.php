@@ -2130,7 +2130,7 @@ class CastAccountsCrudController extends CrudController
         $total_data = $query->count();
         $filtered_data = $query; // In real app, apply search filters here
 
-        // Search logic
+        // General Search logic
         if ($search = request()->input('search.value')) {
             $query->where(function ($q) use ($search) {
                 $q->where('account_transactions.description', 'LIKE', "%$search%")
@@ -2139,10 +2139,52 @@ class CastAccountsCrudController extends CrudController
                     ->orWhere('account_transactions.job_name', 'LIKE', "%$search%")
                     ->orWhere('account_transactions.no_invoice', 'LIKE', "%$search%");
             });
-            $total_filtered = $query->count();
-        } else {
-            $total_filtered = $total_data;
         }
+
+        // Column Search logic
+        $columnsReq = request()->input('columns', []);
+        foreach ($columnsReq as $col) {
+            if (!empty($col['search']['value'])) {
+                $searchValue = $col['search']['value'];
+                $colName = $col['name'];
+
+                if ($colName == 'date_transaction') {
+                    $query->where('account_transactions.date_transaction', 'LIKE', "%{$searchValue}%");
+                } elseif ($colName == 'nominal_transaction') {
+                    $query->where('account_transactions.nominal_transaction', 'LIKE', "%{$searchValue}%");
+                } elseif ($colName == 'description') {
+                    $query->where(function ($q) use ($searchValue) {
+                        $q->where('account_transactions.description', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('vouchers.payment_description', 'LIKE', "%{$searchValue}%");
+                    });
+                } elseif ($colName == 'kdp') {
+                    $query->where(function ($q) use ($searchValue) {
+                        $q->where('account_transactions.kdp', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('invoice_clients.kdp', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('vouchers.work_code', 'LIKE', "%{$searchValue}%");
+                    });
+                } elseif ($colName == 'job_name') {
+                    $query->where('account_transactions.job_name', 'LIKE', "%{$searchValue}%");
+                } elseif ($colName == 'account_id') {
+                    $query->where(function ($q) use ($searchValue) {
+                        $q->where('voucher_account.code', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('voucher_account.name', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('trans_account.code', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('trans_account.name', 'LIKE', "%{$searchValue}%");
+                    });
+                } elseif ($colName == 'no_invoice') {
+                    $query->where(function ($q) use ($searchValue) {
+                        $q->where('account_transactions.no_invoice', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('invoice_clients.invoice_number', 'LIKE', "%{$searchValue}%")
+                            ->orWhere('voucher_invoice.invoice_number', 'LIKE', "%{$searchValue}%");
+                    });
+                } elseif ($colName == 'status') {
+                    $query->where('account_transactions.status', 'LIKE', "%{$searchValue}%");
+                }
+            }
+        }
+
+        $total_filtered = $query->count();
 
         // Order logic
         $columns = ['date_transaction', 'nominal_transaction', 'description', 'kdp', 'job_name', 'account_id', 'no_invoice', 'status'];
