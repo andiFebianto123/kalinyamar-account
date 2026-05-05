@@ -2,34 +2,36 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Carbon\Carbon;
-use App\Models\Account;
-use App\Models\Setting;
-use App\Models\Voucher;
-use App\Models\Approval;
-use App\Models\ClientPo;
-use App\Models\LogPayment;
-use App\Models\JournalEntry;
-use App\Models\InvoiceClient;
-use App\Models\PaymentVoucher;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Http\Helpers\CustomVoid;
+use App\Http\Controllers\CrudController;
+use App\Http\Controllers\Operation\FormaterExport;
+use App\Http\Controllers\Operation\PermissionAccess;
 use App\Http\Exports\ExportExcel;
 use App\Http\Helpers\CustomHelper;
-use App\Models\PaymentVoucherPlan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Http\Controllers\CrudController;
-use App\Http\Controllers\Operation\PermissionAccess;
+use App\Http\Helpers\CustomVoid;
+use App\Models\Account;
 use App\Models\AccountTransaction;
+use App\Models\Approval;
+use App\Models\ClientPo;
+use App\Models\InvoiceClient;
+use App\Models\JournalEntry;
+use App\Models\LogPayment;
+use App\Models\PaymentVoucher;
+use App\Models\PaymentVoucherPlan;
+use App\Models\Setting;
+use App\Models\Voucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class VoucherPaymentCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use PermissionAccess;
+    use FormaterExport;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
@@ -682,10 +684,10 @@ class VoucherPaymentCrudController extends CrudController
                                 ],
                             ],
                             'route' => backpack_url('/fa/voucher-payment/search?tab=voucher_payment&type=SUBKON'),
-                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment&type=SUBKON'),
-                            'title_export_pdf' => 'Laporan_voucher_payment_subkon.pdf',
-                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=voucher_payment&type=SUBKON'),
-                            'title_export_excel' => 'Laporan_voucher_payment_subkon.xlsx',
+                            'route_export_pdf' => url($this->crud->route . '/export-pdf?tab=voucher_payment&type=all'),
+                            'title_export_pdf' => 'Laporan_voucher_payment_all.pdf',
+                            'route_export_excel' => url($this->crud->route . '/export-excel?tab=voucher_payment&type=all'),
+                            'title_export_excel' => 'Laporan_voucher_payment_all.xlsx',
                         ]
                     ],
                 ]
@@ -856,90 +858,92 @@ class VoucherPaymentCrudController extends CrudController
                 $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
             }
 
-            if (isset($request->columns[2]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('no_voucher', 'like', '%' . $request->columns[2]['search']['value'] . '%');
-            }
+            if ($request->has('columns')) {
+                if (isset($request->columns[2]['search']['value']) && trim($request->columns[2]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('no_voucher', 'like', '%' . $request->columns[2]['search']['value'] . '%');
+                }
 
-            if (isset($request->columns[3]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('date_voucher', 'like', '%' . $request->columns[3]['search']['value'] . '%');
-            }
+                if (isset($request->columns[3]['search']['value']) && trim($request->columns[3]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('date_voucher', 'like', '%' . $request->columns[3]['search']['value'] . '%');
+                }
 
-            if (isset($request->columns[4]['search']['value'])) {
-                $search = $request->columns[4]['search']['value'];
-                $this->crud->query = $this->crud->query
-                    ->whereHas('voucher.subkon', function ($q) use ($search) {
-                        $q->where('name', 'like', "%$search%");
-                    });
-            }
-
-            if (isset($request->columns[5]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('bill_date', 'like', '%' . $request->columns[5]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[6]['search']['value'])) {
-                $search = $request->columns[6]['search']['value'];
-                $this->crud->query = $this->crud->query
-                    ->whereHas('voucher', function ($q) use ($search) {
-                        $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                            $query->where('po_number', 'like', '%' . $search . '%')
-                                ->orWhere('no_spk', 'like', '%' . $search . '%');
+                if (isset($request->columns[4]['search']['value']) && trim($request->columns[4]['search']['value']) != '') {
+                    $search = $request->columns[4]['search']['value'];
+                    $this->crud->query = $this->crud->query
+                        ->whereHas('voucher.subkon', function ($q) use ($search) {
+                            $q->where('name', 'like', "%$search%");
                         });
-                    });
-            }
+                }
 
-            if (isset($request->columns[7]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_transfer', 'like', '%' . $request->columns[7]['search']['value'] . '%');
-            }
+                if (isset($request->columns[5]['search']['value']) && trim($request->columns[5]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('bill_date', 'like', '%' . $request->columns[5]['search']['value'] . '%');
+                }
 
-            if (isset($request->columns[8]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('due_date', 'like', '%' . $request->columns[8]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[9]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('factur_status', 'like', $request->columns[9]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[10]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_date', 'like', '%' . $request->columns[10]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[11]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_status', 'like', $request->columns[11]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[12]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('approvals.approved_at', 'like', '%' . $request->columns[12]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[13]['search']['value'])) {
-                $this->crud->query = $this->crud->query
-                    ->where('approvals.status', 'like', '%' . $request->columns[13]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[14]['search']['value'])) {
-                $status_search = trim($request->columns[14]['search']['value']);
-                $this->crud->query = $this->crud->query
-                    ->whereExists(function ($query) use ($status_search) {
-                        $query->select(DB::raw(1))
-                            ->from('approvals')
-                            ->whereColumn('approvals.model_id', 'payment_voucher_plan.id')
-                            ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
-                            ->whereExists(function ($q) use ($status_search) {
-                                $q->select(DB::raw(1))
-                                    ->from('users')
-                                    ->whereColumn('users.id', 'approvals.user_id')
-                                    ->where('users.name', 'like', '%' . $status_search . '%');
+                if (isset($request->columns[6]['search']['value']) && trim($request->columns[6]['search']['value']) != '') {
+                    $search = $request->columns[6]['search']['value'];
+                    $this->crud->query = $this->crud->query
+                        ->whereHas('voucher', function ($q) use ($search) {
+                            $q->whereHasMorph('reference', '*', function ($query) use ($search) {
+                                $query->where('po_number', 'like', '%' . $search . '%')
+                                    ->orWhere('no_spk', 'like', '%' . $search . '%');
                             });
-                    });
+                        });
+                }
+
+                if (isset($request->columns[7]['search']['value']) && trim($request->columns[7]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_transfer', 'like', '%' . $request->columns[7]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[8]['search']['value']) && trim($request->columns[8]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('due_date', 'like', '%' . $request->columns[8]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[9]['search']['value']) && trim($request->columns[9]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('factur_status', 'like', $request->columns[9]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[10]['search']['value']) && trim($request->columns[10]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_date', 'like', '%' . $request->columns[10]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[11]['search']['value']) && trim($request->columns[11]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_status', 'like', $request->columns[11]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[12]['search']['value']) && trim($request->columns[12]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('approvals.approved_at', 'like', '%' . $request->columns[12]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[13]['search']['value']) && trim($request->columns[13]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('approvals.status', 'like', '%' . $request->columns[13]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[14]['search']['value']) && trim($request->columns[14]['search']['value']) != '') {
+                    $status_search = trim($request->columns[14]['search']['value']);
+                    $this->crud->query = $this->crud->query
+                        ->whereExists(function ($query) use ($status_search) {
+                            $query->select(DB::raw(1))
+                                ->from('approvals')
+                                ->whereColumn('approvals.model_id', 'payment_voucher_plan.id')
+                                ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+                                ->whereExists(function ($q) use ($status_search) {
+                                    $q->select(DB::raw(1))
+                                        ->from('users')
+                                        ->whereColumn('users.id', 'approvals.user_id')
+                                        ->where('users.name', 'like', '%' . $status_search . '%');
+                                });
+                        });
+                }
             }
 
             CRUD::addColumn([
@@ -1222,90 +1226,92 @@ class VoucherPaymentCrudController extends CrudController
                 $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
             }
 
-            if (trim($request->columns[2]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('no_voucher', 'like', '%' . $request->columns[2]['search']['value'] . '%');
-            }
+            if ($request->has('columns')) {
+                if (isset($request->columns[2]['search']['value']) && trim($request->columns[2]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('no_voucher', 'like', '%' . $request->columns[2]['search']['value'] . '%');
+                }
 
-            if (trim($request->columns[3]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('date_voucher', 'like', '%' . $request->columns[3]['search']['value'] . '%');
-            }
+                if (isset($request->columns[3]['search']['value']) && trim($request->columns[3]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('date_voucher', 'like', '%' . $request->columns[3]['search']['value'] . '%');
+                }
 
-            if (trim($request->columns[4]['search']['value']) != '') {
-                $search = $request->columns[4]['search']['value'];
-                $this->crud->query = $this->crud->query
-                    ->whereHas('voucher.subkon', function ($q) use ($search) {
-                        $q->where('name', 'like', "%$search%");
-                    });
-            }
-
-            if (trim($request->columns[5]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('bill_date', 'like', '%' . $request->columns[5]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[6]['search']['value']) != '') {
-                $search = $request->columns[6]['search']['value'];
-                $this->crud->query = $this->crud->query
-                    ->whereHas('voucher', function ($q) use ($search) {
-                        $q->whereHasMorph('reference', '*', function ($query) use ($search) {
-                            $query->where('po_number', 'like', '%' . $search . '%')
-                                ->orWhere('no_spk', 'like', '%' . $search . '%');
+                if (isset($request->columns[4]['search']['value']) && trim($request->columns[4]['search']['value']) != '') {
+                    $search = $request->columns[4]['search']['value'];
+                    $this->crud->query = $this->crud->query
+                        ->whereHas('voucher.subkon', function ($q) use ($search) {
+                            $q->where('name', 'like', "%$search%");
                         });
-                    });
-            }
+                }
 
-            if (trim($request->columns[7]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_transfer', 'like', '%' . $request->columns[7]['search']['value'] . '%');
-            }
+                if (isset($request->columns[5]['search']['value']) && trim($request->columns[5]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('bill_date', 'like', '%' . $request->columns[5]['search']['value'] . '%');
+                }
 
-            if (trim($request->columns[8]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('due_date', 'like', '%' . $request->columns[8]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[9]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('factur_status', 'like', $request->columns[9]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[10]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_date', 'like', '%' . $request->columns[10]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[11]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('payment_status', 'like', $request->columns[11]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[12]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('approvals.approved_at', 'like', '%' . $request->columns[12]['search']['value'] . '%');
-            }
-
-            if (trim($request->columns[13]['search']['value']) != '') {
-                $this->crud->query = $this->crud->query
-                    ->where('approvals.status', 'like', '%' . $request->columns[13]['search']['value'] . '%');
-            }
-
-            if (isset($request->columns[14]['search']['value'])) {
-                $status_search = trim($request->columns[14]['search']['value']);
-                $this->crud->query = $this->crud->query
-                    ->whereExists(function ($query) use ($status_search) {
-                        $query->select(DB::raw(1))
-                            ->from('approvals')
-                            ->whereColumn('approvals.model_id', 'payment_voucher_plan.id')
-                            ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
-                            ->whereExists(function ($q) use ($status_search) {
-                                $q->select(DB::raw(1))
-                                    ->from('users')
-                                    ->whereColumn('users.id', 'approvals.user_id')
-                                    ->where('users.name', 'like', '%' . $status_search . '%');
+                if (isset($request->columns[6]['search']['value']) && trim($request->columns[6]['search']['value']) != '') {
+                    $search = $request->columns[6]['search']['value'];
+                    $this->crud->query = $this->crud->query
+                        ->whereHas('voucher', function ($q) use ($search) {
+                            $q->whereHasMorph('reference', '*', function ($query) use ($search) {
+                                $query->where('po_number', 'like', '%' . $search . '%')
+                                    ->orWhere('no_spk', 'like', '%' . $search . '%');
                             });
-                    });
+                        });
+                }
+
+                if (isset($request->columns[7]['search']['value']) && trim($request->columns[7]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_transfer', 'like', '%' . $request->columns[7]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[8]['search']['value']) && trim($request->columns[8]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('due_date', 'like', '%' . $request->columns[8]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[9]['search']['value']) && trim($request->columns[9]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('factur_status', 'like', $request->columns[9]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[10]['search']['value']) && trim($request->columns[10]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_date', 'like', '%' . $request->columns[10]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[11]['search']['value']) && trim($request->columns[11]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_status', 'like', $request->columns[11]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[12]['search']['value']) && trim($request->columns[12]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('approvals.approved_at', 'like', '%' . $request->columns[12]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[13]['search']['value']) && trim($request->columns[13]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('approvals.status', 'like', '%' . $request->columns[13]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[14]['search']['value']) && trim($request->columns[14]['search']['value']) != '') {
+                    $status_search = trim($request->columns[14]['search']['value']);
+                    $this->crud->query = $this->crud->query
+                        ->whereExists(function ($query) use ($status_search) {
+                            $query->select(DB::raw(1))
+                                ->from('approvals')
+                                ->whereColumn('approvals.model_id', 'payment_voucher_plan.id')
+                                ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+                                ->whereExists(function ($q) use ($status_search) {
+                                    $q->select(DB::raw(1))
+                                        ->from('users')
+                                        ->whereColumn('users.id', 'approvals.user_id')
+                                        ->where('users.name', 'like', '%' . $status_search . '%');
+                                });
+                        });
+                }
             }
 
 
@@ -1491,6 +1497,383 @@ class VoucherPaymentCrudController extends CrudController
             //         return '';
             //     }
             // ]);
+        }
+    }
+
+    protected function setupExportOperation()
+    {
+        $request = request();
+        $tab = $request->tab;
+        $type = $request->type;
+
+        $settings = Setting::first();
+        $new_format_date = 'DD/MM/YYYY';
+
+        $status_file = '';
+        if (strpos(url()->current(), 'excel')) {
+            $status_file = 'excel';
+        } else if (strpos(url()->current(), 'pdf')) {
+            $status_file = 'pdf';
+        }
+
+
+        if ($tab == 'voucher_payment' && $type == 'all') {
+            CRUD::setModel(PaymentVoucher::class);
+            CRUD::disableResponsiveTable();
+
+            $user_id = backpack_user()->id;
+            $user_approval = \App\Models\User::permission(['APPROVE RENCANA BAYAR'])
+                ->where('id', $user_id)
+                ->get();
+
+            $p_v_p = DB::table('payment_voucher_plan')
+                ->select(DB::raw('MAX(id) as id'), 'payment_voucher_id')
+                ->groupBy('payment_voucher_id');
+
+            $this->crud->query = $this->crud->query
+                ->leftJoin('vouchers', 'vouchers.id', '=', 'payment_vouchers.voucher_id')
+                ->leftJoin('log_payments as log_void', function ($join) {
+                    $join->on('log_void.reference_id', '=', 'vouchers.id')
+                        ->where('log_void.reference_type', '=', 'App\Models\Voucher')
+                        ->where('log_void.name', '=', 'CREATE_PAYMENT_VOUCHER');
+                })
+                ->leftJoinSub($p_v_p, 'p_v_p', function ($join) {
+                    $join->on('p_v_p.payment_voucher_id', '=', 'payment_vouchers.id');
+                })
+                ->leftJoin('payment_voucher_plan', 'payment_voucher_plan.id', '=', 'p_v_p.id');
+
+            $a_p = DB::table('approvals')
+                ->select(DB::raw('MAX(id) as id'), 'model_type', 'model_id')
+                ->groupBy('model_type', 'model_id');
+
+            $this->crud->query = $this->crud->query
+                ->leftJoinSub($a_p, 'a_p', function ($join) {
+                    $join->on('a_p.model_id', '=', 'payment_voucher_plan.id')
+                        ->where('a_p.model_type', '=', DB::raw('"App\\\\Models\\\\PaymentVoucherPlan"'));
+                })
+                ->leftJoin('approvals', 'approvals.id', '=', 'a_p.id');
+
+            if ($user_approval->count() > 0) {
+                $this->crud->query = $this->crud->query
+                    ->leftJoin('approvals as user_live_approvals', function ($join) use ($user_id) {
+                        $join->on('user_live_approvals.model_id', '=', 'payment_voucher_plan.id')
+                            ->where('user_live_approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+                            ->where('user_live_approvals.user_id', $user_id);
+                    });
+                CRUD::addClause('select', [
+                    DB::raw("
+                        vouchers.*,
+                        spk.no_spk as spk_no,
+                        purchase_orders.po_number as po_no,
+                        approvals.approved_at as approval_approved_at,
+                        approvals.status as approval_status,
+                        approvals.user_id as approval_user_id,
+                        approvals.no_apprv as approval_no_apprv,
+                        payment_voucher_plan.id as voucer_edit_id,
+                        payment_vouchers.voucher_id,
+                        log_void.id as payment_log_id,
+                        user_live_approvals.no_apprv as user_live_no_apprv,
+                        user_live_approvals.status as user_live_status,
+                        user_live_approvals.user_id as user_live_user_id
+                    ")
+                ]);
+            } else {
+                CRUD::addClause('select', [
+                    DB::raw("
+                        vouchers.*,
+                        spk.no_spk as spk_no,
+                        purchase_orders.po_number as po_no,
+                        approvals.approved_at as approval_approved_at,
+                        approvals.status as approval_status,
+                        approvals.user_id as approval_user_id,
+                        approvals.no_apprv as approval_no_apprv,
+                        payment_voucher_plan.id as voucer_edit_id,
+                        payment_vouchers.voucher_id,
+                        log_void.id as payment_log_id,
+                        '' as user_live_no_apprv,
+                        '' as user_live_status,
+                        '' as user_live_user_id
+                    ")
+                ]);
+            }
+
+            $this->crud->query = $this->crud->query
+                ->leftJoin('spk', function ($join) {
+                    $join->on('spk.id', '=', 'vouchers.reference_id')
+                        ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\Spk"'));
+                })
+                ->leftJoin('purchase_orders', function ($join) {
+                    $join->on('purchase_orders.id', '=', 'vouchers.reference_id')
+                        ->where('vouchers.reference_type', '=', DB::raw('"App\\\\Models\\\\PurchaseOrder"'));
+                })
+                // ->where('payment_vouchers.payment_type', 'NON RUTIN')
+                ->where('vouchers.payment_status', 'BAYAR');
+
+            if ($request->has('filter_year') && $request->filter_year != 'all') {
+                $this->crud->query = $this->crud->query->whereYear('vouchers.date_voucher', $request->filter_year);
+            }
+
+            if ($request->has('columns')) {
+                if (isset($request->columns[2]['search']['value']) && trim($request->columns[2]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('no_voucher', 'like', '%' . $request->columns[2]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[3]['search']['value']) && trim($request->columns[3]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('date_voucher', 'like', '%' . $request->columns[3]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[4]['search']['value']) && trim($request->columns[4]['search']['value']) != '') {
+                    $search = $request->columns[4]['search']['value'];
+                    $this->crud->query = $this->crud->query
+                        ->whereHas('voucher.subkon', function ($q) use ($search) {
+                            $q->where('name', 'like', "%$search%");
+                        });
+                }
+
+                if (isset($request->columns[5]['search']['value']) && trim($request->columns[5]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('bill_date', 'like', '%' . $request->columns[5]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[6]['search']['value']) && trim($request->columns[6]['search']['value']) != '') {
+                    $search = $request->columns[6]['search']['value'];
+                    $this->crud->query = $this->crud->query
+                        ->whereHas('voucher', function ($q) use ($search) {
+                            $q->whereHasMorph('reference', '*', function ($query) use ($search) {
+                                $query->where('po_number', 'like', '%' . $search . '%')
+                                    ->orWhere('no_spk', 'like', '%' . $search . '%');
+                            });
+                        });
+                }
+
+                if (isset($request->columns[7]['search']['value']) && trim($request->columns[7]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_transfer', 'like', '%' . $request->columns[7]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[8]['search']['value']) && trim($request->columns[8]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('due_date', 'like', '%' . $request->columns[8]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[9]['search']['value']) && trim($request->columns[9]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('factur_status', 'like', $request->columns[9]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[10]['search']['value']) && trim($request->columns[10]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_date', 'like', '%' . $request->columns[10]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[11]['search']['value']) && trim($request->columns[11]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('payment_status', 'like', $request->columns[11]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[12]['search']['value']) && trim($request->columns[12]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('approvals.approved_at', 'like', '%' . $request->columns[12]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[13]['search']['value']) && trim($request->columns[13]['search']['value']) != '') {
+                    $this->crud->query = $this->crud->query
+                        ->where('approvals.status', 'like', '%' . $request->columns[13]['search']['value'] . '%');
+                }
+
+                if (isset($request->columns[14]['search']['value']) && trim($request->columns[14]['search']['value']) != '') {
+                    $status_search = trim($request->columns[14]['search']['value']);
+                    $this->crud->query = $this->crud->query
+                        ->whereExists(function ($query) use ($status_search) {
+                            $query->select(DB::raw(1))
+                                ->from('approvals')
+                                ->whereColumn('approvals.model_id', 'payment_voucher_plan.id')
+                                ->where('approvals.model_type', 'App\\Models\\PaymentVoucherPlan')
+                                ->whereExists(function ($q) use ($status_search) {
+                                    $q->select(DB::raw(1))
+                                        ->from('users')
+                                        ->whereColumn('users.id', 'approvals.user_id')
+                                        ->where('users.name', 'like', '%' . $status_search . '%');
+                                });
+                        });
+                }
+            }
+
+            CRUD::addColumn([
+                'name'      => 'row_number',
+                'type'      => 'row_number',
+                'label'     => 'No',
+                'orderable' => false,
+                'wrapper' => [
+                    'element' => 'strong',
+                ]
+            ])->makeFirstColumn();
+
+            // CRUD::addColumn([
+            //     'name' => 'action',
+            //     'type' => 'closure',
+            //     'label' =>  '',
+            //     'escaped' => false,
+            //     'width_box' => "100px",
+            //     'function' => function ($entry, $rowNumber) {
+            //         $crud = $this->crud;
+            //         return \View::make('crud::inc.button_stack', ['stack' => 'line_start'])
+            //             ->with('crud', $crud)
+            //             ->with('entry', $entry)
+            //             ->with('row_number', $rowNumber)
+            //             ->render();
+            //     }
+            // ]);
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.no_voucher.label'),
+                'name' => 'no_voucher',
+                'type'  => 'text',
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.no_voucher', $order);
+                }
+            ]);
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.date_voucher.label'),
+                'name' => 'date_voucher',
+                'type'  => 'date',
+                'format' => $new_format_date,
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.date_voucher', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.bussines_entity_name.label'),
+                    'name' => 'subkon_id',
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        return $entry?->voucher?->subkon?->name;
+                    },
+                    'orderLogic' => function ($query, $column, $order) {
+                        return $query->leftJoin('subkons', 'subkons.id', '=', 'vouchers.subkon_id')
+                            ->orderBy('subkons.name', $order);
+                    }
+                ],
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.bill_date.label'),
+                'name' => 'bill_date',
+                'type'  => 'date',
+                'format' => $new_format_date,
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.bill_date', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.no_po_spk.label'),
+                    'name' => 'reference_id',
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        if ($entry?->voucher?->reference_type == 'App\Models\Spk') {
+                            return $entry?->voucher?->reference?->no_spk;
+                        }
+                        return $entry?->voucher?->reference?->po_number;
+                    }
+                ], // BELUM FILTER
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.payment_transfer.label_2'),
+                'name' => 'payment_transfer',
+                'type'  => 'closure',
+                'function' => function ($entry) use ($settings, $status_file) {
+                    return $this->priceFormatExport($status_file, $entry->payment_transfer);
+                },
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.payment_transfer', $order);
+                }
+            ]);
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.due_date.label_2'),
+                'name' => 'due_date',
+                'type'  => 'date',
+                'format' => $new_format_date,
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.due_date', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.factur_status.label'),
+                    'name' => 'factur_status',
+                    'type'  => 'text',
+                    'orderLogic' => function ($query, $column, $order) {
+                        return $query->orderBy('vouchers.factur_status', $order);
+                    }
+                ],
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.due_date.label'),
+                'name' => 'payment_date',
+                'type'  => 'date',
+                'format' => $new_format_date,
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('vouchers.payment_date', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.payment_status.label'),
+                    'name' => 'payment_status',
+                    'type'  => 'text',
+                    'orderLogic' => function ($query, $column, $order) {
+                        return $query->orderBy('vouchers.payment_status', $order);
+                    }
+                ],
+            );
+
+            CRUD::column([
+                'label' => trans('backpack::crud.voucher.column.voucher.approved_at.label'),
+                'name' => 'approval_approved_at',
+                'type'  => 'date',
+                'format' => $new_format_date,
+                'orderLogic' => function ($query, $column, $order) {
+                    return $query->orderBy('approvals.approved_at', $order);
+                }
+            ]);
+
+            CRUD::column(
+                [
+                    'label' => trans('backpack::crud.voucher.column.voucher.status.label'),
+                    'name' => 'status',
+                    'type'  => 'approval-voucher',
+                ],
+            );
+
+            CRUD::addColumn([
+                'name'     => 'user_approval',
+                'label'    => trans('backpack::crud.voucher.column.voucher.user_approval.label'),
+                'type'     => 'custom_html',
+                'value' => function ($entry) {
+                    $approvals = Approval::where('model_type', PaymentVoucherPlan::class)
+                        ->where('model_id', $entry->voucer_edit_id)
+                        ->orderBy('no_apprv', 'ASC')
+                        ->get();
+                    return "<ul>" . $approvals->map(function ($item, $key) {
+                        if ($item->status == Approval::APPROVED) {
+                            return "<li class='text-success'>" . $item->user->name . "</li>";
+                        }
+                        return "<li>" . $item->user->name . "</li>";
+                    })->implode('') . "</ul>";
+                },
+            ]);
         }
     }
 
@@ -1820,7 +2203,7 @@ class VoucherPaymentCrudController extends CrudController
     {
         $type = request()->tab;
 
-        $this->setupListOperation();
+        $this->setupExportOperation();
 
         CRUD::removeColumn('document_path');
 
@@ -1867,7 +2250,7 @@ class VoucherPaymentCrudController extends CrudController
     {
         $type = request()->tab;
 
-        $this->setupListOperation();
+        $this->setupExportOperation();
         CRUD::removeColumn('document_path');
 
         $columns = $this->crud->columns();
