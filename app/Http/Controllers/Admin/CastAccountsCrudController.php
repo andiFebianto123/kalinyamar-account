@@ -322,9 +322,6 @@ class CastAccountsCrudController extends CrudController
                 $join->on('account_transactions.reference_id', 'vouchers.id')
                     ->where('account_transactions.reference_type', 'App\\Models\\Voucher');
             })
-            ->leftJoin('invoice_clients as voucher_invoice', function ($join) {
-                $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
-            })
             ->leftJoin('accounts as voucher_account', 'vouchers.account_id', '=', 'voucher_account.id')
             ->leftJoin('cast_accounts as trans_cast_account', 'account_transactions.cast_account_id', '=', 'trans_cast_account.id')
             ->leftJoin('accounts as trans_account', 'trans_cast_account.account_id', '=', 'trans_account.id')
@@ -338,7 +335,7 @@ class CastAccountsCrudController extends CrudController
                 'trans_account.code as trans_account_code',
                 'trans_account.name as trans_account_name',
                 'invoice_clients.invoice_number as direct_invoice_number',
-                'voucher_invoice.invoice_number as indirect_invoice_number'
+                'vouchers.bill_number as indirect_invoice_number'
             ])
             ->where('account_transactions.cast_account_id', $id)
             ->where('account_transactions.is_first', 0);
@@ -2100,10 +2097,6 @@ class CastAccountsCrudController extends CrudController
                 ->where('account_transactions.reference_type', 'App\\Models\\Voucher');
         });
 
-        $query = $query->leftJoin('invoice_clients as voucher_invoice', function ($join) {
-            $join->on('vouchers.client_po_id', 'voucher_invoice.client_po_id');
-        });
-
         $query = $query->leftJoin('accounts as voucher_account', 'vouchers.account_id', '=', 'voucher_account.id');
 
         $query = $query->leftJoin('cast_accounts as trans_cast_account', 'account_transactions.cast_account_id', '=', 'trans_cast_account.id');
@@ -2120,7 +2113,7 @@ class CastAccountsCrudController extends CrudController
             'voucher_account.name as voucher_account_name',
             'trans_account.code as trans_account_code',
             'trans_account.name as trans_account_name',
-            'voucher_invoice.invoice_number as indirect_invoice_number'
+            'vouchers.bill_number as indirect_invoice_number'
         ]);
 
         // Access Check
@@ -2176,7 +2169,7 @@ class CastAccountsCrudController extends CrudController
                     $query->where(function ($q) use ($searchValue) {
                         $q->where('account_transactions.no_invoice', 'LIKE', "%{$searchValue}%")
                             ->orWhere('invoice_clients.invoice_number', 'LIKE', "%{$searchValue}%")
-                            ->orWhere('voucher_invoice.invoice_number', 'LIKE', "%{$searchValue}%");
+                            ->orWhere('vouchers.bill_number', 'LIKE', "%{$searchValue}%");
                     });
                 } elseif ($colName == 'status') {
                     $query->where('account_transactions.status', 'LIKE', "%{$searchValue}%");
