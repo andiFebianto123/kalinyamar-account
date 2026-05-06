@@ -1985,8 +1985,10 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.field.tax_ppn.label'),
                 'name' => 'tax_ppn',
-                'type'  => 'number',
-                'suffix' => '%',
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->tax_ppn.' %';
+                },
             ],
         );
 
@@ -2006,8 +2008,10 @@ class InvoiceClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.invoice_client.field.pph.label'),
                 'name' => 'pph',
-                'type'  => 'number',
-                'suffix' => '%',
+                'type'  => 'closure',
+                'function' => function ($entry) {
+                    return $entry->pph.' %';
+                },
             ],
         );
 
