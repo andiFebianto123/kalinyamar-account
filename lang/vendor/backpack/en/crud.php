@@ -111,6 +111,9 @@ return [
         'pdf' => 'PDF',
         'print' => 'Print',
         'column_visibility' => 'Column visibility',
+        'limit_exceeded' => 'Data is too large to download as :type (maximum :limit records). Please use filters to narrow down your search.',
+        'internet_server_error' => 'An error occurred on the server. Please try again later.',
+        'error' => 'Error',
     ],
     'custom_views' => [
         'title' => 'custom views',

@@ -38,8 +38,8 @@
             if(get_url_export == ''){
                 setLoadingButton("#btn-export-pdf", false);
                 swal({
-                    title: "Error",
-                    text: "Internet server error",
+                    title: "{{ trans('backpack::crud.export.error') }}",
+                    text: "{{ trans('backpack::crud.export.internet_server_error') }}",
                     icon: "error",
                     timer: 4000,
                     buttons: false,
@@ -52,8 +52,8 @@
             if(errors){
                 var errorResponse = await errors;
                 swal({
-                    title: "Error",
-                    text: "Internet server error",
+                    title: "{{ trans('backpack::crud.export.error') }}",
+                    text: errorResponse.message || "{{ trans('backpack::crud.export.internet_server_error') }}",
                     icon: "error",
                     timer: 4000,
                     buttons: false,

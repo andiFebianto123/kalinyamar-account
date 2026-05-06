@@ -105,6 +105,9 @@ return [
         'pdf' => 'PDF',
         'print' => 'Cetak',
         'column_visibility' => 'Visibilitas kolom',
+        'limit_exceeded' => 'Data terlalu besar untuk diunduh sebagai :type (maksimal :limit data). Silakan gunakan filter untuk mempersempit pencarian.',
+        'internet_server_error' => 'Terjadi kesalahan pada server. Silakan coba lagi nanti.',
+        'error' => 'Gagal',
     ],
 
     // global crud - errors
@@ -133,6 +136,16 @@ return [
     'filters' => 'Filter',
     'toggle_filters' => 'Alihkan filter',
     'remove_filters' => 'Hapus filter',
+    'apply' => 'Terapkan',
+
+    //filters language strings
+    'today' => 'Hari Ini',
+    'yesterday' => 'Kemarin',
+    'last_7_days' => '7 Hari Terakhir',
+    'last_30_days' => '30 Hari Terakhir',
+    'this_month' => 'Bulan Ini',
+    'last_month' => 'Bulan Lalu',
+    'custom_range' => 'Rentang Khusus',
 
     // Fields
     'browse_uploads' => 'Jelajahi unggahan',

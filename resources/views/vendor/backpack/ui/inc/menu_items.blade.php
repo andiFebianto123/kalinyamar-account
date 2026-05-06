@@ -321,3 +321,4 @@
 
 <x-backpack::menu-item title="Tags" icon="la la-question" :link="backpack_url('tag')" />
 <x-backpack::menu-item title="Roles" icon="la la-question" :link="backpack_url('role')" /> --}}
+

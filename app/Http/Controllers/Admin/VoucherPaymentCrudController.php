@@ -41,8 +41,6 @@ class VoucherPaymentCrudController extends CrudController
         CRUD::setRoute(config('backpack.base.route_prefix') . '/fa/voucher-payment');
         CRUD::setEntityNameStrings(trans('backpack::crud.voucher_payment.title_header'), trans('backpack::crud.voucher_payment.title_header'));
 
-
-
         $viewMenu = [
             "MENU INDEX FA PEMBAYARAN"
         ];

@@ -69,7 +69,7 @@ class VoucherCrudController extends CrudController
     {
         $this->crud->addFilter([
             'name' => 'date_voucher11crudTable-voucher',
-            'type' => 'date',
+            'type' => 'date_range',
             'label' => trans('backpack::crud.voucher.column.voucher.date_voucher.label'),
         ], false, function ($value) {});
 
@@ -89,7 +89,6 @@ class VoucherCrudController extends CrudController
 
     function total_voucher()
     {
-
         $request = request();
 
         $data = Voucher::selectRaw('
@@ -123,7 +122,10 @@ class VoucherCrudController extends CrudController
         $data = $data->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
         if ($request->has('date_voucher')) {
-            $data = $data->where('vouchers.date_voucher', $request->date_voucher);
+            $date_serialize = json_decode(request()->date_voucher, true);
+            $date_voucher_form = Carbon::parse(trim($date_serialize['from']))->format('Y-m-d');
+            $date_voucher_to = Carbon::parse(trim($date_serialize['to']))->format('Y-m-d');
+            $data = $data->whereBetween('vouchers.date_voucher', [$date_voucher_form, $date_voucher_to]);
         }
 
         if ($request->has('bill_date')) {
@@ -662,7 +664,10 @@ class VoucherCrudController extends CrudController
 
 
             if ($request->has('date_voucher')) {
-                $this->crud->query = $this->crud->query->where('vouchers.date_voucher', $request->date_voucher);
+                $date_serialize = json_decode(request()->date_voucher, true);
+                $date_voucher_form = Carbon::parse(trim($date_serialize['from']))->format('Y-m-d');
+                $date_voucher_to = Carbon::parse(trim($date_serialize['to']))->format('Y-m-d');
+                $this->crud->query = $this->crud->query->whereBetween('vouchers.date_voucher', [$date_voucher_form, $date_voucher_to]);
             }
 
             if ($request->has('bill_date')) {
@@ -1136,7 +1141,10 @@ class VoucherCrudController extends CrudController
                 $this->crud->query->leftJoin('cast_accounts', 'cast_accounts.id', 'vouchers.account_source_id');
 
             if ($request->has('date_voucher')) {
-                $this->crud->query = $this->crud->query->where('vouchers.date_voucher', $request->date_voucher);
+                $date_serialize = json_decode(request()->date_voucher, true);
+                $date_voucher_form = Carbon::parse(trim($date_serialize['from']))->format('Y-m-d');
+                $date_voucher_to = Carbon::parse(trim($date_serialize['to']))->format('Y-m-d');
+                $this->crud->query = $this->crud->query->whereBetween('vouchers.date_voucher', [$date_voucher_form, $date_voucher_to]);
             }
 
             if ($request->has('bill_date')) {
@@ -4200,6 +4208,13 @@ class VoucherCrudController extends CrudController
         $type = request()->tab;
 
         $this->setupListExport($type);
+        
+        $count = $this->crud->query->count();
+        if ($count > 1200) {
+            return response()->json([
+                'message' => trans('backpack::crud.export.limit_exceeded', ['type' => 'PDF', 'limit' => 1200]),
+            ], 400);
+        }
 
         $columns = $this->crud->columns();
         $this->crud->autoEagerLoadRelationshipColumns();
@@ -4208,9 +4223,9 @@ class VoucherCrudController extends CrudController
 
         $row_number = 0;
 
-        $title = "VOUCHER";
+        $title = mb_strtoupper(trans('backpack::crud.voucher.tab.title_voucher'));
         if ($type == 'voucher_edit') {
-            $title = "VOUCHER EDIT";
+            $title = mb_strtoupper(trans('backpack::crud.voucher.tab.title_voucher_edit'));
         }
 
         $mpdf = new Mpdf([
@@ -4320,9 +4335,9 @@ class VoucherCrudController extends CrudController
             $all_items[] = $row_items;
         }
 
-        $name = 'VOUCHER';
+        $name = mb_strtoupper(trans('backpack::crud.voucher.tab.title_voucher'));
         if ($type == 'voucher_edit') {
-            $name = "VOUCHER EDIT";
+            $name = mb_strtoupper(trans('backpack::crud.voucher.tab.title_voucher_edit'));
         }
 
         return response()->streamDownload(function () use ($type, $columns, $items, $all_items) {
