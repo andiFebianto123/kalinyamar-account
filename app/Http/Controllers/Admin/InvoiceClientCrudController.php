@@ -1987,7 +1987,7 @@ class InvoiceClientCrudController extends CrudController
                 'name' => 'tax_ppn',
                 'type'  => 'closure',
                 'function' => function ($entry) {
-                    return $entry->tax_ppn.' %';
+                    return $entry->tax_ppn . ' %';
                 },
             ],
         );
@@ -2010,7 +2010,7 @@ class InvoiceClientCrudController extends CrudController
                 'name' => 'pph',
                 'type'  => 'closure',
                 'function' => function ($entry) {
-                    return $entry->pph.' %';
+                    return $entry->pph . ' %';
                 },
             ],
         );
