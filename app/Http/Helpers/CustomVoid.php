@@ -911,7 +911,7 @@ class CustomVoid
                 'reference_id' => $newTransaction->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => $description,
-                'date' => Carbon::now(),
+                'date' => $date_transaction,
                 'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transfer_account : 0,
                 'credit' => ($status == AccountTransaction::OUT) ? $nominal_transfer_account : 0,
             ], [
@@ -947,7 +947,7 @@ class CustomVoid
             'reference_id' => $newTransaction->id,
             'reference_type' => AccountTransaction::class,
             'description' => $description,
-            'date' => Carbon::now(),
+            'date' => $date_transaction,
             'debit' => ($status == AccountTransaction::ENTER) ? $nominal_transfer_account : 0,
             'credit' => ($status == AccountTransaction::OUT) ? $nominal_transfer_account : 0,
         ], [

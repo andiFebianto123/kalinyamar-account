@@ -514,7 +514,7 @@ class CustomHelper
                     'reference_id' => $transaction->id,
                     'reference_type' => AccountTransaction::class,
                     'description' => $description,
-                    'date' => Carbon::now(),
+                    'date' => $transaction->date_transaction,
                     'debit' => $is_out ? 0 : $nominal,      // DEBIT jika ENTER
                     'credit' => $is_out ? $nominal : 0,     // CREDIT jika OUT
                 ], [
