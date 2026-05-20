@@ -349,12 +349,6 @@ class MonitoringTrackerCrudController extends CrudController
             ]);
 
             CRUD::column([
-                'label' => 'Status',
-                'name'  => 'status_po',
-                'type'  => 'text',
-            ]);
-
-            CRUD::column([
                 'label' => 'PIC',
                 'name'  => 'pic',
                 'type'  => 'text',
@@ -371,6 +365,13 @@ class MonitoringTrackerCrudController extends CrudController
                 'name'  => 'information',
                 'type'  => 'wrap_text',
             ]);
+
+            CRUD::column([
+                'label' => 'Status',
+                'name'  => 'status_po',
+                'type'  => 'text',
+            ]);
+
         } else if ($tab == 'tracker_edit') {
             CRUD::setModel(ProjectHistory::class);
             CRUD::disableResponsiveTable();

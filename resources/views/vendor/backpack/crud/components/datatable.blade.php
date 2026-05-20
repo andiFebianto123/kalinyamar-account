@@ -371,7 +371,7 @@
         </script>
     @endonce
 @endpush
-
+ 
 @push('after_scripts')
     <script>
         var filterValues = [];
@@ -681,11 +681,15 @@
                 $('.sidebar-nav').on({
                     mouseenter: function() {
                         // resizeCrudTableColumnWidths();
+                        console.log('masuk');
                         SIAOPS.getAttribute('crudTable-{{$name}}').resize();
                     },
                     mouseleave: function() {
                         // resizeCrudTableColumnWidths();
-                        SIAOPS.getAttribute('crudTable-{{$name}}').resize();
+                        console.log("keluar");
+                        setTimeout(()=>{
+                            SIAOPS.getAttribute('crudTable-{{$name}}').resize();
+                        }, 500)
                     }
                 });
 
