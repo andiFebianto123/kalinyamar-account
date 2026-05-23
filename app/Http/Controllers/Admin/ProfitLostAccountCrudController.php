@@ -23,6 +23,7 @@ use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\FormaterExport;
 use App\Http\Exports\ExportProfitLostConsolidation;
 use App\Http\Controllers\Operation\PermissionAccess;
+use App\Models\InvoiceClient;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProfitLostAccountCrudController extends CrudController
@@ -1050,7 +1051,21 @@ class ProfitLostAccountCrudController extends CrudController
     function validationProject()
     {
         $rule = [];
-        $rule['id_client_po'] = 'required|unique:project_profit_lost,client_po_id,' . request()->id;
+        // $rule['id_client_po'] = 'required|unique:project_profit_lost,client_po_id,' . request()->id;
+        $rule['work_code'] = [
+            'required',
+            function ($attribute, $value, $fail) {
+                $profitLost = ProjectProfitLost::where('client_po_id', $value)->first();
+                if ($profitLost) {
+                    $fail(trans('backpack::crud.profit_lost.confirm.client_po_exists'));
+                }
+                $invoice = InvoiceClient::where('client_po_id', $value)->first();
+                if ($invoice) {
+                    $fail(trans('backpack::crud.profit_lost.confirm.invoice_not_exists'));
+                }
+                return true;
+            }
+        ];
         $rule['category'] = 'required';
         return $rule;
     }
