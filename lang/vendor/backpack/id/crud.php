@@ -902,6 +902,10 @@ return [
             'consolidation_account' => 'Akun Laba Rugi Konsolidasi',
             'project_account' => 'Laba Rugi Proyek Proyek',
         ],
+        'confirm' => [
+            'client_po_exists' => 'Client PO sudah memiliki laporan laba rugi',
+            'invoice_not_exists' => 'Inovoice untuk Client po ini belum dibuat',
+        ],
         'show_detail' => 'LIHAT DETAIL',
         'fields' => [
             'no_po' => [
