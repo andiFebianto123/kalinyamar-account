@@ -1056,12 +1056,16 @@ class ProfitLostAccountCrudController extends CrudController
             'required',
             function ($attribute, $value, $fail) {
                 $profitLost = ProjectProfitLost::where('client_po_id', $value)->first();
+                $failStr = "";
                 if ($profitLost) {
-                    $fail(trans('backpack::crud.profit_lost.confirm.client_po_exists'));
+                    $failStr .= trans('backpack::crud.profit_lost.confirm.client_po_exists') . '<br>';
                 }
                 $invoice = InvoiceClient::where('client_po_id', $value)->first();
                 if ($invoice) {
-                    $fail(trans('backpack::crud.profit_lost.confirm.invoice_not_exists'));
+                    $failStr .= trans('backpack::crud.profit_lost.confirm.invoice_not_exists') . '<br>';
+                }
+                if ($failStr != "") {
+                    $fail($failStr);
                 }
                 return true;
             }
