@@ -904,7 +904,7 @@ return [
         ],
         'confirm' => [
             'client_po_exists' => 'KDP sudah memiliki laporan laba rugi',
-            'invoice_not_exists' => '"Inovoice untuk Client po ini belum dibuat"',
+            'invoice_not_exists' => '"data yang tampil hanya yang memiliki invoice"',
         ],
         'show_detail' => 'LIHAT DETAIL',
         'fields' => [
