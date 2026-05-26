@@ -1921,7 +1921,8 @@ class ProfitLostAccountCrudController extends CrudController
                     'type'      => 'closure',
                     'name'      => 'client_po_id',
                     'function' => function ($entry) {
-                        return $entry->clientPo->client->name;
+                       //  return $entry->clientPo->client->name;
+                        return $entry->clientPo?->client?->name ?? '-';
                     }, // the column that contains the ID of that connected entity;
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
@@ -2305,7 +2306,8 @@ class ProfitLostAccountCrudController extends CrudController
                     'type'      => 'closure',
                     'name'      => 'client_po_id',
                     'function' => function ($entry) {
-                        return $entry->clientPo->client->name;
+                        // return $entry->clientPo->client->name;
+                        return $entry->clientPo?->client?->name ?? '-';
                     }, // the column that contains the ID of that connected entity;
                     'searchLogic' => function ($query, $column, $searchTerm) {
                         $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
@@ -2527,7 +2529,8 @@ class ProfitLostAccountCrudController extends CrudController
             'type'      => 'closure',
             'name'      => 'client_po_id',
             'function' => function ($entry) {
-                return $entry->clientPo->client->name;
+               //  return $entry->clientPo->client->name;
+                return $entry->clientPo?->client?->name ?? '-';
             }, // the column that contains the ID of that connected entity;
             'searchLogic' => function ($query, $column, $searchTerm) {
                 $query->orWhereHas('clientPo.client', function ($q) use ($column, $searchTerm) {
