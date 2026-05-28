@@ -473,8 +473,8 @@ class CustomVoid
         $transaksi->cast_account_id = $voucher->account_source_id;
         $transaksi->reference_type = Voucher::class;
         $transaksi->reference_id = $voucher->id;
-        $transaksi->date_transaction = $payment_date;
-        $transaksi->nominal_transaction = $voucher->bill_value;
+        $transaksi->date_transaction = $voucher->bill_date;
+        $transaksi->nominal_transaction = $voucher->payment_transfer;
         $transaksi->total_saldo_before = 0;
         $transaksi->total_saldo_after = 0;
         $transaksi->status = CastAccount::OUT;
@@ -500,7 +500,7 @@ class CustomVoid
                 'reference_id' => $transaksi->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => "Saldo berkurang " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $voucher->bill_date,
                 'debit' => 0,
                 'credit' => $transaksi->nominal_transaction,
             ], [
