@@ -172,6 +172,14 @@
                     <select name="to_account" class="form-control form-select">
                     </select>
                 </div>
+                <div class="col-md-6"></div>
+                <div class="form-group col-md-6 required" element="div" bp-field-wrapper="true" bp-field-name="type_transfer" bp-field-type="select_from_array" bp-section="crud-field">
+                    <label>Jenis Transfer</label>
+                    <select name="type_transfer" class="form-control form-select">
+                        <option value="out" selected>Keluar</option>
+                        <option value="enter">Masuk</option>
+                    </select>
+                </div>
             </div>
         </form>
     </div>

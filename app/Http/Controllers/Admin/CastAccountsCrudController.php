@@ -120,7 +120,7 @@ class CastAccountsCrudController extends CrudController
                             ],
                             [
                                 'class' => 'btn btn-primary btn-sm btn-transfer-balance',
-                                'label' => trans('backpack::crud.modal.move'),
+                                'label' => trans('backpack::crud.save_submit'),
                             ],
                         ]
                     ]
@@ -1791,8 +1791,13 @@ class CastAccountsCrudController extends CrudController
         $castAccount = CastAccount::where('id', request()->cast_account_id)->first();
         $balance = CustomHelper::total_balance_cast_account(request()->cast_account_id, CastAccount::CASH);
 
+        $typeTransfer = request()->input('type_transfer', 'out');
+        $isAccount = strpos(request()->to_account, 'acc_') === 0;
+        $target_id = str_replace('acc_', '', request()->to_account);
+
         CRUD::setValidation([
             'cast_account_id' => ['required', 'exists:cast_accounts,id'],
+            'type_transfer' => ['required', 'in:out,enter'],
             'to_account' => [
                 'required',
                 function ($attr, $value, $fail) use ($castAccount) {
@@ -1814,9 +1819,18 @@ class CastAccountsCrudController extends CrudController
             'nominal_transfer' => [
                 'required',
                 'numeric',
-                function ($attribute, $value, $fail) use ($balance) {
-                    if ($value > $balance) {
-                        $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
+                function ($attribute, $value, $fail) use ($balance, $typeTransfer, $isAccount, $target_id) {
+                    if ($typeTransfer === 'enter') {
+                        if (!$isAccount) {
+                            $destBalance = CustomHelper::total_balance_cast_account($target_id, CastAccount::CASH);
+                            if ($value > $destBalance) {
+                                $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more_destination"));
+                            }
+                        }
+                    } else {
+                        if ($value > $balance) {
+                            $fail(trans("backpack::crud.cash_account.field_transfer.errors.nominal_transfer_to_more"));
+                        }
                     }
                 }
             ],
@@ -1827,16 +1841,24 @@ class CastAccountsCrudController extends CrudController
         DB::beginTransaction();
 
         $date_transfer = ($request->has('date_move_balance')) ? $request->date_move_balance : Carbon::now()->format('Y-m-d');
-        // $date_transfer = Carbon::now();
 
         try {
             $log_payment = [];
             $old_saldo = $balance;
-            $new_saldo = $balance - $request->nominal_transfer;
+            
+            if ($typeTransfer === 'enter') {
+                $new_saldo = $balance + $request->nominal_transfer;
+                $status_source = 'enter';
+                $debit_source = $request->nominal_transfer;
+                $credit_source = 0;
+            } else {
+                $new_saldo = $balance - $request->nominal_transfer;
+                $status_source = 'out';
+                $debit_source = 0;
+                $credit_source = $request->nominal_transfer;
+            }
+            
             $description = $request->description;
-
-            $isAccount = strpos($request->to_account, 'acc_') === 0;
-            $target_id = str_replace('acc_', '', $request->to_account);
 
             $newTransaction = new AccountTransaction;
             $newTransaction->cast_account_id = $request->cast_account_id;
@@ -1849,7 +1871,7 @@ class CastAccountsCrudController extends CrudController
             $newTransaction->nominal_transaction = $request->nominal_transfer;
             $newTransaction->total_saldo_before = $old_saldo;
             $newTransaction->total_saldo_after = $new_saldo;
-            $newTransaction->status = 'out';
+            $newTransaction->status = $status_source;
             $newTransaction->description = $description;
             $newTransaction->save();
 
@@ -1864,15 +1886,15 @@ class CastAccountsCrudController extends CrudController
                 'reference_type' => AccountTransaction::class,
             ];
 
-            // kurangi saldo utama
+            // sesuaikan saldo utama
             $journal_balance = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $castAccount->account_id,
                 'reference_id' => $newTransaction->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => $description,
                 'date' => Carbon::parse($date_transfer),
-                'debit' => 0,
-                'credit' => $request->nominal_transfer,
+                'debit' => $debit_source,
+                'credit' => $credit_source,
             ], [
                 'account_id' => $castAccount->account_id,
                 'reference_id' => $newTransaction->id,
@@ -1886,11 +1908,25 @@ class CastAccountsCrudController extends CrudController
                 'reference_type' => AccountTransaction::class,
             ];
 
+            if ($typeTransfer === 'enter') {
+                $status_dest = 'out';
+                $debit_dest = 0;
+                $credit_dest = $request->nominal_transfer;
+            } else {
+                $status_dest = 'enter';
+                $debit_dest = $request->nominal_transfer;
+                $credit_dest = 0;
+            }
+
             if (!$isAccount) {
                 // other account
                 $otherAccount = CastAccount::where('id', $request->to_account)->first();
                 $other_old_saldo = $otherAccount->total_saldo;
-                $other_new_saldo = $other_old_saldo + $newTransaction->nominal_transaction;
+                if ($typeTransfer === 'enter') {
+                    $other_new_saldo = $other_old_saldo - $newTransaction->nominal_transaction;
+                } else {
+                    $other_new_saldo = $other_old_saldo + $newTransaction->nominal_transaction;
+                }
 
                 $newTransaction_2 = new AccountTransaction;
                 $newTransaction_2->cast_account_id = $otherAccount->id;
@@ -1899,7 +1935,7 @@ class CastAccountsCrudController extends CrudController
                 $newTransaction_2->nominal_transaction = $request->nominal_transfer;
                 $newTransaction_2->total_saldo_before = $other_old_saldo;
                 $newTransaction_2->total_saldo_after = $other_new_saldo;
-                $newTransaction_2->status = 'enter';
+                $newTransaction_2->status = $status_dest;
                 $newTransaction_2->description = $description;
                 $newTransaction_2->save();
 
@@ -1919,16 +1955,15 @@ class CastAccountsCrudController extends CrudController
                 $newTransaction_2 = $newTransaction;
             }
 
-
-            // tambah saldo di akun tujuan
+            // tambah/kurang saldo di akun tujuan
             $journal_destination = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $otherAccount->account_id,
                 'reference_id' => $newTransaction_2->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => $description,
                 'date' => Carbon::parse($date_transfer),
-                'debit' => $request->nominal_transfer,
-                'credit' => 0,
+                'debit' => $debit_dest,
+                'credit' => $credit_dest,
             ], [
                 'account_id' => $otherAccount->account_id,
                 'reference_id' => $newTransaction_2->id,
