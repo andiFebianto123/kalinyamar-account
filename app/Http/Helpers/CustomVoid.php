@@ -435,7 +435,7 @@ class CustomVoid
         }
     }
 
-    public static function voucherPaymentPlan(Voucher $voucher)
+    public static function voucherPaymentPlan(Voucher $voucher, $status = 0)
     {
         $log_payment = [];
         $type = '';
@@ -485,6 +485,8 @@ class CustomVoid
         $user_approval = User::permission('APPROVE RENCANA BAYAR')
             ->orderBy('no_order', 'ASC')->get();
 
+        $approvalStatus = $status ? Approval::APPROVED : Approval::PENDING;
+
         foreach ($user_approval as $key => $user) {
             $approval = new Approval;
             $approval->model_type = PaymentVoucherPlan::class;
@@ -492,7 +494,7 @@ class CustomVoid
             $approval->no_apprv = $key + 1;
             $approval->user_id = $user->id;
             $approval->position = '';
-            $approval->status = Approval::PENDING;
+            $approval->status = $approvalStatus;
             $approval->save();
         }
     }
