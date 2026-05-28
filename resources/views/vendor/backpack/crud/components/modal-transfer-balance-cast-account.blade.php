@@ -28,6 +28,14 @@
                     </div>
                     <input type="hidden" name="nominal_transfer" id="nominal_transaction" value="">
                 </div>
+                <div class="col-md-6"></div>
+                <div class="form-group col-md-6 required" element="div" bp-field-wrapper="true" bp-field-name="type_transfer" bp-field-type="select_from_array" bp-section="crud-field">
+                    <label>Jenis Transfer</label>
+                    <select name="type_transfer" class="form-control form-select">
+                        <option value="out" selected>Keluar</option>
+                        <option value="enter">Masuk</option>
+                    </select>
+                </div>
                 <div class="form-group col-md-6">
                 </div>
                 <div class="form-group col-md-6" element="div" bp-field-wrapper="true" bp-field-name="description" bp-field-type="textarea" bp-section="crud-field">
@@ -170,14 +178,6 @@
                 <div class="form-group col-md-6 required" element="div" bp-field-wrapper="true" bp-field-name="status" bp-field-type="select_from_array" bp-section="crud-field">
                     <label>{{trans("backpack::crud.cash_account.field_transfer.to_account.label")}}</label>
                     <select name="to_account" class="form-control form-select">
-                    </select>
-                </div>
-                <div class="col-md-6"></div>
-                <div class="form-group col-md-6 required" element="div" bp-field-wrapper="true" bp-field-name="type_transfer" bp-field-type="select_from_array" bp-section="crud-field">
-                    <label>Jenis Transfer</label>
-                    <select name="type_transfer" class="form-control form-select">
-                        <option value="out" selected>Keluar</option>
-                        <option value="enter">Masuk</option>
                     </select>
                 </div>
             </div>
