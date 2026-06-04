@@ -77,6 +77,7 @@ class ImportVoucherRollback extends Command
                 $kodeVoucher    = $row['kode_voucher'] ?? $row['kode voucher'] ?? $row['no_voucher'] ?? $row['no voucher'] ?? null;
                 $namaVoucher    = $row['nama_voucher'] ?? $row['nama voucher'] ?? $row['job_name'] ?? $row['nama pekerjaan'] ?? null;
                 $tanggalVoucher = $row['tanggal_voucher'] ?? $row['tanggal voucher'] ?? $row['date_voucher'] ?? $row['tanggal'] ?? null;
+                $tanggalBayar   = $row['tanggal_bayar'] ?? $row['tanggal bayar'] ?? $row['payment_date'] ?? $row['date_payment'] ?? $row['tgl_bayar'] ?? null;
 
                 if (!$kodeVoucher) {
                     $this->warn("\nBaris " . ($index + 2) . ": Kode Voucher kosong. Dilewati.");
@@ -110,6 +111,16 @@ class ImportVoucherRollback extends Command
                         // $voucher->date_voucher = $parsedDate->format('Y-m-d');
                     }
 
+                    // Parse tanggal bayar jika diinputkan di Excel
+                    $parsedPaymentDate = null;
+                    if ($tanggalBayar !== null && $tanggalBayar !== '') {
+                        if (is_numeric($tanggalBayar)) {
+                            $parsedPaymentDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($tanggalBayar));
+                        } else {
+                            $parsedPaymentDate = Carbon::parse($tanggalBayar);
+                        }
+                    }
+
                     // $voucher->save();
 
                     $castAccount = $voucher->account_source;
@@ -120,7 +131,7 @@ class ImportVoucherRollback extends Command
                     // add payment plan
                     CustomVoid::voucherPaymentPlan($voucher, 1);
                     // add payment voucher
-                    CustomVoid::voucherPayment($voucher);
+                    CustomVoid::voucherPayment($voucher, $parsedPaymentDate);
                     $balance_out = CustomHelper::balanceAccount($castAccount->account->code);
                     if ($balance_out < 0) {
                         throw new \Exception(trans('backpack::crud.cash_account.field_transfer.errors.balance_not_enough', ['castname' => $castAccount->name]));
