@@ -25,6 +25,7 @@ class CustomVoid
         $invoice = InvoiceClient::where('client_po_id', $voucher->client_po_id)->first();
         $client_po = $voucher->client_po;
         $bill_value = $voucher->bill_value; // Menggunakan Exclude PPN
+        $date_voucher = $voucher->date_voucher ?? Carbon::now();
 
         if ($client_po->status == 'TANPA PO') {
             // ada po
@@ -35,7 +36,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "Transaksi tanpa PO " . $client_po->work_code,
-                'date' => Carbon::now(),
+                'date' => $date_voucher,
                 'debit' => $bill_value,
                 // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
             ], [
@@ -49,7 +50,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "Transaksi tanpa PO " . $client_po->work_code,
-                'date' => Carbon::now(),
+                'date' => $date_voucher,
                 'debit' => $bill_value,
                 'type' => JournalEntry::class,
             ];
@@ -64,7 +65,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
@@ -79,7 +80,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -92,7 +93,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
@@ -107,7 +108,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -122,7 +123,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
@@ -137,7 +138,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -153,7 +154,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
@@ -168,7 +169,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -183,7 +184,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
@@ -198,7 +199,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Beban dalam proses pekerjaan voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -214,7 +215,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
@@ -229,7 +230,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "Transaksi voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $bill_value,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -253,6 +254,9 @@ class CustomVoid
         $voucher_id = $voucher->id;
 
         $price_unifikasi = $voucher->discount_pph_23 + $voucher->discount_pph_4 + $voucher->discount_pph_21;
+
+        $date_voucher = $voucher->date_voucher ?? Carbon::now();
+
         if ($price_unifikasi > 0) {
             $account_unifikasi = Account::where('code', CustomHelper::getAccountMapping('UNIFICATION'))->first();
             $trans_0 = CustomHelper::updateOrCreateJournalEntry([
@@ -260,7 +264,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "tambahan pph unifikasi " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $date_voucher,
                 'debit' => $price_unifikasi,
                 'credit' => 0,
             ], [
@@ -274,7 +278,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "tambahan pph unifikasi " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $date_voucher,
                 'debit' => $price_unifikasi,
                 'credit' => 0,
                 'type' => JournalEntry::class,
@@ -288,7 +292,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "piutang voucher " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $date_voucher,
                 'debit' => $voucher->bill_value,
                 'credit' => 0,
             ], [
@@ -302,7 +306,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "piutang voucher " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $date_voucher,
                 'debit' => $voucher->bill_value,
                 'credit' => 0,
                 'type' => JournalEntry::class,
@@ -317,7 +321,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "PPN voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $total_ppn,
                     'credit' => 0,
                 ], [
@@ -331,7 +335,7 @@ class CustomVoid
                     'reference_id' => $voucher->id,
                     'reference_type' => Voucher::class,
                     'description' => "PPN voucher " . $voucher->no_voucher,
-                    'date' => Carbon::now(),
+                    'date' => $date_voucher,
                     'debit' => $total_ppn,
                     'credit' => 0,
                     'type' => JournalEntry::class,
@@ -505,6 +509,8 @@ class CustomVoid
         $cast_account = CastAccount::where('id', $voucher->account_source_id)->first();
         $log_payment = [];
 
+        $payment_date = $payment_date ?? Carbon::now();
+
         // kurangi hutang
         $hutang = Account::where('code', CustomHelper::getAccountMapping('DEBT_VOUCHER'))->first();
         if ($hutang) {
@@ -513,7 +519,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "Hutang voucher " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $payment_date,
                 'debit' => 0,
                 'credit' => $voucher->bill_value,
             ]);
@@ -523,20 +529,18 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "Hutang voucher " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $payment_date,
                 'type' => JournalEntry::class,
                 'debit' => 0,
                 'credit' => $voucher->bill_value,
             ];
         }
 
-        $payment_date = $payment_date ?? Carbon::now();
-
         $transaksi = new AccountTransaction;
         $transaksi->cast_account_id = $voucher->account_source_id;
         $transaksi->reference_type = Voucher::class;
         $transaksi->reference_id = $voucher->id;
-        $transaksi->date_transaction = $voucher->bill_date;
+        $transaksi->date_transaction = $payment_date;
         $transaksi->nominal_transaction = $voucher->payment_transfer;
         $transaksi->total_saldo_before = 0;
         $transaksi->total_saldo_after = 0;
@@ -552,7 +556,7 @@ class CustomVoid
             'reference_id' => $voucher->id,
             'reference_type' => Voucher::class,
             'description' => 'Pembayaran Voucher ' . $voucher->no_voucher,
-            'date' => Carbon::now(),
+            'date' => $payment_date,
             'type' => AccountTransaction::class,
         ];
 
@@ -563,7 +567,7 @@ class CustomVoid
                 'reference_id' => $transaksi->id,
                 'reference_type' => AccountTransaction::class,
                 'description' => "Saldo berkurang " . $voucher->no_voucher,
-                'date' => $voucher->bill_date,
+                'date' => $payment_date,
                 'debit' => 0,
                 'credit' => $transaksi->nominal_transaction,
             ], [
@@ -577,7 +581,7 @@ class CustomVoid
                 'reference_id' => $voucher->id,
                 'reference_type' => Voucher::class,
                 'description' => "Saldo berkurang " . $voucher->no_voucher,
-                'date' => Carbon::now(),
+                'date' => $payment_date,
                 'type' => JournalEntry::class,
                 'debit' => 0,
                 'credit' => $transaksi->nominal_transaction,
