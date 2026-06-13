@@ -601,9 +601,14 @@ class CustomVoid
         // old voucher
         $old_voucher = clone $voucher;
         // update voucher
-        $voucher->payment_status = 'BAYAR';
-        $voucher->payment_date = $payment_date;
-        $voucher->save();
+        // $voucher->payment_status = 'BAYAR';
+        // $voucher->payment_date = $payment_date;
+        // $voucher->save();
+
+        Voucher::where('id', $voucher->id)->update([
+            'payment_status' => 'BAYAR',
+            'payment_date' => $payment_date
+        ]);
 
         // add capture
         GlobalChangedLogs::addCapture([
