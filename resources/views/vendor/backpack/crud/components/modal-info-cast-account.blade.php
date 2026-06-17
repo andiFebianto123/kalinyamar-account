@@ -22,6 +22,7 @@
         <table class="detail-information table info-cast-account" style="width: 100%;">
             <thead>
                 <tr>
+                <th>ID Transaksi</th>
                 <th>{{ trans('backpack::crud.cash_account.field_transaction.date_transaction.label') }}</th>
                 <th>{{ trans('backpack::crud.cash_account.field_transaction.nominal.label') }}</th>
                 <th>{{ trans('backpack::crud.cash_account.field_transaction.description.label') }}</th>
@@ -33,6 +34,7 @@
                 <th></th>
                 </tr>
                 <tr class="filters">
+                <th><input type="text" class="form-control form-control-sm" /></th>
                 <th></th>
                 <th><input type="text" class="form-control form-control-sm" /></th>
                 <th><input type="text" class="form-control form-control-sm" /></th>
@@ -368,6 +370,7 @@
                                     });
                                 },
                                 columns: [
+                                    { data: 'id', name: 'id' },
                                     { data: 'date_transaction_str', name: 'date_transaction' },
                                     { data: 'nominal_transaction_str', name: 'nominal_transaction' },
                                     { data: 'description_str', name: 'description' },
@@ -378,7 +381,7 @@
                                     { data: 'status_str', name: 'status' },
                                     { data: 'action_buttons', name: 'action', orderable: false, searchable: false }
                                 ],
-                                order: [[0, 'asc']]
+                                order: [[1, 'asc']]
                             });
                         }
                         return this;

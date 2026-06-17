@@ -360,6 +360,12 @@ class CastAccountsCrudController extends CrudController
             ]
         ])->makeFirstColumn();
 
+        $this->crud->addColumn([
+            'name'  => 'id',
+            'label' => 'ID Transaksi',
+            'type'  => 'number',
+        ]);
+
         CRUD::column([
             'label'  => trans('backpack::crud.cash_account.field_transaction.date_transaction.label'),
             'name' => 'date_transaction',
@@ -2176,7 +2182,9 @@ class CastAccountsCrudController extends CrudController
                 $searchValue = $col['search']['value'];
                 $colName = $col['name'];
 
-                if ($colName == 'date_transaction') {
+                if ($colName == 'id') {
+                    $query->where('account_transactions.id', 'LIKE', "%{$searchValue}%");
+                } elseif ($colName == 'date_transaction') {
                     $query->where('account_transactions.date_transaction', 'LIKE', "%{$searchValue}%");
                 } elseif ($colName == 'nominal_transaction') {
                     $query->where('account_transactions.nominal_transaction', 'LIKE', "%{$searchValue}%");
@@ -2215,7 +2223,7 @@ class CastAccountsCrudController extends CrudController
         $total_filtered = $query->count();
 
         // Order logic
-        $columns = ['date_transaction', 'nominal_transaction', 'description', 'kdp', 'job_name', 'account_id', 'no_invoice', 'status'];
+        $columns = ['id', 'date_transaction', 'nominal_transaction', 'description', 'kdp', 'job_name', 'account_id', 'no_invoice', 'status'];
         if ($order = request()->input('order.0')) {
             $query->orderBy($columns[$order['column']], $order['dir']);
         } else {
@@ -2276,6 +2284,7 @@ class CastAccountsCrudController extends CrudController
             // }
 
             $data[] = [
+                'id' => $entry->id,
                 'date_transaction_str' => $date_str,
                 'nominal_transaction_str' => $nominal_str,
                 'description_str' => $entry->voucher_description ?: ($entry->description ?? '-'),
