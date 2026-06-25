@@ -1217,7 +1217,8 @@ class BalanceSheetCrudController extends CrudController
             }
         }
 
-        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . $fileNameFilter . '_' . now()->format('Ymd_His') . '.pdf';
+        $safeAccountName = str_replace([' ', '/', '\\'], '_', $account->name);
+        $fileName = 'Buku_Besar_' . $safeAccountName . $fileNameFilter . '_' . now()->format('Ymd_His') . '.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -1311,7 +1312,8 @@ class BalanceSheetCrudController extends CrudController
             }
         }
 
-        $fileName = 'Buku_Besar_' . str_replace(' ', '_', $account->name) . $fileNameFilter . '_' . now()->format('Ymd_His') . '.xlsx';
+        $safeAccountName = str_replace([' ', '/', '\\'], '_', $account->name);
+        $fileName = 'Buku_Besar_' . $safeAccountName . $fileNameFilter . '_' . now()->format('Ymd_His') . '.xlsx';
 
         return response()->streamDownload(function () use ($columns, $data) {
             echo Excel::raw(new ExportExcel($columns, $data), \Maatwebsite\Excel\Excel::XLSX);
