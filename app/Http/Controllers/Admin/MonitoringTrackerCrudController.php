@@ -15,9 +15,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 class MonitoringTrackerCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
     use PermissionAccess;
 
@@ -235,7 +233,6 @@ class MonitoringTrackerCrudController extends CrudController
         $this->crud->removeButtonFromStack('show', 'line');
         $this->crud->addButton('line_start', 'show', 'view', 'crud::buttons.show', 'end');
         $this->crud->addButton('line_start', 'update', 'view', 'crud::buttons.update', 'end');
-        // $this->crud->addButton('line_start', 'delete', 'view', 'crud::buttons.delete', 'end');
 
         CRUD::addButtonFromView('top', 'filter-year', 'filter-year', 'beginning');
         CRUD::addButtonFromView('top', 'filter-project', 'filter-project', 'beginning');
@@ -472,7 +469,6 @@ class MonitoringTrackerCrudController extends CrudController
             'user'            => 'nullable|max:150',
             'status_po'       => 'required',
             'information'     => 'nullable',
-            // Required for projects table
             'price_total_exclude_ppn' => 'required|numeric',
             'tax_ppn' => 'required|numeric',
             'start_date' => 'required|date',
@@ -567,7 +563,6 @@ class MonitoringTrackerCrudController extends CrudController
             'wrapper' => ['class' => 'form-group col-md-12'],
         ]);
 
-        // Hidden / Essential fields for Project model
         CRUD::addField([
             'name' => 'price_total_exclude_ppn',
             'type' => 'hidden',
@@ -662,22 +657,18 @@ class MonitoringTrackerCrudController extends CrudController
     {
         $this->setupCreateOperation();
 
-        // Sync fields and columns for the custom show.blade.php
         CRUD::removeAllFields();
         CRUD::removeAllColumns();
 
         $col6 = ['wrapper' => ['class' => 'form-group col-md-6']];
         $col12 = ['wrapper' => ['class' => 'form-group col-md-12']];
 
-        // 1. no_po_spk
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.no_po_spk'), 'name' => 'no_po_spk'])->wrapper($col6['wrapper']);
         CRUD::column(['label' => '', 'name' => 'no_po_spk', 'type' => 'wrap_text']);
 
-        // 2. name
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.name'), 'name' => 'name'])->wrapper($col12['wrapper']);
         CRUD::column(['label' => '', 'name' => 'name', 'type' => 'wrap_text']);
 
-        // 3. client_id
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.client_id'), 'name' => 'client_id'])->wrapper($col6['wrapper']);
         $this->crud->addColumn([
             'label' => '',
@@ -688,11 +679,9 @@ class MonitoringTrackerCrudController extends CrudController
             'model'     => "App\Models\SetupClient",
         ]);
 
-        // 4. actual_end_date
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.actual_end_date'), 'name' => 'actual_end_date'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'actual_end_date', 'type'  => 'date', 'format' => 'DD/MM/YYYY']);
 
-        // 5. total_time
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.total_time'), 'name' => 'total_time'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'    => '',
@@ -710,7 +699,6 @@ class MonitoringTrackerCrudController extends CrudController
             },
         ]);
 
-        // 6. progress
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.progress'), 'name' => 'progress'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -722,33 +710,24 @@ class MonitoringTrackerCrudController extends CrudController
             }
         ]);
 
-        // 7. status_po
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.status'), 'name' => 'status_po'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'status_po', 'type'  => 'text']);
 
-        // 8. pic
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.pic'), 'name' => 'pic'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'pic', 'type'  => 'text']);
 
-        // 9. user
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.user'), 'name' => 'user'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'user', 'type'  => 'text']);
 
-        // 10. information
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.information'), 'name' => 'information'])->wrapper($col12['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'information', 'type'  => 'wrap_text']);
 
-        // --- Additional Project Details ---
-
-        // po_date
         CRUD::field(['label' => trans('backpack::crud.project.field.po_date.label'), 'name' => 'po_date'])->wrapper($col6['wrapper']);
         CRUD::column(['label' => '', 'name' => 'po_date', 'type' => 'date', 'format' => 'D MMM Y']);
 
-        // received_po_date
         CRUD::field(['label' => trans('backpack::crud.project.field.received_po_date.label'), 'name' => 'received_po_date'])->wrapper($col6['wrapper']);
         CRUD::column(['label' => '', 'name' => 'received_po_date', 'type' => 'date', 'format' => 'D MMM Y']);
 
-        // price_total_exclude_ppn
         CRUD::field(['label' => trans('backpack::crud.project.field.price_total_exclude_ppn.label'), 'name' => 'price_total_exclude_ppn'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -760,7 +739,6 @@ class MonitoringTrackerCrudController extends CrudController
             'thousands_sep' => '.',
         ]);
 
-        // tax_ppn
         CRUD::field(['label' => trans('backpack::crud.project.field.tax_ppn.label'), 'name' => 'tax_ppn'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -772,7 +750,6 @@ class MonitoringTrackerCrudController extends CrudController
             }
         ]);
 
-        // price_ppn
         CRUD::field(['label' => trans('backpack::crud.project.field.price_ppn.label'), 'name' => 'price_ppn'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -784,7 +761,6 @@ class MonitoringTrackerCrudController extends CrudController
             'thousands_sep' => '.',
         ]);
 
-        // price_total_include_ppn
         CRUD::field(['label' => trans('backpack::crud.project.field.price_total_include_ppn.label'), 'name' => 'price_total_include_ppn'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -796,7 +772,6 @@ class MonitoringTrackerCrudController extends CrudController
             'thousands_sep' => '.',
         ]);
 
-        // transfer_value (Calculated)
         CRUD::field(['label' => trans('backpack::crud.project.column.project.transfer_value.label'), 'name' => 'transfer_value'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label' => '',
@@ -816,7 +791,6 @@ class MonitoringTrackerCrudController extends CrudController
             },
         ]);
 
-        // tax_pph
         CRUD::field(['label' => trans('backpack::crud.project.field.tax_pph.label'), 'name' => 'tax_pph'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -828,7 +802,6 @@ class MonitoringTrackerCrudController extends CrudController
             }
         ]);
 
-        // price_pph
         CRUD::field(['label' => trans('backpack::crud.project.field.price_pph.label'), 'name' => 'price_pph'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -840,7 +813,6 @@ class MonitoringTrackerCrudController extends CrudController
             'thousands_sep' => '.',
         ]);
 
-        // fine_price
         CRUD::field(['label' => trans('backpack::crud.project.field.fine_price.label'), 'name' => 'fine_price'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -852,7 +824,6 @@ class MonitoringTrackerCrudController extends CrudController
             'thousands_sep' => '.',
         ]);
 
-        // start_date,end_date
         CRUD::field(['label' => trans('backpack::crud.client_po.column.startdate_and_enddate'), 'name' => 'start_date_range'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -860,23 +831,18 @@ class MonitoringTrackerCrudController extends CrudController
             'type'  => 'date_range_custom'
         ]);
 
-        // duration
         CRUD::field(['label' => trans('backpack::crud.monitoring_tracker.column.duration'), 'name' => 'duration'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'duration', 'type'  => 'text']);
 
-        // actual_start_date
         CRUD::field(['label' => trans('backpack::crud.project.field.actual_start_date.label'), 'name' => 'actual_start_date'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'actual_start_date', 'type'  => 'date', 'format' => 'D MMM Y']);
 
-        // category
         CRUD::field(['label' => trans('backpack::crud.project.column.project.category.label'), 'name' => 'category'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'category', 'type'  => 'text']);
 
-        // company_classification
         CRUD::field(['label' => trans('backpack::crud.project.column.project.company_classification.label'), 'name' => 'company_classification'])->wrapper($col6['wrapper']);
         CRUD::column(['label'  => '', 'name' => 'company_classification', 'type'  => 'text']);
 
-        // document_path
         CRUD::field(['label' => 'Dokumen Proyek', 'name' => 'document_path'])->wrapper($col6['wrapper']);
         CRUD::column([
             'label'  => '',
@@ -943,7 +909,6 @@ class MonitoringTrackerCrudController extends CrudController
                 $this->crud->getStrippedSaveRequest($request)
             );
 
-            // Record history
             $project_history = new ProjectHistory;
             $project_history->project_id = $item->id;
             $project_history->name = $item->name;

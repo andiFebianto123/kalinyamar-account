@@ -980,6 +980,9 @@ return [
             ],
             'header_id' => [
                 'label' => 'Header Konsolidasi',
+            ],
+            'job_year' => [
+                'label' => 'Tahun Pekerjaan',
             ]
         ],
         'column' => [
@@ -996,6 +999,7 @@ return [
             'load_general_value' => 'Beban Umum',
             'profit_lost_final' => 'Laba/Rugi Akhir',
             'category' => 'Kategori',
+            'job_year' => 'Tahun Pekerjaan',
             'invoice_date' => 'Tgl Invoice',
         ],
         'detail' => [

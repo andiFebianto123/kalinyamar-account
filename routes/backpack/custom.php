@@ -131,6 +131,9 @@ Route::group([
         Route::post('cast-account-loan-transaction', [CastAccountsLoanCrudController::class, 'storeTransaction']);
         Route::post('cast-account-loan-move-transaction', [CastAccountsLoanCrudController::class, 'storeMoveTransaction']);
         Route::get('cast-account-loan-show', [CastAccountsLoanCrudController::class, 'showTransaction']);
+        Route::delete('cast-account-loan/destroy-transaction/{id}', [CastAccountsLoanCrudController::class, 'destroyTransaction']);
+        Route::get('cast-account-loan/edit-child-transaction/{id}', [CastAccountsLoanCrudController::class, 'editChildTransaction']);
+        Route::post('cast-account-loan/update-child-transaction', [CastAccountsLoanCrudController::class, 'updateChildTransaction']);
         Route::post('cast-account-loan/loan-transaction-flag-select2', [CastAccountsLoanCrudController::class, 'loan_transaction_flag_select2']);
         Route::get('cast-account-loan/get-loan-balance', [CastAccountsLoanCrudController::class, 'get_loan_balance_ajax']);
     });

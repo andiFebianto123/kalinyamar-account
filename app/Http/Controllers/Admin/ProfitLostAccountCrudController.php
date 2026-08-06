@@ -168,6 +168,14 @@ class ProfitLostAccountCrudController extends CrudController
                 'NON RUTIN' => 'NON RUTIN',
             ]);
 
+        $this->crud->filter('invoice_status77crudTable-project')
+            ->label('Status Invoice')
+            ->type('select2')
+            ->values([
+                'HAS_INVOICE' => 'Ada Invoice',
+                'NO_INVOICE' => 'Tidak Ada Invoice',
+            ]);
+
         $this->card->addCard([
             'name' => 'project',
             'line' => 'bottom',
@@ -270,6 +278,12 @@ class ProfitLostAccountCrudController extends CrudController
                         'label'  => trans('backpack::crud.profit_lost.column.category'),
                         'type'      => 'text',
                         'name'      => 'category',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label'  => trans('backpack::crud.profit_lost.column.job_year'),
+                        'type'      => 'text',
+                        'name'      => 'job_year',
                         'orderable' => true,
                     ],
                     [
@@ -387,28 +401,50 @@ class ProfitLostAccountCrudController extends CrudController
             $total_excl_ppn_logic = $total_excl_ppn_logic->where('dummy_query.category', $category);
         }
 
+        if ($request->has('invoice_status') && !empty($request->invoice_status)) {
+            if ($request->invoice_status == 'HAS_INVOICE') {
+                $mainQuery = $mainQuery->whereNotNull('client_po.invoice_date');
+                $total_excl_ppn_logic = $total_excl_ppn_logic->whereNotNull('dummy_query.invoice_date');
+            } elseif ($request->invoice_status == 'NO_INVOICE') {
+                $mainQuery = $mainQuery->whereNull('client_po.invoice_date');
+                $total_excl_ppn_logic = $total_excl_ppn_logic->whereNull('dummy_query.invoice_date');
+            }
+        }
+
         if($filter_year && $filter_year != 'all'){
             $mainQuery = $mainQuery
             ->where(function($query) use ($filter_year){
-                $query->where(function($q) use($filter_year){
-                    $q->whereNotNull('client_po.invoice_date')
-                    ->whereYear('client_po.invoice_date', $filter_year);
-                })
-                ->orWhere(function($q)use($filter_year){
-                    $q->whereNull('client_po.invoice_date')
-                    ->whereYear("client_po.date_po", $filter_year);
+                $query->where('project_profit_lost.job_year', $filter_year)
+                ->orWhere(function($q) use ($filter_year){
+                    $q->whereNull('project_profit_lost.job_year')
+                    ->where(function($q2) use ($filter_year){
+                        $q2->where(function($q3) use($filter_year){
+                            $q3->whereNotNull('client_po.invoice_date')
+                            ->whereYear('client_po.invoice_date', $filter_year);
+                        })
+                        ->orWhere(function($q3) use($filter_year){
+                            $q3->whereNull('client_po.invoice_date')
+                            ->whereYear("client_po.date_po", $filter_year);
+                        });
+                    });
                 });
             });
 
             $total_excl_ppn_logic = $total_excl_ppn_logic
             ->where(function($query) use ($filter_year){
-                $query->where(function($q) use($filter_year){
-                    $q->whereNotNull('dummy_query.invoice_date')
-                    ->whereYear('dummy_query.invoice_date', $filter_year);
-                })
-                ->orWhere(function($q)use($filter_year){
-                    $q->whereNull('dummy_query.invoice_date')
-                    ->whereYear("dummy_query.date_po", $filter_year);
+                $query->where('project_profit_lost.job_year', $filter_year)
+                ->orWhere(function($q) use ($filter_year){
+                    $q->whereNull('project_profit_lost.job_year')
+                    ->where(function($q2) use ($filter_year){
+                        $q2->where(function($q3) use($filter_year){
+                            $q3->whereNotNull('dummy_query.invoice_date')
+                            ->whereYear('dummy_query.invoice_date', $filter_year);
+                        })
+                        ->orWhere(function($q3) use($filter_year){
+                            $q3->whereNull('dummy_query.invoice_date')
+                            ->whereYear("dummy_query.date_po", $filter_year);
+                        });
+                    });
                 });
             });
         }
@@ -510,20 +546,26 @@ class ProfitLostAccountCrudController extends CrudController
 
         $profit_lost_all_price = CustomHelper::profitLostRepository($filter)
             ->where('project_profit_lost.client_po_id', $po->id);
-            if(!empty($filter['filter_year'])){
-                $filter_year = $filter['filter_year'];
-                $profit_lost_all_price = $profit_lost_all_price
-                ->where(function($query) use ($filter_year){
-                    $query->where(function($q) use($filter_year){
-                        $q->whereNotNull('client_po.invoice_date')
-                        ->whereYear('client_po.invoice_date', $filter_year);
-                    })
-                    ->orWhere(function($q)use($filter_year){
-                        $q->whereNull('client_po.invoice_date')
-                        ->whereYear("client_po.date_po", $filter_year);
+        if(!empty($filter['filter_year']) && $filter['filter_year'] != 'all'){
+            $filter_year = $filter['filter_year'];
+            $profit_lost_all_price = $profit_lost_all_price
+            ->where(function($query) use ($filter_year){
+                $query->where('project_profit_lost.job_year', $filter_year)
+                ->orWhere(function($q) use ($filter_year){
+                    $q->whereNull('project_profit_lost.job_year')
+                    ->where(function($q2) use ($filter_year){
+                        $q2->where(function($q3) use($filter_year){
+                            $q3->whereNotNull('client_po.invoice_date')
+                            ->whereYear('client_po.invoice_date', $filter_year);
+                        })
+                        ->orWhere(function($q3) use($filter_year){
+                            $q3->whereNull('client_po.invoice_date')
+                            ->whereYear("client_po.date_po", $filter_year);
+                        });
                     });
                 });
-            }
+            });
+        }
             // ->whereExists(function ($query) use ($filter) {
             //     $query->select(DB::raw(1))
             //         ->from('invoice_clients')
@@ -912,6 +954,9 @@ class ProfitLostAccountCrudController extends CrudController
         $client_po = $this->data['entry']->clientPo;
 
         $this->crud->entry->po_number = $client_po->po_number;
+        if ($this->crud->entry->job_year) {
+            $this->crud->entry->job_year = $this->crud->entry->job_year . '-01-01';
+        }
 
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
 
@@ -1114,6 +1159,7 @@ class ProfitLostAccountCrudController extends CrudController
             }
         ];
         $rule['category'] = 'required';
+        $rule['job_year'] = 'required|digits:4|integer|min:2000|max:2099';
         return $rule;
     }
 
@@ -1336,6 +1382,22 @@ class ProfitLostAccountCrudController extends CrudController
                 ]);
 
                 CRUD::addField([
+                    'name'  => 'job_year',
+                    'type'  => 'date_picker',
+                    'label' => trans('backpack::crud.profit_lost.fields.job_year.label'),
+                    'default' => date('Y'),
+                    'date_picker_options' => [
+                        'format' => 'yyyy',
+                        'viewMode' => 'years',
+                        'minViewMode' => 'years',
+                        'language' => \Illuminate\Support\Facades\App::getLocale(),
+                    ],
+                    'wrapper'   => [
+                        'class' => 'form-group col-md-6'
+                    ],
+                ]);
+
+                CRUD::addField([
                     'name' => 'logic_profit_lost',
                     'type' => 'logic_profit_lost'
                 ]);
@@ -1388,6 +1450,11 @@ class ProfitLostAccountCrudController extends CrudController
         $this->crud->hasAccessOrFail('update');
         $request = request();
 
+        $job_year = $request->job_year;
+        if (str_contains($job_year, '-')) {
+            $job_year = date('Y', strtotime($job_year));
+        }
+
         $request->validate([
             'price_after_year' => 'nullable',
             'price_general' => 'nullable',
@@ -1402,6 +1469,10 @@ class ProfitLostAccountCrudController extends CrudController
             $flag_update = 0;
 
             $project_profit_lost = ProjectProfitLost::find($request->id);
+            if ($job_year && $project_profit_lost->job_year != $job_year) {
+                $flag_update++;
+                $project_profit_lost->job_year = $job_year;
+            }
             $price_small_cash_old = price_normalize($project_profit_lost->price_small_cash);
             $price_small_cash_new = price_normalize($request->price_small_cash);
             if ($price_small_cash_old != $price_small_cash_new) {
@@ -1700,6 +1771,11 @@ class ProfitLostAccountCrudController extends CrudController
             $item->price_general = $request->price_general;
             $item->price_prift_lost_final = $request->price_prift_lost_final;
             $item->category = $request->category;
+            $job_year_val = $request->job_year;
+            if (str_contains($job_year_val, '-')) {
+                $job_year_val = date('Y', strtotime($job_year_val));
+            }
+            $item->job_year = $job_year_val;
             $item->contract_value = 0;
             $item->total_project = 0;
             $item->save();
@@ -1881,17 +1957,31 @@ class ProfitLostAccountCrudController extends CrudController
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
                 }
 
-                if($request->has("filter_year")){
+                if ($request->has('invoice_status') && !empty($request->invoice_status)) {
+                    if ($request->invoice_status == 'HAS_INVOICE') {
+                        $this->crud->query = $this->crud->query->whereNotNull('client_po.invoice_date');
+                    } elseif ($request->invoice_status == 'NO_INVOICE') {
+                        $this->crud->query = $this->crud->query->whereNull('client_po.invoice_date');
+                    }
+                }
+
+                if($request->has("filter_year") && $request->filter_year != 'all'){
                     $filter_year = $request->filter_year;
                     $this->crud->query = $this->crud->query
                     ->where(function($query) use ($filter_year){
-                        $query->where(function($q) use($filter_year){
-                            $q->whereNotNull('client_po.invoice_date')
-                            ->whereYear('client_po.invoice_date', $filter_year);
-                        })
-                        ->orWhere(function($q)use($filter_year){
-                            $q->whereNull('client_po.invoice_date')
-                            ->whereYear("client_po.date_po", $filter_year);
+                        $query->where('project_profit_lost.job_year', $filter_year)
+                        ->orWhere(function($q) use ($filter_year){
+                            $q->whereNull('project_profit_lost.job_year')
+                            ->where(function($q2) use ($filter_year){
+                                $q2->where(function($q3) use($filter_year){
+                                    $q3->whereNotNull('client_po.invoice_date')
+                                    ->whereYear('client_po.invoice_date', $filter_year);
+                                })
+                                ->orWhere(function($q3) use($filter_year){
+                                    $q3->whereNull('client_po.invoice_date')
+                                    ->whereYear("client_po.date_po", $filter_year);
+                                });
+                            });
                         });
                     });
                 }
@@ -2088,6 +2178,15 @@ class ProfitLostAccountCrudController extends CrudController
                 ]);
 
                 CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.job_year'),
+                    'type'      => 'text',
+                    'name'      => 'job_year',
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('project_profit_lost.job_year', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
                     'label' => trans('backpack::crud.profit_lost.column.invoice_date'),
                     'type' => 'date-multiple',
                     'name' => 'invoice_date',
@@ -2266,17 +2365,31 @@ class ProfitLostAccountCrudController extends CrudController
                     $this->crud->query = $this->crud->query->where('client_po.category', $request->category);
                 }
 
-                if($request->has("filter_year")){
+                if ($request->has('invoice_status') && !empty($request->invoice_status)) {
+                    if ($request->invoice_status == 'HAS_INVOICE') {
+                        $this->crud->query = $this->crud->query->whereNotNull('client_po.invoice_date');
+                    } elseif ($request->invoice_status == 'NO_INVOICE') {
+                        $this->crud->query = $this->crud->query->whereNull('client_po.invoice_date');
+                    }
+                }
+
+                if($request->has("filter_year") && $request->filter_year != 'all'){
                     $filter_year = $request->filter_year;
                     $this->crud->query = $this->crud->query
                     ->where(function($query) use ($filter_year){
-                        $query->where(function($q) use($filter_year){
-                            $q->whereNotNull('client_po.invoice_date')
-                            ->whereYear('client_po.invoice_date', $filter_year);
-                        })
-                        ->orWhere(function($q)use($filter_year){
-                            $q->whereNull('client_po.invoice_date')
-                            ->whereYear("client_po.date_po", $filter_year);
+                        $query->where('project_profit_lost.job_year', $filter_year)
+                        ->orWhere(function($q) use ($filter_year){
+                            $q->whereNull('project_profit_lost.job_year')
+                            ->where(function($q2) use ($filter_year){
+                                $q2->where(function($q3) use($filter_year){
+                                    $q3->whereNotNull('client_po.invoice_date')
+                                    ->whereYear('client_po.invoice_date', $filter_year);
+                                })
+                                ->orWhere(function($q3) use($filter_year){
+                                    $q3->whereNull('client_po.invoice_date')
+                                    ->whereYear("client_po.date_po", $filter_year);
+                                });
+                            });
                         });
                     });
                 }
@@ -2302,7 +2415,7 @@ class ProfitLostAccountCrudController extends CrudController
 
                 CRUD::column([
                     // 1-n relationship
-                    'label' => '',
+                    'label' => trans('backpack::crud.profit_lost.column.client_po_id'),
                     'type'      => 'closure',
                     'name'      => 'client_po_id',
                     'function' => function ($entry) {
@@ -2464,6 +2577,15 @@ class ProfitLostAccountCrudController extends CrudController
                     'label'  => trans('backpack::crud.profit_lost.column.category'),
                     'type'      => 'text',
                     'name'      => 'category',
+                ]);
+
+                CRUD::column([
+                    'label'  => trans('backpack::crud.profit_lost.column.job_year'),
+                    'type'      => 'text',
+                    'name'      => 'job_year',
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('project_profit_lost.job_year', $columnDirection);
+                    }
                 ]);
 
                 CRUD::column([

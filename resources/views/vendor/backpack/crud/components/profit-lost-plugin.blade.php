@@ -30,7 +30,7 @@
 
                     var category = params.get('category');
                     var year = params.get('filter_year');
-
+                    var invoice_status = params.get('invoice_status');
                     $.ajax({
                         url: "{{ url($crud->route.'/total') }}",
                         type: 'GET',
@@ -38,6 +38,7 @@
                             search: window.filterValues,
                             category: category,
                             filter_year: year,
+                            invoice_status: invoice_status,
                         },
                         typeData: 'json',
                         success: function (result) {

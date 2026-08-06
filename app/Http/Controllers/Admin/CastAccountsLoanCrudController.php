@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\App;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\CrudController;
 use App\Http\Controllers\Operation\PermissionAccess;
+use App\Http\Helpers\CustomVoid;
+use App\Models\LogPayment;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -78,19 +80,14 @@ class CastAccountsLoanCrudController extends CrudController
 
             foreach ($list as $l) {
 
-                $journal_ = JournalEntry::whereHasMorph('reference', AccountTransaction::class, function ($q) use ($l, $filter_year) {
-                    $q->where('cast_account_id', $l->id);
-                    if ($filter_year && $filter_year != 'all') {
+                $trans = AccountTransaction::where('cast_account_id', $l->id)
+                    ->when($filter_year && $filter_year != 'all', function ($q) use ($filter_year) {
                         $q->whereYear('date_transaction', $filter_year);
-                    }
-                })
-                    // ->orWhereHasMorph('reference', CastAccount::class, function ($q) use ($l) {
-                    //     $q->where('id', $l->id);
-                    // })
-                    ->select(DB::raw('SUM(debit) - SUM(credit) as total'))
+                    })
+                    ->select(DB::raw('SUM(IF(status = "enter", nominal_transaction, 0)) - SUM(IF(status = "out", nominal_transaction, 0)) as total'))
                     ->first();
 
-                $l->saldo = $journal_->total;
+                $l->saldo = $trans?->total ?? 0;
                 $l->account = Account::find($l->account_id);
 
                 $this->card->addCard([
@@ -199,10 +196,8 @@ class CastAccountsLoanCrudController extends CrudController
                 account_transactions.cast_account_id,
                 (SUM(IF(account_transactions.status = "enter", account_transactions.nominal_transaction, 0)) - SUM(IF(account_transactions.status = "out", account_transactions.nominal_transaction, 0))) as saldo
             '))
-            ->when($year, function ($query) use ($year) {
-                if ($year) {
-                    $query->whereYear('date_transaction', $year);
-                }
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->whereYear('date_transaction', $year);
             })
             ->groupBy('cast_account_id');
 
@@ -352,12 +347,19 @@ class CastAccountsLoanCrudController extends CrudController
             $row_items = [];
             $row_number++;
             foreach ($columns as $column) {
-                $item_value = ($column['name'] == 'row_number') ? $row_number : $this->crud->getCellView($column, $item, $row_number);
-                $item_value = str_replace('<span>', '', $item_value);
-                $item_value = str_replace('</span>', '', $item_value);
-                $item_value = str_replace("\n", '', $item_value);
-                $item_value = CustomHelper::clean_html($item_value);
-                $row_items[] = trim($item_value);
+                if ($column['name'] == 'row_number') {
+                    $item_value = $row_number;
+                } elseif ($column['name'] == 'saldo') {
+                    $item_value = CustomHelper::formatRupiahWithCurrency($item->saldo);
+                } else {
+                    $item_value = $this->crud->getCellView($column, $item, $row_number);
+                    $item_value = str_replace('<span>', '', $item_value);
+                    $item_value = str_replace('</span>', '', $item_value);
+                    $item_value = str_replace("\n", '', $item_value);
+                    $item_value = CustomHelper::clean_html($item_value);
+                    $item_value = trim($item_value);
+                }
+                $row_items[] = $item_value;
             }
             $all_items[] = $row_items;
         }
@@ -370,7 +372,7 @@ class CastAccountsLoanCrudController extends CrudController
             'title' => $title
         ])->setPaper('A4', 'landscape');
 
-        $fileName = 'vendor_po_' . now()->format('Ymd_His') . '.pdf';
+        $fileName = 'Laporan_daftar_rekening_pinjaman_' . now()->format('Ymd_His') . '.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -603,6 +605,9 @@ class CastAccountsLoanCrudController extends CrudController
                 'numeric',
                 'min:1000',
                 function ($attribute, $value, $fail) use ($loan_transaction_flag_id, $cast_account_destination_id) {
+                    if($cast_account_destination_id == null){
+                        return;
+                    }
                     $cast_account_destination = CastAccount::find($cast_account_destination_id);
                     $total_balance_destination = CustomHelper::balanceAccount($cast_account_destination->account->code);
 
@@ -1107,18 +1112,35 @@ class CastAccountsLoanCrudController extends CrudController
     public function edit($id)
     {
         $this->crud->hasAccessOrFail('update');
+        $request = request();
 
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
         $this->crud->registerFieldEvents();
+        $entry = $this->crud->getEntryWithLocale($id);
 
-        $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+
+        if ($request->has('type')) {
+            if ($request->type == 'move') {
+                $title = "Ubah Data Angsuran Pinjaman";
+                if ($entry) {
+                    $entry->balance_information = 0;
+                    $entry->loan_transaction_flag_id = $entry->reference_id;
+                    $entry->date_loan_transaction = $entry->date_transaction ? Carbon::parse($entry->date_transaction)->format('Y-m-d') : null;
+                    $entry->payment_price = (float) $entry->nominal_transaction;
+                    $entry->cast_account_destination_id = $entry->cast_account_destination_id;
+                    $entry->description = $entry->description;
+                }
+            }
+        }
+
+        $this->data['entry'] = $entry;
 
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name;
+        $this->data['title'] = isset($title) ? $title : ($this->crud->getTitle() ?? trans('backpack::crud.edit') . ' ' . $this->crud->entity_name);
         $this->data['id'] = $id;
 
         return response()->json([
@@ -1168,7 +1190,7 @@ class CastAccountsLoanCrudController extends CrudController
                 $loan_transaction->reference_id = $loan_transaction_flag->id;
                 $loan_transaction->save();
 
-                CustomHelper::updateOrCreateJournalEntry([
+                $j_init = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $item->account_id,
                     'reference_id' => $loan_transaction->id,
                     'reference_type' => AccountTransaction::class,
@@ -1180,6 +1202,36 @@ class CastAccountsLoanCrudController extends CrudController
                     'reference_id' => $loan_transaction->id,
                     'reference_type' => AccountTransaction::class,
                 ]);
+
+                if ($j_init) {
+                    $log_payment = [
+                        [
+                            'id' => $loan_transaction_flag->id,
+                            'type' => LoanTransactionFlag::class,
+                        ],
+                        [
+                            'id' => $loan_transaction->id,
+                            'type' => AccountTransaction::class,
+                        ],
+                        [
+                            'id' => $j_init->id,
+                            'account_id' => $item->account_id,
+                            'reference_id' => $loan_transaction->id,
+                            'reference_type' => AccountTransaction::class,
+                            'description' => $loan_transaction->description,
+                            'date' => $dateTransactionInit,
+                            'debit' => $item->total_saldo,
+                            'credit' => 0,
+                            'type' => JournalEntry::class,
+                        ]
+                    ];
+                    $newLogPayment = new LogPayment;
+                    $newLogPayment->reference_type = AccountTransaction::class;
+                    $newLogPayment->reference_id = $loan_transaction->id;
+                    $newLogPayment->name = "CREATE_INIT_LOAN";
+                    $newLogPayment->snapshot = json_encode($log_payment);
+                    $newLogPayment->save();
+                }
             }
 
             $this->crud->setSaveAction();
@@ -1301,7 +1353,7 @@ class CastAccountsLoanCrudController extends CrudController
                 $add_transaction_destination->save();
 
                 // insert journal entry transaction loan
-                CustomHelper::updateOrCreateJournalEntry([
+                $j_loan = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $cast_account_loan->account_id,
                     'reference_id' => $loan_transaction->id,
                     'reference_type' => AccountTransaction::class,
@@ -1315,7 +1367,7 @@ class CastAccountsLoanCrudController extends CrudController
                 ]);
 
                 // insert journal entry transaction destination
-                CustomHelper::updateOrCreateJournalEntry([
+                $j_dest = CustomHelper::updateOrCreateJournalEntry([
                     'account_id' => $cast_account_destination->account_id,
                     'reference_id' => $add_transaction_destination->id,
                     'reference_type' => AccountTransaction::class,
@@ -1327,6 +1379,72 @@ class CastAccountsLoanCrudController extends CrudController
                     'reference_id' => $add_transaction_destination->id,
                     'reference_type' => AccountTransaction::class,
                 ]);
+
+                $log_payment = [];
+                if (isset($loan_transaction_flag)) {
+                    $log_payment[] = [
+                        'id' => $loan_transaction_flag->id,
+                        'type' => LoanTransactionFlag::class,
+                    ];
+                }
+                if (isset($add_transaction_destination)) {
+                    $log_payment[] = [
+                        'id' => $add_transaction_destination->id,
+                        'type' => AccountTransaction::class,
+                    ];
+                }
+                if(isset($loan_transaction)){
+                    $log_payment[] = [
+                        'id' => $loan_transaction->id,
+                        'type' => AccountTransaction::class,
+                    ];
+                }
+                if ($j_loan) {
+                    $log_payment[] = [
+                        'id' => $j_loan->id,
+                        'account_id' => $cast_account_loan->account_id,
+                        'reference_id' => $loan_transaction->id,
+                        'reference_type' => AccountTransaction::class,
+                        'description' => $description,
+                        'date' => Carbon::now(),
+                        'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
+                        'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                        'type' => JournalEntry::class,
+                    ];
+                }
+                if ($j_dest) {
+                    $log_payment[] = [
+                        'id' => $j_dest->id,
+                        'account_id' => $cast_account_destination->account_id,
+                        'reference_id' => $add_transaction_destination->id,
+                        'reference_type' => AccountTransaction::class,
+                        'description' => $description,
+                        'date' => Carbon::now(),
+                        'debit' => ($status == CastAccount::ENTER) ? $nominal_transaction : 0,
+                        'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
+                        'type' => JournalEntry::class,
+                    ];
+                }
+
+                if (count($log_payment) > 0) {
+                    // Log snapshot untuk transaksi asal (rekening pinjaman)
+                    $newLogPayment = new LogPayment;
+                    $newLogPayment->reference_type = AccountTransaction::class;
+                    $newLogPayment->reference_id = $loan_transaction->id;
+                    $newLogPayment->name = "CREATE_TRANSACTION_LOAN";
+                    $newLogPayment->snapshot = json_encode($log_payment);
+                    $newLogPayment->save();
+
+                    // Log snapshot untuk transaksi tujuan (rekening kas penerima)
+                    if (isset($add_transaction_destination)) {
+                        $newLogPaymentDest = new LogPayment;
+                        $newLogPaymentDest->reference_type = AccountTransaction::class;
+                        $newLogPaymentDest->reference_id = $add_transaction_destination->id;
+                        $newLogPaymentDest->name = "CREATE_TRANSACTION_LOAN";
+                        $newLogPaymentDest->snapshot = json_encode($log_payment);
+                        $newLogPaymentDest->save();
+                    }
+                }
             }
 
             $total_saldo = CustomHelper::balanceAccount($cast_account_loan->account->code);
@@ -1371,6 +1489,10 @@ class CastAccountsLoanCrudController extends CrudController
 
         $this->crud->registerFieldEvents();
 
+        if($request->type == 'move'){
+            return $this->updateChildTransaction();
+        }
+
         DB::beginTransaction();
         try {
 
@@ -1381,6 +1503,146 @@ class CastAccountsLoanCrudController extends CrudController
                 $item->name = $request->name;
                 $item->save();
                 $event['cast_account_store_success'] = true;
+            } else if ($request->type == 'move' || $request->type == 'transaction') {
+                $id = $request->id;
+                $old_at = AccountTransaction::find($id);
+                if (!$old_at) {
+                    return response()->json(['status' => false, 'message' => 'Transaksi tidak ditemukan'], 404);
+                }
+
+                $cast_account_id = $old_at->cast_account_id;
+                $cast_account_destination_id = $request->cast_account_destination_id ?? $old_at->cast_account_destination_id;
+                $reference_id = $request->loan_transaction_flag_id ?? $old_at->reference_id;
+                $reference_type = $old_at->reference_type;
+                $account_id = $old_at->account_id;
+
+                $date_loan_transaction = $request->date_loan_transaction ?? $request->date_transaction;
+                $payment_price = $request->payment_price ?? $request->nominal_transaction;
+                $description = $request->description;
+
+                // 1. Rollback & Hapus Transaksi & Jurnal lama secara bersih
+                CustomVoid::rollbackPayment(AccountTransaction::class, $id);
+
+                // 2. Buat Transaksi Baru hasil Revisi Edit (Loan side)
+                $new_loan_transaction = new AccountTransaction;
+                $new_loan_transaction->cast_account_id = $cast_account_id;
+                $new_loan_transaction->cast_account_destination_id = $cast_account_destination_id;
+                $new_loan_transaction->reference_type = $reference_type;
+                $new_loan_transaction->reference_id = $reference_id;
+                $new_loan_transaction->date_transaction = $date_loan_transaction;
+                $new_loan_transaction->description = $description;
+                $new_loan_transaction->account_id = $account_id;
+                $new_loan_transaction->nominal_transaction = $payment_price;
+                $new_loan_transaction->status = CastAccount::OUT;
+                $new_loan_transaction->save();
+
+                // 3. Buat Transaksi Baru hasil Revisi (Destination side jika ada)
+                $new_cast_transaction = null;
+                if ($cast_account_destination_id) {
+                    $account_dest = CastAccount::find($cast_account_destination_id);
+                    $new_cast_transaction = new AccountTransaction;
+                    $new_cast_transaction->cast_account_id = $cast_account_destination_id;
+                    $new_cast_transaction->cast_account_destination_id = $cast_account_id;
+                    $new_cast_transaction->reference_type = $reference_type;
+                    $new_cast_transaction->reference_id = $reference_id;
+                    $new_cast_transaction->date_transaction = $date_loan_transaction;
+                    $new_cast_transaction->description = $description;
+                    $new_cast_transaction->account_id = $account_dest->account_id ?? $account_id;
+                    $new_cast_transaction->nominal_transaction = $payment_price;
+                    $new_cast_transaction->status = CastAccount::OUT;
+                    $new_cast_transaction->save();
+                }
+
+                // 4. Posting Jurnal Baru
+                $j_move_loan = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account_id,
+                    'reference_id' => $new_loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => $date_loan_transaction,
+                    'debit' => 0,
+                    'credit' => $payment_price,
+                ], [
+                    'reference_id' => $new_loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
+
+                $j_move_dest = null;
+                if ($new_cast_transaction) {
+                    $j_move_dest = CustomHelper::updateOrCreateJournalEntry([
+                        'account_id' => $new_cast_transaction->account_id,
+                        'reference_id' => $new_cast_transaction->id,
+                        'reference_type' => AccountTransaction::class,
+                        'description' => $description,
+                        'date' => $date_loan_transaction,
+                        'debit' => 0,
+                        'credit' => $payment_price,
+                    ], [
+                        'reference_id' => $new_cast_transaction->id,
+                        'reference_type' => AccountTransaction::class,
+                    ]);
+                }
+
+                // 5. Buat Snapshot LogPayment Baru
+                $log_payment = [];
+                if ($new_cast_transaction) {
+                    $log_payment[] = [
+                        'id' => $new_cast_transaction->id,
+                        'type' => AccountTransaction::class,
+                    ];
+                }
+                $log_payment[] = [
+                    'id' => $new_loan_transaction->id,
+                    'type' => AccountTransaction::class,
+                ];
+
+                if ($j_move_dest) {
+                    $log_payment[] = [
+                        'id' => $j_move_dest->id,
+                        'account_id' => $new_cast_transaction->account_id,
+                        'reference_id' => $new_cast_transaction->id,
+                        'reference_type' => AccountTransaction::class,
+                        'description' => $description,
+                        'date' => $date_loan_transaction,
+                        'debit' => 0,
+                        'credit' => $payment_price,
+                        'type' => JournalEntry::class,
+                    ];
+                }
+                if ($j_move_loan) {
+                    $log_payment[] = [
+                        'id' => $j_move_loan->id,
+                        'account_id' => $account_id,
+                        'reference_id' => $new_loan_transaction->id,
+                        'reference_type' => AccountTransaction::class,
+                        'description' => $description,
+                        'date' => $date_loan_transaction,
+                        'debit' => 0,
+                        'credit' => $payment_price,
+                        'type' => JournalEntry::class,
+                    ];
+                }
+
+                if (count($log_payment) > 0) {
+                    $newLogPayment = new LogPayment;
+                    $newLogPayment->reference_type = AccountTransaction::class;
+                    $newLogPayment->reference_id = $new_loan_transaction->id;
+                    $newLogPayment->name = "CREATE_MOVE_TRANSACTION_LOAN";
+                    $newLogPayment->snapshot = json_encode($log_payment);
+                    $newLogPayment->save();
+
+                    if ($new_cast_transaction) {
+                        $newLogPaymentDest = new LogPayment;
+                        $newLogPaymentDest->reference_type = AccountTransaction::class;
+                        $newLogPaymentDest->reference_id = $new_cast_transaction->id;
+                        $newLogPaymentDest->name = "CREATE_MOVE_TRANSACTION_LOAN";
+                        $newLogPaymentDest->snapshot = json_encode($log_payment);
+                        $newLogPaymentDest->save();
+                    }
+                }
+
+                $item = $new_loan_transaction;
+                $event['card_cast_account' . $cast_account_id . '_store_move_success'] = $item;
             }
 
             // $type = $request->_type;
@@ -1488,7 +1750,7 @@ class CastAccountsLoanCrudController extends CrudController
             $new_cast_transaction->status = CastAccount::OUT;
             $new_cast_transaction->save();
 
-            CustomHelper::updateOrCreateJournalEntry([
+            $j_move_dest = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $account_destination->id,
                 'reference_id' => $new_cast_transaction->id,
                 'reference_type' => AccountTransaction::class,
@@ -1515,7 +1777,7 @@ class CastAccountsLoanCrudController extends CrudController
             $new_loan_transaction->status = CastAccount::OUT;
             $new_loan_transaction->save();
 
-            CustomHelper::updateOrCreateJournalEntry([
+            $j_move_loan = CustomHelper::updateOrCreateJournalEntry([
                 'account_id' => $first_account_transaction->account_id,
                 'reference_id' => $new_loan_transaction->id,
                 'reference_type' => AccountTransaction::class,
@@ -1527,6 +1789,68 @@ class CastAccountsLoanCrudController extends CrudController
                 'reference_id' => $new_loan_transaction->id,
                 'reference_type' => AccountTransaction::class,
             ]);
+
+            $log_payment = [];
+            if (isset($new_cast_transaction)) {
+                $log_payment[] = [
+                    'id' => $new_cast_transaction->id,
+                    'type' => AccountTransaction::class,
+                ];
+            }
+
+            if (isset($new_loan_transaction)) {
+                $log_payment[] = [
+                    'id' => $new_loan_transaction->id,
+                    'type' => AccountTransaction::class,
+                ];
+            }
+
+            if ($j_move_dest) {
+                $log_payment[] = [
+                    'id' => $j_move_dest->id,
+                    'account_id' => $account_destination->id,
+                    'reference_id' => $new_cast_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => $date_loan_transaction,
+                    'debit' => 0,
+                    'credit' => $payment_price,
+                    'type' => JournalEntry::class,
+                ];
+            }
+            if ($j_move_loan) {
+                $log_payment[] = [
+                    'id' => $j_move_loan->id,
+                    'account_id' => $first_account_transaction->account_id,
+                    'reference_id' => $new_loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => $date_loan_transaction,
+                    'debit' => 0,
+                    'credit' => $payment_price,
+                    'type' => JournalEntry::class,
+                ];
+            }
+
+            if (count($log_payment) > 0) {
+                // Log snapshot untuk transaksi pinjaman
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = AccountTransaction::class;
+                $newLogPayment->reference_id = $new_loan_transaction->id;
+                $newLogPayment->name = "CREATE_MOVE_TRANSACTION_LOAN";
+                $newLogPayment->snapshot = json_encode($log_payment);
+                $newLogPayment->save();
+
+                // Log snapshot untuk transaksi kas pengirim/tujuan
+                if (isset($new_cast_transaction)) {
+                    $newLogPaymentDest = new LogPayment;
+                    $newLogPaymentDest->reference_type = AccountTransaction::class;
+                    $newLogPaymentDest->reference_id = $new_cast_transaction->id;
+                    $newLogPaymentDest->name = "CREATE_MOVE_TRANSACTION_LOAN";
+                    $newLogPaymentDest->snapshot = json_encode($log_payment);
+                    $newLogPaymentDest->save();
+                }
+            }
 
             if ($remaining_balance == 0) {
                 $loan_transaction_flag->status = 1;
@@ -1595,7 +1919,9 @@ class CastAccountsLoanCrudController extends CrudController
         $query = AccountTransaction::select([
             'account_transactions.id',
             'account_transactions.cast_account_id',
+            'loan_transaction_flags.id as flag_id',
             'loan_transaction_flags.kode as kode',
+            'loan_transaction_flags.total_price as flag_total_price',
             'account_transactions.date_transaction',
             'account_transactions.total_saldo_after as loan_remaining',
             'account_transactions.nominal_transaction as nominal',
@@ -1640,6 +1966,9 @@ class CastAccountsLoanCrudController extends CrudController
             $prev_kode = $prev_item ? $prev_item->kode : null;
         }
 
+        // Hitung akumulasi pembayaran sebelumnya jika berada di halaman > 1 untuk masing-masing flag
+        $running_balances = [];
+
         foreach ($detail as $row => $entry) {
             $is_new_group = false;
             if ($row == 0) {
@@ -1654,21 +1983,61 @@ class CastAccountsLoanCrudController extends CrudController
                 }
             }
 
+            // Inisialisasi running balance group jika belum ada
+            if (!isset($running_balances[$entry->flag_id])) {
+                $initial_total = $entry->flag_total_price;
+                
+                // Jika halaman > 1, kurangi dengan transaksi angsuran yang muncul sebelum halaman ini untuk flag ini
+                if ($page > 1) {
+                    $prev_payments = AccountTransaction::where('reference_id', $entry->flag_id)
+                        ->where('reference_type', LoanTransactionFlag::class)
+                        ->where('cast_account_id', $id)
+                        ->where('id', '<', $entry->id)
+                        ->where('id', '!=', function($q) use ($entry) {
+                            // Abaikan id transaksi pencairan pertama (header entry) jika pencairan berada di urutan id terkecil
+                            $q->selectRaw('MIN(id)')->from('account_transactions')
+                                ->where('reference_id', $entry->flag_id)
+                                ->where('reference_type', LoanTransactionFlag::class)
+                                ->where('cast_account_id', $entry->cast_account_id);
+                        })
+                        ->sum('nominal_transaction');
+                    
+                    $initial_total -= $prev_payments;
+                }
+                
+                $running_balances[$entry->flag_id] = $initial_total;
+            }
+
+            $has_child_payments = AccountTransaction::where('reference_id', $entry->flag_id)
+                ->where('reference_type', LoanTransactionFlag::class)
+                ->where('status', CastAccount::OUT)
+                ->exists();
+
+            $has_log_payment = LogPayment::where('reference_type', AccountTransaction::class)
+                ->where('reference_id', $entry->id)
+                ->exists();
+
+            $entry->is_header = $is_new_group;
+            $entry->has_child = $has_child_payments;
+            $entry->has_log = $has_log_payment;
+
             if ($is_new_group) {
                 $entry->status_str = ($entry->status == 1) ? 'Paid' : 'Unpaid';
                 $entry->kode_str = $entry->kode;
                 $entry->nominal_str = "-";
+                $calculated_loan = $running_balances[$entry->flag_id];
             } else {
                 $entry->status_str = '-';
                 $entry->kode_str = '-';
                 $entry->nominal_str = CustomHelper::formatRupiahWithCurrency($entry->nominal);
+                
+                $running_balances[$entry->flag_id] -= $entry->nominal;
+                $calculated_loan = max(0, $running_balances[$entry->flag_id]);
             }
-            $entry->loan_str = CustomHelper::formatRupiahWithCurrency($entry->loan_remaining);
+
+            $entry->loan_str = CustomHelper::formatRupiahWithCurrency($calculated_loan);
             $entry->date_str = \Carbon\Carbon::parse($entry->date_transaction)->translatedFormat('d/m/Y');
         }
-
-        $total_balance = CustomHelper::total_balance_cast_account($id, CastAccount::LOAN, $filter_year);
-        $castAccount->total_saldo_str = CustomHelper::formatRupiahWithCurrency($total_balance);
 
         return response()->json([
             'status' => true,
@@ -1680,6 +2049,240 @@ class CastAccountsLoanCrudController extends CrudController
                 'total' => $total
             ]
         ]);
+    }
+
+    public function destroyTransaction($id)
+    {
+        $this->crud->hasAccessOrFail('delete');
+        DB::beginTransaction();
+        try {
+            $at = AccountTransaction::find($id);
+            if (!$at) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Transaksi tidak ditemukan.'
+                ], 440);
+            }
+
+            // Rollback entri jurnal berantai via CustomVoid
+            CustomVoid::rollbackPayment(AccountTransaction::class, $id);
+
+            // Hapus record transaksi
+            $at->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => true,
+                'message' => trans('backpack::crud.delete_confirmation_message')
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function editChildTransaction($id)
+    {
+        $this->crud->hasAccessOrFail('update');
+        $at = AccountTransaction::find($id);
+        if (!$at) {
+            return response()->json(['status' => false, 'message' => 'Transaksi tidak ditemukan'], 404);
+        }
+
+        $cashAccounts = CastAccount::where('status', CastAccount::CASH)->pluck('name', 'id')->all();
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'id' => $at->id,
+                'date_transaction' => $at->date_transaction ? Carbon::parse($at->date_transaction)->format('Y-m-d') : date('Y-m-d'),
+                'nominal_transaction' => (float) $at->nominal_transaction,
+                'cast_account_destination_id' => $at->cast_account_destination_id,
+                'description' => $at->description
+            ],
+            'cash_accounts' => $cashAccounts
+        ]);
+    }
+
+    public function updateChildTransaction()
+    {
+        $this->crud->hasAccessOrFail('update');
+        $request = request();
+        // $request->validate([
+        //     'id' => 'required|exists:account_transactions,id',
+        //     'date_transaction' => 'required|date',
+        //     'nominal_transaction' => 'required|numeric|min:1000',
+        //     'cast_account_destination_id' => 'nullable|exists:cast_accounts,id',
+        //     'description' => 'nullable|string|max:255'
+        // ]);
+
+        DB::beginTransaction();
+        try {
+            $id = $request->id;
+            $old_at = AccountTransaction::find($id);
+            if (!$old_at) {
+                return response()->json(['status' => false, 'message' => 'Transaksi tidak ditemukan'], 404);
+            }
+
+            // Simpan atribut penting dari transaksi lama sebelum di-rollback/dihapus
+            $cast_account_id = $old_at->cast_account_id;
+            $cast_account_destination_id = $request->cast_account_destination_id ?? $old_at->cast_account_destination_id;
+            $reference_type = $old_at->reference_type;
+            $account_id = $old_at->account_id;
+            $date_loan_transaction = $request->date_loan_transaction ?? $request->date_transaction;
+            $payment_price = $request->payment_price ?? $request->nominal_transaction;
+            if (is_string($payment_price)) {
+                $payment_price = (float) str_replace('.', '', $payment_price);
+            }
+            $description = $request->description;
+            $reference_id = $request->loan_transaction_flag_id ?? $old_at->reference_id;
+
+            // 1. Rollback & Hapus Transaksi & Jurnal lama secara bersih
+            CustomVoid::rollbackPayment(AccountTransaction::class, $id);
+
+            // 2. Buat Transaksi Baru hasil Revisi Edit (Loan side)
+            $new_loan_transaction = new AccountTransaction;
+            $new_loan_transaction->cast_account_id = $cast_account_id;
+            $new_loan_transaction->cast_account_destination_id = $cast_account_destination_id;
+            $new_loan_transaction->reference_type = $reference_type;
+            $new_loan_transaction->reference_id = $reference_id;
+            $new_loan_transaction->date_transaction = $date_loan_transaction;
+            $new_loan_transaction->description = $description;
+            $new_loan_transaction->account_id = $account_id;
+            $new_loan_transaction->nominal_transaction = $payment_price;
+            $new_loan_transaction->total_saldo_before = $payment_price;
+            $new_loan_transaction->total_saldo_after = $payment_price;
+            $new_loan_transaction->status = CastAccount::OUT;
+            $new_loan_transaction->save();
+
+            // 3. Buat Transaksi Baru hasil Revisi (Destination side jika ada)
+            $new_cast_transaction = null;
+            if ($cast_account_destination_id) {
+                $account_dest = CastAccount::find($cast_account_destination_id);
+                $new_cast_transaction = new AccountTransaction;
+                $new_cast_transaction->cast_account_id = $cast_account_destination_id;
+                $new_cast_transaction->cast_account_destination_id = $cast_account_id;
+                $new_cast_transaction->reference_type = $reference_type;
+                $new_cast_transaction->reference_id = $reference_id;
+                $new_cast_transaction->date_transaction = $date_loan_transaction;
+                $new_cast_transaction->description = $description;
+                $new_cast_transaction->account_id = $account_dest->account_id ?? $account_id;
+                $new_cast_transaction->nominal_transaction = $payment_price;
+                $new_cast_transaction->total_saldo_before = 0;
+                $new_cast_transaction->total_saldo_after = 0;
+                $new_cast_transaction->status = CastAccount::OUT;
+                $new_cast_transaction->save();
+            }
+
+            // 4. Posting Jurnal Baru
+            $j_move_loan = CustomHelper::updateOrCreateJournalEntry([
+                'account_id' => $account_id,
+                'reference_id' => $new_loan_transaction->id,
+                'reference_type' => AccountTransaction::class,
+                'description' => $description,
+                'date' => $date_loan_transaction,
+                'debit' => 0,
+                'credit' => $payment_price,
+            ], [
+                'reference_id' => $new_loan_transaction->id,
+                'reference_type' => AccountTransaction::class,
+            ]);
+
+            $j_move_dest = null;
+            if ($new_cast_transaction) {
+                $j_move_dest = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $new_cast_transaction->account_id,
+                    'reference_id' => $new_cast_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => $date_loan_transaction,
+                    'debit' => 0,
+                    'credit' => $payment_price,
+                ], [
+                    'reference_id' => $new_cast_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                ]);
+            }
+
+            // 5. Buat Snapshot LogPayment Baru
+            $log_payment = [];
+            if ($new_cast_transaction) {
+                $log_payment[] = [
+                    'id' => $new_cast_transaction->id,
+                    'type' => AccountTransaction::class,
+                ];
+            }
+            $log_payment[] = [
+                'id' => $new_loan_transaction->id,
+                'type' => AccountTransaction::class,
+            ];
+
+            if ($j_move_dest) {
+                $log_payment[] = [
+                    'id' => $j_move_dest->id,
+                    'account_id' => $new_cast_transaction->account_id,
+                    'reference_id' => $new_cast_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => $date_loan_transaction,
+                    'debit' => 0,
+                    'credit' => $payment_price,
+                    'type' => JournalEntry::class,
+                ];
+            }
+            if ($j_move_loan) {
+                $log_payment[] = [
+                    'id' => $j_move_loan->id,
+                    'account_id' => $account_id,
+                    'reference_id' => $new_loan_transaction->id,
+                    'reference_type' => AccountTransaction::class,
+                    'description' => $description,
+                    'date' => $date_loan_transaction,
+                    'debit' => 0,
+                    'credit' => $payment_price,
+                    'type' => JournalEntry::class,
+                ];
+            }
+
+            if (count($log_payment) > 0) {
+                $newLogPayment = new LogPayment;
+                $newLogPayment->reference_type = AccountTransaction::class;
+                $newLogPayment->reference_id = $new_loan_transaction->id;
+                $newLogPayment->name = "CREATE_MOVE_TRANSACTION_LOAN";
+                $newLogPayment->snapshot = json_encode($log_payment);
+                $newLogPayment->save();
+
+                if ($new_cast_transaction) {
+                    $newLogPaymentDest = new LogPayment;
+                    $newLogPaymentDest->reference_type = AccountTransaction::class;
+                    $newLogPaymentDest->reference_id = $new_cast_transaction->id;
+                    $newLogPaymentDest->name = "CREATE_MOVE_TRANSACTION_LOAN";
+                    $newLogPaymentDest->snapshot = json_encode($log_payment);
+                    $newLogPaymentDest->save();
+                }
+            }
+
+            DB::commit();
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'events' => [
+                        'card_cast_account' . $cast_account_id . '_store_move_success' => true,
+                    ]
+                ]);
+            }
+            return $this->crud->performSaveAction($id);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getSelectToAccount()

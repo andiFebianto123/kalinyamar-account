@@ -113,6 +113,7 @@
                     <th>{{trans('backpack::crud.cash_account.field_transaction.nominal.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account.field_transaction.description.label')}}</th>
                     <th>{{trans('backpack::crud.cash_account.field_transaction.status_loan.label')}}</th>
+                    <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="text-center">
@@ -241,6 +242,24 @@
                                 }
 
                                 forEachFlexible(data.result.detail, function(key, value){
+                                    var actionButtons = '';
+                                    if (value.has_log) {
+                                        if (value.is_header) {
+                                            if (!value.has_child) {
+                                                actionButtons = `<button class="btn btn-sm btn-danger btn-delete-trans" data-id="${value.id}" data-type="header" title="Hapus Transaksi Pinjaman Awal"><i class="la la-trash"></i></button>`;
+                                            } else {
+                                                actionButtons = `<span class="badge bg-secondary" title="Tidak dapat dihapus karena sudah ada angsuran">-</span>`;
+                                            }
+                                        } else {
+                                            var urlEdit = `{{ url($crud->route) }}/${value.id}/edit?type=move&_id=${instance.id}`;
+                                            var urlUpdate = `{{ url($crud->route) }}/${value.id}?type=move&_id=${instance.id}`;
+                                            actionButtons = `<a href="javascript:void(0)" onclick="editEntry(this)" data-route="${urlEdit}" data-route-action="${urlUpdate}" data-title-edit="Ubah Data Angsuran Pinjaman" class="btn btn-sm btn-warning mr-1" title="Edit Angsuran"><i class="la la-edit"></i></a>
+                                                             <button class="btn btn-sm btn-danger btn-delete-trans" data-id="${value.id}" data-type="child" title="Hapus Angsuran"><i class="la la-trash"></i></button>`;
+                                        }
+                                    } else {
+                                        actionButtons = `<span class="badge bg-secondary" title="Data transaksi lama (tanpa log payment)">-</span>`;
+                                    }
+
                                     table.append(`
                                     <tr>
                                         <td>${value.kode_str}</td>
@@ -249,6 +268,7 @@
                                         <td>${value.nominal_str}</td>
                                         <td>${value.description}</td>
                                         <td>${value.status_str}</td>
+                                        <td>${actionButtons}</td>
                                     </tr>`);
                                     instance.loadedCount++;
                                 });
@@ -449,9 +469,98 @@
                         instance.loadTransactionLoan(true);
                     });
 
+                    // Event handler Hapus Transaksi Pinjaman / Angsuran
+                    $('#{{$name}} .info-cast-account').off('click', '.btn-delete-trans').on('click', '.btn-delete-trans', function(e){
+                        e.preventDefault();
+                        var transId = $(this).data('id');
+                        var transType = $(this).data('type');
+                        var confirmMsg = transType === 'header' 
+                            ? 'Apakah Anda yakin ingin menghapus seluruh paket transaksi pinjaman ini?' 
+                            : 'Apakah Anda yakin ingin menghapus transaksi angsuran ini?';
+
+                        swal({
+                            title: "Konfirmasi Hapus",
+                            text: confirmMsg,
+                            icon: "warning",
+                            buttons: ["Batal", "Hapus"],
+                            dangerMode: true,
+                        }).then((willDelete) => {
+                            if (willDelete) {
+                                $.ajax({
+                                    url: "{{ url($crud->route) }}/destroy-transaction/" + transId,
+                                    type: 'DELETE',
+                                    success: function(res) {
+                                        if (res.status) {
+                                            new Noty({
+                                                type: "success",
+                                                text: "<strong>Berhasil!</strong><br>" + res.message
+                                            }).show();
+                                            // Reload data transaksi & refresh halaman
+                                            instance.loadTransactionLoan();
+                                            window.location.reload();
+                                        } else {
+                                            new Noty({
+                                                type: "error",
+                                                text: "<strong>Gagal!</strong><br>" + (res.message || 'Terjadi kesalahan')
+                                            }).show();
+                                        }
+                                    },
+                                    error: function(err) {
+                                        new Noty({
+                                            type: "error",
+                                            text: "<strong>Gagal!</strong><br>Gagal menghapus transaksi."
+                                        }).show();
+                                    }
+                                });
+                            }
+                        });
+                    });
+
                 }
             }
         });
+
+        if (typeof editEntry != 'function') {
+            function editEntry(button){
+                let modalEl = document.getElementById('modalEdit');
+                if (!modalEl) {
+                    modalEl = document.getElementById('modalCreate');
+                }
+                let modal2 = new bootstrap.Modal(modalEl, {
+                    backdrop: false
+                });
+                modal2.show();
+
+                let backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show second-backdrop';
+                document.body.appendChild(backdrop);
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    backdrop.remove();
+                }, { once: true });
+
+                var route = $(button).attr('data-route');
+                var title = $(button).attr('data-title-edit');
+                var action = $(button).attr('data-route-action');
+
+                $(modalEl).find('.modal-body').html('loading...');
+                $(modalEl).find('#modalTitleCentered').html(title);
+
+                $.ajax({
+                    url: route,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        $(modalEl).find('.modal-body').html(data.html);
+                        $(modalEl).find('#form-edit, form').attr('action', action);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr);
+                        alert('An error occurred while loading the edit form.');
+                    }
+                });
+            }
+        }
+
         window.addEventListener('load', function () {
             SIAOPS.getAttribute("{{$name}}").load();
         });

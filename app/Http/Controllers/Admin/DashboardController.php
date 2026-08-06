@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Carbon\Carbon;
-use App\Models\Project;
-use App\Models\Voucher;
-use App\Models\ClientPo;
-use App\Models\Quotation;
-use App\Models\InvoiceClient;
-use App\Models\ProjectProfitLost;
-use App\Http\Helpers\CustomHelper;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
 use App\Http\Controllers\CrudController;
+use App\Http\Helpers\CustomHelper;
+use App\Models\ClientPo;
+use App\Models\InvoiceClient;
+use App\Models\Project;
+use App\Models\ProjectProfitLost;
+use App\Models\Quotation;
+use App\Models\Voucher;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 
 
 class DashboardController extends CrudController
@@ -230,13 +230,17 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
             })
-            // ->when($year, function ($query) use ($year) {
-            //     $query->whereYear('project_profit_lost.created_at', $year);
-            // })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNotNull('client_po.invoice_date')
+                        ->whereYear('client_po.invoice_date', $year);
+                    });
+                });
+            })
             ->select(DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'))
             ->first();
 
@@ -246,13 +250,17 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
             })
-            // ->when($year, function ($query) use ($year) {
-            //     $query->whereYear('project_profit_lost.created_at', $year);
-            // })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNotNull('client_po.invoice_date')
+                        ->whereYear('client_po.invoice_date', $year);
+                    });
+                });
+            })
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
 
@@ -262,13 +270,17 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
             })
-            // ->when($year, function ($query) use ($year) {
-            //     $query->whereYear('project_profit_lost.created_at', $year);
-            // })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNotNull('client_po.invoice_date')
+                        ->whereYear('client_po.invoice_date', $year);
+                    });
+                });
+            })
             ->select(
                 DB::raw('SUM(IFNULL(client_po.price_job_exlude_ppn_logic, 0)) as total_omzet'),
                 DB::raw("SUM(client_po.job_value) as total_job_value")
@@ -281,13 +293,17 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
             })
-            // ->when($year, function ($query) use ($year) {
-            //     $query->whereYear('project_profit_lost.created_at', $year);
-            // })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNotNull('client_po.invoice_date')
+                        ->whereYear('client_po.invoice_date', $year);
+                    });
+                });
+            })
             ->select(DB::raw('SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as nilai_biaya'))
             ->first();
 
@@ -339,21 +355,18 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
+            })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNotNull('client_po.invoice_date')
+                        ->whereYear('client_po.invoice_date', $year);
+                    });
+                });
             })
             ->get();
-
-        // $invoice_non_rutin = InvoiceClient::leftJoin('client_po', 'client_po.id', 'invoice_clients.client_po_id')
-        //     ->leftJoinSub($voucher_query, 'voucher', function ($join) {
-        //         $join->on('voucher.client_po_id', '=', 'client_po.id');
-        //     })
-        //     ->where('client_po.category', 'NON RUTIN')
-        //     ->select(
-        //         DB::raw("client_po.*, invoice_clients.kdp, invoice_clients.price_total_exclude_ppn as price_invoice, voucher.total as total_voucher"),
-        //         DB::raw("(IFNULL(invoice_clients.price_total_exclude_ppn,0) - IFNULL(voucher.total,0)) as total_laba")
-        //     )->get();
 
         $profit_lost_non_rutin = CustomHelper::profitLostRepository(['filter_year' => $year])
             ->where('client_po.category', 'NON RUTIN')
@@ -361,9 +374,16 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
+            })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNotNull('client_po.invoice_date')
+                        ->whereYear('client_po.invoice_date', $year);
+                    });
+                });
             })
             ->get();
 
@@ -382,13 +402,17 @@ class DashboardController extends CrudController
                 $query->select(DB::raw(1))
                     ->from('invoice_clients')
                     ->whereColumn('invoice_clients.client_po_id', 'client_po.client_po_id');
-                if ($year && $year != 'all') {
-                    $query->whereYear('invoice_date', $year);
-                }
             })
-            // ->when($year, function ($query) use ($year) {
-            //     $query->whereYear('project_profit_lost.created_at', $year);
-            // })
+            ->when($year && $year != 'all', function ($query) use ($year) {
+                $query->where(function($q) use ($year){
+                    $q->where('project_profit_lost.job_year', $year)
+                    ->orWhere(function($q2) use ($year){
+                        $q2->whereNull('project_profit_lost.job_year')
+                        ->whereNull('client_po.invoice_date')
+                        ->whereYear('client_po.date_po', $year);
+                    });
+                });
+            })
             ->select(
                 DB::raw("SUM(client_po.job_value) as total_job_value"),
                 DB::raw("SUM((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_total_str"),

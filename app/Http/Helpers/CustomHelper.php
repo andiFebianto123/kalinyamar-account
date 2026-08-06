@@ -1159,12 +1159,12 @@ class CustomHelper
                 DB::raw("SUM(invoice_clients.price_total_exclude_ppn) as price_job_exlude_ppn"),
                 DB::raw("SUM(invoice_clients.price_total_include_ppn) as price_job_include_ppn")
             )
-            ->when(!empty($filter['filter_year']), function ($query) use ($filter) {
-                $filter_year = $filter['filter_year'];
-                if ($filter_year && $filter_year != 'all') {
-                    return $query->whereYear('invoice_clients.invoice_date', $filter_year);
-                }
-            })
+            // ->when(!empty($filter['filter_year']), function ($query) use ($filter) {
+            //     $filter_year = $filter['filter_year'];
+            //     if ($filter_year && $filter_year != 'all') {
+            //         return $query->whereYear('invoice_clients.invoice_date', $filter_year);
+            //     }
+            // })
             ->groupBy('invoice_clients.client_po_id');
 
         $client_po_query_exclude_ppn = DB::table("client_po")
