@@ -981,33 +981,35 @@ class CustomHelper
         $client_po = $voucher->client_po;
         $payment_transfer = $voucher->payment_transfer;
 
-        if ($client_po->status == 'TANPA PO') {
-            // ada po
-            $account = Account::where('code', self::getAccountMapping('WITHOUT_PO'))->first();
+        if ($client_po && $client_po->status == 'TANPA PO') {
+            $account_id = $voucher->account_id;
+            if ($account_id) {
+                $trans_1 = CustomHelper::updateOrCreateJournalEntry([
+                    'account_id' => $account_id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi tanpa PO " . $client_po->work_code,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'credit' => 0,
+                ], [
+                    'account_id' => $account_id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                ]);
+                $log_payment[] = [
+                    'id' => $trans_1->id,
+                    'account_id' => $account_id,
+                    'reference_id' => $voucher->id,
+                    'reference_type' => Voucher::class,
+                    'description' => "Transaksi tanpa PO " . $client_po->work_code,
+                    'date' => Carbon::now(),
+                    'debit' => $payment_transfer,
+                    'type' => JournalEntry::class,
+                ];
+            }
 
-            $trans_1 = CustomHelper::updateOrCreateJournalEntry([
-                'account_id' => $account->id,
-                'reference_id' => $voucher->id,
-                'reference_type' => Voucher::class,
-                'description' => "Transaksi tanpa PO " . $client_po->work_code,
-                'date' => Carbon::now(),
-                'debit' => $payment_transfer,
-                // 'credit' => ($status == CastAccount::OUT) ? $nominal_transaction : 0,
-            ], [
-                'account_id' => $account->id,
-                'reference_id' => $voucher->id,
-                'reference_type' => Voucher::class,
-            ]);
-            $log_payment[] = [
-                'id' => $trans_1->id,
-                'account_id' => $account->id,
-                'reference_id' => $voucher->id,
-                'reference_type' => Voucher::class,
-                'description' => "Transaksi tanpa PO " . $client_po->work_code,
-                'date' => Carbon::now(),
-                'debit' => $payment_transfer,
-                'type' => JournalEntry::class,
-            ];
+            return $log_payment;
         }
 
         // periksa jenis voucher
