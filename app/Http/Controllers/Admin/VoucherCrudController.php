@@ -146,8 +146,6 @@ class VoucherCrudController extends CrudController
                 $data = $data->where('no_voucher', 'like', '%' . $search . '%');
             }
 
-            // kolom 2
-
             // kolom 3 (relasi subkon)
             if (isset($request->search[4])) {
                 $search = trim($request->search[4]);
