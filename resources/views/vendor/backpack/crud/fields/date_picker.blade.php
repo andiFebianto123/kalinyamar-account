@@ -105,18 +105,19 @@
 
                 var $existingVal = $field.val();
 
-                if( $existingVal && $existingVal.length ){
-                    // Passing an ISO-8601 date string (YYYY-MM-DD) to the Date constructor results in
-                    // varying behavior across browsers. Splitting and passing in parts of the date
-                    // manually gives us more defined behavior.
-                    // See https://stackoverflow.com/questions/2587345/why-does-date-parse-give-incorrect-results
+                if( $existingVal && $existingVal.trim().length && $existingVal.indexOf('-') !== -1 ){
                     var parts = $existingVal.split('-');
-                    var year = parts[0];
-                    var month = parts[1] - 1; // Date constructor expects a zero-indexed month
-                    var day = parts[2];
-                    preparedDate = new Date(year, month, day).format($customConfig.format);
-                    $fake.val(preparedDate);
-                    $picker.bootstrapDP('update', preparedDate);
+                    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+                        var year = parseInt(parts[0], 10);
+                        var month = parseInt(parts[1], 10) - 1; // Date constructor expects a zero-indexed month
+                        var day = parseInt(parts[2], 10);
+                        var d = new Date(year, month, day);
+                        if (!isNaN(d.getTime())) {
+                            preparedDate = d.format($customConfig.format);
+                            $fake.val(preparedDate);
+                            $picker.bootstrapDP('update', preparedDate);
+                        }
+                    }
                 }
 
                 // prevent users from typing their own date
@@ -127,23 +128,36 @@
                 // });
 
                 $picker.on('show hide change', function(e){
+                    var sqlDate = '';
                     if( e.date ){
-                        var sqlDate = e.format('yyyy-mm-dd');
+                        try {
+                            sqlDate = e.format('yyyy-mm-dd');
+                        } catch(err) {
+                            sqlDate = '';
+                        }
                     } else {
                         try {
-                            var sqlDate = $fake.val();
+                            var val = $fake.val();
 
-                            if( $customConfig.format === 'dd/mm/yyyy' ){
-                                sqlDate = new Date(sqlDate.split('/')[2], sqlDate.split('/')[1] - 1, sqlDate.split('/')[0]).format('yyyy-mm-dd');
-                            }
-                        } catch(e){
-                            if( $fake.val() ){
-                                    new Noty({
-                                        type: "error",
-                                        text: "<strong>Whoops!</strong><br>Sorry we did not recognise that date format, please make sure it uses a yyyy mm dd combination"
-                                    }).show();
+                            if( val && val.trim().length && $customConfig.format === 'dd/mm/yyyy' ){
+                                var parts = val.split('/');
+                                if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+                                    var d = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                                    if (!isNaN(d.getTime())) {
+                                        sqlDate = d.format('yyyy-mm-dd');
+                                    }
                                 }
+                            } else if (val && val.trim().length) {
+                                sqlDate = val;
                             }
+                        } catch(err){
+                            if( $fake.val() ){
+                                new Noty({
+                                    type: "error",
+                                    text: "<strong>Whoops!</strong><br>Sorry we did not recognise that date format, please make sure it uses a yyyy mm dd combination"
+                                }).show();
+                            }
+                        }
                     }
                     $field = $fake.closest('.input-group').parent().children('input[type="hidden"]');
                     $field.val(sqlDate);
