@@ -1159,7 +1159,7 @@ class ProfitLostAccountCrudController extends CrudController
             }
         ];
         $rule['category'] = 'required';
-        $rule['job_year'] = 'required|digits:4|integer|min:2000|max:2099';
+        $rule['job_year'] = 'required';
         return $rule;
     }
 
