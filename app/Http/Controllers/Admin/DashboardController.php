@@ -426,7 +426,7 @@ class DashboardController extends CrudController
 
     public function dataNonRutinMonitoring($year = null)
     {
-        $monitoring_result = CustomHelper::profitLostRepository(['filter_year' => $year])
+        $monitoring_result = CustomHelper::profitLostRepository()
             ->where('client_po.category', 'NON RUTIN')
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
