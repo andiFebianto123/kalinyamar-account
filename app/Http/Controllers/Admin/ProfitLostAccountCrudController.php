@@ -294,6 +294,18 @@ class ProfitLostAccountCrudController extends CrudController
                         'orderable' => true,
                     ],
                     [
+                        'label' => trans('backpack::crud.client_po.column.rap_value'),
+                        'type' => 'text',
+                        'name' => 'rap_value',
+                        'orderable' => true,
+                    ],
+                    [
+                        'label' => 'Prosentase Biaya',
+                        'type' => 'text',
+                        'name' => 'percentage_cost',
+                        'orderable' => true,
+                    ],
+                    [
                         'name' => 'action',
                         'type' => 'action',
                         'label' =>  trans('backpack::crud.actions'),
@@ -647,14 +659,18 @@ class ProfitLostAccountCrudController extends CrudController
             ->select(DB::raw("SUM(total) as price_other"))->groupBy('client_po_id')->get()->sum('price_other'); //
 
         $price_profit_lost = $profitLost->price_after_year; //
+        $price_small_cash = (float)($profitLost->price_small_cash ?? 0);
 
-        $price_total = $material_data + $subkon_data + $btkl_data + $price_other_data + $price_profit_lost; //
+        $price_total = $material_data + $subkon_data + $btkl_data + $price_other_data + $price_profit_lost + $price_small_cash; //
 
         $price_profit_lost_po = $profit_lost_all_price->price_profit_lost_str; //
 
         $price_general = $profit_lost_all_price->price_general; //
 
         $price_profit_final = $profit_lost_all_price->price_prift_lost_final_str; //
+
+        $rap_value = (float)($po->rap_value ?? 0);
+        $percentage_cost = $rap_value > 0 ? (($price_total / $rap_value) * 100) : 0;
 
         if ($pure) {
             return [
@@ -663,8 +679,11 @@ class ProfitLostAccountCrudController extends CrudController
                 'price_subkon' => CustomHelper::formatRupiahExcel($subkon_data),
                 'price_btkl' => CustomHelper::formatRupiahExcel($btkl_data),
                 'price_other' => CustomHelper::formatRupiahExcel($price_other_data),
+                'price_small_cash' => CustomHelper::formatRupiahExcel($price_small_cash),
                 'price_profit_lost_project' => CustomHelper::formatRupiahExcel($price_profit_lost),
                 'price_total' => CustomHelper::formatRupiahExcel($price_total),
+                'rap_value' => CustomHelper::formatRupiahExcel($rap_value),
+                'percentage_cost' => number_format($percentage_cost, 2, ',', '.') . ' %',
                 'price_profit_lost_po' => CustomHelper::formatRupiahExcel($price_profit_lost_po),
                 'price_general' => CustomHelper::formatRupiahExcel($price_general),
                 'price_profit_final' => CustomHelper::formatRupiahExcel($price_profit_final)
@@ -677,8 +696,11 @@ class ProfitLostAccountCrudController extends CrudController
             'price_subkon' => CustomHelper::formatRupiah($subkon_data),
             'price_btkl' => CustomHelper::formatRupiah($btkl_data),
             'price_other' => CustomHelper::formatRupiah($price_other_data),
+            'price_small_cash' => CustomHelper::formatRupiah($price_small_cash),
             'price_profit_lost_project' => CustomHelper::formatRupiah($price_profit_lost),
             'price_total' => CustomHelper::formatRupiah($price_total),
+            'rap_value' => CustomHelper::formatRupiah($rap_value),
+            'percentage_cost' => number_format($percentage_cost, 2, ',', '.') . ' %',
             'price_profit_lost_po' => CustomHelper::formatRupiah($price_profit_lost_po),
             'price_general' => CustomHelper::formatRupiah($price_general),
             'price_profit_final' => CustomHelper::formatRupiah($price_profit_final)
@@ -1951,6 +1973,7 @@ class ProfitLostAccountCrudController extends CrudController
                         "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                         "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
                         "client_po.date_po",
+                        "client_po.rap_value",
                         DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic"),
                         DB::raw("IF(invoice.invoice_date IS NULL, 0, invoice.price_job_include_ppn) as job_value_include_ppn_logic")
                     );
@@ -2214,6 +2237,35 @@ class ProfitLostAccountCrudController extends CrudController
                     }
                 ]);
 
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.rap_value'),
+                    'name' => 'rap_value',
+                    'type'  => 'number',
+                    'prefix' => ($settings?->currency_symbol) ? $settings->currency_symbol : "Rp.",
+                    'decimals'      => 2,
+                    'dec_point'     => ',',
+                    'thousands_sep' => '.',
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('client_po.rap_value', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => 'Prosentase Biaya',
+                    'name' => 'percentage_cost',
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        if (!empty($entry->rap_value) && (float)$entry->rap_value > 0) {
+                            $percent = ((float)$entry->price_total_str / (float)$entry->rap_value) * 100;
+                            return number_format($percent, 2, ",", ".") . ' %';
+                        }
+                        return '0,00 %';
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderByRaw("IF(client_po.rap_value > 0, ((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) / client_po.rap_value) * 100, 0) {$columnDirection}");
+                    }
+                ]);
+
                 CRUD::addClause('select', [
                     DB::raw("
                         project_profit_lost.*,
@@ -2228,6 +2280,7 @@ class ProfitLostAccountCrudController extends CrudController
                         client_po.job_name as job_name,
                         client_po.job_value as job_value,
                         client_po.job_value_include_ppn_logic,
+                        client_po.rap_value as rap_value,
                         IFNULL(project_profit_lost.price_small_cash, 0) as total_small_cash,
                         (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) as price_total_str,
                         (client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_profit_lost_str,
@@ -2363,6 +2416,7 @@ class ProfitLostAccountCrudController extends CrudController
                         "client_po.job_value_include_ppn",
                         "invoice.invoice_date",
                         "client_po.date_po",
+                        "client_po.rap_value",
                         "invoice.price_job_exlude_ppn as invoice_price_job_exlude_ppn",
                         "invoice.price_job_include_ppn as invoice_price_job_include_ppn",
                         DB::raw("IF(invoice.invoice_date IS NULL, client_po.job_value, invoice.price_job_exlude_ppn) as price_job_exlude_ppn_logic"),
@@ -2625,6 +2679,34 @@ class ProfitLostAccountCrudController extends CrudController
                     }
                 ]);
 
+                CRUD::column([
+                    'label'  => trans('backpack::crud.client_po.column.rap_value'),
+                    'name' => 'rap_value',
+                    'type'  => 'closure',
+                    'function' => function ($entry) use ($status_file) {
+                        return $this->priceFormatExport($status_file, $entry->rap_value);
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderBy('client_po.rap_value', $columnDirection);
+                    }
+                ]);
+
+                CRUD::column([
+                    'label'  => 'Prosentase Biaya',
+                    'name' => 'percentage_cost',
+                    'type'  => 'closure',
+                    'function' => function ($entry) {
+                        if (!empty($entry->rap_value) && (float)$entry->rap_value > 0) {
+                            $percent = ((float)$entry->price_total_str / (float)$entry->rap_value) * 100;
+                            return number_format($percent, 2, ",", ".") . ' %';
+                        }
+                        return '0,00 %';
+                    },
+                    'orderLogic' => function ($query, $column, $columnDirection) {
+                        $query->orderByRaw("IF(client_po.rap_value > 0, ((IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) / client_po.rap_value) * 100, 0) {$columnDirection}");
+                    }
+                ]);
+
                 CRUD::addClause('select', [
                     DB::raw("
                         project_profit_lost.*,
@@ -2639,11 +2721,12 @@ class ProfitLostAccountCrudController extends CrudController
                         client_po.job_name as job_name,
                         client_po.job_value as job_value,
                         client_po.job_value_include_ppn_logic,
+                        client_po.rap_value as rap_value,
                         IFNULL(project_profit_lost.price_small_cash, 0) as total_small_cash,
                         (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0)) as price_total_str,
                         (client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) as price_profit_lost_str,
                         ((client_po.price_job_exlude_ppn_logic - (IFNULL(project_profit_lost.price_after_year, 0) + IFNULL(vouchers.biaya, 0) + IFNULL(project_profit_lost.price_small_cash, 0))) - IFNULL(project_profit_lost.price_general, 0)) as price_prift_lost_final_str
-                   ")
+                    ")
                 ]);
             }
         }

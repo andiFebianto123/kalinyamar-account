@@ -36,7 +36,7 @@ class ProfitLostExcel implements FromView, WithStyles, WithColumnWidths, WithEve
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                $sheet->getStyle('B6:B17')
+                $sheet->getStyle('B6:B20')
                     ->getNumberFormat()
                     ->setFormatCode('0');
             },
@@ -58,11 +58,11 @@ class ProfitLostExcel implements FromView, WithStyles, WithColumnWidths, WithEve
 
             'A7' => ['font' => ['bold' => true]], // A
             'A11' => ['font' => ['bold' => false]], // Total Biaya
-            'A12' => ['font' => ['bold' => false]], // C
-            'A13' => ['font' => ['bold' => false]], // D
-            'A14' => ['font' => ['bold' => true]], // E
+            'A15' => ['font' => ['bold' => false]], // C
+            'A16' => ['font' => ['bold' => false]], // D
+            'A17' => ['font' => ['bold' => true]], // E
 
-            'A6:B17' => ['font' => ['size' => 14]],
+            'A6:B20' => ['font' => ['size' => 14]],
         ];
     }
 

@@ -75,8 +75,20 @@
         <td align="right">{{ $report['price_profit_lost_project'] }}</td>
     </tr>
     <tr>
+        <td>Kas Kecil</td>
+        <td align="right">{{ $report['price_small_cash'] }}</td>
+    </tr>
+    <tr>
         <td><b>Total Biaya</b></td>
         <td align="right"><b>{{ $report['price_total'] }}</b></td>
+    </tr>
+    <tr>
+        <td><b>Nilai RAP</b></td>
+        <td align="right"><b>{{ $report['rap_value'] }}</b></td>
+    </tr>
+    <tr>
+        <td><b>Prosentase Biaya</b></td>
+        <td align="right"><b>{{ $report['percentage_cost'] }}</b></td>
     </tr>
 
     <tr>

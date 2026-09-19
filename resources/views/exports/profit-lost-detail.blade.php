@@ -142,9 +142,21 @@
                                 <td class="indent">Biaya lewat Tahun</td>
                                 <td class="text-right">{{$report['price_profit_lost_project']}}</td>
                             </tr>
+                            <tr>
+                                <td class="indent">Kas Kecil</td>
+                                <td class="text-right">{{$report['price_small_cash']}}</td>
+                            </tr>
                             <tr class="total-row">
                                 <td class="bold">Total Biaya</td>
                                 <td class="text-right bold">{{$report['price_total']}}</td>
+                            </tr>
+                            <tr>
+                                <td class="bold">Nilai RAP</td>
+                                <td class="text-right bold">{{$report['rap_value']}}</td>
+                            </tr>
+                            <tr>
+                                <td class="bold">Prosentase Biaya</td>
+                                <td class="text-right bold">{{$report['percentage_cost']}}</td>
                             </tr>
                         </table>
                     </td>
