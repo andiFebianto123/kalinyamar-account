@@ -2255,8 +2255,10 @@ class ProfitLostAccountCrudController extends CrudController
                     'name' => 'percentage_cost',
                     'type'  => 'closure',
                     'function' => function ($entry) {
-                        if (!empty($entry->rap_value) && (float)$entry->rap_value > 0) {
-                            $percent = ((float)$entry->price_total_str / (float)$entry->rap_value) * 100;
+                        $total_biaya = (float) ($entry->price_total_str ?? 0);
+                        $rap = (float) ($entry->rap_value ?? 0);
+                        if ($rap > 0) {
+                            $percent = ($total_biaya / $rap) * 100;
                             return number_format($percent, 2, ",", ".") . ' %';
                         }
                         return '0,00 %';
@@ -2696,8 +2698,10 @@ class ProfitLostAccountCrudController extends CrudController
                     'name' => 'percentage_cost',
                     'type'  => 'closure',
                     'function' => function ($entry) {
-                        if (!empty($entry->rap_value) && (float)$entry->rap_value > 0) {
-                            $percent = ((float)$entry->price_total_str / (float)$entry->rap_value) * 100;
+                        $total_biaya = (float) ($entry->price_total_str ?? 0);
+                        $rap = (float) ($entry->rap_value ?? 0);
+                        if ($rap > 0) {
+                            $percent = ($total_biaya / $rap) * 100;
                             return number_format($percent, 2, ",", ".") . ' %';
                         }
                         return '0,00 %';
