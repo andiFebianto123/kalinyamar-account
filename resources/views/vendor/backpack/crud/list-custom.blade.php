@@ -25,23 +25,18 @@
         <p class="ms-2 ml-2 mb-0" id="datatable_info_stack" bp-section="page-subheading">{!! $crud->getSubheading() ?? '' !!}</p>
     </section>
     @if (backpack_theme_config('breadcrumbs') && isset($breadcrumbs) && is_array($breadcrumbs))
-        <nav aria-label="breadcrumb" class="d-none d-lg-block">
-            <div class="d-flex justify-content-between">
-                <ol class="breadcrumb bg-transparent p-0 mx-3">
+        <nav aria-label="breadcrumb">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                <ol class="breadcrumb bg-transparent p-0 mx-3 d-flex mb-0">
                     @foreach ($breadcrumbs as $label => $link)
                         @if ($loop->last)
                             <li class="breadcrumb-item text-capitalize active" aria-current="page">{{ $label }}</li>
                         @else
                             <li class="breadcrumb-item text-capitalize"><a href="{{ $link }}">{{ $label }}</a></li>
                         @endif
-                        {{-- @if ($link)
-                            <li class="breadcrumb-item text-capitalize"><a href="{{ $link }}">{{ $label }}</a></li>
-                        @else
-                            <li class="breadcrumb-item text-capitalize active" aria-current="page">{{ $label }}</li>
-                        @endif --}}
                     @endforeach
                 </ol>
-                <div class="d-print-none mb-2 pe-3 {{ $crud->hasAccess('create')?'with-border':'' }}">
+                <div class="d-print-none mb-2 px-3 {{ $crud->hasAccess('create')?'with-border':'' }} d-flex flex-wrap gap-1">
                     @include('crud::inc.button_stack', ['stack' => 'top'])
                 </div>
             </div>
