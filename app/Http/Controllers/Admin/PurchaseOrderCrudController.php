@@ -698,14 +698,18 @@ class PurchaseOrderCrudController extends CrudController
 
         $app->addColumn([
             // 1-n relationship
-            'label' => trans('backpack::crud.subkon.column.name'),
+            'label'     => trans('backpack::crud.subkon.column.name'),
             'type'      => 'select',
             'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
             'entity'    => 'subkon', // the method that defines the relationship in your Model
             'attribute' => 'name', // foreign key attribute that is shown to user
             'model'     => "App\Models\Subkon", // foreign key model
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
+            'limit'     => 600,
+            'wrapper'   => [
+                'element' => 'span',
+                'class'   => 'text-wrap text-break',
+                'style'   => 'white-space: normal; word-break: break-word; display: inline-block; min-width: 220px; max-width: 350px;',
+            ],
         ]);
 
         $app->addColumn(
@@ -1160,14 +1164,18 @@ class PurchaseOrderCrudController extends CrudController
         // CRUD::column('row_number')->remove();
         CRUD::column([
             // 1-n relationship
-            'label' => trans('backpack::crud.subkon.column.name'),
+            'label'     => trans('backpack::crud.subkon.column.name'),
             'type'      => 'select',
             'name'      => 'subkon_id', // the column that contains the ID of that connected entity;
             'entity'    => 'subkon', // the method that defines the relationship in your Model
             'attribute' => 'name', // foreign key attribute that is shown to user
             'model'     => "App\Models\Subkon", // foreign key model
-            // OPTIONAL
-            // 'limit' => 32, // Limit the number of characters shown
+            'limit'     => 600,
+            'wrapper'   => [
+                'element' => 'span',
+                'class'   => 'text-wrap text-break',
+                'style'   => 'white-space: normal; word-break: break-word; display: inline-block; min-width: 220px; max-width: 350px;',
+            ],
         ]);
 
         CRUD::column(

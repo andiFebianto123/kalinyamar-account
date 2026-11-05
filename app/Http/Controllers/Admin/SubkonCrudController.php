@@ -128,9 +128,11 @@ class SubkonCrudController extends CrudController
         ])->makeFirstColumn();
 
         CRUD::addColumn([
-            'name'  => 'name',
-            'label' => trans('backpack::crud.subkon.column.name'),
-            'type'  => 'text',
+            'name'      => 'name',
+            'label'     => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'wrap_text',
+            'limit'     => 600,
+            'width_box' => '350px',
         ]);
 
         CRUD::addColumn([
@@ -667,16 +669,18 @@ class SubkonCrudController extends CrudController
 
         // column
         CRUD::addColumn([
-            'name'  => 'name',
-            'label' => trans('backpack::crud.subkon.column.name'),
-            'type'  => 'wrap_text',
-            'width_box' => '350px',
+            'name'      => 'name',
+            'label'     => trans('backpack::crud.subkon.column.name'),
+            'type'      => 'wrap_text',
+            'limit'     => 600,
+            'width_box' => '100%',
         ]);
         CRUD::addColumn([
-            'name'  => 'address',
-            'label' => trans('backpack::crud.subkon.column.address'),
-            'type'  => 'wrap_text',
-            'width_box' => '350px',
+            'name'      => 'address',
+            'label'     => trans('backpack::crud.subkon.column.address'),
+            'type'      => 'wrap_text',
+            'limit'     => 600,
+            'width_box' => '100%',
         ]);
 
         CRUD::addColumn([

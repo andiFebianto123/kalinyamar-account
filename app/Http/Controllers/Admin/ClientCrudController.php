@@ -161,7 +161,9 @@ class ClientCrudController extends CrudController
             [
                 'label'  => trans('backpack::crud.client.column.name'),
                 'name' => 'name',
-                'type'  => 'text'
+                'type'  => 'wrap_text',
+                'limit' => 600,
+                'width_box' => '350px',
             ],
         );
 
